@@ -1,7 +1,7 @@
 // https://fileformats.fandom.com/wiki/Impulse_tracker
 // rememer that data is in little endian
 // we're only interested in dumping every sample
-use byteorder::{BigEndian, ByteOrder, LittleEndian, LE, BE};
+use byteorder::{LittleEndian, ByteOrder,LE, BE};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
@@ -17,8 +17,6 @@ const IT_SAMPLE_ID: u32 = 0x49_4D_50_53; // IMPS
 
 const IT_HEADER_LEN: usize = 192;
 const IT_SAMPLE_LEN: usize = 80;
-
-const IT_INSTRU_ID_OLD: u32 = 0x494D5049; // IMPI
 
 mod macros {
     #[macro_export]
@@ -47,44 +45,6 @@ mod macros {
     }
 }
 
-/*
-foo->bar is equivalent to (*foo).bar,
-i.e. it gets the member called bar from the struct that foo points to.
-
-Samples can be found by locating
-IT_SAMPLE_ID
-
-
-refer to its.c , void save_its_header() {}
-Flags:
-0000_0001 ?? (r)
-0000_0010
-0000_0100
-0000_1000
-0001_0000
-0010_0000
-0100_0000
-1000_0000
-
-*/
-
-/*
-Idea:
-
-1) locate "IMPS" header and obtain:
-    * sample name / filename
-    * sample length
-    * sample pointer
-    * format ???
-
-2) jump to the sample pointer,
-3) obtain bytes specified by sample length
-
-we don't care about the other infomation,
-but it's important to know them so that we can identify their offsets
-
-*/
-
 #[derive(Debug)]
 pub struct ItFile {
     buffer: Vec<u8>,
@@ -111,56 +71,25 @@ impl ItFile {
             samples_meta,
         })
     }
-    fn export<P: AsRef<Path>>(&self, path: P, index: u16) -> Result<(), Error> {
-        let index = if index > self.sample_number { 
-            self.sample_number - 1 } else {index};
 
-        let header = build_wav_header(&self.samples_meta[index as usize]);
+    fn export<P: AsRef<Path>>(&self, path: P, index: usize) -> Result<(), Error> {
+        let index = if index > self.sample_number as usize { 
+            self.sample_number as usize - 1 
+        } else {
+            index
+        };
 
-        let sample = &self.samples_meta[index as usize];
-        // let bits_sample: u16 = match sample.flags & MASK_BITS_SAMPLE {
-        //     0b11 => 16, // 16 bit samples
-        //     0b01 => 8, // 8- bit samples
-        //     _ => 16,
-        // };
-        println!(
-            "sample length: {}\nsample pointer {:04X}\nsample speed: {}\nsample flags: {:08b}\n\n",
-            &sample.length,
-            &sample.sample_pointer,
-            &sample.sample_rate,
-            &sample.flags,
-        );
-
-        // println!("{}", bits_sample);
+        let wav_header = build_wav_header(&self.samples_meta[index]);
+        let sample = &self.samples_meta[index];
         let start_ptr = sample.sample_pointer as usize;
-        let end_ptr = start_ptr + (sample.length as usize * (sample.bits_sample/8) as usize);
-        println!("{}", end_ptr-start_ptr);
-        // println!("{}", end_ptr-start_ptr);
+        let end_ptr = start_ptr + 
+            (sample.length * (sample.bits_sample as u32 / 8)) as usize;
 
-        
         let raw = &self.buffer[start_ptr..end_ptr];
-        println!("{}", raw.len());
 
-        // let mut d: &[u8];
-
-        // // if the sample is 8 bits
-        // // maybe try editing the wav header to indicate unsigned bit?
-        // if bits_sample == 8 {
-        //     d = &raw.iter().map(|e| e.wrapping_sub(127)).collect::<Vec<u8>>();
-        // } else {
-        //     d
-        // }
-        // We need to convert raw u8 buffer to i8 
-        
-        // yuck!
-
-        // convert raw [u8] to [i8] for 8-bit samples and 16 bit samples
-        //
-        // let a = raw.iter().map(|e| e.wrapping_sub(127)).collect::<Vec<u8>>();
-        // println!("{}", raw.len());
         let mut file = File::create(path)?;
-        // write WAV header
-        file.write_all(&header)?;
+
+        file.write_all(&wav_header)?;
 
         // Write PCM data
         if sample.bits_sample == 8 {
@@ -170,7 +99,6 @@ impl ItFile {
         } else {
             file.write_all(&raw)?;
         }
-        
         
         Ok(())
 
@@ -201,8 +129,8 @@ fn build_samples(it_data: &Vec<u8>, num_samples: u16) -> Result<Vec<ItSample>, E
         .into());
     }
 
-    for i in 0..num_samples {
-        let offset = ins_start_index + (i * 0x50) as usize; // 0x50 = size of sample metadata (80 bytes)
+    for i in 0..num_samples as usize{
+        let offset = ins_start_index + (i * IT_SAMPLE_LEN) as usize; // 0x50 = size of sample metadata (80 bytes)
         let mut filename:   [char; 12] = [' '; 12];
         let mut name:       [char; 26] = [' '; 26];
 
@@ -251,45 +179,33 @@ const HEADER_SIZE: u8 = 44;
 const MASK_BITS_SAMPLE: u8 = 0b0000_0011;
 
 fn build_wav_header(raw: &ItSample) -> [u8; HEADER_SIZE as usize]{
-    let mut header:[u8; HEADER_SIZE as usize] = [0u8; HEADER_SIZE as usize]; 
+    let mut header:[u8; HEADER_SIZE as usize] = [0u8; HEADER_SIZE as usize];     
+    let wav_scs:            u32 = 16;                       // sec chunk size
+    let wav_type:           u16 = 1;                        // 1 = pcm
+    let wav_flag_ms:        u16 = 0x01;                     // mono/stereo 0x01 = mono, 0x02 = stereo
+    let sample_frequency:   u32 = raw.sample_rate;
+    let bytes_sec:          u32 = raw.sample_rate * 1;      // sample_rate * channels
+    let block_align:        u16 = 0x01;                     // can be anything really
+    let bits_sample:        u16 = raw.bits_sample;
+    let file_size:          u32 = HEADER_SIZE as u32 + (raw.length * (bits_sample / 8) as u32) - 8;
+    let size_of_chunk:      u32 = raw.length * (bits_sample / 8) as u32;
 
-    
-    let wav_scs: u32 = 16; // sec chunk size
-    let wav_type: u16 = 1; // 1 = pcm
-    let wav_flag_ms: u16 = 0x01; // mono/stereo 0x01 = mono, 0x02 = stereo
-    let sample_frequency: u32 = raw.sample_rate;
-    let bytes_sec: u32 = raw.sample_rate * 1; // sample_rate * channels
-    let block_align: u16 = 0x01; // can be anything really
-    let bits_sample: u16 = raw.bits_sample;
-
-    let file_size: u32 = HEADER_SIZE as u32 + (raw.length * (bits_sample / 8) as u32) - 8;
-    let size_of_chunk: u32 = raw.length * (bits_sample / 8) as u32;
-
-    // println!("{}", bits_sample);
     BE::write_u32(&mut header[offset_u32!(0x0000)], RIFF);
     LE::write_u32(&mut header[offset_u32!(0x0004)], file_size);
     BE::write_u32(&mut header[offset_u32!(0x0008)], WAVE);
     BE::write_u32(&mut header[offset_u32!(0x000C)], FMT_);
     LE::write_u32(&mut header[offset_u32!(0x0010)], wav_scs);
-
     LE::write_u16(&mut header[offset_u16!(0x0014)], wav_type);
     LE::write_u16(&mut header[offset_u16!(0x0016)], wav_flag_ms);
-
     LE::write_u32(&mut header[offset_u32!(0x0018)], sample_frequency);
     LE::write_u32(&mut header[offset_u32!(0x001C)], bytes_sec);
-
     LE::write_u16(&mut header[offset_u16!(0x0020)], block_align);
     LE::write_u16(&mut header[offset_u16!(0x0022)], bits_sample);
-
     BE::write_u32(&mut header[offset_u32!(0x0024)], DATA);
-
     LE::write_u32(&mut header[offset_u32!(0x0028)], size_of_chunk);
     
-    // println!("{:04X?}", &header[offset_u16!(0x0022)]);
     header
 }
-
-
 
 #[derive(Debug)]
 pub struct ItSample {
@@ -301,39 +217,6 @@ pub struct ItSample {
     flags: u8,
     bits_sample: u16,
 }
-// enum BitsSample {
-//     B8,
-//     B16
-// }
-
-// #[macro_use]
-
-// #[test]
-// fn gen() {
-//     let mut a = 0x0000;
-//     let b = [
-//         4, (12), 1, 1, 1, 1, 26,
-//         1, 1,  4, 4, 4, 4, 4,
-//         4, 4,  1, 1, 1, 1
-//     ];
-//     for i in b.iter() {
-//         println!("0x{:04X} -> ", a);
-//         a += i;
-//     };
-// }
-
-// #[test]
-// fn gen2() {
-//     let mut a = 0x0000;
-//     let b = [
-//         4, 26, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2,
-//         1, 1, 1, 1, 1, 1, 2, 4, 4, 64, 64
-//     ];
-//     for i in b.iter() {
-//         println!("0x{:04X} ->  [u{}]", a, i*8);
-//         a += i;
-//     };
-// }
 
 #[test]
 fn test1() {
