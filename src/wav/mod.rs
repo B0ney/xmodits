@@ -1,9 +1,5 @@
 use byteorder::{ByteOrder, BE, LE};
-
-use crate::{
-    offset_u16,
-    offset_u32
-};
+use crate::{offset_u16, offset_u32};
 
 const RIFF: u32 = 0x5249_4646; // RIFF
 const WAVE: u32 = 0x5741_5645; // WAVE
@@ -22,7 +18,7 @@ pub fn build_header(
     let wav_type:           u16 = 1;                        // 1 = pcm
     let wav_flag_ms:        u16 = 0x01;                     // mono/stereo 0x01 = mono, 0x02 = stereo
     let sample_frequency:   u32 = smp_rate;
-    let bytes_sec:          u32 = smp_rate * 1;             // sample_rate * channels
+    let bytes_sec:          u32 = smp_rate * wav_flag_ms;   // sample_rate * channels (DOUBLE CHECK)
     let block_align:        u16 = 0x01;                     // can be anything really
     let bits_sample:        u16 = smp_bits;
     let file_size:          u32 = HEADER_SIZE as u32 + (pcm_len * (bits_sample / 8) as u32) - 8;

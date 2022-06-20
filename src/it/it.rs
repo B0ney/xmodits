@@ -58,14 +58,10 @@ impl ItFile {
             smp.bits_sample,
             smp.length,
         );
-        
         let start_ptr = smp.sample_pointer as usize;
-
         let end_ptr = start_ptr + 
             (smp.length * (smp.bits_sample as u32 / 8)) as usize;
-
         let raw = &self.buffer[start_ptr..end_ptr];
-
         let mut file = File::create(path)?;
 
         file.write_all(&wav_header)?;
