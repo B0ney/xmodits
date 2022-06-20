@@ -13,7 +13,7 @@ https://isip.piconepress.com/projects/speech/software/tutorials/production/funda
 0x0020 -> block align               [u16]
 0x0022 -> bits per sample           [u16]
 0x0024 -> "data"                    [u32]
-0x0028 -> size of data chunk        [u32]
+0x0028 -> size of data chunk*****   [u32]
 0x002C -> audio data
 ```
 *The file size - 8 bytes
@@ -23,3 +23,5 @@ https://isip.piconepress.com/projects/speech/software/tutorials/production/funda
 *** Type of WAV format. This is a PCM header, or a value of 0x01. 
 
 **** mono (0x01) or stereo (0x02) 
+
+***** length of byte array * (bits_per_sample / 8)
