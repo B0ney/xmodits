@@ -11,8 +11,8 @@ const IT_HEADER_ID: u32 = 0x49_4D_50_4D; // IMPM
 const IT_SAMPLE_ID: u32 = 0x49_4D_50_53; // IMPS
 const IT_HEADER_LEN: usize = 192;
 const IT_SAMPLE_LEN: usize = 80;
-const MASK_SMP_BITS: u8 = 0b0000_0010; // bit 1 = 16  /8bit samples
-const MASK_SMP_COMP: u8 = 0b0000_1000; // Does sample use compression
+const MASK_SMP_BITS: u8 = 0b0000_0010; // 16/8bit samples
+const MASK_SMP_COMP: u8 = 0b0000_1000; // Does sample use compression?
 
 #[derive(Debug)]
 pub struct ItSample {
@@ -69,6 +69,7 @@ impl ItFile {
         file.write_all(&wav_header)?;
 
         // Write PCM data
+        // TODO: decompress if sample uses compression
         if smp.smp_bits == 8 {
             // normalize to prevent earrape
             let a = raw.iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
@@ -106,17 +107,18 @@ fn build_samples(it_data: &Vec<u8>, num_samples: u16) -> Result<Vec<ItSample>, E
 
     for i in 0..num_samples as usize {
         let offset = ins_start_index + (i * IT_SAMPLE_LEN) as usize;
-        let mut filename:   [char; 12] = [' '; 12];
-        let mut name:       [char; 26] = [' '; 26];
         let smp_flag: u8 = it_data[0x012 + offset];
+        let mut filename:   [char; 12] = [' '; 12];
+        let mut name:       [char; 26] = [' '; 26];      
         
         load_to_array(&mut filename,    &it_data[offset_chars!(0x0004 + offset, 12)]);
         load_to_array(&mut name,        &it_data[offset_chars!(0x0014 + offset, 26)]);
         
-        /*  "it_data[0x012 + offset]" = Flag 
-            Isolate bit 1, by ANDing with MASK & Shift Right 1.
-            Add 1 and multiply by 8. I.E.
-            If bit = 0, 0 becomes 8.  If bit = 1, 1 becomes 16 */
+        /*  Isolate flag bit to LSB, by ANDing with MASK then Shift Right N. (LSB = Least Significant Bit)
+            
+            for "bit_samples", Add 1 and multiply by 8 so that
+            if bit = 0, 0 becomes 8.  If bit = 1, 1 becomes 16 
+        */
         let bits_sample: u8         = (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8;
         let is_compressed: bool     =  ((smp_flag & MASK_SMP_COMP) >> 3) == 1;
 
