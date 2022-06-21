@@ -1,8 +1,7 @@
-use byteorder::{LittleEndian, ByteOrder,LE, BE};
+use byteorder::{ByteOrder, LE, BE};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
-
 use crate::utils::Error;
 use crate::wav;
 use crate::{offset_u16, offset_u32, offset_chars};
@@ -18,11 +17,11 @@ const MASK_SMP_COMP: u8 = 0b0000_1000; // Does sample use compression?
 pub struct ItSample {
     filename: [char; 12],
     name: [char; 26],
-    smp_len: u32,        // This is NOT in bytes
-    smp_ptr: u32,
-    smp_rate: u32,
+    pub smp_len: u32,        // This is NOT in bytes
+    pub smp_ptr: u32,
+    pub smp_rate: u32,
     pub smp_flag: u8,
-    smp_bits: u8,       // does sample use 16 or 8 bits
+    pub smp_bits: u8,       // does sample use 16 or 8 bits
     pub smp_comp: bool, // Does sample use compression
 }
 
@@ -55,31 +54,30 @@ impl ItFile {
 
     pub fn export<P: AsRef<Path>>(&self, path: P, index: usize) -> Result<(), Error> {
         let smp = &self.samples_meta[index];
+        let start_ptr   = smp.smp_ptr as usize;
+        let end_ptr     = start_ptr + 
+            (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
+        let raw_data = &self.buffer[start_ptr..end_ptr];    
+        let mut file = File::create(path)?;
         let wav_header = wav::build_header(
             smp.smp_rate,
             smp.smp_bits,
             smp.smp_len,
         );
-        let start_ptr = smp.smp_ptr as usize;
-        let end_ptr = start_ptr + 
-            (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
-        let raw = &self.buffer[start_ptr..end_ptr];
-        let mut file = File::create(path)?;
-
+        
         file.write_all(&wav_header)?;
 
         // Write PCM data
         // TODO: decompress if sample uses compression
         if smp.smp_bits == 8 {
             // normalize to prevent earrape
-            let a = raw.iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
+            let a = raw_data.iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
             file.write_all(&a)?;
         } else {
-            file.write_all(&raw)?;
+            file.write_all(&raw_data)?;
         }
         
         Ok(())
-
     }
 }
 

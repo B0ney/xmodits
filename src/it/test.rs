@@ -1,3 +1,5 @@
+use std::fs::DirEntry;
+
 use super::it::*;
 
 #[test]
@@ -29,3 +31,41 @@ fn test_flag_set_2() {
     assert_eq!(test_func(f1_false), false);
     assert_eq!(test_func(f2_true), true);
 }
+#[test]
+fn test_dump() {
+    let a = ItFile::load("samples/beyond_-_darkcaribbean.it").unwrap();
+    // let _ = a.export(format!("./test/test_dump_comp1.wav"), 6);
+    for (i,f) in a.samples_meta.iter().enumerate() {
+        let _ = a.export(format!("./test/{i}.wav"), i);
+
+        println!("{}",i);
+        println!("index: 0x{:04X}\nlength:{}\nrate:{}\n\n",
+            f.smp_ptr,
+            f.smp_len,
+            
+            f.smp_rate,
+        );
+
+    }
+}
+
+// #[test]
+// fn find_compressed_sample() {
+//     // let f: Vec<DirEntry> = std::fs::read_dir("../samples/")
+//     //     .unwrap()
+//     //     .filter_map(|f| f.ok())
+//     //     .collect();
+
+//     let a = ItFile::load("samples/xerxes_kandu.it").unwrap();
+//     let cm: Vec<&ItSample> = a 
+//         .samples_meta
+//         .iter()
+//         .filter(|e| e.smp_comp)
+//         .collect();
+
+//     if cm.is_empty() {
+//         println!("\nModule has no compressed samples :(\n");
+//     } else {
+//         println!{"{:#?}", &cm};
+//     }
+// }

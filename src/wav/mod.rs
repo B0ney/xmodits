@@ -9,7 +9,7 @@ const HEADER_SIZE: u8 = 44;
 
 pub fn build_header(
     smp_rate: u32,  // sample rate
-    smp_bits: u8,  // bits per sample
+    smp_bits: u8,   // bits per sample
     pcm_len: u32,   // length of byte array
 ) -> [u8; HEADER_SIZE as usize]
 {
