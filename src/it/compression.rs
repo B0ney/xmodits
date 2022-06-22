@@ -112,18 +112,15 @@ impl BitReader {
 /// 
 /// The goal here is to achive simplicity.
 pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
-    let mut dest_buf: Vec<u8> = Vec::new(); // Buffer to write decompressed data
-
     let mut len: u32 = len;     // Length of uncompressed sample. (copied for mutation)
-    let mut d1: i16 = 0;        // integrator buffer for IT2.14
-    let mut d2: i16 = 0;        // second integrator buffer for IT2.15
-
     let mut blklen: u16;        // block length. Usually 0x8000 for 8-Bit samples
     let mut blkpos: u16;        // block position
-
+    let mut sample_value: i8;   // Decompressed sample value             (Note i8 for 8 bit samples)
+    let mut d1: i8 = 0;         // integrator buffer for IT2.14          (Note i8 for 8 bit samples)
+    let mut d2: i8 = 0;         // second integrator buffer for IT2.15   (Note i8 for 8 bit samples)
     let mut width: u8;          // Bit width. Starts at 9 For 8-Bit samples.
     let mut value: u16;         // Value read 
-
+    let mut dest_buf: Vec<u8> = Vec::new(); // Buffer to write decompressed data
     let mut bitread = BitReader::new();
     
     // Unpack data
@@ -134,7 +131,7 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
         blklen = if len < 0x8000 {len as u16} else {0x8000};
         blkpos = 0;
 
-        width = 9;      //
+        width = 9;
         
         // Reset integrator buffers
         d1 = 0; 
@@ -177,28 +174,21 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
                return Err("Illegal width".into()); 
             }
 
-            let mut v: i16;
-
             // expand value to signed byte
             if width < 8 {
                 let shift: u8 = 8 - width;
-                v = (value as i16) << shift;
-                v >>= shift
+                sample_value = (value as i8) << shift;
+                sample_value >>= shift
             } else {
-                v = value as i16
+                sample_value = value as i8
             }
 
             // integrate
-            d1 += v;
+            d1 += sample_value;
             d2 += d1;
 
-            // Push to buffer
-            {
-                let mut buf = vec![0u8 ;2];
-                LE::write_i16(&mut buf, d1); // todo
-                dest_buf.append(&mut buf);
-            }
-        
+            dest_buf.push(d1 as u8);
+           
             blkpos += 1;
         }
         len -= blklen as u32;
@@ -206,4 +196,14 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
     Ok(dest_buf)
 }
 // 
-// pub fn decompress_16bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {}
+// pub fn decompress_16bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
+
+    // Push to buffer
+    // {
+        // let mut buf = vec![0u8 ;2];
+        // LE::write_i16(&mut buf, d1); // todo
+        
+    // }
+
+
+// }
