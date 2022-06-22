@@ -70,7 +70,7 @@ impl <'a>BitReader<'a> {
 
         // copy section of buffer for mutation.
         self.blk_data = self._allocate(block_size as usize)?;
-        self.blk_index = 2; // should it start a 0 or 2?
+        self.blk_index = 2; // should it start a 0 or 2? // set to 2 to skip length field
 
         self.bitnum = 8;
         self.bitlen = block_size as u32;
@@ -118,6 +118,7 @@ impl <'a>BitReader<'a> {
             i -= 1;
 
         }
+        // println!("{:032b}", (value >> (32 - n) as u32));
         return Ok((value >> (32 - n) as u32) as u16); 
 
 
@@ -140,7 +141,7 @@ impl <'a>BitReader<'a> {
                 m = self.bitnum
             };
             // println!("{}",m);
-            retval |= ( (self.blk_data[self.blk_index] & ((1u32 << (m as u32)) - 1) as u8) as u32 ) << offset;
+            retval |= ( (self.blk_data[self.blk_index] & ((1<< (m -1)) - 1) as u8) as u32 ) << offset;
             
             self.blk_data[self.blk_index] >>= (m-1);
             n -= m;
@@ -195,7 +196,7 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
 
         while blkpos < blklen {
             value = bitread.read_bits_2(width)?;
-            // println!("{:04x}",value);
+            // println!("{:016b}",value);
             // println!("width: {}",width);
 
 
@@ -239,24 +240,29 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
             }
 
             // println!(":0");
+            // sample values are encoded with "bit width"
+            // expand them to be 8 bits
             // expand value to signed byte
             if width < 8 {
                 let shift: u8 = 8 - width;
-                let mut test_val: u32 = (value as u32) << shift;
-                test_val >>= shift;
-                sample_value = test_val as i8;
-                // sample_value = (value as i8) << shift;
-                // sample_value >>= shift as i8;
+                // let mut test_val: u32 = (value as u32) << shift;
+                // test_val >>= shift;
+
+                // sample_value = test_val as i8;
+                sample_value = (value << shift) as i8 ;
+                sample_value >>= shift as i8;
             } else {
                 sample_value = value as i8;
             }
 
             // integrate
             // println!("sample_value: {}",sample_value);
+            // In the original C implementation, 
+            // values will wrap implicitly if they overflow
             d1 = d1.wrapping_add(sample_value);
             d2 = d2.wrapping_add(d1);
 
-            dest_buf.push(d2 as u8);
+            dest_buf.push(d1 as u8);
            
             blkpos += 1;
         }
