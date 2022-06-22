@@ -77,6 +77,8 @@ impl ItFile {
             let mut a: Vec<u8>  = Vec::new();
             if smp.smp_comp {
                 a = compression::decompress_8bit(&self.buffer[start_ptr..], smp.smp_len)?;
+                    // .iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
+                    println!("test decinp");
             } else {    
                 a = raw_data.iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
             }

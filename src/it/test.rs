@@ -36,7 +36,7 @@ fn test_flag_set_2() {
 #[test]
 fn test_dump() {
     let a = ItFile::load("samples/comp/before_the_explozion.it").unwrap();
-    let _ = a.export(format!("./test/test_decomp1"), 15).unwrap();
+    let _ = a.export(format!("./test/hiphop2"), 15).unwrap();
     // for (i,f) in a.samples_meta.iter().enumerate() {
     //     // let _ = a.export(format!("./test/{i}.wav"), i);
 
