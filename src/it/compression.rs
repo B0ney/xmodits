@@ -34,70 +34,96 @@ Observation from C code
 */
 
 use crate::utils::Error;
+use crate::offset_u16;
 use byteorder::{ByteOrder, LE, BE};
 
-struct BitReader {
+struct BitReader<'a> {
+    block_offset: usize,        // location of next block.
     bitnum: u8,
     bitlen: u32,
-    ival: u8, // internal value
-    ibuf_index: usize, // internal value pointer?
+    buf: &'a [u8], // access the buffer without cloning or mutating anything
+    blk_data: Vec<u8>,
+    blk_index: usize, // internal value pointer?
 }
 
-//  Easier to read
-impl BitReader { 
-    fn new() -> Self {
-        Self { 
+impl <'a>BitReader<'a> { 
+    fn new(buf: &'a [u8]) -> Result<Self, Error> {
+        Ok(Self { 
             bitnum: 0,
             bitlen:0,
-            
-            ibuf_index: todo!(),
-            ival: todo!(),
-        }
+            buf: &buf,
+            blk_data: Vec::new(),
+            blk_index: 0,
+            block_offset: 0x0000,
+        })
     }
-    fn read_bits(
-        &mut self,
-        width: u8,
-        // buf: &[u8],
-        // index: usize,
-    ) -> Result<u16, Error> {
+    
+    fn read_next_block(&mut self) -> Result<(), Error> {
+        let block_size = self._get_block_size();
+
+        if block_size == 0 {
+            return Err("block size is zero >:(".into());
+        }
+
+        // copy section of buffer for mutation.
+        // This won't include the 2-byte length field
+        self.blk_data = self._allocate(block_size as usize)?;
+        self.blk_index = 0; 
+
+        self.bitnum = 8;
+        self.bitlen = block_size as u32;
+        
+        // move to next block if called again
+        self.block_offset += block_size as usize; 
+
+        Ok(())
+    }   
+
+    fn _allocate(&self, size: usize) -> Result<Vec<u8>, Error> {
+        if self.buf.len() < self.block_offset + size + 2 {
+            return Err("Cannot Allocate, buffer is too small".into());
+        }
+        // copy contents of buffer to new vector.
+        // make things easier for mutation.
+        // We add 2 to skip the length field
+        Ok(self.buf[(2 + self.block_offset)..size as usize].to_vec())
+    } 
+
+    fn _get_block_size(&self) -> u16 {
+        // Combine 2 bytes to u16 (Little Endian)
+        // offset_u16!(0x0000) -> 0x0000..(0x0000 + 4)
+        LE::read_u16(&self.buf[offset_u16!(self.block_offset)])
+    }
+
+    fn read_bits(&mut self, width: u8) -> Result<u16, Error> {
         let mut retval: u32 = 0;
-        // let mut offset: u32 = 0;
-        // let mut n = width;
-        
-        // // shadowing
-        // let mut index = index;
-        
-        // self.ival = buf[index];
-        // self.ibuf_index = index;
+        let mut offset: u32 = 0;
+        let mut n = width;
 
-        // while n != 0 {
-        //     let ival =  self.ival as u32;
-        //     let m = n; // set mask to copy of width
+        while n != 0 {
+            let mut m = n; // set mask to copy of width
 
-        //     if self.bitlen == 0 {
-        //         return Err("ran out of buffer".into()); 
-        //     }
+            if self.bitlen == 0 {
+                return Err("ran out of buffer".into()); 
+            }
 
-        //     if m > self.bitnum {
-        //         m = self.bitnum
-        //     };
-
-        //     // Needs fixing
-        //     retval |= ival & ((1 << m) - 1) << offset;
-        //     self.ival >>= m;
-        //     n - m;
-        //     offset += m as u32;
-
-        //     // must check
-        //     self.bitnum -= m;
-
-        //     if self.bitnum == 0 {
-        //         self.bitlen -= 1;
-        //         self.ibuf_index += 1;
-        //         self.bitnum = 8;
-        //     };
-        // }
+            if m > self.bitnum {
+                m = self.bitnum
+            };
             
+            retval |= ( (self.blk_data[self.blk_index] & ((1 << m) - 1)) as u32 ) << offset;
+            
+            self.blk_data[self.blk_index] >>= m;
+            n -= m;
+            offset += m as u32;
+
+            self.bitnum -= m;
+            if self.bitnum == 0 {
+                self.bitlen -= 1;
+                self.blk_index += 1;
+                self.bitnum = 8;
+            };
+        } 
         Ok(retval as u16)
     }   
 }
@@ -113,26 +139,27 @@ impl BitReader {
 /// The goal here is to achive simplicity.
 pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
     let mut len: u32 = len;     // Length of uncompressed sample. (copied for mutation)
-    let mut blklen: u16;        // block length. Usually 0x8000 for 8-Bit samples
+    let mut blklen: u16;        // uncompressed block length. Usually 0x8000 for 8-Bit samples
     let mut blkpos: u16;        // block position
-    let mut sample_value: i8;   // Decompressed sample value             (Note i8 for 8 bit samples)
+    let mut sample_value: i8;   // decompressed sample value             (Note i8 for 8 bit samples)
     let mut d1: i8 = 0;         // integrator buffer for IT2.14          (Note i8 for 8 bit samples)
     let mut d2: i8 = 0;         // second integrator buffer for IT2.15   (Note i8 for 8 bit samples)
-    let mut width: u8;          // Bit width. Starts at 9 For 8-Bit samples.
+    let mut width: u8;          // Bit width. (Starts at 9 For 8-Bit samples)
     let mut value: u16;         // Value read 
     let mut dest_buf: Vec<u8> = Vec::new(); // Buffer to write decompressed data
-    let mut bitread = BitReader::new();
+    
+    let mut bitread = BitReader::new(&buf)?; // solution to C's horrible global variables
     
     // Unpack data
     while len != 0 {
         // Read new block, reset variables
         // {}
+        bitread.read_next_block()?;
+
         // Make sure block len won't exceed len.
         blklen = if len < 0x8000 {len as u16} else {0x8000};
         blkpos = 0;
-
         width = 9;
-        
         // Reset integrator buffers
         d1 = 0; 
         d2 = 0;
