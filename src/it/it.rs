@@ -69,15 +69,15 @@ impl ItFile {
             smp.smp_len,
         );
         
-        // file.write_all(&wav_header)?;
+        file.write_all(&wav_header)?;
 
         // Write PCM data
         // TODO: decompress if sample uses compression
         if smp.smp_bits == 8 {
             let mut a: Vec<u8>  = Vec::new();
             if smp.smp_comp {
-                a = compression::decompress_8bit(&self.buffer[start_ptr..], smp.smp_len)?;
-                    // .iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
+                a = compression::decompress_8bit(&self.buffer[start_ptr..], smp.smp_len)?
+                    .iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
                     println!("test decinp");
             } else {    
                 a = raw_data.iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
