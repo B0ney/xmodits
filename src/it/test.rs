@@ -36,20 +36,20 @@ fn test_flag_set_2() {
 #[test]
 fn test_dump() {
     let a = ItFile::load("samples/comp/before_the_explozion.it").unwrap();
-    // let _ = a.export(format!("./test/test_dump_comp1.wav"), 6);
-    for (i,f) in a.samples_meta.iter().enumerate() {
-        // let _ = a.export(format!("./test/{i}.wav"), i);
+    let _ = a.export(format!("./test/test_decomp1"), 15).unwrap();
+    // for (i,f) in a.samples_meta.iter().enumerate() {
+    //     // let _ = a.export(format!("./test/{i}.wav"), i);
 
-        println!("{}",i);
-        println!("index: 0x{:04X}\nlength:{}\nrate:{}\nbits smp: {}\ncompressed: {}\n\n",
-            f.smp_ptr,
-            f.smp_len,
-            f.smp_rate,
-            f.smp_bits,
-            f.smp_comp,
-        );
+    //     println!("{}",i);
+    //     println!("index: 0x{:04X}\nlength:{}\nrate:{}\nbits smp: {}\ncompressed: {}\n\n",
+    //         f.smp_ptr,
+    //         f.smp_len,
+    //         f.smp_rate,
+    //         f.smp_bits,
+    //         f.smp_comp,
+    //     );
 
-    }
+    // }
 }
 
 

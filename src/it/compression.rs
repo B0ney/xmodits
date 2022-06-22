@@ -57,7 +57,7 @@ impl <'a>BitReader<'a> {
             block_offset: 0x0000,
         })
     }
-    
+
     fn read_next_block(&mut self) -> Result<(), Error> {
         let block_size = self._get_block_size();
 
@@ -66,7 +66,6 @@ impl <'a>BitReader<'a> {
         }
 
         // copy section of buffer for mutation.
-        // This won't include the 2-byte length field
         self.blk_data = self._allocate(block_size as usize)?;
         self.blk_index = 0; 
 
@@ -86,7 +85,7 @@ impl <'a>BitReader<'a> {
         // copy contents of buffer to new vector.
         // make things easier for mutation.
         // We add 2 to skip the length field
-        Ok(self.buf[(2 + self.block_offset)..size as usize].to_vec())
+        Ok(self.buf[(self.block_offset)..size as usize].to_vec())
     } 
 
     fn _get_block_size(&self) -> u16 {
@@ -104,16 +103,17 @@ impl <'a>BitReader<'a> {
             let mut m = n; // set mask to copy of width
 
             if self.bitlen == 0 {
-                return Err("ran out of buffer".into()); 
+                return Ok(retval as u16);
+                // return Err("ran out of buffer".into()); 
             }
 
             if m > self.bitnum {
                 m = self.bitnum
             };
+            // println!("{}",m);
+            retval |= ( (self.blk_data[self.blk_index] & ((1 << (m-1)) - 1)) as u32 ) << offset;
             
-            retval |= ( (self.blk_data[self.blk_index] & ((1 << m) - 1)) as u32 ) << offset;
-            
-            self.blk_data[self.blk_index] >>= m;
+            self.blk_data[self.blk_index] >>= (m-1);
             n -= m;
             offset += m as u32;
 
@@ -211,10 +211,11 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
             }
 
             // integrate
-            d1 += sample_value;
-            d2 += d1;
+            // println!("sample_value: {}",sample_value);
+            d1 = d1.wrapping_add(sample_value);
+            d2 = d2.wrapping_add(d1);
 
-            dest_buf.push(d1 as u8);
+            dest_buf.push(d2 as u8);
            
             blkpos += 1;
         }

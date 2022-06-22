@@ -6,6 +6,8 @@ use crate::utils::Error;
 use crate::wav;
 use crate::{offset_u16, offset_u32, offset_chars};
 
+use super::compression;
+
 const IT_HEADER_ID: u32 = 0x49_4D_50_4D; // IMPM
 const IT_SAMPLE_ID: u32 = 0x49_4D_50_53; // IMPS
 const IT_HEADER_LEN: usize = 192;
@@ -55,8 +57,10 @@ impl ItFile {
     pub fn export<P: AsRef<Path>>(&self, path: P, index: usize) -> Result<(), Error> {
         let smp = &self.samples_meta[index];
         let start_ptr   = smp.smp_ptr as usize;
+
         let end_ptr     = start_ptr + 
             (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
+
         let raw_data = &self.buffer[start_ptr..end_ptr];    
         let mut file = File::create(path)?;
         let wav_header = wav::build_header(
@@ -65,13 +69,20 @@ impl ItFile {
             smp.smp_len,
         );
         
-        file.write_all(&wav_header)?;
+        // file.write_all(&wav_header)?;
 
         // Write PCM data
         // TODO: decompress if sample uses compression
         if smp.smp_bits == 8 {
+            let mut a: Vec<u8>  = Vec::new();
+            if smp.smp_comp {
+                a = compression::decompress_8bit(&self.buffer[start_ptr..], smp.smp_len)?;
+            } else {    
+                a = raw_data.iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
+            }
             // normalize to prevent earrape
-            let a = raw_data.iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
+
+            
             file.write_all(&a)?;
         } else {
             file.write_all(&raw_data)?;
