@@ -88,7 +88,7 @@ impl <'a>BitReader<'a> {
         if self.buf.len() < self.block_offset + size + 2 {
             return Err("Cannot Allocate, buffer is too small".into());
         }
-        println!("block_offset: {}", self.block_offset);
+        // println!("block_offset: {}", self.block_offset);
         // copy contents of buffer to new vector.
         // make things easier for mutation.
         // We add 2 since we need to include all of the data
@@ -108,7 +108,7 @@ impl <'a>BitReader<'a> {
 
         for _ in 0..i {
             // println!("w");
-            if self.bitnum == 0 && self.blk_index < self.blk_data.len(){
+            if self.bitnum == 0 && (self.blk_index + 1) < self.blk_data.len(){
                 self.blk_index += 1;
                 self.bitbuf = self.blk_data[self.blk_index] as u32;
 
@@ -148,6 +148,13 @@ pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Err
     
     let mut bitread = BitReader::new(&buf)?; // solution to C's horrible global variables
     
+//     println!("{}\n{}",
+    
+// );
+    // if buf.len() < len as usize {
+
+    //     println!("uh oh!");
+    // }
     // Unpack data
     while len != 0 {
         // Read new block, reset variables

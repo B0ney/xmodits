@@ -18,8 +18,8 @@ const MASK_SMP_COMP: u8 = 0b0000_1000; // Does sample use compression?
 
 #[derive(Debug)]
 pub struct ItSample {
-    filename: [char; 12],
-    name: [char; 26],
+    pub filename: [char; 12],
+    pub name: [char; 26],
     pub smp_len: u32,        // This is NOT in bytes
     pub smp_ptr: u32,
     pub smp_rate: u32,
@@ -62,7 +62,6 @@ impl ItFile {
         let end_ptr     = start_ptr + 
             (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
 
-        let raw_data = &self.buffer[start_ptr..end_ptr];    
         let mut file = File::create(path)?;
         let wav_header = wav::build_header(
             smp.smp_rate,
@@ -82,7 +81,10 @@ impl ItFile {
                         smp.smp_len, false
                     )?.to_signed();
 
+
             } else {    
+                let raw_data = &self.buffer[start_ptr..end_ptr];    
+
                 a = raw_data.to_signed();
             }
             // normalize to prevent earrape
@@ -90,6 +92,8 @@ impl ItFile {
             
             file.write_all(&a)?;
         } else {
+            let raw_data = &self.buffer[start_ptr..end_ptr];    
+
             file.write_all(&raw_data)?;
         }
         
