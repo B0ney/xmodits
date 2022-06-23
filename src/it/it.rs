@@ -2,7 +2,8 @@ use byteorder::{ByteOrder, LE, BE};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
-use crate::utils::Error;
+use crate::utils::{Error, SignedByte};
+
 use crate::wav;
 use crate::{offset_u16, offset_u32, offset_chars};
 
@@ -76,11 +77,13 @@ impl ItFile {
         if smp.smp_bits == 8 {
             let mut a: Vec<u8>  = Vec::new();
             if smp.smp_comp {
-                a = compression::decompress_8bit(&self.buffer[start_ptr..], smp.smp_len)?
-                    .iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
-                    println!("test decinp");
+                a = compression::decompress_8bit(
+                        &self.buffer[start_ptr..], 
+                        smp.smp_len, false
+                    )?.to_signed();
+
             } else {    
-                a = raw_data.iter().map(|e| e.wrapping_sub(128)).collect::<Vec<u8>>();
+                a = raw_data.to_signed();
             }
             // normalize to prevent earrape
 

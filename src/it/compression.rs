@@ -108,7 +108,7 @@ impl <'a>BitReader<'a> {
 
         for _ in 0..i {
             // println!("w");
-            if self.bitnum == 0{
+            if self.bitnum == 0 && self.blk_index < self.blk_data.len(){
                 self.blk_index += 1;
                 self.bitbuf = self.blk_data[self.blk_index] as u32;
 
@@ -135,7 +135,7 @@ impl <'a>BitReader<'a> {
 /// Think of this as a rustified version of itsex.c
 /// 
 /// The goal here is to achive simplicity.
-pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
+pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
     let mut len: u32 = len;     // Length of uncompressed sample. (copied for mutation)
     let mut blklen: u16;        // uncompressed block length. Usually 0x8000 for 8-Bit samples
     let mut blkpos: u16;        // block position
@@ -223,7 +223,9 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
             d1 = d1.wrapping_add(sample_value);
             d2 = d2.wrapping_add(d1);
 
-            dest_buf.push(d1 as u8);
+            dest_buf.push(
+                if it215 {d2 as u8} else {d1 as u8}
+            );
            
             blkpos += 1;
         }

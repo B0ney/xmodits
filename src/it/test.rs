@@ -35,23 +35,26 @@ fn test_flag_set_2() {
 }
 #[test]
 fn test_dump() {
-    let a = ItFile::load("samples/comp/before_the_explozion.it").unwrap();
+    let a = ItFile::load("samples/comp/worldies.it").unwrap();
     // let _ = a.export(format!("./test/bingbong.wav"), 21).unwrap();
     // let _ = a.export(format!("./test/bingbon2g.wav"), 21).unwrap();
-    let _ = a.export(format!("./test/bingbon23g.wav"), 16).unwrap();
+    // let _ = a.export(format!("./test/bingbon23g.wav"), 17).unwrap();
 
 
-    // for (i,f) in a.samples_meta.iter().enumerate() {
-    //     // let _ = a.export(format!("./test/{i}.wav"), i);
+    for (i,f) in a.samples_meta.iter().enumerate() {
+        if f.smp_bits == 8 && f.smp_comp {
+            let _ = a.export(format!("./test/{i}.wav"), i + 1);
+        }
+        
 
-    //     println!("{}",i);
-    //     println!("index: 0x{:04X}\nlength:{}\nrate:{}\nbits smp: {}\ncompressed: {}\n\n",
-    //         f.smp_ptr,
-    //         f.smp_len,
-    //         f.smp_rate,
-    //         f.smp_bits,
-    //         f.smp_comp,
-    //     );
+        println!("{}",i);
+        println!("index: 0x{:04X}\nlength:{}\nrate:{}\nbits smp: {}\ncompressed: {}\n\n",
+            f.smp_ptr,
+            f.smp_len,
+            f.smp_rate,
+            f.smp_bits,
+            f.smp_comp,
+        );
 
-    // }
+    }
 }
