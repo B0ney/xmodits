@@ -4,8 +4,7 @@ use std::io::Write;
 use std::path::Path;
 use super::compression::decompress_sample;
 use crate::{
-    utils::{Error, SignedByte}, // Signed Byte provides ".to_signed" method
-    wav,
+    utils::{Error, SignedByte, wav}, // Signed Byte provides ".to_signed" method
     offset_u16, 
     offset_u32,
     offset_chars
