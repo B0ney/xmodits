@@ -7,7 +7,7 @@ use crate::utils::{Error, SignedByte};
 use crate::wav;
 use crate::{offset_u16, offset_u32, offset_chars};
 
-use super::compression;
+use super::compression::{self, decompress_sample};
 
 const IT_HEADER_ID: u32 = 0x49_4D_50_4D; // IMPM
 const IT_SAMPLE_ID: u32 = 0x49_4D_50_53; // IMPS
@@ -56,47 +56,43 @@ impl ItFile {
     }
 
     pub fn export<P: AsRef<Path>>(&self, path: P, index: usize) -> Result<(), Error> {
-        let smp = &self.samples_meta[index];
+        let smp     = &self.samples_meta[index];
         let start_ptr   = smp.smp_ptr as usize;
-
         let end_ptr     = start_ptr + 
             (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
-
-        let mut file = File::create(path)?;
+        let mut file    = File::create(path)?;
         let wav_header = wav::build_header(
             smp.smp_rate,
             smp.smp_bits,
             smp.smp_len,
         );
         
+        // Write Wav Header
         file.write_all(&wav_header)?;
 
         // Write PCM data
-        // TODO: decompress if sample uses compression
-        if smp.smp_bits == 8 {
-            let mut a: Vec<u8>  = Vec::new();
-            if smp.smp_comp {
-                a = compression::decompress_8bit(
-                        &self.buffer[start_ptr..], 
-                        smp.smp_len, false
-                    )?.to_signed();
+        if smp.smp_comp {
+            let decomp = decompress_sample(
+                &self.buffer[start_ptr..], smp.smp_len, smp.smp_bits, false
+            )?;
+            file.write_all(&decomp)?;
 
-
-            } else {    
-                let raw_data = &self.buffer[start_ptr..end_ptr];    
-
-                a = raw_data.to_signed();
-            }
-            // normalize to prevent earrape
-
-            
-            file.write_all(&a)?;
         } else {
-            let raw_data = &self.buffer[start_ptr..end_ptr];    
+            let mut raw_data = &self.buffer[start_ptr..end_ptr];
+            let mut b: Vec<u8> = Vec::new();
+
+            let end_ptr = start_ptr + 
+                (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
+            
+            // convert sample data to "signed" values if it's 8-bit  
+            if smp.smp_bits == 8 {
+                b = raw_data.to_signed(); 
+                raw_data = &b; // make raw data reference b instead
+            }
 
             file.write_all(&raw_data)?;
         }
-        
+
         Ok(())
     }
 }
