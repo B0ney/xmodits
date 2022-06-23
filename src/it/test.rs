@@ -82,3 +82,8 @@ fn test_dump() {
 
     // }
 }
+#[test]
+fn test69() {
+    let a = ItFile::load("samples/comp/worldies.it").unwrap();
+    println!("{:04X}\n{:04X}", a.version, a.compat_version);
+}

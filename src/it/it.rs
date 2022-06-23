@@ -15,6 +15,7 @@ const IT_HEADER_LEN: usize = 192;
 const IT_SAMPLE_LEN: usize = 80;
 const MASK_SMP_BITS: u8 = 0b0000_0010; // 16/8bit samples
 const MASK_SMP_COMP: u8 = 0b0000_1000; // Does sample use compression?
+const IT214: u16 = 0x0214; 
 
 #[derive(Debug)]
 pub struct ItSample {
@@ -31,6 +32,9 @@ pub struct ItSample {
 #[derive(Debug)]
 pub struct ItFile {
     buffer: Vec<u8>,
+    pub version: u16,
+    pub compat_version: u16,
+
     pub sample_number: u16,
     pub samples_meta: Vec<ItSample>,
 }
@@ -47,10 +51,14 @@ impl ItFile {
 
         let sample_number = LE::read_u16(&buffer[offset_u16!(0x0024)]);
         let samples_meta = build_samples(&buffer, sample_number)?;
-
+    
         Ok(Self {
             sample_number,
             samples_meta,
+            version: LE::read_u16(&buffer[offset_u16!(0x0028)]),
+            compat_version: LE::read_u16(&buffer[offset_u16!(0x002A)]),
+
+
             buffer,
         })
     }
@@ -73,7 +81,8 @@ impl ItFile {
         // Write PCM data
         if smp.smp_comp {
             let decomp = decompress_sample(
-                &self.buffer[start_ptr..], smp.smp_len, smp.smp_bits, false
+                &self.buffer[start_ptr..], smp.smp_len, smp.smp_bits,
+                self.compat_version != IT214 // Needs testing
             )?;
             file.write_all(&decomp)?;
 

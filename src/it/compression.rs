@@ -127,7 +127,7 @@ pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Err
     let mut d1: i8 = 0;         // integrator buffer for IT2.14          (Note i8 for 8 bit samples)
     let mut d2: i8 = 0;         // second integrator buffer for IT2.15   (Note i8 for 8 bit samples)
     let mut width: u8;          // Bit width. (Starts at 9 For 8-Bit samples)
-    let mut value: u16;         // Value read 
+    let mut value: u16;         // Value read (Note u16 for 8-bit samples)
     let mut dest_buf: Vec<u8>       = Vec::new();               // Buffer to write decompressed data
     let mut bitreader: BitReader    = BitReader::new(&buf)?;    // solution to C's horrible global variables
 
@@ -209,14 +209,14 @@ pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Err
 }
 
 pub fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
-    let mut len: u32 = len;     // Length of uncompressed sample. (copied for mutation)
-    let mut blklen: u16;        // uncompressed block length. Usually 0x4000 for 16-Bit samples
-    let mut blkpos: u16;        // block position
-    let mut sample_value: i16;   // decompressed sample value             (Note i16 for 16 bit samples)
-    let mut d1: i16 = 0;         // integrator buffer for IT2.14          (Note i16 for 16 bit samples)
-    let mut d2: i16 = 0;         // second integrator buffer for IT2.15   (Note i16 for 16 bit samples)
-    let mut width: u8;          // Bit width. (Starts at 9 For 8-Bit samples)
-    let mut value: u32;         // Value read 
+    let mut len: u32 = len;         // Length of uncompressed sample. (copied for mutation)
+    let mut blklen: u16;            // uncompressed block length. Usually 0x4000 for 16-Bit samples
+    let mut blkpos: u16;            // block position
+    let mut sample_value: i16;      // decompressed sample value             (Note i16 for 16 bit samples)
+    let mut d1: i16 = 0;            // integrator buffer for IT2.14          (Note i16 for 16 bit samples)
+    let mut d2: i16 = 0;            // second integrator buffer for IT2.15   (Note i16 for 16 bit samples)
+    let mut width: u8;              // Bit width. (Starts at 17 For 16-Bit samples)
+    let mut value: u32;             // Value read (Note u32 for 16 bit sample)
     let mut dest_buf: Vec<u8>       = Vec::new();               // Buffer to write decompressed data
     let mut bitreader: BitReader    = BitReader::new(&buf)?;    // solution to C's horrible global variables
 
@@ -268,7 +268,6 @@ pub fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Er
                     width = ((value + 1) & 0xff) as u8;
                     continue;
                 }
-                
             }
 
             if width < 16 {
@@ -285,8 +284,8 @@ pub fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Er
             d1 = d1.wrapping_add(sample_value);
             d2 = d2.wrapping_add(d1);
 
-            {
-                let mut buf = vec![0u8 ;2];
+            {   // write i16 to u8 buffer
+                let mut buf = vec![0u8; 2];
                 LE::write_i16(&mut buf,
                     if it215 {d2} else {d1}
                 );
@@ -300,8 +299,6 @@ pub fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Er
     Ok(dest_buf)
 }
 
-/// Bug with bit reader
-/// reading first set of bits will return 0
 #[test]
 fn readbit() {
     let buf: Vec<u8> = vec![
@@ -333,41 +330,5 @@ fn readbit() {
     assert_eq!(b.read_bits_u16(16).unwrap(), 0b_1100_1111_1100_1100);
     assert_eq!(b.read_bits_u16(9).unwrap(), 0b_0_0011_1010);
 
-
-    // assert_eq!(b.read_bits(9).unwrap(), 0b1100_1111);
-
-
-
-
-
-    // println!("{:016b}", b.read_bits(9).unwrap());
-    // println!("{:016b}", b.read_bits(4).unwrap());
     // println!("{:016b}", b.read_bits(8).unwrap());
-    // println!("{:016b}", b.read_bits(8).unwrap());
-
-
-
-}
-
-
-#[test]
-fn test2() {
-    let buf: Vec<u8> = vec![
-        0x1, 0x0, // block size header (LE) of 1 byte
-        0b1111_1110, 0b1001_1110,   // group 1
-
-        0b1010_1110,                // group 2
-        
-        0b1100_1100,0b1100_1111,    // group 3
-        
-        0b0011_1010,
-
-        0b1010_1010, 0b1100_1100,
-        0b1100_1100, 0b1010_1010,
-        0b1010_1010, 0b1100_1100,
-    ];
-    let mut b = BitReader::new(&buf).unwrap();
-
-    println!("{:017b}", b.read_bits_u32(9).unwrap());
-
 }
