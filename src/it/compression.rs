@@ -32,6 +32,8 @@ Observation from C code
 
 */
 
+use std::vec;
+
 use crate::utils::Error;
 use crate::offset_u16;
 use byteorder::{ByteOrder, LE, BE};
@@ -63,6 +65,7 @@ impl <'a>BitReader<'a> {
     fn read_next_block(&mut self) -> Result<(), Error> {
         let block_size = self._get_block_size();
 
+        println!("{}", block_size);
         if block_size == 0 {
             return Err("block size is zero >:(".into());
         }
@@ -70,11 +73,14 @@ impl <'a>BitReader<'a> {
         self.blk_data = self._allocate(block_size as usize)?;
         self.blk_index = 2; // should it start a 0 or 2? // set to 2 to skip length field
         self.bitnum = 8;
+        // bug fix: set initial bitbuf.
+        self.bitbuf = self.blk_data[self.blk_index] as u32;
+
         self.bitlen = block_size as u32;
         
         // move to next block if called again
-        self.block_offset += block_size  as usize;  // testing, add 2 to skip over 2 bytes
-        // println!("mwahahs");
+        self.block_offset += block_size as usize + 2;  // testing, add 2 to skip over 2 bytes
+
         Ok(())
     }   
 
@@ -82,10 +88,12 @@ impl <'a>BitReader<'a> {
         if self.buf.len() < self.block_offset + size + 2 {
             return Err("Cannot Allocate, buffer is too small".into());
         }
+        println!("block_offset: {}", self.block_offset);
         // copy contents of buffer to new vector.
         // make things easier for mutation.
         // We add 2 since we need to include all of the data
-        Ok(self.buf[self.block_offset..size + 2].to_vec())
+        // lets get rid of the 2
+        Ok(self.buf[self.block_offset..].to_vec())
     } 
 
     fn _get_block_size(&self) -> u16 {
@@ -96,10 +104,10 @@ impl <'a>BitReader<'a> {
 
     fn read_bits(&mut self, n: u8) -> Result<u16, Error> { 
         let mut value: u32 = 0;
-        let mut i =  n;
+        let i =  n;
 
-        while i > 0 {
-            
+        for _ in 0..i {
+            // println!("w");
             if self.bitnum == 0{
                 self.blk_index += 1;
                 self.bitbuf = self.blk_data[self.blk_index] as u32;
@@ -110,14 +118,10 @@ impl <'a>BitReader<'a> {
             value |= self.bitbuf << 31;
             self.bitbuf >>= 1;
             self.bitnum -= 1;
-            i -= 1;
+            // i -= 1;
+            // println!("boo!");
         }
-        // println!("{}",n);
-        if (value >> (32 - n)) > 256 {
-            println!("bitwidth: {}",n);
 
-            println!("yikes!: {}", (value >> (32 - n)));
-        }
         return Ok((value >> (32 - n)) as u16); 
     }   
 }
@@ -161,8 +165,10 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
         while blkpos < blklen {
 
             if width > 9 {
+                // return Ok(dest_buf);
                 return Err(format!("Invalid Bit width. Why is it {}?", width).into());
             }
+
             value = bitread.read_bits(width)?;
             
             if width < 7 { // Method 1, 1-6 bits
@@ -183,15 +189,13 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
                     && value <= (border + 8)
                     {
                         value -= border;
-                        // value -= 0b01111011;
-                        println!("{:08b}", border);
 
                         let val = value as u8;
                         width = if val < width { val } else { val + 1 };
                         continue;
                     }
 
-            } else if width == 9 {  // Method 3, 9 bits
+            } else {  // Method 3, 9 bits
                 if (value & 0x100) >> 8 == 1 // is bit 8 set? 
                 { 
                     // println!(":<");
@@ -200,8 +204,6 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
                     continue;
                 }
                 
-            } else {
-               return Err("Illegal width".into()); 
             }
 
             // sample values are encoded with "bit width"
@@ -242,3 +244,27 @@ pub fn decompress_8bit(buf: &[u8], len: u32) -> Result<Vec<u8>, Error> {
 
 
 // }
+
+/// Bug with bit reader
+/// reading first set of bits will return 0
+#[test]
+fn readbit() {
+    let buf: Vec<u8> = vec![
+        0x1, 0x0, 
+        0b11111110, 0b11111111,
+        0b1010_1010, 0b11001100,
+        0b11001100, 0b1010_1010,
+        0b1010_1010, 0b11001100,
+        0b11001100, 0b1010_1010,
+        0b1010_1010, 0b11001100,
+    ];
+    let mut b = BitReader::new(&buf).unwrap();
+    b.read_next_block().unwrap();
+    println!("{:016b}", b.read_bits(16).unwrap());
+    println!("{:016b}", b.read_bits(16).unwrap());
+    // println!("{:016b}", b.read_bits(8).unwrap());
+    // println!("{:016b}", b.read_bits(8).unwrap());
+
+
+
+}

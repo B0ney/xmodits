@@ -38,7 +38,7 @@ fn test_dump() {
     let a = ItFile::load("samples/comp/before_the_explozion.it").unwrap();
     // let _ = a.export(format!("./test/bingbong.wav"), 21).unwrap();
     // let _ = a.export(format!("./test/bingbon2g.wav"), 21).unwrap();
-    let _ = a.export(format!("./test/bingbon23g.wav"), 17).unwrap();
+    let _ = a.export(format!("./test/bingbon23g.wav"), 16).unwrap();
 
 
     // for (i,f) in a.samples_meta.iter().enumerate() {
