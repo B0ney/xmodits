@@ -2,12 +2,14 @@ use byteorder::{ByteOrder, LE, BE};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;
-use crate::utils::{Error, SignedByte};
-
-use crate::wav;
-use crate::{offset_u16, offset_u32, offset_chars};
-
-use super::compression::{self, decompress_sample};
+use super::compression::decompress_sample;
+use crate::{
+    utils::{Error, SignedByte}, // Signed Byte provides ".to_signed" method
+    wav,
+    offset_u16, 
+    offset_u32,
+    offset_chars
+};
 
 const IT_HEADER_ID: u32 = 0x49_4D_50_4D; // IMPM
 const IT_SAMPLE_ID: u32 = 0x49_4D_50_53; // IMPS
@@ -18,7 +20,7 @@ const MASK_SMP_COMP: u8 = 0b0000_1000; // Does sample use compression?
 const IT214: u16 = 0x0214; 
 
 #[derive(Debug)]
-pub struct ItSample {
+pub struct ITSample {
     pub filename: [char; 12],
     pub name: [char; 26],
     pub smp_len: u32,        // This is NOT in bytes
@@ -30,16 +32,16 @@ pub struct ItSample {
 }
 
 #[derive(Debug)]
-pub struct ItFile {
+pub struct ITFile {
     buffer: Vec<u8>,
     pub version: u16,
     pub compat_version: u16,
 
     pub sample_number: u16,
-    pub samples_meta: Vec<ItSample>,
+    pub samples_meta: Vec<ITSample>,
 }
 
-impl ItFile {
+impl ITFile {
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let buffer: Vec<u8> = fs::read(path)?;
 
@@ -106,9 +108,9 @@ impl ItFile {
     }
 }
 
-fn build_samples(it_data: &Vec<u8>, num_samples: u16) -> Result<Vec<ItSample>, Error> {
+fn build_samples(it_data: &Vec<u8>, num_samples: u16) -> Result<Vec<ITSample>, Error> {
     let mut ins_start_index: usize = 0;
-    let mut smp_meta: Vec<ItSample> = Vec::new();
+    let mut smp_meta: Vec<ITSample> = Vec::new();
 
     if num_samples == 0 {
         return Err("IT module doesn't contain any samples.".into());
@@ -137,15 +139,14 @@ fn build_samples(it_data: &Vec<u8>, num_samples: u16) -> Result<Vec<ItSample>, E
         load_to_array(&mut filename,    &it_data[offset_chars!(0x0004 + offset, 12)]);
         load_to_array(&mut name,        &it_data[offset_chars!(0x0014 + offset, 26)]);
         
-        /*  Isolate flag bit to LSB, by ANDing with MASK then Shift Right N. (LSB = Least Significant Bit)
-            
-            for "bit_samples", Add 1 and multiply by 8 so that
-            if bit = 0, 0 becomes 8.  If bit = 1, 1 becomes 16 
-        */
+        // Isolate flag bit to LSB, by ANDing with MASK then Shift Right N.
+        // (LSB = Least Significant Bit) 
+        // for "bit_samples", Add 1 and multiply by 8 so that
+        // if bit = 0, 0 becomes 8.  If bit = 1, 1 becomes 16 
         let bits_sample: u8         = (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8;
         let is_compressed: bool     =  ((smp_flag & MASK_SMP_COMP) >> 3) == 1;
 
-        smp_meta.push(ItSample {
+        smp_meta.push(ITSample {
             filename,
             name,
             smp_len:    LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]),

@@ -1,17 +1,10 @@
 /// Impulse Tracker decompression
-/// Refer to:
 /// 
-/// https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
-/// https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
-/// 
-/// GOLD
+/// Reference:
 /// https://github.com/nicolasgramlich/AndEngineMODPlayerExtension/blob/master/jni/loaders/itsex.c
-/// 
-/// 
-/// 
-/// 
-/// 
-/// 
+/// https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
+/// https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
+
 use crate::utils::Error;
 use crate::offset_u16;
 use byteorder::{ByteOrder, LE};
@@ -24,51 +17,79 @@ pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool) -> Res
     }
 }
 
+/// My solution to C's awful shared states.
+/// 
+/// In the original C implementation, "read bits" and "read block"
+/// share a lot of data. 
+/// 
+/// So why not combine them?
+/// 
+/// 
+/// bit reading order:
+/// ```
+/// 0101_1100, 1011_0111,   ....._.....
+/// |       |  |       |    |         |
+/// \   <-<-|  \   <-<-|    \       <-|
+///         |          |-------|      |-(3) Contiune until desired bits are met
+///         |                  |
+///         |-(1) Start here   |
+///           (Right -> Left)  |
+///                            |-(2) When it reaches MSB (Most Significant Bit)
+///                               Move to next byte. Continue reading until it hits MSB.
+///  
+/// If I want to read 12 bits, the result would be:
+/// 
+/// 0111__0101_1100
+///    |  |_______|
+///    |          |-- From first Byte
+///    |--------|
+///             |---- From second Byte
+/// 
+/// You'd pad the Left Most bits like so:
+/// 
+/// 0000_0111__0101_1100
+/// ```
 struct BitReader<'a> {
-    block_offset: usize,        // location of next block.
-    bitnum: u8,
-    bitlen: u32,
-    bitbuf: u32,
-    buf: &'a [u8], // access the buffer without cloning or mutating anything
-    blk_data: Vec<u8>,
-    blk_index: usize, // internal value pointer?
+    block_offset: usize,    // Location of next block
+    bitnum: u8,             // Bits left. When it hits 0, it resets to 8 & "blk_index" increments by 1.  
+    bitbuf: u32,            // Internal buffer for storing read bits
+    buf: &'a [u8],          // IT Module buffer (read-only because reading data shouldn't modify anything)
+    blk_data: Vec<u8>,      // Sections of "buf" are copied here for modification.
+    blk_index: usize,       // Used to index blk_data.
 }
 
 impl <'a>BitReader<'a> { 
-    fn new(buf: &'a [u8]) -> Result<Self, Error> {
-        let mut bitreader = Self { 
+    fn new(buf: &'a [u8]) -> Self {
+        Self { 
             bitnum: 0,
-            bitlen:0,
             bitbuf:0,
             buf: &buf,
             blk_data: Vec::new(),
             blk_index: 0,
             block_offset: 0x0000,
-        };
-        Ok(bitreader)
+        }
     }
 
     fn read_next_block(&mut self) -> Result<(), Error> {
-        // First 2 bytes combined to u16 (LE) tells us size of compressed block. 
-        let block_size = self._get_block_size();
+        // First 2 bytes combined to u16 (LE). Tells us size of compressed block. 
+        let block_size = LE::read_u16(&self.buf[offset_u16!(self.block_offset)]);
 
         if block_size == 0 {
             return Err("block size is zero >:(".into());
-        }
+        } 
 
         // copy section of buffer for mutation.
         self.blk_data = self._allocate(block_size as usize)?;
-        self.blk_index = 2; // set to 2 to skip length field
+        // Set to 2 to skip length field
+        self.blk_index = 2; 
+        // Initialize bit buffer.
+        // (Following the original by setting it to 0 caused a lot of headaches :D)
+        self.bitbuf = self.blk_data[self.blk_index] as u32; 
         self.bitnum = 8;
-        // bug fix: set initial bitbuf.
-        self.bitbuf = self.blk_data[self.blk_index] as u32;
 
-
-        self.bitlen = block_size as u32;
-        
-        // move to next block if called again
-        self.block_offset += block_size as usize + 2;  // testing, add 2 to skip over 2 bytes
-
+        // Move to next block when called again
+        // Add 2 since we need to skip previous length field
+        self.block_offset += block_size as usize + 2;  
         Ok(())
     }   
 
@@ -79,24 +100,20 @@ impl <'a>BitReader<'a> {
         Ok(self.buf[self.block_offset..].to_vec())
     } 
 
-    fn _get_block_size(&self) -> u16 {
-        // Combine 2 bytes to u16 (Little Endian)
-        // offset_u16!(0x0000) -> 0x0000..(0x0000 + 4)
-        LE::read_u16(&self.buf[offset_u16!(self.block_offset)])
-    }
     fn read_bits_u16(&mut self, n: u8) -> Result<u16, Error> { 
         Ok(self.read_bits_u32(n)? as u16)
     }
 
     fn read_bits_u32(&mut self, n: u8) -> Result<u32, Error> { 
-        // prevent panic if user forgets to call before reading bits
-        if self.blk_data.is_empty() {self.read_next_block()?;}
+        // prevent panic if user forgets to call before reading bits.
+        // tbh this is more useful when unit testing than here... 
+        if self.blk_data.is_empty() { self.read_next_block()?; }
 
         let mut value: u32 = 0;
         let i =  n;
 
         for _ in 0..i {
-            if self.bitnum == 0 /*&& (self.blk_index + 1) < self.blk_data.len()*/{
+            if self.bitnum == 0 {
                 self.blk_index += 1;
                 self.bitbuf = self.blk_data[self.blk_index] as u32;
                 self.bitnum = 8;
@@ -119,7 +136,7 @@ impl <'a>BitReader<'a> {
 /// Think of this as a rustified version of itsex.c
 /// 
 /// The goal here is to achive simplicity.
-pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
+fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
     let mut len: u32 = len;     // Length of uncompressed sample. (copied for mutation)
     let mut blklen: u16;        // uncompressed block length. Usually 0x8000 for 8-Bit samples
     let mut blkpos: u16;        // block position
@@ -129,7 +146,7 @@ pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Err
     let mut width: u8;          // Bit width. (Starts at 9 For 8-Bit samples)
     let mut value: u16;         // Value read (Note u16 for 8-bit samples)
     let mut dest_buf: Vec<u8>       = Vec::new();               // Buffer to write decompressed data
-    let mut bitreader: BitReader    = BitReader::new(&buf)?;    // solution to C's horrible global variables
+    let mut bitreader: BitReader    = BitReader::new(&buf);    // solution to C's horrible global variables
 
     // Unpack data
     while len != 0 {
@@ -137,13 +154,14 @@ pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Err
         bitreader.read_next_block()?;
 
         // Make sure block len won't exceed len.
-        blklen = if len < 0x8000 {len as u16} else {0x8000};
+        blklen = if len < 0x8000 { len as u16 } else { 0x8000 };
         blkpos = 0;
         width = 9;
         d1 = 0; 
         d2 = 0;
 
         while blkpos < blklen {
+
             if width > 9 {
                 return Err(format!("Invalid Bit width. Why is it {}?", width).into());
             }
@@ -151,7 +169,7 @@ pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Err
             value = bitreader.read_bits_u16(width)?;
             
             if width < 7 { // Method 1, 1-6 bits
-                
+
                 if value == (1 << (width - 1)) as u16
                 {
                     value = bitreader.read_bits_u16(3)? + 1;
@@ -175,6 +193,7 @@ pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Err
                     }
 
             } else {  // Method 3, 9 bits
+
                 if (value & 0x100) >> 8 == 1 // is bit 8 set? 
                 { 
                     width = ((value + 1) & 0xff) as u8;
@@ -182,6 +201,7 @@ pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Err
                 }
                 
             }
+
             // sample values are encoded with "bit width"
             // expand them to be 8 bits
             // expand value to signed byte
@@ -189,9 +209,11 @@ pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Err
                 let shift: u8 = 8 - width;
                 sample_value = (value << shift) as i8 ;
                 sample_value >>= shift as i8;
+
             } else {
                 sample_value = value as i8;
             }
+
             // integrate
             // In the original C implementation, 
             // values will wrap implicitly if they overflow
@@ -199,16 +221,19 @@ pub fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Err
             d2 = d2.wrapping_add(d1);
 
             dest_buf.push(
-                if it215 {d2 as u8} else {d1 as u8}
+                if it215 { d2 as u8 } else { d1 as u8 }
             );
+
             blkpos += 1;
         }
+
         len -= blklen as u32; 
     }
+
     Ok(dest_buf)
 }
 
-pub fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
+fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
     let mut len: u32 = len;         // Length of uncompressed sample. (copied for mutation)
     let mut blklen: u16;            // uncompressed block length. Usually 0x4000 for 16-Bit samples
     let mut blkpos: u16;            // block position
@@ -218,20 +243,21 @@ pub fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Er
     let mut width: u8;              // Bit width. (Starts at 17 For 16-Bit samples)
     let mut value: u32;             // Value read (Note u32 for 16 bit sample)
     let mut dest_buf: Vec<u8>       = Vec::new();               // Buffer to write decompressed data
-    let mut bitreader: BitReader    = BitReader::new(&buf)?;    // solution to C's horrible global variables
+    let mut bitreader: BitReader    = BitReader::new(&buf);    // solution to C's horrible global variables
 
     while len != 0 {
         // Read new block, reset variables
         bitreader.read_next_block()?;
 
         // Make sure block len won't exceed len.
-        blklen = if len < 0x4000 {len as u16} else {0x4000};
+        blklen = if len < 0x4000 { len as u16 } else { 0x4000 };
         blkpos = 0;
         width = 17;
         d1 = 0; 
         d2 = 0;
         
         while blkpos < blklen {
+
             if width > 17 {
                 return Err(format!("Invalid Bit width. Why is it {}?", width).into());
             }
@@ -262,7 +288,7 @@ pub fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Er
                         continue;
                     }
 
-            } else {  // Method 3, 9 bits
+            } else {  // Method 3, 17 bits
                 if (value & 0x10000) >> 16 == 1 // is bit 16 set? 
                 { 
                     width = ((value + 1) & 0xff) as u8;
@@ -278,27 +304,28 @@ pub fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Er
                 sample_value = value as i16;
             }
 
-            // integrate
-            // In the original C implementation, 
-            // values will wrap implicitly if they overflow
             d1 = d1.wrapping_add(sample_value);
             d2 = d2.wrapping_add(d1);
 
             {   // write i16 to u8 buffer
                 let mut buf = vec![0u8; 2];
                 LE::write_i16(&mut buf,
-                    if it215 {d2} else {d1}
+                    if it215 { d2 } else { d1 }
                 );
 
                 dest_buf.append(&mut buf);
             }
+
             blkpos += 1;
         }
+
         len -= blklen as u32; 
     }
+
     Ok(dest_buf)
 }
 
+/// Use this to make sure BitReader works properly
 #[test]
 fn readbit() {
     let buf: Vec<u8> = vec![
@@ -315,7 +342,7 @@ fn readbit() {
         0b1100_1100, 0b1010_1010,
         0b1010_1010, 0b1100_1100,
     ];
-    let mut b = BitReader::new(&buf).unwrap();
+    let mut b = BitReader::new(&buf);
     b.read_next_block().unwrap(); // this must be called before reading bits. UPDATE: will automatically do
 
     // test group 1
