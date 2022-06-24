@@ -13,6 +13,7 @@ pub struct MODSample {
     length: u16,    // multiply by 2 to get length in bytes
     index: usize
 }
+
 pub struct MODFile {
     buf: Vec<u8>,
     title: [char; 20],
@@ -55,11 +56,11 @@ impl TrackerDumper for MODFile {
     }
 
     fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        let mut file = File::create(path)?;
-        let smp     = &self.smp_data[index];
-        let start = smp.index;
-        let end: usize = start + smp.length as usize;
-        let pcm = (&self.buf[start..end]).to_signed();
+        let mut file: File      = File::create(path)?;
+        let smp: &MODSample     = &self.smp_data[index];
+        let start: usize        = smp.index;
+        let end: usize          = start + smp.length as usize;
+        let pcm: Vec<u8>        = (&self.buf[start..end]).to_signed();
         let wav_header = wav::build_header(
             8363, 8, smp.length as u32, false,
         );

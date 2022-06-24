@@ -66,9 +66,9 @@ impl TrackerDumper for ITFile {
 
     fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
         let mut file    = File::create(path)?;
-        let smp     = &self.samples_meta[index];
+        let smp = &self.samples_meta[index];
         let start_ptr   = smp.smp_ptr as usize;
-        let wav_header      = wav::build_header(
+        let wav_header  = wav::build_header(
             smp.smp_rate, smp.smp_bits,
             smp.smp_len, smp.smp_stereo,
         );
@@ -78,8 +78,8 @@ impl TrackerDumper for ITFile {
         // Write PCM data
         if smp.smp_comp {
             let decomp = decompress_sample(
-                &self.buffer[start_ptr..], smp.smp_len, smp.smp_bits,
-                self.compat_version != IT214 // Needs testing
+                &self.buffer[start_ptr..], smp.smp_len,
+                smp.smp_bits, self.compat_version != IT214 // Needs testing
             )?;
             file.write_all(&decomp)?;
 
