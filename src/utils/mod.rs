@@ -3,7 +3,7 @@ pub mod signed;
 pub mod array;
 pub mod wav;
 
-/// Import useful helper functions
+/// Import useful helper functions & macros
 pub mod prelude {
     pub use super::wav;
     pub use super::signed::SignedByte;

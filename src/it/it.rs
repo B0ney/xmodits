@@ -65,16 +65,13 @@ impl TrackerDumper for ITFile {
     }
 
     fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+        let mut file    = File::create(path)?;
         let smp     = &self.samples_meta[index];
         let start_ptr   = smp.smp_ptr as usize;
-        let mut file    = File::create(path)?;
         let wav_header      = wav::build_header(
-            smp.smp_rate,
-            smp.smp_bits,
-            smp.smp_len,
-            smp.smp_stereo,
+            smp.smp_rate, smp.smp_bits,
+            smp.smp_len, smp.smp_stereo,
         );
-        
         // Write Wav Header
         file.write_all(&wav_header)?;
 

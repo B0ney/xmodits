@@ -7,6 +7,7 @@ use crate::utils::prelude::*;
 const MOD_SMP_START: usize = 0x0014;
 const MOD_SMP_LEN: usize = 0x1e;        // Sample data is 30 bytes in size
 const PAT_META: usize = 0x3b8;
+
 pub struct MODSample {
     name: [char; 22],
     length: u16,    // multiply by 2 to get length in bytes
@@ -54,21 +55,16 @@ impl TrackerDumper for MODFile {
     }
 
     fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        let smp     = &self.smp_data[index];
-        let wav_header = wav::build_header(
-            8363,
-            8,
-            smp.length as u32,
-            false,
-        );
-
         let mut file = File::create(path)?;
-        file.write_all(&wav_header)?;
+        let smp     = &self.smp_data[index];
         let start = smp.index;
         let end: usize = start + smp.length as usize;
-        println!("start: {}\nend: {}\n\n", start, end);
-
         let pcm = (&self.buf[start..end]).to_signed();
+        let wav_header = wav::build_header(
+            8363, 8, smp.length as u32, false,
+        );
+
+        file.write_all(&wav_header)?;
         file.write_all(&pcm)?;
 
         Ok(())
