@@ -1,15 +1,10 @@
 [package]
-name = "xmodits"
+name = "app_cli"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-byteorder = "1.4.3"
-
-[workspace]
-members = [
-    "app_cli",
-    # "app_gui"
-]
+clap = "3.2.6"
+xmodits = {path = "../"}
