@@ -1,7 +1,5 @@
 use std::path::Path;
-
 use crate::utils::Error;
-
 pub type DumperObject = Box<dyn TrackerDumper>;
 
 pub trait TrackerDumper {

@@ -1,4 +1,4 @@
-use xmodits::{TrackerDumper, ITFile,MODFile};
+use xmodits::{TrackerDumper, tracker_formats::*,};
 // Currenlty experimenting with designing an api
 fn main() {
     println!("Hello, world!");
@@ -15,13 +15,4 @@ fn main() {
     };
 
     tracker_module.unwrap().export(&"./test/testapi.wav", 0).unwrap()
-
-    // match ITFile::load_module("samples/comp/worldies.it") {
-    //     Ok(dumpy) => {
-    //         if let Err(e) = dumpy.export(&"./test/testapi.wav", 0) {
-    //             println!("{:?}",e)
-    //         };
-    //     },
-    //     Err(e) => {println!("{:?}",e);}
-    // };
 } 

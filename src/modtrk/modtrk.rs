@@ -1,13 +1,8 @@
 use std::path::Path;
 use std::fs::{self, File};
 use std::io::Write;
-use byteorder::{BE,ByteOrder};
-use crate::{offset_chars, offset_u32, offset_u16};
-use crate::utils::{
-    Error,
-    wav,
-    array::load_to_array,signed::SignedByte
-};
+use byteorder::{BE, ByteOrder};
+use crate::utils::prelude::*;
 
 const MOD_SMP_START: usize = 0x0014;
 const MOD_SMP_LEN: usize = 0x1e;        // Sample data is 30 bytes in size
@@ -88,7 +83,6 @@ impl TrackerDumper for MODFile {
     }
 }
 
-
 fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
     let mut smp_data: Vec<MODSample> = Vec::new();
     let smp_start_index: usize = MOD_SMP_START;
@@ -112,17 +106,3 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
     
     smp_data
 }
-
-
-// #[test]
-// fn test1() {
-//     let protk = MODFile::load("samples/mod/kickin_it_with_style.mod").unwrap();
-//     println!("no. allocated samples: {}\n\n", protk.buf.len());
-
-//     for (index, i) in protk.smp_data.iter().enumerate().filter(|(_,e)| e.length != 0) {
-//         if let Err(e) = protk.export(format!("test/mod/{}.wav", index), index) {
-//             println!("{:?}", e);
-//         }
-//         // println!("index: {} size: {}", i.index, i.length);
-//     }
-// }
