@@ -91,11 +91,10 @@ impl ITFile {
             file.write_all(&decomp)?;
 
         } else {
-            let mut raw_data = &self.buffer[start_ptr..end_ptr];
-            let mut b: Vec<u8> = Vec::new();
-
             let end_ptr = start_ptr + 
                 (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
+            let mut raw_data = &self.buffer[start_ptr..end_ptr];
+            let mut b: Vec<u8> = Vec::new();
             
             // convert sample data to "signed" values if it's 8-bit  
             if smp.smp_bits == 8 {

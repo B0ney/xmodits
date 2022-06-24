@@ -1,6 +1,7 @@
 // use std::convert::From;
 pub mod macros;
 pub mod signed;
+pub mod array;
 pub mod wav;
 
 pub type Error = Box<dyn std::error::Error>;

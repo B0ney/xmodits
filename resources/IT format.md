@@ -131,9 +131,9 @@ Reference: https://github.com/schismtracker/schismtracker/blob/master/include/it
 ### **Flags (0x0012):
 
 
-**16-bit samples** have a flag of   **0bxxxx_xx1_**
+**16-bit samples** have a flag of   **0bxxxx_xx1x**
 
-**8-bit samples** have a flag of    **0bxxxx_xx0_**
+**8-bit samples** have a flag of    **0bxxxx_xx0x**
 
 
 
