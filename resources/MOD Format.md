@@ -1,7 +1,23 @@
 # Dumping samples from ProTracker modules
 
-The **.MOD** format should be the easiest to dump as they're the simplest format.
 
-They only support **8-bit samples** with a maximum size of **128KB**
+The **.MOD** format should be the easiest to dump samples as it's simplest format.
+
+* Samples are stored as **mono 8-bit PCM**.
+
+* Every sample has a maximum size of **128KB**
+
+## Sources
+* https://wiki.multimedia.cx/index.php/Protracker_Module
+
+Note:
+Data is read as BE, (This doesn't apply to sample data as it's only 8-bits remember?)
+
+Default number of samples allocated is **31**, but it will be **15** if:
+
+**4 bytes** at offset **0x0438** contains non-ASCII values.
 
 ## Header Infomation
+```
+0x0000 => [u8; 20] module name
+```

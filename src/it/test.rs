@@ -34,7 +34,7 @@ fn test_flag_set_2() {
 }
 #[test]
 fn test_dump() {
-    let a = ITFile::load("samples/comp/before_the_explozion.it").unwrap();
+    let a = ITFile::load("samples/comp/worldies.it").unwrap();
     // let _ = a.export(format!("./test/bingbong.wav"), 21).unwrap();
     // let _ = a.export(format!("./test/bingbon2g.wav"), 21).unwrap();
     // let _ = a.export(format!("./test/testdeus.wav"), 12).unwrap();
@@ -52,7 +52,7 @@ fn test_dump() {
     // );
     for (i,f) in a.samples_meta.iter().enumerate() {
         // if f.smp_bits == 16 && f.smp_comp {
-            println!("{:}, {:08b}", f.smp_stereo as u8, f.smp_flag);
+            // println!("{:}, {:08b}", f.smp_stereo as u8, f.smp_flag);
             println!("dumping: {}...",i + 1);
 
 
