@@ -21,3 +21,15 @@ Default number of samples allocated is **31**, but it will be **15** if:
 ```
 0x0000 => [u8; 20] module name
 ```
+
+
+
+to find the number of patterns, 
+we select 128 bytes before offset 0x0438,
+find the highest value, add 1.
+
+Use this (0x0438 + value * 1024) to skip pattern data
+which will lead us to the sample data
+
+sample data is placed sequentially.
+

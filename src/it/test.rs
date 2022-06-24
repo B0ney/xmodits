@@ -1,5 +1,5 @@
 use std::{fs::DirEntry, vec};
-use crate::offset_u16;
+use crate::{offset_u16, TrackerDumper};
 
 use super::it::*;
 
@@ -34,7 +34,7 @@ fn test_flag_set_2() {
 }
 #[test]
 fn test_dump() {
-    let a = ITFile::load("samples/comp/worldies.it").unwrap();
+    let a = ITFile::load_module("samples/comp/worldies.it").unwrap();
     // let _ = a.export(format!("./test/bingbong.wav"), 21).unwrap();
     // let _ = a.export(format!("./test/bingbon2g.wav"), 21).unwrap();
     // let _ = a.export(format!("./test/testdeus.wav"), 12).unwrap();
@@ -58,7 +58,7 @@ fn test_dump() {
 
             if let Err(e) = a.export(
 
-                format!("./test/{}.wav",
+                &format!("./test/{}.wav",
                 i + 1,
                 // c,
                 ),i
