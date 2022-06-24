@@ -117,7 +117,7 @@ pub struct MODSample {
 
 #[test]
 fn test1() {
-    let protk = MODFile::load("samples/mod/wicked_time.mod").unwrap();
+    let protk = MODFile::load("samples/mod/kickin_it_with_style.mod").unwrap();
     println!("no. allocated samples: {}\n\n", protk.buf.len());
 
     for (index, i) in protk.smp_data.iter().enumerate().filter(|(_,e)| e.length != 0) {

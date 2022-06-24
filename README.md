@@ -11,7 +11,7 @@ Dump samples from popular tracker formats!
 |IT| ✓|✓|✓|⏳|
 | XM  | 🚧| 🚧| 🚧| 🚧|
 | S3M | 🚧| 🚧| N/A| 🚧|
-| MOD | ⏳| N/A| N/A| N/A|
+| MOD | ✓| N/A| N/A| N/A|
 | UMX | 🚧| 🚧| 🚧| 🚧|
 
 
