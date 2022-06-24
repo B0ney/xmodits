@@ -1,1 +1,1 @@
-## Dumping Module for Scream Tracker Samples
+## Dumping Module for Scream Tracker 3 Samples

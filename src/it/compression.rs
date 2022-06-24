@@ -136,6 +136,12 @@ impl <'a>BitReader<'a> {
 /// Think of this as a rustified version of itsex.c
 /// 
 /// The goal here is to achive simplicity.
+/// 
+/// TODO:
+///     deompressing stereo samples may not work.
+///     refer to line 137 in compression.c for ideas.
+///     Add stereo boolean parameter.
+///     
 fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
     let mut len: u32 = len;     // Length of uncompressed sample. (copied for mutation)
     let mut blklen: u16;        // uncompressed block length. Usually 0x8000 for 8-Bit samples

@@ -8,10 +8,10 @@ Dump samples from popular tracker formats!
 ## Supported Formats:
 |Format| 8-bit| 16-bit| compression|Stereo|
 | --- | --- | --- | --- | --- |
-|IT| ✓|✓|✓|N/A|
+|IT| ✓|✓|✓|⏳|
 | XM  | 🚧| 🚧| 🚧| 🚧|
 | S3M | 🚧| 🚧| N/A| 🚧|
-| MOD | 🚧| 🚧| 🚧| 🚧|
+| MOD | 🚧| N/A| N/A| N/A|
 | UMX | 🚧| 🚧| 🚧| 🚧|
 
 

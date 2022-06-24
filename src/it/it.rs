@@ -16,18 +16,21 @@ const IT_HEADER_LEN: usize = 192;
 const IT_SAMPLE_LEN: usize = 80;
 const MASK_SMP_BITS: u8 = 0b0000_0010; // 16/8bit samples
 const MASK_SMP_COMP: u8 = 0b0000_1000; // Does sample use compression?
+const MASK_SMP_STEREO: u8 = 0b0000_0001; // 0 = mono, 1 = stereo
+
 const IT214: u16 = 0x0214; 
 
 #[derive(Debug)]
 pub struct ITSample {
     pub filename: [char; 12],
     pub name: [char; 26],
-    pub smp_len: u32,        // This is NOT in bytes
-    pub smp_ptr: u32,
-    pub smp_rate: u32,
-    pub smp_flag: u8,
-    pub smp_bits: u8,       // does sample use 16 or 8 bits
-    pub smp_comp: bool, // Does sample use compression
+    pub smp_len: u32,           // This is NOT in bytes
+    pub smp_ptr: u32,           //
+    pub smp_rate: u32,          //
+    pub smp_flag: u8,           //
+    pub smp_bits: u8,           // Does sample use 16 or 8 bits
+    pub smp_comp: bool,         // Does sample use compression
+    pub smp_stereo: bool,       // Is the sample stereo
 }
 
 #[derive(Debug)]
@@ -56,9 +59,8 @@ impl ITFile {
         Ok(Self {
             sample_number,
             samples_meta,
-            version: LE::read_u16(&buffer[offset_u16!(0x0028)]),
+            version:        LE::read_u16(&buffer[offset_u16!(0x0028)]),
             compat_version: LE::read_u16(&buffer[offset_u16!(0x002A)]),
-
 
             buffer,
         })
@@ -74,6 +76,7 @@ impl ITFile {
             smp.smp_rate,
             smp.smp_bits,
             smp.smp_len,
+            smp.smp_stereo,
         );
         
         // Write Wav Header
@@ -107,7 +110,7 @@ impl ITFile {
     }
 }
 
-fn build_samples(it_data: &Vec<u8>, num_samples: u16) -> Result<Vec<ITSample>, Error> {
+fn build_samples(it_data: &[u8], num_samples: u16) -> Result<Vec<ITSample>, Error> {
     let mut ins_start_index: usize = 0;
     let mut smp_meta: Vec<ITSample> = Vec::new();
 
@@ -137,13 +140,6 @@ fn build_samples(it_data: &Vec<u8>, num_samples: u16) -> Result<Vec<ITSample>, E
         
         load_to_array(&mut filename,    &it_data[offset_chars!(0x0004 + offset, 12)]);
         load_to_array(&mut name,        &it_data[offset_chars!(0x0014 + offset, 26)]);
-        
-        // Isolate flag bit to LSB, by ANDing with MASK then Shift Right N.
-        // (LSB = Least Significant Bit) 
-        // for "bit_samples", Add 1 and multiply by 8 so that
-        // if bit = 0, 0 becomes 8.  If bit = 1, 1 becomes 16 
-        let bits_sample: u8         = (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8;
-        let is_compressed: bool     =  ((smp_flag & MASK_SMP_COMP) >> 3) == 1;
 
         smp_meta.push(ITSample {
             filename,
@@ -151,9 +147,10 @@ fn build_samples(it_data: &Vec<u8>, num_samples: u16) -> Result<Vec<ITSample>, E
             smp_len:    LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]),
             smp_ptr:    LE::read_u32(&it_data[offset_u32!(0x0048 + offset)]),
             smp_rate:   LE::read_u32(&it_data[offset_u32!(0x003C + offset)]),
+            smp_bits:   (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8,
+            smp_comp:    ((smp_flag & MASK_SMP_COMP) >> 3) == 1,
+            smp_stereo:   (smp_flag & MASK_SMP_STEREO)     == 1,
             smp_flag,
-            smp_bits: bits_sample,
-            smp_comp: is_compressed,
         })
     }
 

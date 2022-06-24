@@ -2,31 +2,43 @@
 
 We're only interested in dumping the samples, so it should be decent.
 
-IT Samples are raw signed PCM (PLEASE VERIFY), the sample rate.
+IT Samples can be stored as:
+```
+* 8-bit     raw PCM         (mono/stereo)
+* 8-bit     compressed      (mono/stereo)
+* 16-bit    raw PCM         (mono/stereo)
+* 16-bit    compressed      (mono/stereo)
+```
+Refer to "IT compression.md" for more infomation.
 
-Some Are 16-bit.
-note that some samples can be compressed.
+### Sources:
+
+[ITTECH.TXT ARCHIVE 1](https://web.archive.org/web/20220610182703/https://github.com/schismtracker/schismtracker/wiki/ITTECH.TXT)
+
+[ITTECH.TXT ARCHIVE 2](https://ia600506.us.archive.org/view_archive.php?archive=/4/items/msdos_it214c_shareware/it214c.zip&file=ITTECH.TXT)
 
 
 ### Terminology:
-* **i** = Signed, **u** = Unsigned
-* [ **u8** ]  -> Unsigned 8-bit integer
-* [ **i8** ]  -> Signed 8-bit integer
-* **[u8; 26]**  -> Unsigned 8-bit **array** with size of 26
+|term| meaning|
+|---|---|
+|**iN**|**Signed** **N**-bit integer ( e.g **i8** )|
+|**uN**|**Unsigned** **N**-bit integer ( e.g **u8** )|
+| [**iN**; **S**]| **Signed** **N**-bit **array with size S**  (e.g **[i8; 64]**)|
+| [**UN**; **S**]| **Unsigned** **N**-bit **array with size S**  (e.g **[u8; 64]**)|
 
 
 ### IT file structure:
 * Header (**192 bytes**)
-* Pattern Orders with bytes indicated by ordnum
-* Instrument Parameters with bytes 4x size of insnum
-* Sample Parameters with bytes 4x size of smpnum
-* Pattern Parameters with bytes 4x value of patnum
+* Pattern orders with bytes indicated by **ordnum**
+* Instrument parameters with bytes **4x** size of **insnum**
+* Sample parameters with bytes **4x** size of **smpnum**
+* Pattern parameters with bytes **4x** value of **patnum**
 * **Undocumented data**
-* Sample metadata, each **80 bytes** number specified by **smpnum**
+* Sample metadata, each **80 bytes**. Amount specified by **smpnum**
 
-Note: I don't think it's worth documenting out every part of the file, why not just look where the first "IMPS" is located
+Note: I don't think it's worth documenting out every part of the file, why not just look where the first **"IMPS"** is located?
 
-## IT Header byte structure
+## IT Header Structure
 Size: **192 Bytes** 
 
 Offsets are in **bytes** and they are relative to the **"IMPM"** header.
@@ -48,7 +60,7 @@ Reference: https://github.com/schismtracker/schismtracker/blob/master/include/it
 0x0026 -> patnum        [u16]
 
 0x0028 -> cwtv          [u16]       created with tracker version
-0x002A -> cmwt          [u16]       compatible with tracker version
+0x002A -> cmwt          [u16]       [need this] compatible with tracker version, i.e "214/215"
 
 0x002C -> flags         [u16]
 0x002E -> special       [u16]
@@ -68,10 +80,70 @@ Reference: https://github.com/schismtracker/schismtracker/blob/master/include/it
 
 ```
 
+
+
+
+
+## IT Sample Byte Structure
+Size: **80 Bytes**
+
+They do not store samples but rather metadata about them. 
+
+They'll point to the raw samples. 
+
+The sample pointer needs to be read as Little endian
+
+
+Offsets are in **bytes** and they are relative to the **"IMPS"** header
+
+Reference: https://github.com/schismtracker/schismtracker/blob/master/include/it_defs.h#L102=
+
+```
+0x0000 -> "IMPS"        [u32]       [We need this for verification]
+0x0004 -> filename      [i8; 12]    [We need this]
+
+0x0010 -> zero          [u8]
+0x0011 -> gvl           [u8]        
+0x0012 -> flags         [u8]        [We need this] **
+
+0x0013 -> vol           [u8]
+0x0014 -> name          [i8; 26]    [We need this]
+
+0x002E -> cvt           [u8]
+0x002F -> dfp           [u8]
+0x0030 -> length        [u32]       [We need this]
+
+0x0034 -> loopbegin     [u32]
+0x0038 -> loopend       [u32]
+0x003C -> C5Speed       [u32]
+0x0040 -> susloopbegin  [u32]
+0x0044 -> susloopend    [u32]
+0x0048 -> samplepointer [u32]       [We need this]
+
+0x004C -> vis           [u8]
+0x004D -> vid           [u8]
+0x004E -> vir           [u8]
+0x004F -> vit           [u8]
+
+0x0050 -> END OF INSTRUMENT STRUCT, NEW STRUCT STARTS AFTER HERE.
+```
+
+### **Flags (0x0012):
+
+
+**16-bit samples** have a flag of   **0bxxxx_xx1_**
+
+**8-bit samples** have a flag of    **0bxxxx_xx0_**
+
+
+
+
+
+
 ## IT Instrument Byte structure
 Size: **554** bytes
 
-Not really documenting everything, but we need somthing from it as it's crucial when decompressing samples.
+Not needed for dumping samples. 
 
 again, offsets are relative.
 ```
@@ -103,62 +175,3 @@ again, offsets are relative.
 
 0x22a => END OF INSTRUMENT STRUCT, NEW DATA STARTS AFTER HERE
 ```
-
-
-
-
-## IT Sample byte structure
-Size: **80 Bytes**
-
-They do not store samples but rather metadata about them. 
-
-They'll also point to the raw samples. 
-
-The sample pointer needs to be converted to bigendian
-
-
-Offsets are in **bytes** and they are relative to the **"IMPS"** header
-
-Reference: https://github.com/schismtracker/schismtracker/blob/master/include/it_defs.h#L102=
-
-```
-0x0000 -> "IMPS"        [u32]       [We need this for verification]
-0x0004 -> filename      [i8; 12]    [We need this]
-
-0x0010 -> zero          [u8]
-0x0011 -> gvl           [u8]        
-0x0012 -> flags         [u8]
-0x0013 -> vol           [u8]
-
-0x0014 -> name          [i8; 26]    [We need this]
-
-0x002E -> cvt           [u8]
-0x002F -> dfp           [u8]
-
-0x0030 -> length        [u32]       [We need this]
-
-0x0034 -> loopbegin     [u32]
-0x0038 -> loopend       [u32]
-0x003C -> C5Speed       [u32]
-0x0040 -> susloopbegin  [u32]
-0x0044 -> susloopend    [u32]
-
-0x0048 -> samplepointer [u32]       [We need this]
-
-0x004C -> vis           [u8]
-0x004D -> vid           [u8]
-0x004E -> vir           [u8]
-0x004F -> vit           [u8]
-
-0x0050 -> END OF INSTRUMENT STRUCT, NEW STRUCT STARTS AFTER HERE.
-```
-
-observations:
-
-**16-bit samples** have a flag of   **0bxxxx_xx11**
-
-**8-bit samples** have a flag of    **0bxxxx_xx01**
-
-**Under investigation**: compressed samples have a flag of **0101_0001**
-
-confirmed it that's not the case

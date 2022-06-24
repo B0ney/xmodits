@@ -11,14 +11,15 @@ pub fn build_header(
     smp_rate: u32,  // sample rate
     smp_bits: u8,   // bits per sample
     pcm_len: u32,   // length of byte array
+    stereo: bool,   // is pcm stereo
 ) -> [u8; HEADER_SIZE as usize]
 {
     let mut header:[u8; HEADER_SIZE as usize] = [0u8; HEADER_SIZE as usize];     
     let wav_scs:            u32 = 16;                       // sec chunk size
     let wav_type:           u16 = 1;                        // 1 = pcm
-    let wav_flag_ms:        u16 = 0x01;                     // mono/stereo 0x01 = mono, 0x02 = stereo
+    let monostereo:         u16 = stereo as u8 + 1;         // 0x01 = mono, 0x02 = stereo
     let sample_frequency:   u32 = smp_rate;
-    let bytes_sec:          u32 = smp_rate * wav_flag_ms as u32;   // sample_rate * channels (DOUBLE CHECK)
+    let bytes_sec:          u32 = smp_rate * monostereo as u32;   // sample_rate * channels (DOUBLE CHECK)
     let block_align:        u16 = 0x01;                     // can be anything really
     let bits_sample:        u16 = smp_bits as u16;
     let file_size:          u32 = HEADER_SIZE as u32 + (pcm_len * (bits_sample / 8) as u32) - 8;
@@ -30,7 +31,7 @@ pub fn build_header(
     BE::write_u32(&mut header[offset_u32!(0x000C)], FMT_);
     LE::write_u32(&mut header[offset_u32!(0x0010)], wav_scs);
     LE::write_u16(&mut header[offset_u16!(0x0014)], wav_type);
-    LE::write_u16(&mut header[offset_u16!(0x0016)], wav_flag_ms);
+    LE::write_u16(&mut header[offset_u16!(0x0016)], monostereo);
     LE::write_u32(&mut header[offset_u32!(0x0018)], sample_frequency);
     LE::write_u32(&mut header[offset_u32!(0x001C)], bytes_sec);
     LE::write_u16(&mut header[offset_u16!(0x0020)], block_align);
