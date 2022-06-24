@@ -10,12 +10,14 @@ use crate::utils::{
 
 const MOD_SMP_START: usize = 0x0014;
 const MOD_SMP_LEN: usize = 0x1e;        // Sample data is 30 bytes in size
+// const MOD_SMP_PCM: uszie = ; // index where pcm data starts
 
 pub struct MODFile {
     buf: Vec<u8>,
     title: [char; 20],
     smp_num: u8,
-    smp_data: Vec<MODSample>
+    smp_data: Vec<MODSample>,
+    // pat_num: u8,
 }
 
 impl MODFile {
@@ -31,16 +33,39 @@ impl MODFile {
                 .any(|b| *b >=32 && *b <= 126) 
             { 31 } else { 15 }
         };
+        // 20 + 30*31 + 1 + 1 + 128
 
-        Ok(Self{
+        /// to find the number of patterns, 
+        /// we select 128 bytes before offset 0x0438,
+        /// find the higest value, add 1.
+        /// 
+        /// Use this (0x0438 + value * 1024) to skip pattern data
+        /// which will lead us to the sample data
+        /// 
+        /// sample data is placed sequentially.
+
+        Ok(Self {
             title,
             smp_data: build_samples(smp_num, &buf), 
             smp_num,
+            // pat_num: &buf[0x03b6],
             buf
-            
         })
     }
     pub fn export<P: AsRef<Path>>(&self, path: P, index: usize) -> Result<(), Error> {
+        // Now that we have enough infomation, we need to have a way to jump to every sample 
+        // perhaps we should generate the indexes?
+        let smp     = &self.smp_data[index];
+        let wav_header = wav::build_header(
+            8363,
+            8,
+            smp.smp_len,
+            false,
+        );
+
+        let mut file    = File::create(path)?;
+        file.write_all(&wav_header)?;
+
 
         Ok(())
     }
@@ -49,6 +74,7 @@ impl MODFile {
 fn build_samples(smp_num: u8, buf: &[u8]) -> Vec<MODSample> {
     let mut smp_data: Vec<MODSample> = Vec::new();
     let smp_start_index: usize = MOD_SMP_START;
+    // let mut smp_pcm_stream_index = ;
 
     for i in 0..smp_num as usize {
         let index = smp_start_index + (i * MOD_SMP_LEN); 
@@ -67,6 +93,7 @@ fn build_samples(smp_num: u8, buf: &[u8]) -> Vec<MODSample> {
 pub struct MODSample {
     name: [char; 22],
     length: u16,    // multiply by 2 to get length in bytes
+    // start_index: usize
 }
 
 #[test]
