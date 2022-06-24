@@ -17,7 +17,7 @@ pub fn build_header(
     let mut header:[u8; HEADER_SIZE as usize] = [0u8; HEADER_SIZE as usize];     
     let wav_scs:            u32 = 16;                       // sec chunk size
     let wav_type:           u16 = 1;                        // 1 = pcm
-    let monostereo:         u16 = stereo as u8 + 1;         // 0x01 = mono, 0x02 = stereo
+    let monostereo:         u16 = stereo as u16 + 1;         // 0x01 = mono, 0x02 = stereo
     let sample_frequency:   u32 = smp_rate;
     let bytes_sec:          u32 = smp_rate * monostereo as u32;   // sample_rate * channels (DOUBLE CHECK)
     let block_align:        u16 = 0x01;                     // can be anything really
