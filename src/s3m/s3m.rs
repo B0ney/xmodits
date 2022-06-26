@@ -1,9 +1,18 @@
 use crate::utils::prelude::*;
 use byteorder::{ByteOrder, BE, LE};
 
-pub struct S3MSample {}
+pub struct S3MSample {
+    smp_name: [char; 28],
+    smp_ptr: u32,
+    smp_len: u32,
+    smp_stereo: bool,
+    smp_bytes: u8,
+}
 
-pub struct S3MFile {}
+pub struct S3MFile {
+    title: [char; 28],
+    smp_data: Vec<S3MSample>,
+}
 
 
 use crate::interface::{TrackerDumper, DumperObject};
