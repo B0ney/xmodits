@@ -61,7 +61,9 @@ Size: **13 Bytes**
 ```
 
 ## Sample Header (PCM Only)
-Size: **536** bytes. CHECK
+Comes after instrument header.
+
+Size: **67** bytes. CHECK
 
 The header stores a 24 bit pointer to the file
 Data is LE.
