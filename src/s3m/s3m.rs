@@ -6,7 +6,6 @@ pub struct S3MSample {
     smp_ptr: u32,
     smp_len: u32,
     smp_stereo: bool,
-    smp_bytes: u8,
 }
 
 pub struct S3MFile {
@@ -70,17 +69,36 @@ impl TrackerDumper for S3MFile {
 
 fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error> {
     // let mut title: [char; 28] = [' '; 28];
-    for i in ins_ptr {
-        let i = usize;
-        let smp_ptr: u32;
+    let mut samples: Vec<S3MSample> = vec::new();
 
+    for i in ins_ptr {
         // if it's not a PCM instrument, skip
-        if &buf[i] != 0x1 { 
+        if &buf[i as usize] != 0x1 { 
             continue;
         }
-        
-    }
 
+        let index: usize    = i as usize + 12; // skip filename
+        let hi_ptr: u8      = buf[index];
+        let lo_ptr: u16     = LE::read_u16(&buf[offset_u16!(0x0001 + index)]);
+        // check, maybe use LE::read_u24?
+        let smp_ptr: u32    = (hi_ptr as u32) << 16 | lo_ptr; 
+        
+        let smp_len: u32    = LE::read_u16(&buf[offset_u16!(0x0003 + index)]);
+        let smp_rate: u32   = LE::read_u32(&buf[offset_u32!(0x0013 + index)]);
+        let smp_flag: u8    = buf[0x0012 + index];
+        
+        //
+
+        samples.push(
+            S3MSample{
+                smp_name: todo!(),
+                smp_ptr,
+                smp_len,
+                smp_stereo: todo!(),
+            }
+        )
+    }
+    Ok(samples);
     todo!()
 }
 
