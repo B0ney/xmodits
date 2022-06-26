@@ -1,8 +1,5 @@
-use std::path::Path;
-use std::fs::{self, File};
-use std::io::Write;
-use byteorder::{BE, ByteOrder};
 use crate::utils::prelude::*;
+use byteorder::{BE, ByteOrder};
 
 const MOD_SMP_START: usize = 0x0014;
 const MOD_SMP_LEN: usize = 0x1e;        // Sample data is 30 bytes in size
@@ -39,12 +36,13 @@ impl TrackerDumper for MODFile {
             { 31 } else { 15 }
         };
 
-        let smp_index: usize = {
-            0x0438 +
-            (*buf[offset_chars!(PAT_META, 128)]
+        let largest_pat = *buf[offset_chars!(PAT_META, 128)]
                 .iter()
                 .max()
-                .unwrap() as usize + 1) * 1024 
+                .unwrap() as usize;
+
+        let smp_index: usize = {
+            0x0438 + (largest_pat + 1) * 1024 
         };
 
         Ok(Box::new(Self {
@@ -84,7 +82,6 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
     let mut smp_data: Vec<MODSample> = Vec::new();
     let smp_start_index: usize = MOD_SMP_START;
     let mut smp_pcm_stream_index = smp_start;
-    // generate sample index here
 
     for i in 0..smp_num as usize {
         let index = smp_start_index + (i * MOD_SMP_LEN); 

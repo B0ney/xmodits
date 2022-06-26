@@ -1,8 +1,5 @@
-use byteorder::{ByteOrder, LE, BE};
-use std::fs::{self, File};
-use std::io::Write;
-use std::path::Path;
 use crate::utils::prelude::*;
+use byteorder::{ByteOrder, LE, BE};
 use super::compression::decompress_sample;
 
 const IT_HEADER_ID: u32 = 0x49_4D_50_4D;    // IMPM
