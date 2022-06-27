@@ -1,12 +1,14 @@
+use std::path::PathBuf;
 use crate::utils::prelude::*;
 use byteorder::{ByteOrder, BE, LE};
+
 const SMP_MASK_STEREO: u8 = 0b0000_0100;
 const SMP_MASK_BITS: u8   = 0b0000_1000;
 
 const INS_HEAD_LENGTH: usize = 13;
 #[derive(Debug)]
 pub struct S3MSample {
-    smp_name: [char; 28],
+    smp_name: String,
     smp_ptr: u32,
     smp_len: u32,
     smp_stereo: bool,
@@ -16,7 +18,7 @@ pub struct S3MSample {
 
 pub struct S3MFile {
     buf: Vec<u8>,
-    title: [char; 28],
+    title: String,
     smp_data: Vec<S3MSample>,
 }
 
@@ -28,9 +30,9 @@ impl TrackerDumper for S3MFile {
     {
         let buf = fs::read(path)?;
         // TODO: add checks to see if valid
-        let mut title: [char; 28] = [' '; 28];
-        load_to_array(&mut title, &buf[offset_chars!(0x0000, 28)]);
-        /// use the ins_ptrs stored to locate instument data
+        let title= string_from_chars(&buf[offset_chars!(0x0000, 28)]);
+
+        // use the ins_ptrs stored to locate instument data
         let ord_count: u16 = LE::read_u16(&buf[offset_u16!(0x0020)]);
         let ins_count: u16 = LE::read_u16(&buf[offset_u16!(0x0022)]);
         // use this offset to locate list of instrument ptrs.
@@ -53,6 +55,9 @@ impl TrackerDumper for S3MFile {
 
     fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
         let smp = &self.smp_data[index];
+        if smp.smp_stereo {
+            return Err("Stereo samples are not yet supported, please provide this module".into());
+        }
         let start = smp.smp_ptr as usize;
         let end = start + smp.smp_len as usize;
         // TODO: figure out how to include stereo 
@@ -60,10 +65,14 @@ impl TrackerDumper for S3MFile {
         let wav_header = wav::build_header(
             smp.smp_rate, smp.smp_bits, smp.smp_len, false /*smp.smp_stereo */,
         );
-        let mut file: File = File::create(path)?;
+        let pathbuf: PathBuf = PathBuf::new()
+            .join(path)
+            .join(format!("({}) {}.wav",index,smp.smp_name));
+
+        println!("{}", &pathbuf.display());
+        let mut file: File = File::create(pathbuf)?;
         file.write_all(&wav_header)?;
         file.write_all(&pcm)?;
-        println!("exported to: {}", path.as_ref().display());
 
         Ok(())
     }
@@ -89,18 +98,15 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
         // remember this is LE
         let hi_ptr: u8      = buf[index];   // smp ptr upper 8 bits 
         let lo_ptr: u16     = LE::read_u16(&buf[offset_u16!(0x0001 + index)]); // smp ptr lower 16 bits 
-
         let smp_ptr: u32    = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4; 
         
-        let smp_len: u32    = LE::read_u32(&buf[offset_u32!(0x0003 + index)]) as u32 & 0xffff;
-        let smp_rate: u32   = LE::read_u32(&buf[offset_u32!(0x0013 + index)]) as u32;
-
+        let smp_len: u32        = LE::read_u32(&buf[offset_u32!(0x0003 + index)]) as u32 & 0xffff;
+        let smp_rate: u32       = LE::read_u32(&buf[offset_u32!(0x0013 + index)]) as u32;
         let smp_flag: u8        = buf[0x0012 + index];
         let smp_stereo: bool    = (smp_flag & SMP_MASK_STEREO) >> 2 == 1;
         let smp_bits: u8        = if (smp_flag & SMP_MASK_BITS) >> 3 == 1 { 16 } else { 8 };
 
-        let mut smp_name: [char; 28] = [' '; 28];
-        load_to_array(&mut smp_name, &buf[offset_chars!(0x0023 + index, 28)]);
+        let smp_name= string_from_chars(&buf[offset_chars!(0x0023 + index, 28)]);
 
         samples.push(
             S3MSample{
@@ -119,10 +125,10 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
 
 #[test]
 fn test1() {
-    let a = S3MFile::load_module("samples/s3m/arc-cell.s3m").unwrap();
+    let a = S3MFile::load_module("samples/s3m/underwater_world_part_ii.s3m").unwrap();
     println!("{}", a.number_of_samples());
     for i in 0..a.number_of_samples() {
-        if let Err(e) = a.export(&format!("test/s3m/test{}.wav", i), i) {
+        if let Err(e) = a.export(&format!("test/s3m/"), i) {
             println!("{:?}", e);
         }
     }
