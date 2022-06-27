@@ -30,15 +30,12 @@ impl TrackerDumper for S3MFile {
         // TODO: add checks to see if valid
         let mut title: [char; 28] = [' '; 28];
         load_to_array(&mut title, &buf[offset_chars!(0x0000, 28)]);
-        
         /// use the ins_ptrs stored to locate instument data
         let ord_count: u16 = LE::read_u16(&buf[offset_u16!(0x0020)]);
         let ins_count: u16 = LE::read_u16(&buf[offset_u16!(0x0022)]);
-
         // use this offset to locate list of instrument ptrs.
         let ins_ptr_list = 0x0060 + ord_count;
-        // println!("0x{:04X}\n", ins_ptr_list);
-        
+
         let mut ins_ptrs: Vec<u16> = Vec::new();
 
         for i in 0..ins_count {
@@ -46,25 +43,33 @@ impl TrackerDumper for S3MFile {
             // convert parameter to byte-level offset by << 4
             ins_ptrs.push(LE::read_u16(&buf[offset_u16!(index as usize)]) << 4)
         };
-        let smp =  build_samples(&buf, ins_ptrs)?;
-        // for p in ins_ptrs {
-        //     println!("0x{:04X}", p);
-        // }
 
-        // Ok(Box::new(Self{
-        //     title,
-        //     smp_data: build_samples(&buf, ins_ptrs)?,
-        //     buf,
-        // }))
-        Err("dont".into())
+        Ok(Box::new(Self{
+            title,
+            smp_data: build_samples(&buf, ins_ptrs)?,
+            buf,
+        }))
     }
 
     fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        todo!()
+        let smp = &self.smp_data[index];
+        let start = smp.smp_ptr as usize;
+        let end = start + smp.smp_len as usize;
+        // TODO: figure out how to include stereo 
+        let pcm = &self.buf[start..end]; // no need to convert to signed data
+        let wav_header = wav::build_header(
+            smp.smp_rate, smp.smp_bits, smp.smp_len, false /*smp.smp_stereo */,
+        );
+        let mut file: File = File::create(path)?;
+        file.write_all(&wav_header)?;
+        file.write_all(&pcm)?;
+        println!("exported to: {}", path.as_ref().display());
+
+        Ok(())
     }
 
     fn number_of_samples(&self) -> usize {
-        todo!()
+        self.smp_data.len()
     }
 
     fn dump(&self) {
@@ -79,18 +84,13 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
     for i in ins_ptr {
         // if it's not a PCM instrument, skip
         if buf[i as usize] != 0x1 { continue; }
-
         let index: usize    = i as usize + INS_HEAD_LENGTH; // skip instrument header (13 bytes)
-
         // The sample pointer is a 24-bit integer
         // remember this is LE
         let hi_ptr: u8      = buf[index];   // smp ptr upper 8 bits 
         let lo_ptr: u16     = LE::read_u16(&buf[offset_u16!(0x0001 + index)]); // smp ptr lower 16 bits 
-        // let smp_ptr: u32    = (hi_ptr as u32) << 16 | lo_ptr as u32 << 4; 
-        let smp_ptr: u32    = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4; 
 
-        
-        println!("hi: 0x{:04X}\nlow: 0x{:04X}", hi_ptr, lo_ptr);
+        let smp_ptr: u32    = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4; 
         
         let smp_len: u32    = LE::read_u32(&buf[offset_u32!(0x0003 + index)]) as u32 & 0xffff;
         let smp_rate: u32   = LE::read_u32(&buf[offset_u32!(0x0013 + index)]) as u32;
@@ -101,7 +101,6 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
 
         let mut smp_name: [char; 28] = [' '; 28];
         load_to_array(&mut smp_name, &buf[offset_chars!(0x0023 + index, 28)]);
-        //
 
         samples.push(
             S3MSample{
@@ -115,17 +114,17 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
         )
     }
 
-    println!("{:#?}", &samples[0]);
-
-    // for smp in &samples {
-        
-    //     println!("{:#?}", smp);
-    // }
     Ok(samples)
-    // todo!()
 }
 
 #[test]
 fn test1() {
-    let a = S3MFile::load_module("samples/s3m/murallas.s3m");
+    let a = S3MFile::load_module("samples/s3m/arc-cell.s3m").unwrap();
+    println!("{}", a.number_of_samples());
+    for i in 0..a.number_of_samples() {
+        if let Err(e) = a.export(&format!("test/s3m/test{}.wav", i), i) {
+            println!("{:?}", e);
+        }
+    }
+    
 }

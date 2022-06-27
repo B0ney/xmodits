@@ -54,7 +54,7 @@ impl TrackerDumper for MODFile {
     }
 
     fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        let mut file: File      = File::create(path)?;
+        
         let smp: &MODSample     = &self.smp_data[index];
         let start: usize        = smp.index;
         let end: usize          = start + smp.length as usize;
@@ -62,7 +62,8 @@ impl TrackerDumper for MODFile {
         let wav_header = wav::build_header(
             8363, 8, smp.length as u32, false,
         );
-
+        
+        let mut file: File      = File::create(path)?;
         file.write_all(&wav_header)?;
         file.write_all(&pcm)?;
 
