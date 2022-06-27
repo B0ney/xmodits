@@ -1,7 +1,9 @@
 // use std::{fs::DirEntry, vec};
 use crate::TrackerDumper;
 use crate::utils::prelude::*;
-use super::it::*;
+
+use super::ITFile;
+// use self::*;
 
 // #[test]
 // fn test1() {

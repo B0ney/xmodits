@@ -2,8 +2,8 @@ use xmodits::{TrackerDumper, tracker_formats::*,};
 // Currenlty experimenting with designing an api
 fn main() {
     println!("Hello, world!");
-    let p = "samples/comp/worldies.it";
-    let a = 2;
+    let p = "samples/s3m/city_on_a_stick.s3m";
+    let a = 4;
 
     let tracker_module = match a {
         2 => ITFile::load_module(p),
@@ -14,5 +14,5 @@ fn main() {
         _ => todo!()
     };
 
-    tracker_module.unwrap().export(&"./test/testapi.wav", 0).unwrap()
+    tracker_module.unwrap().export(&"./test/", 0).unwrap()
 } 
