@@ -3,14 +3,6 @@
 version = 3
 
 [[package]]
-name = "app_cli"
-version = "0.1.0"
-dependencies = [
- "clap",
- "xmodits",
-]
-
-[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -157,4 +149,12 @@ name = "xmodits"
 version = "0.1.0"
 dependencies = [
  "byteorder",
+]
+
+[[package]]
+name = "xmodits-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "xmodits",
 ]

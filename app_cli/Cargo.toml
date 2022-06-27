@@ -1,5 +1,8 @@
+# cargo-features = ["strip"]
+
 [package]
-name = "app_cli"
+name = "xmodits-cli"
+authors = ["B0ney https://github.com/B0ney"]
 version = "0.1.0"
 edition = "2021"
 
@@ -8,3 +11,10 @@ edition = "2021"
 [dependencies]
 clap = "3.2.6"
 xmodits = {path = "../"}
+
+[profile.release]
+# strip = true
+opt-level = "z"
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Reduce number of codegen units to increase optimizations.
+panic = 'abort'  
