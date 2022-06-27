@@ -15,6 +15,8 @@ impl TrackerDumper for UMXFile {
         let buf = fs::read(path)?;
 
         // figure out what kind of tracker module is in the container
+        // then we need to strip the header 
+        // and let the appropriate module handle it
 
         match 0 {
             1 => ITFile::load_from_buf(buf),
@@ -28,19 +30,22 @@ impl TrackerDumper for UMXFile {
     }
 
     fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        todo!()
+        self.0.export(path, index)
     }
 
     fn number_of_samples(&self) -> usize {
-        todo!()
+        self.0.number_of_samples()
     }
 
     fn dump(&self) {
-        todo!()
+        self.0.dump()
     }
 
     fn load_from_buf(buf: Vec<u8>) -> Result<DumperObject, Error>
-        where Self: Sized {
-        todo!()
+        where Self: Sized  
+    {
+        // temporary
+        Err("Call \"load_module\" instead".into())
+        // todo!()
     }
 }
