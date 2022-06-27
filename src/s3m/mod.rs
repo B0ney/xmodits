@@ -5,8 +5,8 @@ use byteorder::{ByteOrder, BE, LE};
 
 const SMP_MASK_STEREO: u8 = 0b0000_0100;
 const SMP_MASK_BITS: u8   = 0b0000_1000;
-
 const INS_HEAD_LENGTH: usize = 13;
+
 #[derive(Debug)]
 pub struct S3MSample {
     smp_name: String,

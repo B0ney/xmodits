@@ -11,13 +11,12 @@ const IT_SAMPLE_LEN: usize = 80;
 const MASK_SMP_BITS: u8 = 0b0000_0010;      // 16/8bit samples
 const MASK_SMP_COMP: u8 = 0b0000_1000;      // Does sample use compression?
 const MASK_SMP_STEREO: u8 = 0b0000_0100;    // 0 = mono, 1 = stereo
-
-const IT214: u16 = 0x0214; 
+const IT214: u16 = 0x0214;                  // IT214 compression 
 
 #[derive(Debug)]
 pub struct ITSample {
-    pub filename: [char; 12],
-    pub name: [char; 26],
+    pub filename: String,
+    pub name: String,
     pub smp_len: u32,           // This is NOT in bytes
     pub smp_ptr: u32,           //
     pub smp_rate: u32,          //
@@ -132,13 +131,10 @@ fn build_samples(it_data: &[u8], num_samples: u16) -> Result<Vec<ITSample>, Erro
     }
 
     for i in 0..num_samples as usize {
-        let offset = ins_start_index + (i * IT_SAMPLE_LEN) as usize;
-        let smp_flag: u8 = it_data[0x012 + offset];
-        let mut filename:   [char; 12] = [' '; 12];
-        let mut name:       [char; 26] = [' '; 26];      
-        
-        load_to_array(&mut filename,    &it_data[offset_chars!(0x0004 + offset, 12)]);
-        load_to_array(&mut name,        &it_data[offset_chars!(0x0014 + offset, 26)]);
+        let offset: usize       = ins_start_index + (i * IT_SAMPLE_LEN) as usize;
+        let smp_flag: u8        = it_data[0x012 + offset];
+        let filename: String    = string_from_chars(&it_data[offset_chars!(0x0004 + offset, 12)]);
+        let name: String        = string_from_chars(&it_data[offset_chars!(0x0014 + offset, 26)]);
 
         smp_meta.push(ITSample {
             filename,

@@ -7,14 +7,14 @@ const MOD_SMP_LEN: usize = 0x1e;        // Sample data is 30 bytes in size
 const PAT_META: usize = 0x3b8;
 
 pub struct MODSample {
-    name: [char; 22],
+    name: String,
     length: u16,    // multiply by 2 to get length in bytes
     index: usize
 }
 
 pub struct MODFile {
     buf: Vec<u8>,
-    title: [char; 20],
+    title: String,
     smp_num: u8,
     smp_data: Vec<MODSample>,
 }
@@ -26,8 +26,7 @@ impl TrackerDumper for MODFile {
         where Self: Sized, P: AsRef<Path> 
     {
         let buf: Vec<u8> = fs::read(path)?;
-        let mut title: [char; 20] = [' '; 20];
-        load_to_array(&mut title, &buf[offset_chars!(0x0000, 20)]);
+        let title: String = string_from_chars(&buf[offset_chars!(0x0000, 20)]);
         
         // keep in mind that sample field remains same size.
         let smp_num: u8 = { 
@@ -55,7 +54,6 @@ impl TrackerDumper for MODFile {
     }
 
     fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        
         let smp: &MODSample     = &self.smp_data[index];
         let start: usize        = smp.index;
         let end: usize          = start + smp.length as usize;
@@ -63,11 +61,10 @@ impl TrackerDumper for MODFile {
         let wav_header = wav::build_header(
             8363, 8, smp.length as u32, false,
         );
-        
         let mut file: File      = File::create(path)?;
+
         file.write_all(&wav_header)?;
         file.write_all(&pcm)?;
-
         Ok(())
     }
 
@@ -88,9 +85,8 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
     for i in 0..smp_num as usize {
         let index = smp_start_index + (i * MOD_SMP_LEN); 
         let len = BE::read_u16(&buf[offset_u16!(0x0016 + index)]) * 2; // Double to get size in bytes
-        let mut name: [char; 22] = [' '; 22];
+        let name: String = string_from_chars(&buf[offset_chars!(index, 22)]);
 
-        load_to_array(&mut name, &buf[offset_chars!(index, 22)]);
         smp_data.push(MODSample {
             index: smp_pcm_stream_index,
             name,
