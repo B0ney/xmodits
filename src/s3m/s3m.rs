@@ -69,7 +69,7 @@ impl TrackerDumper for S3MFile {
             .join(path)
             .join(format!("({}) {}.wav",index,smp.smp_name));
 
-        println!("{}", &pathbuf.display());
+        // println!("{}", &pathbuf.display());
         let mut file: File = File::create(pathbuf)?;
         file.write_all(&wav_header)?;
         file.write_all(&pcm)?;
@@ -85,7 +85,6 @@ impl TrackerDumper for S3MFile {
         todo!()
     }
 }
-
 
 fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error> {
     let mut samples: Vec<S3MSample> = Vec::new();
@@ -125,7 +124,7 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
 
 #[test]
 fn test1() {
-    let a = S3MFile::load_module("samples/s3m/underwater_world_part_ii.s3m").unwrap();
+    let a = S3MFile::load_module("samples/s3m/city_on_a_stick.s3m").unwrap();
     println!("{}", a.number_of_samples());
     for i in 0..a.number_of_samples() {
         if let Err(e) = a.export(&format!("test/s3m/"), i) {
