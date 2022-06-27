@@ -3,12 +3,12 @@ use crate::utils::prelude::*;
 use byteorder::{BE, ByteOrder};
 
 const MOD_SMP_START: usize = 0x0014;
-const MOD_SMP_LEN: usize = 0x1e;        // Sample data is 30 bytes in size
+const MOD_SMP_LEN: usize = 0x1e;
 const PAT_META: usize = 0x3b8;
 
 pub struct MODSample {
     name: String,
-    length: u16,    // multiply by 2 to get length in bytes
+    length: u16,
     index: usize
 }
 
@@ -79,17 +79,16 @@ impl TrackerDumper for MODFile {
 
 fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
     let mut smp_data: Vec<MODSample> = Vec::new();
-    let smp_start_index: usize = MOD_SMP_START;
     let mut smp_pcm_stream_index = smp_start;
 
     for i in 0..smp_num as usize {
-        let index = smp_start_index + (i * MOD_SMP_LEN); 
-        let len = BE::read_u16(&buf[offset_u16!(0x0016 + index)]) * 2; // Double to get size in bytes
-        let name: String = string_from_chars(&buf[offset_chars!(index, 22)]);
+        let offset = MOD_SMP_START + (i * MOD_SMP_LEN); 
+        // Double to get size in bytes
+        let len = BE::read_u16(&buf[offset_u16!(0x0016 + offset)]) * 2; 
 
         smp_data.push(MODSample {
             index: smp_pcm_stream_index,
-            name,
+            name: string_from_chars(&buf[offset_chars!(offset, 22)]),
             length: len, 
         });
 

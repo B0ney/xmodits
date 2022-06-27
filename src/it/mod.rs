@@ -123,13 +123,6 @@ fn build_samples(it_data: &[u8], num_samples: u16) -> Result<Vec<ITSample>, Erro
         }
     }
 
-    if ins_start_index == 0 {
-        return Err(format!(
-            "IT module doesn't contain any samples. Despite showing that it has \"{}\" samples",
-            num_samples
-        ).into());
-    }
-
     for i in 0..num_samples as usize {
         let offset: usize       = ins_start_index + (i * IT_SAMPLE_LEN) as usize;
         let smp_flag: u8        = it_data[0x012 + offset];
