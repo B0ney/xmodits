@@ -1,6 +1,6 @@
-use std::{fs::DirEntry, vec};
-use crate::{offset_u16, TrackerDumper};
-
+// use std::{fs::DirEntry, vec};
+use crate::TrackerDumper;
+use crate::utils::prelude::*;
 use super::it::*;
 
 // #[test]
@@ -32,55 +32,55 @@ fn test_flag_set_2() {
     assert_eq!(test_func(f1_false), false);
     assert_eq!(test_func(f2_true), true);
 }
-// #[test]
-// fn test_dump() {
-//     let a = ITFile::load_module("samples/comp/worldies.it").unwrap();
-//     // let _ = a.export(format!("./test/bingbong.wav"), 21).unwrap();
-//     // let _ = a.export(format!("./test/bingbon2g.wav"), 21).unwrap();
-//     // let _ = a.export(format!("./test/testdeus.wav"), 12).unwrap();
+#[test]
+fn test_dump() {
+    let a = ITFile::load_module("samples/comp/worldies.it").unwrap();
+    // let _ = a.export(format!("./test/bingbong.wav"), 21).unwrap();
+    // let _ = a.export(format!("./test/bingbon2g.wav"), 21).unwrap();
+    // let _ = a.export(format!("./test/testdeus.wav"), 12).unwrap();
 
 
 
-//     // let f = &a.samples_meta[12];
-//     // println!("index: 0x{:04X}\nlength:{}\nrate:{}\nbits smp: {}\ncompressed: {}\n\n",
-//     //     // String::from_iter(f.filename),
-//     //     f.smp_ptr,
-//     //     f.smp_len,
-//     //     f.smp_rate,
-//     //     f.smp_bits,
-//     //     f.smp_comp,
-//     // );
-//     for (i,f) in a.samples_meta.iter().enumerate() {
-//         // if f.smp_bits == 16 && f.smp_comp {
-//             // println!("{:}, {:08b}", f.smp_stereo as u8, f.smp_flag);
-//             println!("dumping: {}...",i + 1);
+    // let f = &a.samples_meta[12];
+    // println!("index: 0x{:04X}\nlength:{}\nrate:{}\nbits smp: {}\ncompressed: {}\n\n",
+    //     // String::from_iter(f.filename),
+    //     f.smp_ptr,
+    //     f.smp_len,
+    //     f.smp_rate,
+    //     f.smp_bits,
+    //     f.smp_comp,
+    // );
+    for i in 0..a.number_of_samples() {
+        // if f.smp_bits == 16 && f.smp_comp {
+            // println!("{:}, {:08b}", f.smp_stereo as u8, f.smp_flag);
+            println!("dumping: {}...",i + 1);
 
 
-//             if let Err(e) = a.export(
+            if let Err(e) = a.export(
 
-//                 &format!("./test/{}.wav",
-//                 i + 1,
-//                 // c,
-//                 ),i
-//                 ) {
-//                     println!("{}", e);
-//                 };
-//         // }
-//     }
+                &format!("./test/{}.wav",
+                i + 1,
+                // c,
+                ),i
+                ) {
+                    println!("{}", e);
+                };
+        // }
+    }
         
 
-        // println!("{}",i);
-        // println!("name:{}\nindex: 0x{:04X}\nlength:{}\nrate:{}\nbits smp: {}\ncompressed: {}\n\n",
-        //     String::from_iter(f.filename),
-        //     f.smp_ptr,
-        //     f.smp_len,
-        //     f.smp_rate,
-        //     f.smp_bits,
-        //     f.smp_comp,
-        // );
+    //     println!("{}",i);
+    //     println!("name:{}\nindex: 0x{:04X}\nlength:{}\nrate:{}\nbits smp: {}\ncompressed: {}\n\n",
+    //         String::from_iter(f.filename),
+    //         f.smp_ptr,
+    //         f.smp_len,
+    //         f.smp_rate,
+    //         f.smp_bits,
+    //         f.smp_comp,
+    //     );
 
     // }
-// }
+}
 // #[test]
 // fn test69() {
 //     let a = ITFile::load("samples/comp/worldies.it").unwrap();

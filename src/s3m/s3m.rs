@@ -1,11 +1,17 @@
 use crate::utils::prelude::*;
 use byteorder::{ByteOrder, BE, LE};
+const SMP_MASK_STEREO: u8 = 0b0000_0100;
+const SMP_MASK_BITS: u8   = 0b0000_1000;
 
+const INS_HEAD_LENGTH: usize = 13;
+#[derive(Debug)]
 pub struct S3MSample {
     smp_name: [char; 28],
     smp_ptr: u32,
     smp_len: u32,
     smp_stereo: bool,
+    smp_rate: u32,
+    smp_bits: u8,
 }
 
 pub struct S3MFile {
@@ -40,10 +46,10 @@ impl TrackerDumper for S3MFile {
             // convert parameter to byte-level offset by << 4
             ins_ptrs.push(LE::read_u16(&buf[offset_u16!(index as usize)]) << 4)
         };
-
-        for p in ins_ptrs {
-            println!("0x{:04X}", p);
-        }
+        let smp =  build_samples(&buf, ins_ptrs)?;
+        // for p in ins_ptrs {
+        //     println!("0x{:04X}", p);
+        // }
 
         // Ok(Box::new(Self{
         //     title,
@@ -68,38 +74,55 @@ impl TrackerDumper for S3MFile {
 
 
 fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error> {
-    // let mut title: [char; 28] = [' '; 28];
-    let mut samples: Vec<S3MSample> = vec::new();
+    let mut samples: Vec<S3MSample> = Vec::new();
 
     for i in ins_ptr {
         // if it's not a PCM instrument, skip
-        if &buf[i as usize] != 0x1 { 
-            continue;
-        }
+        if buf[i as usize] != 0x1 { continue; }
 
-        let index: usize    = i as usize + 12; // skip filename
-        let hi_ptr: u8      = buf[index];
-        let lo_ptr: u16     = LE::read_u16(&buf[offset_u16!(0x0001 + index)]);
-        // check, maybe use LE::read_u24?
-        let smp_ptr: u32    = (hi_ptr as u32) << 16 | lo_ptr; 
+        let index: usize    = i as usize + INS_HEAD_LENGTH; // skip instrument header (13 bytes)
+
+        // The sample pointer is a 24-bit integer
+        // remember this is LE
+        let hi_ptr: u8      = buf[index];   // smp ptr upper 8 bits 
+        let lo_ptr: u16     = LE::read_u16(&buf[offset_u16!(0x0001 + index)]); // smp ptr lower 16 bits 
+        // let smp_ptr: u32    = (hi_ptr as u32) << 16 | lo_ptr as u32 << 4; 
+        let smp_ptr: u32    = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4; 
+
         
-        let smp_len: u32    = LE::read_u16(&buf[offset_u16!(0x0003 + index)]);
-        let smp_rate: u32   = LE::read_u32(&buf[offset_u32!(0x0013 + index)]);
-        let smp_flag: u8    = buf[0x0012 + index];
+        println!("hi: 0x{:04X}\nlow: 0x{:04X}", hi_ptr, lo_ptr);
         
+        let smp_len: u32    = LE::read_u32(&buf[offset_u32!(0x0003 + index)]) as u32 & 0xffff;
+        let smp_rate: u32   = LE::read_u32(&buf[offset_u32!(0x0013 + index)]) as u32;
+
+        let smp_flag: u8        = buf[0x0012 + index];
+        let smp_stereo: bool    = (smp_flag & SMP_MASK_STEREO) >> 2 == 1;
+        let smp_bits: u8        = if (smp_flag & SMP_MASK_BITS) >> 3 == 1 { 16 } else { 8 };
+
+        let mut smp_name: [char; 28] = [' '; 28];
+        load_to_array(&mut smp_name, &buf[offset_chars!(0x0023 + index, 28)]);
         //
 
         samples.push(
             S3MSample{
-                smp_name: todo!(),
+                smp_name,
                 smp_ptr,
                 smp_len,
-                smp_stereo: todo!(),
+                smp_stereo,
+                smp_rate,
+                smp_bits,
             }
         )
     }
-    Ok(samples);
-    todo!()
+
+    println!("{:#?}", &samples[0]);
+
+    // for smp in &samples {
+        
+    //     println!("{:#?}", smp);
+    // }
+    Ok(samples)
+    // todo!()
 }
 
 #[test]
