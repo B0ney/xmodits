@@ -22,10 +22,9 @@ pub struct MODFile {
 use crate::{TrackerDumper, DumperObject};
 
 impl TrackerDumper for MODFile {
-    fn load_module<P>(path: P) -> Result<DumperObject, Error> 
-        where Self: Sized, P: AsRef<Path> 
+    fn load_from_buf(buf: Vec<u8>) -> Result<DumperObject, Error> 
+        where Self: Sized
     {
-        let buf: Vec<u8> = fs::read(path)?;
         let title: String = string_from_chars(&buf[offset_chars!(0x0000, 20)]);
         
         // keep in mind that sample field remains same size.
@@ -58,10 +57,10 @@ impl TrackerDumper for MODFile {
         let start: usize        = smp.index;
         let end: usize          = start + smp.length as usize;
         let pcm: Vec<u8>        = (&self.buf[start..end]).to_signed();
+        let mut file: File      = File::create(path)?;
         let wav_header = wav::build_header(
             8363, 8, smp.length as u32, false,
         );
-        let mut file: File      = File::create(path)?;
 
         file.write_all(&wav_header)?;
         file.write_all(&pcm)?;
@@ -87,8 +86,8 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
         let len = BE::read_u16(&buf[offset_u16!(0x0016 + offset)]) * 2; 
 
         smp_data.push(MODSample {
-            index: smp_pcm_stream_index,
             name: string_from_chars(&buf[offset_chars!(offset, 22)]),
+            index: smp_pcm_stream_index,
             length: len, 
         });
 

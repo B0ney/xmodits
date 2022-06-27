@@ -26,10 +26,10 @@ pub struct S3MFile {
 use crate::interface::{TrackerDumper, DumperObject};
 
 impl TrackerDumper for S3MFile {
-    fn load_module<P>(path: P) -> Result<DumperObject, Error> 
-        where Self: Sized, P: AsRef<Path> 
+    fn load_from_buf(buf: Vec<u8>) -> Result<DumperObject, Error> 
+        where Self: Sized
     {
-        let buf = fs::read(path)?;
+        // let buf = fs::read(path)?;
         // TODO: add checks to see if valid
         let title= string_from_chars(&buf[offset_chars!(0x0000, 28)]);
         // use the ins_ptrs stored to locate instument data

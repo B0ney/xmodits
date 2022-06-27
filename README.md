@@ -40,7 +40,9 @@ The purpose of this tool (the core) is to dump samples that's it.
 
 You'll notice some dumped samples may not sound identical to what's heard in a tracker module. 
 
-This is because the tracker authour has increased the pitch to their liking.
+This is because the tracker authour has applied effects such as pitch increase, vibrato.
+
+Replicating these effects is not a top priority. 
 
 ## Goals
 * Fully Support Listed formats.

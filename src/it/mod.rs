@@ -38,11 +38,9 @@ pub struct ITFile {
 use crate::{TrackerDumper, DumperObject};
 
 impl TrackerDumper for ITFile {
-    fn load_module<P>(path: P) -> Result<DumperObject, Error> 
-        where Self: Sized, P: AsRef<Path>
+    fn load_from_buf(buffer: Vec<u8>) -> Result<DumperObject, Error>
+        where Self: Sized
     {
-        let buffer: Vec<u8> = fs::read(path)?;
-
         if buffer.len() < IT_HEADER_LEN
             || BE::read_u32(&buffer[offset_u32!(0x0000)]) != IT_HEADER_ID
         {
@@ -57,14 +55,13 @@ impl TrackerDumper for ITFile {
             samples_meta,
             version:        LE::read_u16(&buffer[offset_u16!(0x0028)]),
             compat_version: LE::read_u16(&buffer[offset_u16!(0x002A)]),
-
             buffer,
         }))
     }
 
     fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
         let mut file    = File::create(path)?;
-        let smp = &self.samples_meta[index];
+        let smp     = &self.samples_meta[index];
         let start_ptr   = smp.smp_ptr as usize;
         let wav_header  = wav::build_header(
             smp.smp_rate, smp.smp_bits,
@@ -106,6 +103,8 @@ impl TrackerDumper for ITFile {
     fn number_of_samples(&self) -> usize {
         self.sample_number as usize
     }
+
+    
 }
 
 fn build_samples(it_data: &[u8], num_samples: u16) -> Result<Vec<ITSample>, Error> {
@@ -126,12 +125,10 @@ fn build_samples(it_data: &[u8], num_samples: u16) -> Result<Vec<ITSample>, Erro
     for i in 0..num_samples as usize {
         let offset: usize       = ins_start_index + (i * IT_SAMPLE_LEN) as usize;
         let smp_flag: u8        = it_data[0x012 + offset];
-        let filename: String    = string_from_chars(&it_data[offset_chars!(0x0004 + offset, 12)]);
-        let name: String        = string_from_chars(&it_data[offset_chars!(0x0014 + offset, 26)]);
 
         smp_meta.push(ITSample {
-            filename,
-            name,
+            filename:   string_from_chars(&it_data[offset_chars!(0x0004 + offset, 12)]),
+            name:       string_from_chars(&it_data[offset_chars!(0x0014 + offset, 26)]),
             smp_len:    LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]),
             smp_ptr:    LE::read_u32(&it_data[offset_u32!(0x0048 + offset)]),
             smp_rate:   LE::read_u32(&it_data[offset_u32!(0x003C + offset)]),
