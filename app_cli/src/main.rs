@@ -9,7 +9,7 @@ fn main() {
         2 => ITFile::load_module(p),
         3 => MODFile::load_module(p),
         4 => S3MFile::load_module(p),
-        // 5 => ITFile::load_module(p),
+        5 => UMXFile::load_module(p),
         // 6 => ITFile::load_module(p),
         _ => todo!()
     };
