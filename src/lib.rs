@@ -7,12 +7,13 @@ mod utils;
 mod interface;
 
 pub use interface::{TrackerDumper, DumperObject};
+pub use utils::Error;
 
 pub mod tracker_formats {
     pub use crate::it::ITFile;
     pub use crate::modtrk::MODFile;
     pub use crate::s3m::S3MFile;
-    // pub use crate::xm::XMFile;
+    pub use crate::xm::XMFile;
     pub use crate::umx::UMXFile;
 }
 

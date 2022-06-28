@@ -1,18 +1,37 @@
-use xmodits::{TrackerDumper, tracker_formats::*,};
-// Currenlty experimenting with designing an api
-fn main() {
+use std::path::{Path, PathBuf};
+use xmodits::{Error, TrackerDumper, DumperObject, tracker_formats::*,};
+
+fn main() -> Result<(), Error> {
     println!("Hello, world!");
+
     let p = "samples/s3m/city_on_a_stick.s3m";
-    let a = 4;
+    let a =PathBuf::new().join(p);
 
-    let tracker_module = match a {
-        2 => ITFile::load_module(p),
-        3 => MODFile::load_module(p),
-        4 => S3MFile::load_module(p),
-        5 => UMXFile::load_module(p),
-        // 6 => ITFile::load_module(p),
-        _ => todo!()
-    };
+    if !a.is_file() {
+        return Err("Path provided is not a file".into());
+    }
 
-    tracker_module.unwrap().export(&"./test/", 0).unwrap()
+    let hint: String = file_extension(&a);
+
+    let module: DumperObject = match hint.as_str() {
+        "it"    => ITFile::load_module(p),
+        "s3m"   => S3MFile::load_module(p),
+        "mod"   => MODFile::load_module(p),
+        "umx"   => UMXFile::load_module(p),
+        "xm"    => XMFile::load_module(p),
+        _       => return Err("Could not determine format.".into()),
+    }?;
+
+    module.export(&"./test/", 0)?;
+    println!("dumped!");
+    Ok(())
 } 
+
+// Function to get file extension from path.
+// 
+fn file_extension<P:AsRef<Path>>(p: P) -> String {
+    (match p.as_ref().extension() {
+        None => "",
+        Some(ext) => ext.to_str().unwrap_or(""),
+    }).to_string()
+}

@@ -4,7 +4,8 @@ use crate::modtrk::MODFile;
 use crate::xm::XMFile;
 use crate::utils::prelude::*;
 
-pub struct UMXFile;
+struct DontUseMe;
+pub struct UMXFile(DontUseMe);
 
 use crate::interface::{TrackerDumper, DumperObject};
 
@@ -25,7 +26,7 @@ impl TrackerDumper for UMXFile {
         }
     }
 
-    /*  It should be **impossible** to call these methods from UMX.
+    /*  You should not call these methods from UMX (should be impossible).
         But incase someone somehow manages to do so, panic :) */ 
     fn export(&self, _: &dyn AsRef<Path>, _: usize) -> Result<(), Error> {
         unimplemented!()
