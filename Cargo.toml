@@ -2,7 +2,7 @@
 
 [package]
 name = "xmodits"
-authors = ["B0ney https://github.com/B0ney"]
+authors = ["B0ney <https://github.com/B0ney>"]
 version = "0.1.0"
 edition = "2021"
 

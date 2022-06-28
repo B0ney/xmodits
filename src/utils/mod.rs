@@ -1,6 +1,6 @@
 pub mod macros;
 pub mod signed;
-pub mod array;
+// pub mod array;
 pub mod wav;
 pub mod ascii;
 
@@ -45,7 +45,6 @@ pub mod prelude {
     // Import helper functions
     pub use super::wav;
     pub use super::signed::SignedByte;
-    // pub use super::array::load_to_array;
     pub use super::ascii::string_from_chars;
     pub use super::Error;
 

@@ -10,6 +10,7 @@ pub trait TrackerDumper {
     fn load_module<P>(path: P) -> Result<DumperObject, Error> 
         where Self: Sized, P: AsRef<Path> 
         {
+            
             let buf = fs::read(path)?;
             Self::load_from_buf(buf)
         }
@@ -27,15 +28,18 @@ pub trait TrackerDumper {
     /// Automatically implemented
     fn dump(&self, folder: &dyn AsRef<Path>) -> Result<(), Error> 
     {
-        if !folder.as_ref().is_dir() 
-            || !folder.as_ref().exists() 
+        if !&folder.as_ref().is_dir() 
         {
             return Err("folder provided either doesn't exist or is not a directory".into());
         }
         // Create root folder
         let root: PathBuf = PathBuf::new()
             .join(folder).join(self.module_name());
-
+            
+        // println!("{}",&self.module_name());
+        if root.exists() {
+            return Err(format!("Folder Already exists: '{}'", root.display()).into());
+        }
         std::fs::create_dir(&root)?;
         
         for i in 0..Self::number_of_samples(&self){

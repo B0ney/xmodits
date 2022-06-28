@@ -15,7 +15,7 @@ impl TrackerDumper for XMFile {
         todo!()
     }
 
-    fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
         todo!()
     }
 

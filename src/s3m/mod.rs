@@ -57,8 +57,11 @@ impl TrackerDumper for S3MFile {
             return Err("Path is not a folder".into());
         }    
         let smp = &self.smp_data[index];
+        // maybe get rid of this
         if smp.smp_stereo {
-            return Err("Stereo samples are not yet supported, please provide this module in your bug report".into());
+            return Err(
+                format!("Stereo samples are not yet supported, please provide this module in your bug report: {}", self.title)
+                .into());
         }
         let start = smp.smp_ptr as usize;
         let end = start + smp.smp_len as usize;
