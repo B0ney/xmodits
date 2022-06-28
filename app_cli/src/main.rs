@@ -15,9 +15,9 @@ fn main() -> Result<(), Error> {
         .arg(
             arg!(<out_dir> "Destination folder for dumped samples")
                 .required(false)
-
         )
         .get_matches();
+        
     let mod_path = match matches.get_one::<String>("module"){
         Some(path) => {
             PathBuf::new().join(path)

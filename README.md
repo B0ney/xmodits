@@ -31,8 +31,19 @@ A tool to dump samples from popular tracker formats.
 
 
 ## How to Use
+To dump samples from a module:
 ```
+xmodits <module path>
 
+e.g:
+    xmodits test.s3m
+```
+To dump samples to a folder:
+```
+xmodits <module path> [dest folder]
+
+e.g:
+    xmodits test.s3m ~/B0ney/Downloads/Samples/
 ```
 
 ## Note
