@@ -52,7 +52,10 @@ impl TrackerDumper for S3MFile {
         }))
     }
 
-    fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+        if !folder.as_ref().is_dir() {
+            return Err("Path is not a folder".into());
+        }    
         let smp = &self.smp_data[index];
         if smp.smp_stereo {
             return Err("Stereo samples are not yet supported, please provide this module in your bug report".into());
@@ -65,7 +68,7 @@ impl TrackerDumper for S3MFile {
             smp.smp_rate, smp.smp_bits, smp.smp_len, false /*smp.smp_stereo */,
         );
         let pathbuf: PathBuf = PathBuf::new()
-            .join(path)
+            .join(folder)
             .join(format!("({}) {}.wav", index, smp.smp_name));
 
         let mut file: File = File::create(pathbuf)?;
@@ -78,9 +81,9 @@ impl TrackerDumper for S3MFile {
     fn number_of_samples(&self) -> usize {
         self.smp_data.len()
     }
-
-    fn dump(&self) {
-        todo!()
+    
+    fn module_name(&self) -> &String {
+        &self.title
     }
 }
 

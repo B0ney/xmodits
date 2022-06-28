@@ -1,11 +1,12 @@
+mod app;
 use std::path::{Path, PathBuf};
 use xmodits::{Error, TrackerDumper, DumperObject, tracker_formats::*,};
 
 fn main() -> Result<(), Error> {
     println!("Hello, world!");
 
-    let p = "samples/s3m/city_on_a_stick.s3m";
-    let a =PathBuf::new().join(p);
+    let p = "samples/beyond_-_darkcaribbean.it";
+    let a = PathBuf::new().join(p);
 
     if !a.is_file() {
         return Err("Path provided is not a file".into());
@@ -22,7 +23,9 @@ fn main() -> Result<(), Error> {
         _       => return Err("Could not determine format.".into()),
     }?;
 
-    module.export(&"./test/", 0)?;
+    // module.export(&"./test/", 0)?;
+    module.dump(&"samples/")?;
+    // println!("{}", );
     println!("dumped!");
     Ok(())
 } 

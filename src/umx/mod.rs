@@ -34,7 +34,7 @@ impl TrackerDumper for UMXFile {
     fn number_of_samples(&self) -> usize {
         unimplemented!()
     }
-    fn dump(&self) {
+    fn module_name(&self) -> &String {
         unimplemented!()
     }    
 }

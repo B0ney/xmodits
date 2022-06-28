@@ -44,17 +44,24 @@ impl TrackerDumper for MODFile {
             0x0438 + (largest_pat + 1) * 1024 
         };
 
+        let smp_data = build_samples(smp_num, &buf, smp_index);
         Ok(Box::new(Self {
             title,
-            smp_data: build_samples(smp_num, &buf, smp_index), 
-            smp_num,
+            smp_num: smp_data.len() as u8,
+            smp_data, 
             buf
         }))
     }
     
     // TODO: export with sample name
-    fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+        if !folder.as_ref().is_dir() {
+            return Err("Path is not a folder".into());
+        }
         let smp: &MODSample     = &self.smp_data[index];
+        let path: PathBuf = PathBuf::new()
+            .join(folder)
+            .join(format!("({}) {}.wav", index, smp.name));
         let start: usize        = smp.index;
         let end: usize          = start + smp.length as usize;
         let pcm: Vec<u8>        = (&self.buf[start..end]).to_signed();
@@ -69,11 +76,11 @@ impl TrackerDumper for MODFile {
     }
 
     fn number_of_samples(&self) -> usize {
-        todo!()
+        self.smp_num as usize
     }
 
-    fn dump(&self) {
-        todo!()
+    fn module_name(&self) -> &String {
+        &self.title
     }
 }
 
@@ -85,7 +92,9 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
         let offset = MOD_SMP_START + (i * MOD_SMP_LEN); 
         // Double to get size in bytes
         let len = BE::read_u16(&buf[offset_u16!(0x0016 + offset)]) * 2; 
-
+        if len == 0 {
+            continue;
+        }
         smp_data.push(MODSample {
             name: string_from_chars(&buf[offset_chars!(offset, 22)]),
             index: smp_pcm_stream_index,

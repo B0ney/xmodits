@@ -15,6 +15,7 @@ pub type Error = Box<dyn std::error::Error>;
 /// std::fs::{self, File};
 /// std::io::Write;
 /// std::path::Path;
+/// std::path::PathBuf;
 /// ```
 /// 
 /// **Helper funcion modules**:
@@ -39,6 +40,7 @@ pub mod prelude {
     pub use std::fs::{self, File};
     pub use std::io::Write;
     pub use std::path::Path;
+    pub use std::path::PathBuf;
 
     // Import helper functions
     pub use super::wav;

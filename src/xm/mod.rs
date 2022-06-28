@@ -23,7 +23,7 @@ impl TrackerDumper for XMFile {
         todo!()
     }
 
-    fn dump(&self) {
+    fn module_name(&self) -> &String {
         todo!()
     }
 }

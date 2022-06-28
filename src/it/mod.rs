@@ -28,6 +28,7 @@ pub struct ITSample {
 
 #[derive(Debug)]
 pub struct ITFile {
+    title: String,
     buffer: Vec<u8>,
     pub version: u16,
     pub compat_version: u16,
@@ -47,22 +48,32 @@ impl TrackerDumper for ITFile {
             return Err("File is not a valid Impulse Tracker Module".into());
         };
 
-        let sample_number = LE::read_u16(&buffer[offset_u16!(0x0024)]);
-        let samples_meta = build_samples(&buffer, sample_number)?;
-    
+        let samples_allocated = LE::read_u16(&buffer[offset_u16!(0x0024)]);
+        let samples_meta = build_samples(&buffer, samples_allocated)?;
+        // Some samples are empty, so set the sample number
+        // according to the length of samples meta. 
+        let sample_number = samples_meta.len() as u16;
+
         Ok(Box::new(Self {
+            title:          string_from_chars(&buffer[offset_chars!(0x0004, 26)]),
             sample_number,
             samples_meta,
             version:        LE::read_u16(&buffer[offset_u16!(0x0028)]),
             compat_version: LE::read_u16(&buffer[offset_u16!(0x002A)]),
             buffer,
+            
         }))
     }
     // TODO: export with sample name
-    fn export(&self, path: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-
-        let mut file    = File::create(path)?;
+    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+        if !folder.as_ref().is_dir() {
+            return Err("Path is not a folder".into());
+        }
         let smp     = &self.samples_meta[index];
+        let path: PathBuf = PathBuf::new()
+            .join(folder)
+            .join(format!("({}) {}.wav", index, smp.filename));
+        let mut file    = File::create(path)?;
         let start_ptr   = smp.smp_ptr as usize;
         let wav_header  = wav::build_header(
             smp.smp_rate, smp.smp_bits,
@@ -97,15 +108,13 @@ impl TrackerDumper for ITFile {
         Ok(())
     }
 
-    fn dump(&self) {
-        todo!()
-    }
-
     fn number_of_samples(&self) -> usize {
         self.sample_number as usize
     }
 
-    
+    fn module_name(&self) -> &String {
+        &self.title
+    }
 }
 
 fn build_samples(it_data: &[u8], num_samples: u16) -> Result<Vec<ITSample>, Error> {
@@ -126,11 +135,16 @@ fn build_samples(it_data: &[u8], num_samples: u16) -> Result<Vec<ITSample>, Erro
     for i in 0..num_samples as usize {
         let offset: usize       = ins_start_index + (i * IT_SAMPLE_LEN) as usize;
         let smp_flag: u8        = it_data[0x012 + offset];
+        let smp_len = LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]);
+
+        if smp_len == 0 { 
+            continue; 
+        }
 
         smp_meta.push(ITSample {
             filename:   string_from_chars(&it_data[offset_chars!(0x0004 + offset, 12)]),
             name:       string_from_chars(&it_data[offset_chars!(0x0014 + offset, 26)]),
-            smp_len:    LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]),
+            smp_len,
             smp_ptr:    LE::read_u32(&it_data[offset_u32!(0x0048 + offset)]),
             smp_rate:   LE::read_u32(&it_data[offset_u32!(0x003C + offset)]),
             smp_bits:   (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8,
