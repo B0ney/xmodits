@@ -1,8 +1,8 @@
 mod test;
 use crate::utils::prelude::*;
 use byteorder::{BE, ByteOrder};
-
-const MOD_SMP_START: usize = 0x0014;
+//https://www.aes.id.au/modformat.html
+const MOD_SMP_START: usize = 0x0014; // offset where title ends & smp data begins
 const MOD_SMP_LEN: usize = 0x1e;
 const PAT_META: usize = 0x3b8;
 
@@ -32,8 +32,7 @@ impl TrackerDumper for MODFile {
             if buf[offset_u32!(0x0438)].iter()
                 .any(|b| *b <=32 || *b >= 126) 
             { 15 } else { 31 }
-        };
-
+        };        
         // Fixed panic on modules made with ulitimate sound tracker.
         let offset: usize = if smp_num == 15 { (15 + 1) * 30 } else { 0 };
         
@@ -43,8 +42,9 @@ impl TrackerDumper for MODFile {
             .unwrap() as usize;
 
         let smp_index: usize = {
-            0x0438 - offset + (largest_pat + 1) * 1024 
+            (0x0438 - offset) + (largest_pat + 1) * 1024 
         }; 
+
         let smp_data = build_samples(smp_num, &buf, smp_index);
 
         Ok(Box::new(Self {
@@ -55,14 +55,22 @@ impl TrackerDumper for MODFile {
         }))
     }
     
-    // TODO: export with sample name
     fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
         if !folder.as_ref().is_dir() {
             return Err("Path is not a folder".into());
         }
         let smp: &MODSample     = &self.smp_data[index];
         let start: usize        = smp.index;
-        let end: usize          = start + smp.length as usize;
+
+        // BUG fix: In very rare cases, 
+        // some samples will provide a length that, when added with its offset,
+        // will exceed the length of the file.
+        // This fix will set the end index to the length of the file to 
+        // stop an overflow error
+        let end = match start + smp.length as usize {
+            e if e > self.buf.len() => { self.buf.len() },
+            end => end,
+        };
         let pcm: Vec<u8>        = (&self.buf[start..end]).to_signed();
         let path: PathBuf       = PathBuf::new()
             .join(folder)
@@ -92,9 +100,7 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
 
     for i in 0..smp_num as usize {
         let offset = MOD_SMP_START + (i * MOD_SMP_LEN); 
-        // Double to get size in bytes
         let len = BE::read_u16(&buf[offset_u16!(0x0016 + offset)]) * 2; 
-
         if len == 0 { continue; }
 
         smp_data.push(MODSample {
@@ -111,8 +117,8 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
 
 #[test]
 fn test_panic() {
-    let moddy = MODFile::load_module("samples/mod out of bounds/synthmat.mod").unwrap();
-    // let moddy = MODFile::load_module("samples/mod/abc.mod").unwrap();
+    // let moddy = MODFile::load_module("samples/mod out of bounds/soundwar.mod").unwrap();
+    let moddy = MODFile::load_module("samples/mod/synthpop.mod").unwrap();
 
     moddy.dump(&"test/").unwrap();
 }
