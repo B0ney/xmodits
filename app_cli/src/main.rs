@@ -3,6 +3,14 @@ use std::path::{Path, PathBuf};
 use xmodits::{Error, TrackerDumper, TrackerModule, tracker_formats::*,};
 use clap::{Command, arg};
 
+// Function to get file extension from path.
+fn file_extension<P:AsRef<Path>>(p: P) -> String {
+    (match p.as_ref().extension() {
+        None => "",
+        Some(ext) => ext.to_str().unwrap_or(""),
+    }).to_string()
+}
+
 fn main() -> Result<(), Error> {
     let matches = Command::new("Xmodits")
         .about("Sample dumping tool for tracker modules")
@@ -34,7 +42,7 @@ fn main() -> Result<(), Error> {
         return Err("Path provided either doesn't exist or is not a file".into());
     }
 
-    let hint: String = file_extension(&mod_path);
+    let hint: String = file_extension(&mod_path).to_lowercase();
 
     let module: TrackerModule = match hint.as_str() {
         "it"    => ITFile::load_module(mod_path),
@@ -49,11 +57,3 @@ fn main() -> Result<(), Error> {
 
     Ok(())
 } 
-
-// Function to get file extension from path.
-fn file_extension<P:AsRef<Path>>(p: P) -> String {
-    (match p.as_ref().extension() {
-        None => "",
-        Some(ext) => ext.to_str().unwrap_or(""),
-    }).to_string()
-}

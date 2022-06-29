@@ -17,7 +17,6 @@ pub trait TrackerDumper {
     fn load_module<P>(path: P) -> Result<TrackerModule, Error> 
         where Self: Sized, P: AsRef<Path> 
         {
-            
             let buf = fs::read(path)?;
             Self::load_from_buf(buf)
         }
@@ -29,10 +28,10 @@ pub trait TrackerDumper {
             return Err("folder provided either doesn't exist or is not a directory".into());
         }
         // Create root folder
+        // TODO: default to module filename if module name is empty
         let root: PathBuf = PathBuf::new()
             .join(folder).join(self.module_name());
-            
-        // println!("{}",&self.module_name());
+    
         if root.exists() {
             return Err(format!("Folder Already exists: '{}'", root.display()).into());
         }
