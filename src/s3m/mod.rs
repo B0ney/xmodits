@@ -29,7 +29,6 @@ impl TrackerDumper for S3MFile {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
         where Self: Sized
     {
-        // let buf = fs::read(path)?;
         // TODO: add checks to see if valid
         let title: String       = string_from_chars(&buf[offset_chars!(0x0000, 28)]);
         let ord_count: u16      = LE::read_u16(&buf[offset_u16!(0x0020)]);
@@ -58,12 +57,12 @@ impl TrackerDumper for S3MFile {
             return Err("Path is not a folder".into());
         }    
         let smp = &self.smp_data[index];
-        // maybe get rid of this
-        if smp.smp_stereo {
-            return Err(
-                format!("Stereo samples are not yet supported, please provide this module in your bug report: {}", self.title)
-                .into());
-        }
+        // maybe get rid of this (It should still work but will just be mono)
+        // if smp.smp_stereo {
+        //     return Err(
+        //         format!("Stereo samples are not yet supported, please provide this module in your bug report: {}", self.title)
+        //         .into());
+        // }
         let start: usize = smp.smp_ptr as usize;
         let end: usize = start + smp.smp_len as usize;
         // TODO: figure out how to include stereo 
@@ -95,7 +94,7 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
     let mut samples: Vec<S3MSample> = Vec::new();
 
     for i in ins_ptr {
-        if buf[i as usize] != 0x1 { continue; }             // if it's not a PCM instrument, skip
+        if buf[i as usize] != 0x1 { continue; } // if it's not a PCM instrument, skip
 
         let index: usize        = i as usize + INS_HEAD_LENGTH; // skip instrument header (13 bytes)
         let smp_name: String    = string_from_chars(&buf[offset_chars!(0x0023 + index, 28)]);

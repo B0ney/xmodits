@@ -21,7 +21,7 @@ A **fast** & **lightweight** tool to dump samples from popular tracker formats w
 |IT| ✓|✓|✓|⏳|
 | XM  | 🚧| 🚧| 🚧| 🚧|
 | S3M | ✓| ✓| N/A| ⏳|
-| MOD | ✓| N/A| N/A| N/A|
+| MOD | /| N/A| N/A| N/A|
 | UMX | -| -| -| -|
 
 ### UMX

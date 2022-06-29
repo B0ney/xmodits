@@ -1,5 +1,3 @@
-cargo-features = ["strip"]
-
 [package]
 name = "xmodits-cli"
 authors = ["B0ney <https://github.com/B0ney>"]
@@ -13,7 +11,7 @@ clap = "3.2.6"
 xmodits = {path = "../"}
 
 [profile.release]
-strip = true
+# strip = true
 opt-level = "z"
 lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.

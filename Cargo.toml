@@ -1,5 +1,3 @@
-# cargo-features = ["strip"]
-
 [package]
 name = "xmodits"
 authors = ["B0ney <https://github.com/B0ney>"]
