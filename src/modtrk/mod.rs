@@ -26,25 +26,27 @@ impl TrackerDumper for MODFile {
         where Self: Sized
     {
         let title: String = string_from_chars(&buf[offset_chars!(0x0000, 20)]);
-        
-        // keep in mind that sample field remains same size.
+        // if it contains any non-ascii, it was probably made with ultimate sound tracker
         let smp_num: u8 = { 
             // Valid ASCII chars are in between 32-127        
             if buf[offset_u32!(0x0438)].iter()
-                .any(|b| *b >=32 && *b <= 126) 
-            { 31 } else { 15 }
+                .any(|b| *b <=32 || *b >= 126) 
+            { 15 } else { 31 }
         };
 
-        let largest_pat = *buf[offset_chars!(PAT_META, 128)]
-                .iter()
-                .max()
-                .unwrap() as usize;
+        // Fixed panic on modules made with ulitimate sound tracker.
+        let offset: usize = if smp_num == 15 { (15 + 1) * 30 } else { 0 };
+        
+        let largest_pat = *buf[offset_chars!(PAT_META - offset, 128)]
+            .iter()
+            .max()
+            .unwrap() as usize;
 
         let smp_index: usize = {
-            0x0438 + (largest_pat + 1) * 1024 
-        };
-
+            0x0438 - offset + (largest_pat + 1) * 1024 
+        }; 
         let smp_data = build_samples(smp_num, &buf, smp_index);
+
         Ok(Box::new(Self {
             title,
             smp_num: smp_data.len() as u8,
@@ -92,6 +94,7 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
         let offset = MOD_SMP_START + (i * MOD_SMP_LEN); 
         // Double to get size in bytes
         let len = BE::read_u16(&buf[offset_u16!(0x0016 + offset)]) * 2; 
+
         if len == 0 { continue; }
 
         smp_data.push(MODSample {
@@ -99,9 +102,17 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
             index: smp_pcm_stream_index,
             length: len, 
         });
-
+        
         smp_pcm_stream_index += len as usize;
     }
     
     smp_data
+}
+
+#[test]
+fn test_panic() {
+    let moddy = MODFile::load_module("samples/mod out of bounds/synthmat.mod").unwrap();
+    // let moddy = MODFile::load_module("samples/mod/abc.mod").unwrap();
+
+    moddy.dump(&"test/").unwrap();
 }
