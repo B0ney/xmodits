@@ -30,47 +30,60 @@ pub struct ITSample {
 #[derive(Debug)]
 pub struct ITFile {
     title: String,
-    buffer: Vec<u8>,
+    buf: Vec<u8>,
     pub version: u16,
-    pub compat_version: u16,
-    pub sample_number: u16,
-    pub samples_meta: Vec<ITSample>,
+    pub compat_ver: u16,
+    pub smp_num: u16,
+    pub smp_data: Vec<ITSample>,
 }
 
 use crate::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for ITFile {
-    fn load_from_buf(buffer: Vec<u8>) -> Result<TrackerModule, Error>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
         where Self: Sized
     {
-        if buffer.len() < IT_HEADER_LEN
-            || BE::read_u32(&buffer[offset_u32!(0x0000)]) != IT_HEADER_ID
+        if buf.len() < IT_HEADER_LEN
+            || BE::read_u32(&buf[offset_u32!(0x0000)]) != IT_HEADER_ID
         {
             return Err("File is not a valid Impulse Tracker Module".into());
         };
 
-        let samples_allocated = LE::read_u16(&buffer[offset_u16!(0x0024)]);
-        let samples_meta = build_samples(&buffer, samples_allocated)?;
-        // Some samples are empty, so set the sample number
-        // according to the length of samples meta. 
-        let sample_number = samples_meta.len() as u16;
+        let title: String       = string_from_chars(&buf[offset_chars!(0x0004, 26)]);
+        let ord_num: u16        = LE::read_u16(&buf[offset_u16!(0x0020)]);
+        let ins_num: u16        = LE::read_u16(&buf[offset_u16!(0x0022)]);
+        let smp_num: u16        = LE::read_u16(&buf[offset_u16!(0x0024)]);
+        let version: u16        = LE::read_u16(&buf[offset_u16!(0x0028)]);
+        let compat_ver: u16     = LE::read_u16(&buf[offset_u16!(0x002A)]);
+        let smp_ptr_list: u16   = 0x00c0 + ord_num + (ins_num * 4);
+
+        let mut smp_ptrs: Vec<u32> = Vec::new();
+
+        for i in 0..smp_num {
+            let index = smp_ptr_list + (i * 4); // check
+            smp_ptrs.push(LE::read_u32(&buf[offset_u32!(index as usize)]));
+        }
+
+        let smp_data: Vec<ITSample> = build_samples(&buf, smp_ptrs)?;
+                
+        let smp_num = smp_data.len() as u16;
 
         Ok(Box::new(Self {
-            title:          string_from_chars(&buffer[offset_chars!(0x0004, 26)]),
-            sample_number,
-            samples_meta,
-            version:        LE::read_u16(&buffer[offset_u16!(0x0028)]),
-            compat_version: LE::read_u16(&buffer[offset_u16!(0x002A)]),
-            buffer,
+            title,
+            smp_num,
+            smp_data,
+            version,
+            compat_ver,
+            buf,
             
         }))
     }
-    // TODO: export with sample name
+
     fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
         if !folder.as_ref().is_dir() {
             return Err("Path is not a folder".into());
         }
-        let smp     = &self.samples_meta[index];
+        let smp     = &self.smp_data[index];
         let start_ptr   = smp.smp_ptr as usize;
         let wav_header  = wav::build_header(
             smp.smp_rate, smp.smp_bits,
@@ -86,15 +99,15 @@ impl TrackerDumper for ITFile {
         // Write PCM data
         if smp.smp_comp {
             let decomp = decompress_sample(
-                &self.buffer[start_ptr..], smp.smp_len,
-                smp.smp_bits, self.compat_version != IT214 // Needs testing
+                &self.buf[start_ptr..], smp.smp_len,
+                smp.smp_bits, self.compat_ver != IT214 // Needs testing
             )?;
             file.write_all(&decomp)?;
 
         } else {
             let end_ptr = start_ptr + 
                 (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
-            let mut raw_data = &self.buffer[start_ptr..end_ptr];
+            let mut raw_data = &self.buf[start_ptr..end_ptr];
             let mut b: Vec<u8> = Vec::new();
             
             // convert sample data to "signed" values if it's 8-bit  
@@ -110,7 +123,7 @@ impl TrackerDumper for ITFile {
     }
 
     fn number_of_samples(&self) -> usize {
-        self.sample_number as usize
+        self.smp_num as usize
     }
 
     fn module_name(&self) -> &String {
@@ -118,26 +131,14 @@ impl TrackerDumper for ITFile {
     }
 }
 
-fn build_samples(it_data: &[u8], num_samples: u16) -> Result<Vec<ITSample>, Error> {
-    let mut ins_start_index: usize  = 0;
+fn build_samples(it_data: &[u8], smp_ptr: Vec<u32>) -> Result<Vec<ITSample>, Error> {
     let mut smp_meta: Vec<ITSample> = Vec::new();
 
-    if num_samples == 0 {
-        return Err("IT module doesn't contain any samples.".into());
-    }
-
-    for i in 0..(it_data.len() - 4) { // 4 is the amount of bytes a u32 takes up. Prevents panic.
-        if BE::read_u32(&it_data[offset_u32!(i)]) == IT_SAMPLE_ID {
-            ins_start_index = i;
-            break;
-        }
-    }
-
-    for i in 0..num_samples as usize {
-        let offset: usize       = ins_start_index + (i * IT_SAMPLE_LEN) as usize;
-        let smp_flag: u8        = it_data[0x012 + offset];
-        let smp_len: u32        = LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]);
-
+    for i in smp_ptr {
+        let offset: usize   = i as usize;
+        let smp_flag: u8    = it_data[0x012 + offset];
+        let smp_len: u32    = LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]);
+        
         if smp_len == 0 { continue; }
 
         smp_meta.push(ITSample {

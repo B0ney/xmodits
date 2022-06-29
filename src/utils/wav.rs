@@ -14,6 +14,7 @@ pub fn build_header(
     stereo: bool,   // is pcm stereo
 ) -> [u8; HEADER_SIZE as usize]
 {
+    println!("{}", &smp_rate);
     let mut header:[u8; HEADER_SIZE as usize] = [0u8; HEADER_SIZE as usize];     
     let wav_scs:            u32 = 16;                       // sec chunk size
     let wav_type:           u16 = 1;                        // 1 = pcm

@@ -52,16 +52,12 @@ Reference: https://github.com/schismtracker/schismtracker/blob/master/include/it
 0x0004 -> songname      [i8; 26]    [might be needed]
 0x001E -> hilight_minor [u8]
 0x001F -> hilight_major [u8]
-0x0020 -> ordnum        [u16]
-0x0022 -> insnum        [u16] 
-
+0x0020 -> ordnum        [u16]       [need this] (number of orders)
+0x0022 -> insnum        [u16]       [need this] (number of instruments)
 0x0024 -> smpnum        [u16]       [need this] (number of samples)
-
 0x0026 -> patnum        [u16]
-
 0x0028 -> cwtv          [u16]       created with tracker version
 0x002A -> cmwt          [u16]       [need this] compatible with tracker version, i.e "214/215"
-
 0x002C -> flags         [u16]
 0x002E -> special       [u16]
 0x0030 -> globalvol     [u8]
@@ -75,8 +71,25 @@ Reference: https://github.com/schismtracker/schismtracker/blob/master/include/it
 0x003C -> reserved      [u32]
 0x0040 -> chnpan        [u8; 64]
 0x0080 -> chnvol        [u8; 64]
+0x00c0 -> orders        [u8; ORDNUM]
 
-0x00c0 -> END OF HEADER DATA, NEW DATA STARTS AFTER HERE. 
+0x00c0
+    + ORDNUM -> [u32; INSNUM] list of instrument offsets
+
+0x00c0
+    + ORDNUM
+    + (INSNUM * 4) -> [u32; SMPNUM] list of sample header offsets
+
+0x00c0  
+    + ORDNUM
+    + (INSNUM * 4)
+    + (SMPNUM * 4) -> [u32; PATNUM] list of pattern offsets
+
+0x00c0 
+    + ORDNUM
+    + (INSNUM * 4)
+    + (SMPNUM * 4)
+    + (PATNUM * 4) -> END OF HEADER DATA, NEW DATA STARTS AFTER HERE. 
 
 ```
 
