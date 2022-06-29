@@ -20,7 +20,8 @@ pub struct MODFile {
 }
 
 use crate::{TrackerDumper, TrackerModule};
-
+/// Too many bugs here...
+/// I need to work on "MOD Format.md" before I continue working on this. 
 impl TrackerDumper for MODFile {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
         where Self: Sized
@@ -35,7 +36,7 @@ impl TrackerDumper for MODFile {
         };        
         // Fixed panic on modules made with ulitimate sound tracker.
         let offset: usize = if smp_num == 15 { (15 + 1) * 30 } else { 0 };
-        
+
         let largest_pat = *buf[offset_chars!(PAT_META - offset, 128)]
             .iter()
             .max()

@@ -1,4 +1,3 @@
-
 mod test;
 mod compression;
 use crate::utils::prelude::*;
@@ -60,7 +59,7 @@ impl TrackerDumper for ITFile {
         let mut smp_ptrs: Vec<u32> = Vec::new();
 
         for i in 0..smp_num {
-            let index = smp_ptr_list + (i * 4); // check
+            let index = smp_ptr_list + (i * 4);
             smp_ptrs.push(LE::read_u32(&buf[offset_u32!(index as usize)]));
         }
 
@@ -85,7 +84,7 @@ impl TrackerDumper for ITFile {
         }
         let smp: &ITSample      = &self.smp_data[index];
         let start_ptr: usize    = smp.smp_ptr as usize;
-        let wav_header: [u8; _] = wav::build_header(
+        let wav_header: [u8; 44] = wav::build_header(
             smp.smp_rate, smp.smp_bits,
             smp.smp_len, smp.smp_stereo,
         );
