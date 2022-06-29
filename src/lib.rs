@@ -6,7 +6,7 @@ mod umx;
 mod utils;
 mod interface;
 
-pub use interface::{TrackerDumper, DumperObject};
+pub use interface::{TrackerDumper, TrackerModule};
 pub use utils::Error;
 
 pub mod tracker_formats {

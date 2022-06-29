@@ -1,3 +1,4 @@
+
 mod test;
 mod compression;
 use crate::utils::prelude::*;
@@ -36,10 +37,10 @@ pub struct ITFile {
     pub samples_meta: Vec<ITSample>,
 }
 
-use crate::{TrackerDumper, DumperObject};
+use crate::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for ITFile {
-    fn load_from_buf(buffer: Vec<u8>) -> Result<DumperObject, Error>
+    fn load_from_buf(buffer: Vec<u8>) -> Result<TrackerModule, Error>
         where Self: Sized
     {
         if buffer.len() < IT_HEADER_LEN
@@ -70,15 +71,15 @@ impl TrackerDumper for ITFile {
             return Err("Path is not a folder".into());
         }
         let smp     = &self.samples_meta[index];
-        let path: PathBuf = PathBuf::new()
-            .join(folder)
-            .join(format!("({}) {}.wav", index, smp.filename));
-        let mut file    = File::create(path)?;
         let start_ptr   = smp.smp_ptr as usize;
         let wav_header  = wav::build_header(
             smp.smp_rate, smp.smp_bits,
             smp.smp_len, smp.smp_stereo,
         );
+        let path: PathBuf = PathBuf::new()
+            .join(folder)
+            .join(name_sample(index, &smp.filename));
+        let mut file    = File::create(path)?;
         // Write Wav Header
         file.write_all(&wav_header)?;
 
@@ -118,7 +119,7 @@ impl TrackerDumper for ITFile {
 }
 
 fn build_samples(it_data: &[u8], num_samples: u16) -> Result<Vec<ITSample>, Error> {
-    let mut ins_start_index: usize = 0;
+    let mut ins_start_index: usize  = 0;
     let mut smp_meta: Vec<ITSample> = Vec::new();
 
     if num_samples == 0 {
@@ -135,11 +136,9 @@ fn build_samples(it_data: &[u8], num_samples: u16) -> Result<Vec<ITSample>, Erro
     for i in 0..num_samples as usize {
         let offset: usize       = ins_start_index + (i * IT_SAMPLE_LEN) as usize;
         let smp_flag: u8        = it_data[0x012 + offset];
-        let smp_len = LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]);
+        let smp_len: u32        = LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]);
 
-        if smp_len == 0 { 
-            continue; 
-        }
+        if smp_len == 0 { continue; }
 
         smp_meta.push(ITSample {
             filename:   string_from_chars(&it_data[offset_chars!(0x0004 + offset, 12)]),

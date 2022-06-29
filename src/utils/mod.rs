@@ -3,6 +3,8 @@ pub mod signed;
 // pub mod array;
 pub mod wav;
 pub mod ascii;
+pub mod name;
+
 
 pub type Error = Box<dyn std::error::Error>;
 
@@ -45,6 +47,7 @@ pub mod prelude {
     // Import helper functions
     pub use super::wav;
     pub use super::signed::SignedByte;
+    pub use super::name::name_sample;
     pub use super::ascii::string_from_chars;
     pub use super::Error;
 

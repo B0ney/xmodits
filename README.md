@@ -2,7 +2,7 @@
 
 **XMODITS**
 
-A tool to dump samples from popular tracker formats.
+A **fast** & **lightweight** tool to dump samples from popular tracker formats with **ease**.
 
 ## Supported Formats:
 

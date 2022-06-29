@@ -19,10 +19,10 @@ pub struct MODFile {
     smp_data: Vec<MODSample>,
 }
 
-use crate::{TrackerDumper, DumperObject};
+use crate::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for MODFile {
-    fn load_from_buf(buf: Vec<u8>) -> Result<DumperObject, Error> 
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
         where Self: Sized
     {
         let title: String = string_from_chars(&buf[offset_chars!(0x0000, 20)]);
@@ -59,12 +59,12 @@ impl TrackerDumper for MODFile {
             return Err("Path is not a folder".into());
         }
         let smp: &MODSample     = &self.smp_data[index];
-        let path: PathBuf = PathBuf::new()
-            .join(folder)
-            .join(format!("({}) {}.wav", index, smp.name));
         let start: usize        = smp.index;
         let end: usize          = start + smp.length as usize;
         let pcm: Vec<u8>        = (&self.buf[start..end]).to_signed();
+        let path: PathBuf       = PathBuf::new()
+            .join(folder)
+            .join(name_sample(index, &smp.name));
         let mut file: File      = File::create(path)?;
         let wav_header = wav::build_header(
             8363, 8, smp.length as u32, false,
@@ -92,9 +92,8 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
         let offset = MOD_SMP_START + (i * MOD_SMP_LEN); 
         // Double to get size in bytes
         let len = BE::read_u16(&buf[offset_u16!(0x0016 + offset)]) * 2; 
-        if len == 0 {
-            continue;
-        }
+        if len == 0 { continue; }
+
         smp_data.push(MODSample {
             name: string_from_chars(&buf[offset_chars!(offset, 22)]),
             index: smp_pcm_stream_index,

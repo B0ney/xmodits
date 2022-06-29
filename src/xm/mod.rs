@@ -6,10 +6,10 @@ pub struct XMSample {}
 
 pub struct XMFile {}
 
-use crate::interface::{TrackerDumper, DumperObject};
+use crate::interface::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for XMFile {
-    fn load_from_buf(buf: Vec<u8>) -> Result<DumperObject, Error>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
         where Self: Sized 
     {
         todo!()

@@ -1,6 +1,6 @@
 // mod app;
 use std::path::{Path, PathBuf};
-use xmodits::{Error, TrackerDumper, DumperObject, tracker_formats::*,};
+use xmodits::{Error, TrackerDumper, TrackerModule, tracker_formats::*,};
 use clap::{Command, arg};
 
 fn main() -> Result<(), Error> {
@@ -36,7 +36,7 @@ fn main() -> Result<(), Error> {
 
     let hint: String = file_extension(&mod_path);
 
-    let module: DumperObject = match hint.as_str() {
+    let module: TrackerModule = match hint.as_str() {
         "it"    => ITFile::load_module(mod_path),
         "s3m"   => S3MFile::load_module(mod_path),
         "mod"   => MODFile::load_module(mod_path),

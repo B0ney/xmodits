@@ -1,11 +1,11 @@
 pub mod test;
 use std::path::PathBuf;
 use crate::utils::prelude::*;
-use byteorder::{ByteOrder, BE, LE};
+use byteorder::{ByteOrder, LE};
 
-const SMP_MASK_STEREO: u8 = 0b0000_0100;
-const SMP_MASK_BITS: u8   = 0b0000_1000;
-const INS_HEAD_LENGTH: usize = 13;
+const SMP_MASK_STEREO: u8       = 0b0000_0100;
+const SMP_MASK_BITS: u8         = 0b0000_1000;
+const INS_HEAD_LENGTH: usize    = 13;
 
 #[derive(Debug)]
 pub struct S3MSample {
@@ -23,10 +23,10 @@ pub struct S3MFile {
     smp_data: Vec<S3MSample>,
 }
 
-use crate::interface::{TrackerDumper, DumperObject};
+use crate::interface::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for S3MFile {
-    fn load_from_buf(buf: Vec<u8>) -> Result<DumperObject, Error> 
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
         where Self: Sized
     {
         // let buf = fs::read(path)?;
@@ -72,7 +72,7 @@ impl TrackerDumper for S3MFile {
         );
         let pathbuf: PathBuf = PathBuf::new()
             .join(folder)
-            .join(format!("({}) {}.wav", index, smp.smp_name));
+            .join(name_sample(index, &smp.smp_name));
 
         let mut file: File = File::create(pathbuf)?;
         file.write_all(&wav_header)?;

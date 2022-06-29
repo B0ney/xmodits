@@ -1,21 +1,11 @@
 use std::path::{Path, PathBuf};
 use std::fs;
 use crate::utils::Error;
-pub type DumperObject = Box<dyn TrackerDumper>;
+pub type TrackerModule = Box<dyn TrackerDumper>;
 
 pub trait TrackerDumper {
-    /// Load tracker module from given path
-    /// 
-    /// This is implemented automatically
-    fn load_module<P>(path: P) -> Result<DumperObject, Error> 
-        where Self: Sized, P: AsRef<Path> 
-        {
-            
-            let buf = fs::read(path)?;
-            Self::load_from_buf(buf)
-        }
     /// Load tracker module from memory
-    fn load_from_buf(buf: Vec<u8>) -> Result<DumperObject, Error>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
         where Self: Sized;
     // export sample given index
     fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error>;
@@ -23,9 +13,15 @@ pub trait TrackerDumper {
     fn number_of_samples(&self) -> usize;
     /// Name of tracker module
     fn module_name(&self) -> &String;
+    /// Load tracker module from given path
+    fn load_module<P>(path: P) -> Result<TrackerModule, Error> 
+        where Self: Sized, P: AsRef<Path> 
+        {
+            
+            let buf = fs::read(path)?;
+            Self::load_from_buf(buf)
+        }
     /// Dump all samples
-    /// 
-    /// Automatically implemented
     fn dump(&self, folder: &dyn AsRef<Path>) -> Result<(), Error> 
     {
         if !&folder.as_ref().is_dir() 

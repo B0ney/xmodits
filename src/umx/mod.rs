@@ -7,10 +7,10 @@ use crate::utils::prelude::*;
 struct DontUseMe;
 pub struct UMXFile(DontUseMe);
 
-use crate::interface::{TrackerDumper, DumperObject};
+use crate::interface::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for UMXFile {
-    fn load_from_buf(buf: Vec<u8>) -> Result<DumperObject, Error>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
         where Self: Sized  
     {
         // figure out what kind of module it contains
