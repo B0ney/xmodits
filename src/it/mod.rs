@@ -17,14 +17,14 @@ const IT214: u16 = 0x0214;                  // IT214 compression
 #[derive(Debug)]
 pub struct ITSample {
     pub filename: String,
-    pub name: String,
+    pub name: String,           
     pub smp_len: u32,           // This is NOT in bytes
-    pub smp_ptr: u32,           //
-    pub smp_rate: u32,          //
-    pub smp_flag: u8,           //
+    pub smp_ptr: u32,           // Sample Pointer
+    pub smp_rate: u32,          // Sample rate
+    pub smp_flag: u8,           // Sample flag
     pub smp_bits: u8,           // Does sample use 16 or 8 bits
-    pub smp_comp: bool,         // Does sample use compression
-    pub smp_stereo: bool,       // Is the sample stereo
+    pub smp_comp: bool,         // Does sample use compression?
+    pub smp_stereo: bool,       // Is sample stereo?
 }
 
 #[derive(Debug)]
@@ -66,7 +66,7 @@ impl TrackerDumper for ITFile {
 
         let smp_data: Vec<ITSample> = build_samples(&buf, smp_ptrs)?;
                 
-        let smp_num = smp_data.len() as u16;
+        let smp_num: u16 = smp_data.len() as u16;
 
         Ok(Box::new(Self {
             title,
@@ -78,21 +78,21 @@ impl TrackerDumper for ITFile {
             
         }))
     }
-
+    // Needs to be more readable
     fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
         if !folder.as_ref().is_dir() {
             return Err("Path is not a folder".into());
         }
-        let smp     = &self.smp_data[index];
-        let start_ptr   = smp.smp_ptr as usize;
-        let wav_header  = wav::build_header(
+        let smp: &ITSample      = &self.smp_data[index];
+        let start_ptr: usize    = smp.smp_ptr as usize;
+        let wav_header: [u8; _] = wav::build_header(
             smp.smp_rate, smp.smp_bits,
             smp.smp_len, smp.smp_stereo,
         );
-        let path: PathBuf = PathBuf::new()
+        let path: PathBuf       = PathBuf::new()
             .join(folder)
             .join(name_sample(index, &smp.filename));
-        let mut file    = File::create(path)?;
+        let mut file: File      = File::create(path)?;
         // Write Wav Header
         file.write_all(&wav_header)?;
 
@@ -135,21 +135,30 @@ fn build_samples(it_data: &[u8], smp_ptr: Vec<u32>) -> Result<Vec<ITSample>, Err
     let mut smp_meta: Vec<ITSample> = Vec::new();
 
     for i in smp_ptr {
-        let offset: usize   = i as usize;
-        let smp_flag: u8    = it_data[0x012 + offset];
-        let smp_len: u32    = LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]);
+        let offset: usize       = i as usize;
+        let smp_len: u32        = LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]);
         
         if smp_len == 0 { continue; }
 
+        let filename: String    = string_from_chars(&it_data[offset_chars!(0x0004 + offset, 12)]);
+        let name: String        = string_from_chars(&it_data[offset_chars!(0x0014 + offset, 26)]);
+        let smp_ptr: u32        = LE::read_u32(&it_data[offset_u32!(0x0048 + offset)]);
+        let smp_rate: u32       = LE::read_u32(&it_data[offset_u32!(0x003C + offset)]);
+
+        let smp_flag: u8        = it_data[0x012 + offset];
+        let smp_bits: u8        = (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8;
+        let smp_comp: bool      = ((smp_flag & MASK_SMP_COMP) >> 3)     == 1;
+        let smp_stereo: bool    = ((smp_flag & MASK_SMP_STEREO) >> 2)   == 1;
+
         smp_meta.push(ITSample {
-            filename:   string_from_chars(&it_data[offset_chars!(0x0004 + offset, 12)]),
-            name:       string_from_chars(&it_data[offset_chars!(0x0014 + offset, 26)]),
+            filename,
+            name,
             smp_len,
-            smp_ptr:    LE::read_u32(&it_data[offset_u32!(0x0048 + offset)]),
-            smp_rate:   LE::read_u32(&it_data[offset_u32!(0x003C + offset)]),
-            smp_bits:   (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8,
-            smp_comp:    ((smp_flag & MASK_SMP_COMP) >> 3)      == 1,
-            smp_stereo:  ((smp_flag & MASK_SMP_STEREO) >> 2)    == 1,
+            smp_ptr,
+            smp_rate,
+            smp_bits,
+            smp_comp,
+            smp_stereo,
             smp_flag,
         })
     }
