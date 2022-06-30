@@ -16,11 +16,11 @@ pub trait TrackerDumper {
     fn load_module<P>(path: P) -> Result<TrackerModule, Error> 
         where Self: Sized, P: AsRef<Path> 
         {
-            let buf = fs::read(path)?;
+            let buf = fs::read(&path)?;
             Self::load_from_buf(buf)
         }
     /// Dump all samples
-    fn dump(&self, folder: &dyn AsRef<Path>) -> Result<(), Error> 
+    fn dump(&self, folder: &dyn AsRef<Path>, fallback_name: &String) -> Result<(), Error> 
     {
         if !&folder.as_ref().is_dir() 
         {
@@ -29,7 +29,12 @@ pub trait TrackerDumper {
         // Create root folder
         // TODO: default to module filename if module name is empty
         let root: PathBuf = PathBuf::new()
-            .join(folder).join(self.module_name());
+            .join(folder).join(fallback_name
+                // match self.module_name() {
+                //     f if f.is_empty() => fallback_name,
+                //     e => e,
+                // }
+            );
     
         if root.exists() {
             return Err(format!("Folder Already exists: '{}'", root.display()).into());

@@ -44,6 +44,8 @@ fn main() -> Result<(), Error> {
 
     let hint: String = file_extension(&mod_path).to_lowercase();
 
+    let modname = mod_path.file_name().unwrap().to_str().unwrap().replace(".", "_");
+    // println!("{}", &modname);
     let module: TrackerModule = match hint.as_str() {
         "it"    => ITFile::load_module(mod_path),
         "s3m"   => S3MFile::load_module(mod_path),
@@ -53,7 +55,9 @@ fn main() -> Result<(), Error> {
         f       => return Err(format!("'{}' is not a supported format.", f).into()),
     }?;
 
-    module.dump(&dest_dir)?;
+    
+
+    module.dump(&dest_dir, &modname)?;
 
     Ok(())
 } 

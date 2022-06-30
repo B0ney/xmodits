@@ -12,7 +12,7 @@ byteorder = "1.4.3"
 [workspace]
 members = [
     "app_cli",
-    "app_gui"
+    # "app_gui"
 ]
 
 
