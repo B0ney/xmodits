@@ -5,8 +5,7 @@ pub mod wav;
 pub mod ascii;
 pub mod name;
 
-
-pub type Error = Box<dyn std::error::Error>;
+pub type Error = Box<dyn std::error::Error + Send + Sync>;
 
 /// Import useful helper functions & macros
 /// and common imports

@@ -7,15 +7,22 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-xmodits = {path = "../"}
+xmodits-lib = {path = "../"}
 eframe = "0.18.0"
-rfd = {version = "0.8.2", default-features=false, features=["xdg-portal"]}
+rfd = {version = "0.9.1", default-features=false, features=["xdg-portal"]}
 # get audio playback try cpal
 
 tracing = "0.1.34"
 tracing-subscriber = "0.3.11"
 crossbeam-channel = "0.5.4" # faster than mpsc
 
+[dependencies.egui_extras]
+version = "0.18.0"
+features = ["image"]
+
+[dependencies.image] 
+version = "0.24"
+features = ["jpeg", "png"]
 
 [profile.release]
 # codegen-units = 1

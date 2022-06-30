@@ -3,12 +3,16 @@ name = "xmodits"
 authors = ["B0ney <https://github.com/B0ney>"]
 version = "0.1.0"
 edition = "2021"
-
+# build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 clap = "3.2.6"
 xmodits-lib = {path = "../"}
+# [build-dependencies]
+# winres = "0.1.12"
+# [target.x86_64-pc-windows-gnu.build-dependencies]
+
 
 [profile.release]
 # strip = true
@@ -18,6 +22,5 @@ codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 # panic = 'abort'  
 
 
-[target.'cfg(windows)'.build-dependencies]
-winres = "0.1"
+
 # msgbox = "0.7.0"

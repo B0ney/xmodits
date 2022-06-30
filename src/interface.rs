@@ -1,8 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::fs;
 use crate::utils::Error;
-pub type TrackerModule = Box<dyn TrackerDumper>;
-
+pub type TrackerModule = Box<dyn TrackerDumper + Send + Sync>;
 pub trait TrackerDumper {
     /// Load tracker module from memory
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
@@ -37,7 +36,7 @@ pub trait TrackerDumper {
         }
         std::fs::create_dir(&root)?;
         
-        for i in 0..Self::number_of_samples(&self){
+        for i in 0..Self::number_of_samples(&self) {
             self.export(&root, i)?;
         }
 
