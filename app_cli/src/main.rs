@@ -1,6 +1,6 @@
 // mod app;
 use std::path::{Path, PathBuf};
-use xmodits::{Error, TrackerDumper, TrackerModule, tracker_formats::*,};
+use xmodits_lib::{Error, TrackerDumper, TrackerModule, tracker_formats::*,};
 use clap::{Command, arg};
 
 // Function to get file extension from path.
@@ -17,11 +17,11 @@ fn main() -> Result<(), Error> {
         .version("0.1.0")
         .author("B0ney")
         .arg(
-            arg!([module] "Path to tracker module")
+            arg!(<module> "Path to tracker module")
                 .required(true)
         )
         .arg(
-            arg!(<out_dir> "Destination folder for dumped samples")
+            arg!([out_dir] "Destination folder for dumped samples")
                 .required(false)
         )
         .get_matches();

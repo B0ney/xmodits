@@ -27,3 +27,21 @@ impl TrackerDumper for XMFile {
         todo!()
     }
 }
+
+#[test]
+fn gen_offset(){
+    let offset = [
+        0, 17, 37, 38, 58,
+        60
+    ];
+    let offset2 = [
+        4, 5,6,10,12,14,16,18,20,0
+    ];
+
+    for i in offset {
+        println!("0x{:04X} => ", i);
+    }
+    for i in offset2 {
+        println!("0x{:04X} => ", i + 60);
+    }
+}

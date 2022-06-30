@@ -1,5 +1,5 @@
 [package]
-name = "xmodits"
+name = "xmodits-lib"
 authors = ["B0ney <https://github.com/B0ney>"]
 version = "0.1.0"
 edition = "2021"
@@ -21,4 +21,4 @@ members = [
 opt-level = "z"
 lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.
-panic = 'abort'  
+# panic = 'abort'  
