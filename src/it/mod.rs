@@ -11,7 +11,8 @@ const IT_SAMPLE_LEN: usize = 80;
 const MASK_SMP_BITS: u8 = 0b0000_0010;      // 16/8bit samples
 const MASK_SMP_COMP: u8 = 0b0000_1000;      // Does sample use compression?
 const MASK_SMP_STEREO: u8 = 0b0000_0100;    // 0 = mono, 1 = stereo
-const IT214: u16 = 0x0214;                  // IT214 compression 
+const IT215: u16 = 0x0215;                  // IT215 compression 
+
 
 #[derive(Debug)]
 pub struct ITSample {
@@ -99,7 +100,7 @@ impl TrackerDumper for ITFile {
         if smp.smp_comp {
             let decomp = decompress_sample(
                 &self.buf[start_ptr..], smp.smp_len,
-                smp.smp_bits, self.compat_ver != IT214 // Needs testing
+                smp.smp_bits, self.compat_ver == IT215
             )?;
             file.write_all(&decomp)?;
 
