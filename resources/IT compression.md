@@ -6,3 +6,5 @@ Sources:
 * https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
 
 
+Note:
+Unless the compat version is 0215, assume all compressed samples to use IT214 compression.
