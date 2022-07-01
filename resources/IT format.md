@@ -26,20 +26,8 @@ Refer to "IT compression.md" for more infomation.
 | [**iN**; **S**]| **Signed** **N**-bit **array with size S**  (e.g **[i8; 64]**)|
 | [**UN**; **S**]| **Unsigned** **N**-bit **array with size S**  (e.g **[u8; 64]**)|
 
-
-### IT file structure:
-* Header (**192 bytes**)
-* Pattern orders with bytes indicated by **ordnum**
-* Instrument parameters with bytes **4x** size of **insnum**
-* Sample parameters with bytes **4x** size of **smpnum**
-* Pattern parameters with bytes **4x** value of **patnum**
-* **Undocumented data**
-* Sample metadata, each **80 bytes**. Amount specified by **smpnum**
-
-Note: I don't think it's worth documenting out every part of the file, why not just look where the first **"IMPS"** is located?
-
 ## IT Header Structure
-Size: **192 Bytes** 
+Size: **192 Bytes**
 
 Offsets are in **bytes** and they are relative to the **"IMPM"** header.
 
@@ -49,15 +37,18 @@ Reference: https://github.com/schismtracker/schismtracker/blob/master/include/it
 
 ```
 0x0000 -> "IMPM"        [u32]       [need this for verification purposes]
-0x0004 -> songname      [i8; 26]    [might be needed]
+0x0004 -> songname      [char; 26]  [might be needed]
+
 0x001E -> hilight_minor [u8]
 0x001F -> hilight_major [u8]
 0x0020 -> ordnum        [u16]       [need this] (number of orders)
 0x0022 -> insnum        [u16]       [need this] (number of instruments)
 0x0024 -> smpnum        [u16]       [need this] (number of samples)
+
 0x0026 -> patnum        [u16]
 0x0028 -> cwtv          [u16]       created with tracker version
-0x002A -> cmwt          [u16]       [need this] compatible with tracker version, i.e "214/215"
+0x002A -> cmwt          [u16]       [need this] compatible with tracker version. (Assume 0214 if 0215 not present)
+
 0x002C -> flags         [u16]
 0x002E -> special       [u16]
 0x0030 -> globalvol     [u8]
@@ -78,7 +69,7 @@ Reference: https://github.com/schismtracker/schismtracker/blob/master/include/it
 
 0x00c0
     + ORDNUM
-    + (INSNUM * 4) -> [u32; SMPNUM] list of sample header offsets
+    + (INSNUM * 4) -> [u32; SMPNUM] list of sample header offsets [needed]
 
 0x00c0  
     + ORDNUM
@@ -89,7 +80,7 @@ Reference: https://github.com/schismtracker/schismtracker/blob/master/include/it
     + ORDNUM
     + (INSNUM * 4)
     + (SMPNUM * 4)
-    + (PATNUM * 4) -> END OF HEADER DATA, NEW DATA STARTS AFTER HERE. 
+    + (PATNUM * 4) -> END OF HEADER DATA, NEW DATA STARTS FROM HERE. 
 
 ```
 
