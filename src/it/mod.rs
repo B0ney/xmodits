@@ -4,14 +4,14 @@ use crate::utils::prelude::*;
 use byteorder::{ByteOrder, LE, BE};
 use self::compression::decompress_sample;
 
-const IT_HEADER_ID: u32 = 0x49_4D_50_4D;    // IMPM
-const IT_SAMPLE_ID: u32 = 0x49_4D_50_53;    // IMPS
-const IT_HEADER_LEN: usize = 192;
-const IT_SAMPLE_LEN: usize = 80;
-const MASK_SMP_BITS: u8 = 0b0000_0010;      // 16/8bit samples
-const MASK_SMP_COMP: u8 = 0b0000_1000;      // Does sample use compression?
-const MASK_SMP_STEREO: u8 = 0b0000_0100;    // 0 = mono, 1 = stereo
-const IT215: u16 = 0x0215;                  // IT215 compression 
+const IT_HEADER_ID: u32     = 0x49_4D_50_4D;    // IMPM
+const IT_SAMPLE_ID: u32     = 0x49_4D_50_53;    // IMPS
+const IT_HEADER_LEN: usize  = 192;
+const IT_SAMPLE_LEN: usize  = 80;
+const MASK_SMP_BITS: u8     = 0b0000_0010;      // 16/8bit samples
+const MASK_SMP_COMP: u8     = 0b0000_1000;      // Does sample use compression?
+const MASK_SMP_STEREO: u8   = 0b0000_0100;      // 0 = mono, 1 = stereo
+const IT215: u16            = 0x0215;           // IT215 compression 
 
 #[derive(Debug)]
 pub struct ITSample {
@@ -82,12 +82,13 @@ impl TrackerDumper for ITFile {
         if !folder.as_ref().is_dir() {
             return Err("Path is not a folder".into());
         }
-        let smp: &ITSample      = &self.smp_data[index];
-        let start_ptr: usize    = smp.smp_ptr as usize;
-        let wav_header: [u8; 44] = wav::build_header(
+
+        let smp: &ITSample          = &self.smp_data[index];
+        let wav_header: [u8; 44]    = wav::build_header(
             smp.smp_rate, smp.smp_bits,
             smp.smp_len, smp.smp_stereo,
         );
+        let start_ptr: usize    = smp.smp_ptr as usize;
         let path: PathBuf       = PathBuf::new()
             .join(folder)
             .join(name_sample(index, &smp.filename));
