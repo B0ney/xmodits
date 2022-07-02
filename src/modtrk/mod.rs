@@ -119,7 +119,7 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
 #[test]
 fn test_panic() {
     // let moddy = MODFile::load_module("samples/mod out of bounds/soundwar.mod").unwrap();
-    let moddy = MODFile::load_module("samples/mod/synthpop.mod").unwrap();
-
-    moddy.dump(&"test/").unwrap();
+    let moddy = MODFile::load_module("samples/moduloparapack.mod").unwrap();
+    println!("{}", &moddy.number_of_samples());
+    moddy.dump(&"test/", &"test".to_owned()).unwrap();
 }

@@ -13,6 +13,13 @@ impl TrackerDumper for UMXFile {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
         where Self: Sized  
     {
+        // identify header to verify it is a um* package
+
+        // if possible determine format from header info
+
+        // otherwise, use tests such as using magic numbers.
+
+
         // figure out what kind of module it contains
         // strip umx header from buffer
         // 
