@@ -83,6 +83,38 @@ fn gen_offset(){
 }
 
 #[test]
+fn gen_offset2(){
+    let offset = [
+        4,96,48,48,
+        1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,
+        2,2
+    ];
+    let mut a = 29;
+
+    for i in offset {
+        println!("0x{:04X} => ", a);
+        a += i;
+    }
+
+}
+#[test]
+fn gen_offset3(){
+    let offset = [
+        4, 4,4,
+        1,1,1,
+        1,1,1,
+        22,
+    ];
+    let mut a = 0;
+
+    for i in offset {
+        println!("0x{:04X} => ", a);
+        a += i;
+    }
+
+}
+#[test]
 fn test_2() {
     let xm = XMFile::load_module("samples/xm/SHADOW.XM").unwrap();
     println!("{}", xm.module_name());
