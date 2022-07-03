@@ -1,7 +1,7 @@
 // mod app;
 use std::path::{Path, PathBuf};
 use xmodits_lib::{Error, TrackerDumper, TrackerModule, tracker_formats::*,};
-use clap::{Command, arg};
+use clap::{Command, arg, crate_version, crate_authors};
 
 // Function to get file extension from path.
 fn file_extension<P:AsRef<Path>>(p: P) -> String {
@@ -12,10 +12,16 @@ fn file_extension<P:AsRef<Path>>(p: P) -> String {
 }
 
 fn main() -> Result<(), Error> {
-    let matches = Command::new("Xmodits")
-        .about("Sample dumping tool for tracker modules")
-        .version("0.1.0")
-        .author("B0ney")
+    let matches = Command::new(
+            if cfg!(feature="ascii_art") {
+                include_str!("../../extras/ascii_art.txt")
+            } else {
+                "xmodits"
+            }            
+        )
+        .about("Sample dumping tool for tracker modules.")
+        .version(crate_version!())
+        .author(crate_authors!())
         .arg(
             arg!(<module> "Path to tracker module")
                 .required(true)

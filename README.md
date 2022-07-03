@@ -80,7 +80,7 @@ cargo build -p xmodits --release
 ```
 
 ## Building (Advanced)
-If you want to make the binary size smaller, you can do this here. (nightly version required)
+If you want to make the binary size smaller, you can do so here. (nightly version required)
 
 If you have nightly installed, update it to minimize the chance of a build failure:
 ```

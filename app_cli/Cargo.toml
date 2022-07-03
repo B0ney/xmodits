@@ -1,20 +1,22 @@
 [package]
 name = "xmodits"
-authors = ["B0ney <https://github.com/B0ney>"]
-version = "0.1.0"
+authors = ["B0ney - https://github.com/B0ney"]
+version = "0.3.0-alpha"
 edition = "2021"
 # build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "3.2.6"
+clap = {version="3.2.6", features=["cargo"]}
 xmodits-lib = {path = "../"}
 
 # [build-dependencies]
 # winres = "0.1.12"
 # [target.x86_64-pc-windows-gnu.build-dependencies]
 
+[features]
+ascii_art = []
 
 [profile.release]
 strip = true
