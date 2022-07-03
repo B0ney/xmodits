@@ -29,6 +29,10 @@ A **fast** & **lightweight** tool to dump samples from popular tracker formats w
 | ---| --- | --- | ---| 
 | 🚧 |🚧  | 🚧  | 🚧 |
 
+## Download
+You can download builds for xmodits here.
+
+If you wish to build from source, go to [Building](#building).
 
 ## How to Use
 To dump samples from a module:
@@ -62,9 +66,44 @@ Replicating these effects is not a top priority.
 * Well documented (self documented code preferred)
 * Hackable: Contributors can implement obscure tracker formats. 
 
-## What's next?
-My next plan is to implement more advanced features for the gui.
+---
+## Building
+Requirements: 
+* Rust: https://www.rust-lang.org/learn/get-started
 
-### Planned GUI features
-* Live sample playback
-* Super basic sample editor to trim & pitch samples
+The easiest way to compile xmodits is through this command.
+
+The binary size should be acceptable (<1MB)
+
+```
+cargo build -p xmodits --release
+```
+
+## Building (Advanced)
+If you want to make the binary size smaller, you can do this here. (nightly version required)
+
+If you have nightly installed, update it to minimize the chance of a build failure:
+```
+rustup update
+```
+If you don't have nightly installed:
+```
+rustup toolchain install nightly
+```
+
+To build on windows (MSVC):
+```
+cargo +nightly build -p xmodits -Z build-std=std,panic_abort --target=x86_64-pc-windows-msvc --release
+```
+To build on windows (GNU):
+```
+cargo +nightly build -p xmodits -Z build-std=std,panic_abort --target=x86_64-pc-windows-gnu --release
+```
+
+
+To build on Linux:
+```
+cargo +nightly build -p xmodits -Z build-std=std,panic_abort --target=x86_64-unknown-linux-gnu --release
+```
+
+---

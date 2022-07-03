@@ -55,8 +55,6 @@ fn main() -> Result<(), Error> {
         f       => return Err(format!("'{}' is not a supported format.", f).into()),
     }?;
 
-    
-
     module.dump(&dest_dir, &modname)?;
 
     Ok(())
