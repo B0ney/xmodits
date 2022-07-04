@@ -193,4 +193,45 @@ This can be located by reading bit flag 0 in the header:
 
 1 = Linear frequency table
 
+UPDATE:
+
+For each xm sample header, the "finetune" and "relative note number" may be what's needed to reconstruct the sampling frequency.
+
+since they're both 8 bit (u8 & i8), this may be helpful
+
+
+```
+test
+finetune    = 0xE7 (237)
+rel not num = 0x0B - 128 (-117)
+
+7680 - (-117 * 64) - (237 / 2)
+= 15049.5
+
+f_smp = 44100
+8363 * (2**((1152.0 - 15049.5)-192))
+
+(8363*2)**((4608 - 15050)/768)
+
+actual smp frequency: 15,613
+
+```
+
+
+useful resources:
+
+Amiga frequency table
+* [(ARCHIVE) https://www.pouet.net/topic.php?which=8628](https://web.archive.org/web/20210126152529/https://www.pouet.net/topic.php?which=8628)
+
+Amiga frequency vs linear
+* https://modarchive.org/forums/index.php?topic=1389.0
+
+More amiga frequency stuff:
+* [(ARCHIVE) https://bel.fi/alankila/modguide/interpolate.txt](https://web.archive.org/web/20210815094208/https://bel.fi/alankila/modguide/interpolate.txt)
+
+XM player (CC0-1.0)
+* https://github.com/wdebeaum/xm-player
+
+XM player (MIT)
+* https://github.com/a1k0n/jsxm/
 <!-- when exporting the sample we need to make sure  -->
