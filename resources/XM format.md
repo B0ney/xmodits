@@ -71,7 +71,7 @@ Offsets are relative to the start of this header.
 
 ```
 0x0000 => [u32]         Pattern header size**
-0x0004 => [char; 23]    Instrument name
+0x0004 => [char; 22]    Instrument name
 0x001a => [u8]          Instrument type
 0x001b => [u16]         Number of samples in instrument (smpnum)
 

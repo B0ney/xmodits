@@ -1,1 +1,1 @@
-cargo +nightly build -p xmodits -Z build-std=std,panic_abort -Zmultitarget --target=x86_64-unknown-linux-gnu --target=x86_64-pc-windows-gnu --release
+cargo +nightly build --features="ascii_art" -p xmodits -Z build-std=std,panic_abort -Zmultitarget --target=x86_64-unknown-linux-gnu --target=x86_64-pc-windows-gnu --release
