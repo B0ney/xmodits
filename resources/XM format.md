@@ -116,9 +116,10 @@ Offsets are relative to XM instrument header
 0x00F3 => NEW DATA STARTS FROM HERE
 ```
 ## XM Sample header (**SAMPLE HEADERS**)
+Again, offsets are relative to the start of this structure.
 
 ```
-0x0000 => [u32]         sample length           [needed]
+0x0000 => [u32]         sample length *         [needed]
 0x0004 => [u32]         sample loop start
 0x0008 => [u32]         sample loop length
 0x000C => [u8]          volume
@@ -129,9 +130,20 @@ Offsets are relative to XM instrument header
 0x0011 => [u8]          reserved
 0x0012 => [char; 22]    sample name             [needed]
 
+IF LAST SAMPLE HEADER:
+    0x0028 => ALL SAMPLE DATA [needed]
+    0x0028 
+        + SAMPLES => NEW DATA STARTS FROM HERE 
+                     (could be next instrument)
+ELSE:
+    0x0028 => NEXT SAMPLE HEADER
+
 0x0040 => NEW DATA STARTS FROM HERE
 
 ```
+*Sample length is in bytes.
+
+
 ** sample flag
 
 **bits 0-1**:
@@ -154,9 +166,11 @@ https://github.com/milkytracker/MilkyTracker/blob/master/resources/reference/xm-
 
 Sample data is encoded in delta values, this is done to achive a better compression ratio when compressed with external programs.
 
+If we export the samples without de-deltaing, the sample will just sound really quiet. 
+
 At this stage, we have the following infomation about each sample:
 * Name
-* Length (assumed in bytes?)
+* Length (in bytes)
 * Bits per sample (8/16)
 * Index (can be calculated)
 * Sample is delta encoded
@@ -178,3 +192,5 @@ This can be located by reading bit flag 0 in the header:
 0 = Amiga frequency table (logarithmic)
 
 1 = Linear frequency table
+
+<!-- when exporting the sample we need to make sure  -->
