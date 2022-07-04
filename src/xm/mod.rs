@@ -61,7 +61,7 @@ impl TrackerDumper for XMFile {
         )?;
 
 
-        println!("xm ins header: 0x{:04X}", insheaders);
+        println!("xm ins header: 0x{:04X}", ins_header_offset);
         println!("xm ins number: {}", insnum);
         println!("xm pat number: {}", patnum);
 
@@ -108,9 +108,9 @@ fn build_samples(
     buf: &[u8],
     ins_header_offset: usize,
     insnum: usize
-) -> Result<XMSample, Error> {
-
-    todo!()
+) -> Result<Vec<XMSample>, Error> {
+    Err("".into())
+    // todo!()
 }
 
 #[test]
@@ -168,4 +168,12 @@ fn test_2() {
     let xm = XMFile::load_module("samples/xm/an-path.xm").unwrap();
     println!("{}", xm.module_name());
     
+}
+
+#[test]
+fn test_3() {
+    let a:u8 = 0xE7;
+    let b = a as i8;// casting u8 to i8 works as intended
+    assert!(b, -25);
+    println!("{}", b);
 }

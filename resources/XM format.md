@@ -37,6 +37,12 @@ Size before **0x003C** = **60 Bytes**
     + (INS_HEADER * insnum) => END OF XM FILE (useful for internal checking)
 ``` 
 
+```
+flags:
+bit 0:  0 = Amiga frequency table
+
+        1 = Linear frequency table
+```
 ## XM Pattern Header data   [PAT_HEADER]
 Offsets are relative to the start of this header.
 
@@ -123,7 +129,7 @@ Again, offsets are relative to the start of this structure.
 0x0004 => [u32]         sample loop start
 0x0008 => [u32]         sample loop length
 0x000C => [u8]          volume
-0x000D => [u8]          finetune
+0x000D => [i8]          finetune
 0x000E => [u8]          type of sample flag **  [needed]
 0x000F => [u8]          panning
 0x0010 => [i8]          relative note number
@@ -168,6 +174,8 @@ Sample data is encoded in delta values, this is done to achive a better compress
 
 If we export the samples without de-deltaing, the sample will just sound really quiet. 
 
+This occurs because encoding sample amplitudes as deltas will reduce how spread out they are. 
+
 At this stage, we have the following infomation about each sample:
 * Name
 * Length (in bytes)
@@ -201,19 +209,28 @@ since they're both 8 bit (u8 & i8), this may be helpful
 
 
 ```
-test
-finetune    = 0xE7 (237)
-rel not num = 0x0B - 128 (-117)
+test an-path.xm
+SNARE ROLL:
 
-7680 - (-117 * 64) - (237 / 2)
-= 15049.5
+48 because that is C-4 (middle)
 
-f_smp = 44100
-8363 * (2**((1152.0 - 15049.5)-192))
+finetune: i8     = (0xE7) = -25
+rel_note_num: i8 = (0x0B) = 11
 
-(8363*2)**((4608 - 15050)/768)
+real note = 48 + rel_note_num  
 
-actual smp frequency: 15,613
+
+7680 - ((11 + 48) * 64) - (-25 / 2)
+
+= 3916.5
+
+8363 * 2**((4608 - period) / 768)
+
+8363*2**((4608 - 3916.5)/768)
+
+= 15610.135854318221
+
+actual smp speed: 15,610
 
 ```
 
