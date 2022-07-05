@@ -25,9 +25,27 @@ pub trait TrackerDumper {
     fn load_module<P>(path: P) -> Result<TrackerModule, Error> 
         where Self: Sized, P: AsRef<Path> 
         {
-            let buf = fs::read(&path)?;
+            /*
+                Tracker modules are frickin' tiny.
+                We can get away with loading it to memory directly
+                rather than using Seek.
+                
+                This allows us to access specific locations with offsets,
+                which makes everything easier to read and debug (hopefully).
+                
+                At any point should we consider optimizing the code,
+                using Seek *may* help performance...(At the cost of readability)
+
+                But this performance increase would mostly take effect with large files.
+
+                The largest tracker module iirc is ~21MB. 
+                The average tracker module (IT, XM, S3M) is < 2MB.
+
+                For large scale dumping in parallel, using Seek will be considered.
+            */
+            
+            let buf: Vec<u8> = fs::read(&path)?;
             Self::load_from_buf(buf)
-                // .set_module_filename(path)
         }
 
     /// Dump all samples
@@ -57,10 +75,3 @@ pub trait TrackerDumper {
         Ok(())
     }
 }
-
-// pub trait Sample {
-//     fn name();
-//     fn file_name();
-
-//     fn sample_rate();
-// }

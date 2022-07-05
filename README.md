@@ -2,6 +2,8 @@
 
 **XMODITS**
 
+![logo](icon.png "xmodits-logo")
+
 A **fast** & **lightweight** tool to dump samples from popular tracker formats with **ease**.
 
 ## Supported Formats:
