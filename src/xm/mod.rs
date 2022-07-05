@@ -51,14 +51,42 @@ impl TrackerDumper for XMFile {
         // their total size and add that to 0x0150
         let ins_header_offset: usize = skip_pat_header(&buf, patnum as usize);
 
+        {
+            let offset = ins_header_offset;
+            let header_size: u32 = LE::read_u32(&buf[offset_u32!(0x0000 + offset)]);
+            let ins_name: String = string_from_chars(&buf[offset_chars!(0x0004 + offset, 22)]);
+            let ins_smp_num: u16 = LE::read_u16(&buf[offset_u16!(0x001b + offset)]);
+
+            println!("header size: {}\ninstrument name: {}\nsample number: {}\n",
+                header_size,
+                ins_name,
+                ins_smp_num,
+            );
+
+            /*
+                repeat insnum
+                
+                If number of samples is zero, skip HEADER_SIZE bytes (skip to next xm ins)
+                
+                IF smp num is > 0, obtain additional infomation from xm header
+                Obtain infomation from sample headers,
+                
+                calculate parapointers to sample data
+                this can be calculated given current offset + HEADER size 
+                as it includes total size of sample headers.
+                
+                build xm sample structs
+            */
+        }
+
         // with the offset given by ins_header_offset,
         // we can obtain infomation about each instrument
         // which may contain some samples
-        let xmsamples: Vec<XMSample> = build_samples(
-            &buf,
-            ins_header_offset,
-            insnum as usize
-        )?;
+        // let xmsamples: Vec<XMSample> = build_samples(
+        //     &buf,
+        //     ins_header_offset,
+        //     insnum as usize
+        // )?;
 
 
         println!("xm ins header: 0x{:04X}", ins_header_offset);
@@ -109,6 +137,11 @@ fn build_samples(
     ins_header_offset: usize,
     insnum: usize
 ) -> Result<Vec<XMSample>, Error> {
+    let mut samples: Vec<XMSample> = Vec::new();
+
+    // let mut header
+
+
     Err("".into())
     // todo!()
 }
@@ -174,6 +207,6 @@ fn test_2() {
 fn test_3() {
     let a:u8 = 0xE7;
     let b = a as i8;// casting u8 to i8 works as intended
-    assert!(b, -25);
+    assert_eq!(b, -25);
     println!("{}", b);
 }

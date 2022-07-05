@@ -76,7 +76,7 @@ Offsets are relative to the start of this header.
 [Notice](https://github.com/milkytracker/MilkyTracker/blob/master/resources/reference/xm-form.txt#L189=)
 
 ```
-0x0000 => [u32]         Pattern header size**
+0x0000 => [u32]         instrument header size**
 0x0004 => [char; 22]    Instrument name
 0x001a => [u8]          Instrument type
 0x001b => [u16]         Number of samples in instrument (smpnum)
