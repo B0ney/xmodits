@@ -54,10 +54,10 @@ fn main() -> Result<(), Error> {
     // println!("{}", &modname);
     let module: TrackerModule = match hint.as_str() {
         "it"    => ITFile::load_module(mod_path),
+        "xm"    => XMFile::load_module(mod_path),
         "s3m"   => S3MFile::load_module(mod_path),
         "mod"   => MODFile::load_module(mod_path),
         // "umx"   => UMXFile::load_module(mod_path),
-        // "xm"    => XMFile::load_module(mod_path),
         f       => return Err(format!("'{}' is not a supported format.", f).into()),
     }?;
 
