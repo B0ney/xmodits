@@ -5,7 +5,7 @@
 /// https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
 /// https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
 
-use crate::utils::Error;
+use crate::utils::{Error, reader::read_u16_le};
 use crate::word;
 use byteorder::{ByteOrder, LE};
 
@@ -54,7 +54,7 @@ struct BitReader<'a> {
     bitnum: u8,             // Bits left. When it hits 0, it resets to 8 & "blk_index" increments by 1.  
     bitbuf: u32,            // Internal buffer for storing read bits
     buf: &'a [u8],          // IT Module buffer (read-only because reading data shouldn't modify anything)
-    blk_data: Vec<u8>,      // Sections of "buf" are copied here for modification.
+    blk_data: Vec<u8>,      // Sections of "buf" are copied here for modification. (may affect performance)
     blk_index: usize,       // Used to index blk_data.
 }
 
@@ -72,7 +72,7 @@ impl <'a>BitReader<'a> {
 
     fn read_next_block(&mut self) -> Result<(), Error> {
         // First 2 bytes combined to u16 (LE). Tells us size of compressed block. 
-        let block_size = LE::read_u16(&self.buf[word!(self.block_offset)]);
+        let block_size: u16 = read_u16_le(&self.buf, self.block_offset);
 
         if block_size == 0 {
             return Err("block size is zero >:(".into());
@@ -97,6 +97,8 @@ impl <'a>BitReader<'a> {
         if self.buf.len() < self.block_offset + size + 2 {
             return Err("Cannot Allocate, buffer is too small".into());
         }
+        // TODO: make allocation copy small sections of buffer
+        // without copying nearly everything
         Ok(self.buf[self.block_offset..].to_vec())
     } 
 

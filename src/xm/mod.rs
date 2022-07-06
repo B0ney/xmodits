@@ -1,6 +1,5 @@
 mod test;
 mod deltadecode;
-use byteorder::{ByteOrder, LE};
 use crate::utils::prelude::*;
 
 const XM_HEADER_ID: &str    = "Extended Module: ";
@@ -27,6 +26,7 @@ pub struct XMFile {
 }
 
 use crate::interface::{TrackerDumper, TrackerModule};
+use crate::utils::reader::read_u32_le;
 
 impl TrackerDumper for XMFile {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
@@ -35,13 +35,13 @@ impl TrackerDumper for XMFile {
         // Some checks to verify buffer is an XM module
         // 3 checks should be enough, anything more is redundant.
         if buf.len() < 60 
-            || &buf[chars!(0x0000, 17)] != XM_HEADER_ID.as_bytes() 
+            || read_chars(&buf, 0x0000, 17) != XM_HEADER_ID.as_bytes() 
             || buf[0x0025] != XM_MAGIC_NUM 
         {
             return Err("Not a valid XM file".into())
         }
 
-        let version: u16 = LE::read_u16(&buf[word!(0x003A)]);
+        let version: u16 = read_u16_le(&buf, 0x003A);
 
         if version < XM_MIN_VER {
             return Err("Unsupported XM version! (is below 0104)".into());
@@ -49,8 +49,9 @@ impl TrackerDumper for XMFile {
 
         let module_name: String     = string_from_chars(&buf[chars!(0x0011, 20)]);
         let tracker_name: String    = string_from_chars(&buf[chars!(0x0026, 20)]);
-        let patnum: u16             = LE::read_u16(&buf[word!(0x0046)]);
-        let insnum: u16             = LE::read_u16(&buf[word!(0x0048)]);
+
+        let patnum: u16             = read_u16_le(&buf, 0x0046);
+        let insnum: u16             = read_u16_le(&buf, 0x0048);
 
         // Skip xm pattern headers so that we can access instrument headers.
         // Pattern headers do not have a fixed size so we need to calculate them.
@@ -119,8 +120,8 @@ fn skip_pat_header(buf: &[u8], patnum: usize) -> usize {
     let mut pat_data_size: u32;
 
     for _ in 0..patnum {
-        pat_header_len  = LE::read_u32(&buf[dword!(0x0000 + offset)]); // should be 9
-        pat_data_size   = LE::read_u16(&buf[word!(0x0007 + offset)]) as u32;
+        pat_header_len  = read_u32_le(&buf, 0x0000 + offset); // should be 9
+        pat_data_size   = read_u16_le(&buf, 0x0007 + offset) as u32;
         offset += (pat_header_len + pat_data_size) as usize; 
     }
     offset as usize
@@ -140,8 +141,8 @@ fn build_samples(
     let mut smp_header_size: u32;
 
     for _ in 0..insnum {
-        ins_header_size = LE::read_u32(&buf[dword!(0x0000 + offset)]);
-        ins_smp_num = LE::read_u16(&buf[word!(0x001b + offset)]);
+        ins_header_size = read_u32_le(&buf, 0x0000 + offset);
+        ins_smp_num     = read_u16_le(&buf, 0x001b + offset);
         
         // If instrument has no samples,
         // move to next instrument header
@@ -151,7 +152,7 @@ fn build_samples(
         };
         // Obtain additional infomation from 
         // instrument header
-        smp_header_size = LE::read_u32(&buf[dword!(0x001d + offset)]); // should be 40?
+        smp_header_size = read_u32_le(&buf, 0x001d + offset); // should be 40?
         
         offset += ins_header_size as usize; // skip to sample headers
 
@@ -162,9 +163,12 @@ fn build_samples(
         // When this loop completes, the offset will land at sample data
         for _ in 0..ins_smp_num {
             smp_info.push((
-                LE::read_u32(&buf[dword!(0x0000 + offset)]),
+                read_u32_le(&buf, 0x0000 + offset),
                 buf[0x000e + offset],
-                string_from_chars(&buf[chars!(0x0012 + offset, 22)]),
+
+                string_from_chars(
+                    &buf[chars!(0x0012 + offset, 22)]
+                ),
                 buf[0x000d + offset] as i8,
                 buf[0x0010 + offset] as i8,
             ));

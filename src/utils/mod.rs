@@ -4,6 +4,7 @@ pub mod signed;
 pub mod wav;
 pub mod ascii;
 pub mod name;
+pub mod reader;
 
 pub type Error = Box<dyn std::error::Error>;
 
@@ -47,6 +48,7 @@ pub mod prelude {
     pub use super::wav;
     pub use super::signed::SignedByte;
     pub use super::name::name_sample;
+    pub use super::reader::*;
     pub use super::ascii::string_from_chars;
     pub use super::Error;
 
