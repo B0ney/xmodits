@@ -4,7 +4,7 @@ use crate::utils::prelude::*;
 use self::compression::decompress_sample;
 
 const IT_HEADER_ID: &str    = "IMPM";    // IMPM
-const IT_SAMPLE_ID: u32     = 0x49_4D_50_53;    // IMPS
+// const IT_SAMPLE_ID: u32     = 0x49_4D_50_53;    // IMPS
 const IT_HEADER_LEN: usize  = 192;
 const IT_SAMPLE_LEN: usize  = 80;
 const MASK_SMP_BITS: u8     = 0b0000_0010;      // 16/8bit samples
@@ -115,7 +115,7 @@ impl TrackerDumper for ITFile {
                 raw_data = &b; // make raw data reference b instead
             }
 
-            file.write_all(&raw_data)?;
+            file.write_all(raw_data)?;
         }
 
         Ok(())
@@ -135,15 +135,15 @@ fn build_samples(it_data: &[u8], smp_ptr: Vec<u32>) -> Result<Vec<ITSample>, Err
 
     for i in smp_ptr {
         let offset: usize       = i as usize;
-        let smp_len: u32        = read_u32_le(&it_data, 0x0030 + offset);
+        let smp_len: u32        = read_u32_le(it_data, 0x0030 + offset);
         
         if smp_len == 0 { continue; }
 
         let filename: String    = string_from_chars(&it_data[chars!(0x0004 + offset, 12)]);
         let name: String        = string_from_chars(&it_data[chars!(0x0014 + offset, 26)]);
 
-        let smp_ptr: u32        = read_u32_le(&it_data, 0x0048 + offset);
-        let smp_rate: u32       = read_u32_le(&it_data, 0x003C + offset);
+        let smp_ptr: u32        = read_u32_le(it_data, 0x0048 + offset);
+        let smp_rate: u32       = read_u32_le(it_data, 0x003C + offset);
 
         let smp_flag: u8        = it_data[0x012 + offset];
         let smp_bits: u8        = (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8;

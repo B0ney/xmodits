@@ -1,6 +1,6 @@
 // *printable ASCII
 pub fn is_ascii(n: u8) -> bool {
-    n >= 32 && n <= 126
+    (32..=126).contains(&n)
 }
 
 pub fn string_from_chars(chars: &[u8]) -> String {

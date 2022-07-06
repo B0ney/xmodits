@@ -63,7 +63,7 @@ impl <'a>BitReader<'a> {
         Self { 
             bitnum: 0,
             bitbuf:0,
-            buf: &buf,
+            buf,
             blk_data: Vec::new(),
             blk_index: 0,
             block_offset: 0x0000,
@@ -72,7 +72,7 @@ impl <'a>BitReader<'a> {
 
     fn read_next_block(&mut self) -> Result<(), Error> {
         // First 2 bytes combined to u16 (LE). Tells us size of compressed block. 
-        let block_size: u16 = read_u16_le(&self.buf, self.block_offset);
+        let block_size: u16 = read_u16_le(self.buf, self.block_offset);
 
         if block_size == 0 {
             return Err("block size is zero >:(".into());
@@ -126,7 +126,7 @@ impl <'a>BitReader<'a> {
             self.bitnum -= 1;
         }
 
-        return Ok(value >> (32 - n)); 
+        Ok(value >> (32 - n))
     }   
 }
 
@@ -154,7 +154,7 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
     let mut width: u8;          // Bit width. (Starts at 9 For 8-Bit samples)
     let mut value: u16;         // Value read (Note u16 for 8-bit samples)
     let mut dest_buf: Vec<u8>       = Vec::new();               // Buffer to write decompressed data
-    let mut bitreader: BitReader    = BitReader::new(&buf);    // solution to C's horrible global variables
+    let mut bitreader: BitReader    = BitReader::new(buf);    // solution to C's horrible global variables
 
     // Unpack data
     while len != 0 {
@@ -251,7 +251,7 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error>
     let mut width: u8;              // Bit width. (Starts at 17 For 16-Bit samples)
     let mut value: u32;             // Value read (Note u32 for 16 bit sample)
     let mut dest_buf: Vec<u8>       = Vec::new();               // Buffer to write decompressed data
-    let mut bitreader: BitReader    = BitReader::new(&buf);    // solution to C's horrible global variables
+    let mut bitreader: BitReader    = BitReader::new(buf);    // solution to C's horrible global variables
 
     while len != 0 {
         // Read new block, reset variables

@@ -3,7 +3,7 @@
 /// If the sample name is empty it'll just be: $n.wav e.g 0.wav
 /// 
 /// If the sample does have a name, it'll be "$n - $name.wav"
-pub fn name_sample(idx: usize, name: &String) -> String {
+pub fn name_sample(idx: usize, name: &str) -> String {
     format!(
         "{}{}.wav",
         idx,

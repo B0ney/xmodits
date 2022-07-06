@@ -120,8 +120,8 @@ fn skip_pat_header(buf: &[u8], patnum: usize) -> usize {
     let mut pat_data_size: u32;
 
     for _ in 0..patnum {
-        pat_header_len  = read_u32_le(&buf, 0x0000 + offset); // should be 9
-        pat_data_size   = read_u16_le(&buf, 0x0007 + offset) as u32;
+        pat_header_len  = read_u32_le(buf, offset); // should be 9
+        pat_data_size   = read_u16_le(buf, 0x0007 + offset) as u32;
         offset += (pat_header_len + pat_data_size) as usize; 
     }
     offset as usize
@@ -141,8 +141,8 @@ fn build_samples(
     let mut smp_header_size: u32;
 
     for _ in 0..insnum {
-        ins_header_size = read_u32_le(&buf, 0x0000 + offset);
-        ins_smp_num     = read_u16_le(&buf, 0x001b + offset);
+        ins_header_size = read_u32_le(buf, offset);
+        ins_smp_num     = read_u16_le(buf, 0x001b + offset);
         
         // If instrument has no samples,
         // move to next instrument header
@@ -152,7 +152,7 @@ fn build_samples(
         };
         // Obtain additional infomation from 
         // instrument header
-        smp_header_size = read_u32_le(&buf, 0x001d + offset); // should be 40?
+        smp_header_size = read_u32_le(buf, 0x001d + offset); // should be 40?
         
         offset += ins_header_size as usize; // skip to sample headers
 
@@ -163,7 +163,7 @@ fn build_samples(
         // When this loop completes, the offset will land at sample data
         for _ in 0..ins_smp_num {
             smp_info.push((
-                read_u32_le(&buf, 0x0000 + offset),
+                read_u32_le(buf, offset),
                 buf[0x000e + offset],
 
                 string_from_chars(

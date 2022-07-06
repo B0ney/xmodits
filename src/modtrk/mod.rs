@@ -26,6 +26,8 @@ impl TrackerDumper for MODFile {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
         where Self: Sized
     {
+        // TODO: add checks to validate
+
         let title: String = string_from_chars(&buf[chars!(0x0000, 20)]);
         // if it contains any non-ascii, it was probably made with ultimate sound tracker
         let smp_num: u8 = { 

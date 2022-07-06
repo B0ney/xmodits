@@ -2,9 +2,12 @@ pub mod test;
 use std::path::PathBuf;
 use crate::utils::prelude::*;
 
+const S3M_HEADER_ID: &str       = "SCRM";
+const S3M_MAGIC_NUMBER: u8      = 0x10;
 const SMP_MASK_STEREO: u8       = 0b0000_0100;
 const SMP_MASK_BITS: u8         = 0b0000_1000;
 const INS_HEAD_LENGTH: usize    = 13;
+
 
 #[derive(Debug)]
 pub struct S3MSample {
@@ -29,6 +32,13 @@ impl TrackerDumper for S3MFile {
         where Self: Sized
     {
         // TODO: add checks to see if valid
+        if buf.len() < 0x0060
+            || buf[0x001d] != S3M_MAGIC_NUMBER
+            || read_chars(&buf, 0x002c, 4) != S3M_HEADER_ID.as_bytes()
+        {
+            return Err("File is not a valid Scream Tracker Module".into());
+        }
+
         let title: String       = string_from_chars(&buf[chars!(0x0000, 28)]);
         let ord_count: u16      = read_u16_le(&buf,0x0020);
         let ins_count: u16      = read_u16_le(&buf,0x0022);
@@ -75,7 +85,7 @@ impl TrackerDumper for S3MFile {
 
         let mut file: File = File::create(pathbuf)?;
         file.write_all(&wav_header)?;
-        file.write_all(&pcm)?;
+        file.write_all(pcm)?;
 
         Ok(())
     }
@@ -97,11 +107,11 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
 
         let index: usize        = i as usize + INS_HEAD_LENGTH; // skip instrument header (13 bytes)
         let smp_name: String    = string_from_chars(&buf[chars!(0x0023 + index, 28)]);
-        let smp_len: u32        = read_u32_le(&buf, 0x0003 + index) as u32 & 0xffff;
-        let smp_rate: u32       = read_u32_le(&buf, 0x0013 + index) as u32;
+        let smp_len: u32        = read_u32_le(buf, 0x0003 + index) & 0xffff;
+        let smp_rate: u32       = read_u32_le(buf, 0x0013 + index);
         
         let hi_ptr: u8          = buf[index];
-        let lo_ptr: u16         = read_u16_le(&buf, 0x0001 + index);
+        let lo_ptr: u16         = read_u16_le(buf, 0x0001 + index);
         let smp_ptr: u32        = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
 
         let smp_flag: u8        = buf[0x0012 + index];

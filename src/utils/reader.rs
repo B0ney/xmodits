@@ -22,6 +22,6 @@ pub fn read_u32_le(buf: &[u8], offset: usize) -> u32 {
 }
 
 #[inline]
-pub fn read_chars<'a>(buf: &'a [u8], offset: usize, len: usize) -> &'a [u8] {
+pub fn read_chars(buf: &[u8], offset: usize, len: usize) -> &[u8] {
     &buf[chars!(offset, len)]
 }
