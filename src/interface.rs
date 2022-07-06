@@ -57,9 +57,9 @@ pub trait TrackerDumper {
         }
         // Create root folder
 
-        /// Name of exported folder is the name of the module file
-        /// Until I can come up with a way to abstract the module name,
-        /// The api caller must specify folder name
+        // Name of exported folder is the name of the module file
+        // Until I can come up with a way to abstract the module name,
+        // The api caller must specify folder name
         let root: PathBuf = PathBuf::new()
             .join(folder).join(module_name);
     

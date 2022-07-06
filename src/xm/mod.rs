@@ -59,10 +59,8 @@ impl TrackerDumper for XMFile {
         // given by ins_header_offset, obtain infomation about each instrument
         // which may contain some samples
         let samples: Vec<XMSample> = build_samples(
-            &buf,
-            ins_header_offset,
-            insnum as usize
-        )?;
+            &buf, ins_header_offset, insnum as usize)?;
+
         let smp_num: usize = samples.len();
 
         Ok(Box::new(Self {
@@ -123,7 +121,6 @@ fn skip_pat_header(buf: &[u8], patnum: usize) -> usize {
     for _ in 0..patnum {
         pat_header_len  = LE::read_u32(&buf[dword!(0x0000 + offset)]); // should be 9
         pat_data_size   = LE::read_u16(&buf[word!(0x0007 + offset)]) as u32;
-        assert_eq!(pat_header_len, 9, "header len is not 9?");
         offset += (pat_header_len + pat_data_size) as usize; 
     }
     offset as usize
@@ -145,7 +142,7 @@ fn build_samples(
     for _ in 0..insnum {
         ins_header_size = LE::read_u32(&buf[dword!(0x0000 + offset)]);
         ins_smp_num = LE::read_u16(&buf[word!(0x001b + offset)]);
-
+        
         // If instrument has no samples,
         // move to next instrument header
         if ins_smp_num == 0 {
