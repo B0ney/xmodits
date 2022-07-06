@@ -26,18 +26,18 @@ impl TrackerDumper for MODFile {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
         where Self: Sized
     {
-        let title: String = string_from_chars(&buf[offset_chars!(0x0000, 20)]);
+        let title: String = string_from_chars(&buf[chars!(0x0000, 20)]);
         // if it contains any non-ascii, it was probably made with ultimate sound tracker
         let smp_num: u8 = { 
             // Valid ASCII chars are in between 32-127        
-            if buf[offset_u32!(0x0438)].iter()
+            if buf[dword!(0x0438)].iter()
                 .any(|b| *b <=32 || *b >= 126) 
             { 15 } else { 31 }
         };        
         // Fixed panic on modules made with ulitimate sound tracker.
         let offset: usize = if smp_num == 15 { (15 + 1) * 30 } else { 0 };
 
-        let largest_pat = *buf[offset_chars!(PAT_META - offset, 128)]
+        let largest_pat = *buf[chars!(PAT_META - offset, 128)]
             .iter()
             .max()
             .unwrap() as usize;
@@ -101,11 +101,11 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
 
     for i in 0..smp_num as usize {
         let offset = MOD_SMP_START + (i * MOD_SMP_LEN); 
-        let len = BE::read_u16(&buf[offset_u16!(0x0016 + offset)]) * 2; 
+        let len = BE::read_u16(&buf[word!(0x0016 + offset)]) * 2; 
         if len == 0 { continue; }
 
         smp_data.push(MODSample {
-            name: string_from_chars(&buf[offset_chars!(offset, 22)]),
+            name: string_from_chars(&buf[chars!(offset, 22)]),
             index: smp_pcm_stream_index,
             length: len, 
         });

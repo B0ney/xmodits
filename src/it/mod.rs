@@ -43,24 +43,24 @@ impl TrackerDumper for ITFile {
         where Self: Sized
     {
         if buf.len() < IT_HEADER_LEN
-            || BE::read_u32(&buf[offset_u32!(0x0000)]) != IT_HEADER_ID
+            || BE::read_u32(&buf[dword!(0x0000)]) != IT_HEADER_ID
         {
             return Err("File is not a valid Impulse Tracker Module".into());
         };
 
-        let title: String       = string_from_chars(&buf[offset_chars!(0x0004, 26)]);
-        let ord_num: u16        = LE::read_u16(&buf[offset_u16!(0x0020)]);
-        let ins_num: u16        = LE::read_u16(&buf[offset_u16!(0x0022)]);
-        let smp_num: u16        = LE::read_u16(&buf[offset_u16!(0x0024)]);
-        let version: u16        = LE::read_u16(&buf[offset_u16!(0x0028)]);
-        let compat_ver: u16     = LE::read_u16(&buf[offset_u16!(0x002A)]);
+        let title: String       = string_from_chars(&buf[chars!(0x0004, 26)]);
+        let ord_num: u16        = LE::read_u16(&buf[word!(0x0020)]);
+        let ins_num: u16        = LE::read_u16(&buf[word!(0x0022)]);
+        let smp_num: u16        = LE::read_u16(&buf[word!(0x0024)]);
+        let version: u16        = LE::read_u16(&buf[word!(0x0028)]);
+        let compat_ver: u16     = LE::read_u16(&buf[word!(0x002A)]);
         let smp_ptr_list: u16   = 0x00c0 + ord_num + (ins_num * 4);
 
         let mut smp_ptrs: Vec<u32> = Vec::new();
 
         for i in 0..smp_num {
             let index = smp_ptr_list + (i * 4);
-            smp_ptrs.push(LE::read_u32(&buf[offset_u32!(index as usize)]));
+            smp_ptrs.push(LE::read_u32(&buf[dword!(index as usize)]));
         }
 
         let smp_data: Vec<ITSample> = build_samples(&buf, smp_ptrs)?;
@@ -136,14 +136,14 @@ fn build_samples(it_data: &[u8], smp_ptr: Vec<u32>) -> Result<Vec<ITSample>, Err
 
     for i in smp_ptr {
         let offset: usize       = i as usize;
-        let smp_len: u32        = LE::read_u32(&it_data[offset_u32!(0x0030 + offset)]);
+        let smp_len: u32        = LE::read_u32(&it_data[dword!(0x0030 + offset)]);
         
         if smp_len == 0 { continue; }
 
-        let filename: String    = string_from_chars(&it_data[offset_chars!(0x0004 + offset, 12)]);
-        let name: String        = string_from_chars(&it_data[offset_chars!(0x0014 + offset, 26)]);
-        let smp_ptr: u32        = LE::read_u32(&it_data[offset_u32!(0x0048 + offset)]);
-        let smp_rate: u32       = LE::read_u32(&it_data[offset_u32!(0x003C + offset)]);
+        let filename: String    = string_from_chars(&it_data[chars!(0x0004 + offset, 12)]);
+        let name: String        = string_from_chars(&it_data[chars!(0x0014 + offset, 26)]);
+        let smp_ptr: u32        = LE::read_u32(&it_data[dword!(0x0048 + offset)]);
+        let smp_rate: u32       = LE::read_u32(&it_data[dword!(0x003C + offset)]);
 
         let smp_flag: u8        = it_data[0x012 + offset];
         let smp_bits: u8        = (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8;

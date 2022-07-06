@@ -30,9 +30,9 @@ impl TrackerDumper for S3MFile {
         where Self: Sized
     {
         // TODO: add checks to see if valid
-        let title: String       = string_from_chars(&buf[offset_chars!(0x0000, 28)]);
-        let ord_count: u16      = LE::read_u16(&buf[offset_u16!(0x0020)]);
-        let ins_count: u16      = LE::read_u16(&buf[offset_u16!(0x0022)]);
+        let title: String       = string_from_chars(&buf[chars!(0x0000, 28)]);
+        let ord_count: u16      = LE::read_u16(&buf[word!(0x0020)]);
+        let ins_count: u16      = LE::read_u16(&buf[word!(0x0022)]);
         let ins_ptr_list: u16   = 0x0060 + ord_count;
 
         let mut ins_ptrs: Vec<u16> = Vec::new();
@@ -40,7 +40,7 @@ impl TrackerDumper for S3MFile {
         for i in 0..ins_count {
             let index: u16 = ins_ptr_list + (i * 2);
             // convert parameter to byte-level offset by << 4
-            ins_ptrs.push(LE::read_u16(&buf[offset_u16!(index as usize)]) << 4)
+            ins_ptrs.push(LE::read_u16(&buf[word!(index as usize)]) << 4)
         };
 
         let smp_data: Vec<S3MSample> = build_samples(&buf, ins_ptrs)?;
@@ -97,12 +97,12 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
         if buf[i as usize] != 0x1 { continue; } // if it's not a PCM instrument, skip
 
         let index: usize        = i as usize + INS_HEAD_LENGTH; // skip instrument header (13 bytes)
-        let smp_name: String    = string_from_chars(&buf[offset_chars!(0x0023 + index, 28)]);
-        let smp_len: u32        = LE::read_u32(&buf[offset_u32!(0x0003 + index)]) as u32 & 0xffff;
-        let smp_rate: u32       = LE::read_u32(&buf[offset_u32!(0x0013 + index)]) as u32;
+        let smp_name: String    = string_from_chars(&buf[chars!(0x0023 + index, 28)]);
+        let smp_len: u32        = LE::read_u32(&buf[dword!(0x0003 + index)]) as u32 & 0xffff;
+        let smp_rate: u32       = LE::read_u32(&buf[dword!(0x0013 + index)]) as u32;
         
         let hi_ptr: u8          = buf[index];
-        let lo_ptr: u16         = LE::read_u16(&buf[offset_u16!(0x0001 + index)]);
+        let lo_ptr: u16         = LE::read_u16(&buf[word!(0x0001 + index)]);
         let smp_ptr: u32        = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
 
         let smp_flag: u8        = buf[0x0012 + index];

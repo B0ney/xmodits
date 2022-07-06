@@ -6,7 +6,7 @@
 /// https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
 
 use crate::utils::Error;
-use crate::offset_u16;
+use crate::word;
 use byteorder::{ByteOrder, LE};
 
 pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool) -> Result<Vec<u8>, Error> {
@@ -72,7 +72,7 @@ impl <'a>BitReader<'a> {
 
     fn read_next_block(&mut self) -> Result<(), Error> {
         // First 2 bytes combined to u16 (LE). Tells us size of compressed block. 
-        let block_size = LE::read_u16(&self.buf[offset_u16!(self.block_offset)]);
+        let block_size = LE::read_u16(&self.buf[word!(self.block_offset)]);
 
         if block_size == 0 {
             return Err("block size is zero >:(".into());

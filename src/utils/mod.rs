@@ -51,8 +51,8 @@ pub mod prelude {
     pub use super::Error;
 
     // Import macros
-    pub use crate::offset_u16;
-    pub use crate::offset_u32;
-    pub use crate::offset_chars;
+    pub use crate::word;
+    pub use crate::dword;
+    pub use crate::chars;
 }
 

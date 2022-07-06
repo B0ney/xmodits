@@ -1,8 +1,11 @@
-# Tracker Dumper
+# **XMODITS**
 
-**XMODITS**
+<p align="center">
+    <img alt="XMODITS Logo" src="icon.png">
+</p>
 
-![logo](icon.png "xmodits-logo")
+
+<!-- ![logo](icon.png "xmodits-logo") -->
 
 A **fast** & **lightweight** tool to dump samples from popular tracker formats with **ease**.
 
