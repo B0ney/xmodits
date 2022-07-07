@@ -10,6 +10,9 @@ pub trait TrackerDumper {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
         where Self: Sized;
 
+    // check if tracker module is valid
+    // fn is_valid(buf: &[u8]) -> Result<(), Error>
+
     // export sample given index
     fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error>;
 

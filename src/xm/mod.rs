@@ -1,6 +1,7 @@
 mod test;
 mod deltadecode;
 use crate::utils::prelude::*;
+use deltadecode::{delta_decode_u16, delta_decode_u8};
 
 const XM_HEADER_ID: &str    = "Extended Module: ";
 const XM_MAGIC_NUM: u8      = 0x1a;
@@ -92,10 +93,13 @@ impl TrackerDumper for XMFile {
         file.write_all(&wav_header)?;
         // We need to delta decode them, but it's fine for now
         match smp.smp_bits {
-            16 => { file.write_all(&self.buf[start_ptr..end_ptr])?; }
+            16 => { 
+                let deltad: Vec<u8> = delta_decode_u16(&self.buf[start_ptr..end_ptr]);
+                file.write_all(&deltad)?; 
+            }
             8 => {  
-                let signed_pcm = (&self.buf[start_ptr..end_ptr]).to_signed();
-                file.write_all(&signed_pcm)?;
+                let deltad: Vec<u8> = delta_decode_u8(&self.buf[start_ptr..end_ptr]).to_signed();
+                file.write_all(&deltad)?;
             }
             e => return Err(format!("Why is it {} bits per sample?",e).into())
         }
@@ -260,6 +264,7 @@ fn test_2() {
     let xm = XMFile::load_module("samples/xm/xo-sat.xm").unwrap();
     println!("{}", xm.module_name());
     println!("{}", xm.number_of_samples());
+    
 
     
 }

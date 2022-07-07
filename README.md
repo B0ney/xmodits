@@ -24,7 +24,7 @@ A **fast** & **lightweight** tool to dump samples from popular tracker formats w
 |Format| 8-bit| 16-bit| compression|Stereo|
 | --- | --- | --- | --- | --- |
 |IT| ✓|✓|✓|⏳|
-| XM  | /| /| /| N/A|
+| XM  | ✓| ✓| N/A| N/A|
 | S3M | ✓| ✓| N/A| ⏳|
 | MOD | /| N/A| N/A| N/A|
 | UMX | -| -| -| -|
