@@ -3,6 +3,7 @@
 use byteorder::{ByteOrder, LE};
 use crate::dword;
 
+#[inline]
 pub fn delta_decode_u8(buf: &[u8]) -> Vec<u8> {
     let mut buf: Vec<u8>    = buf.to_owned();
     let mut old: u8         = 0;
@@ -17,6 +18,7 @@ pub fn delta_decode_u8(buf: &[u8]) -> Vec<u8> {
     buf
 }
 
+#[inline]
 pub fn delta_decode_u16(buf: &[u8]) -> Vec<u8> {
     let mut buf: Vec<u8>    = buf.to_owned();
     let mut old: i16        = 0;

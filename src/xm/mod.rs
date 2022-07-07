@@ -56,7 +56,7 @@ impl TrackerDumper for XMFile {
 
         // Skip xm pattern headers so that we can access instrument headers.
         // Pattern headers do not have a fixed size so we need to calculate them.
-        let ins_header_offset: usize = skip_pat_header(&buf, patnum as usize);
+        let ins_header_offset: usize = skip_pat_header(&buf, patnum as usize)?;
 
         // given by ins_header_offset, obtain infomation about each instrument
         // which may contain some samples
@@ -118,17 +118,25 @@ impl TrackerDumper for XMFile {
 /// Skip pattern data by adding their sizes and 
 /// returning the offset where next data starts
 /// which is the xm instrument headers.
-fn skip_pat_header(buf: &[u8], patnum: usize) -> usize {
-    let mut offset: usize = 0x0150;
+fn skip_pat_header(buf: &[u8], patnum: usize) -> Result<usize, Error> {
+    let mut offset: usize       = 0x0150;
     let mut pat_header_len: u32;
     let mut pat_data_size: u32;
+    let mut pat_pak_type: u8;
 
     for _ in 0..patnum {
+        pat_pak_type = buf[0x0004 + offset];
+        if pat_pak_type != 0 {
+            return Err(
+                format!("Unsupported XM file: pattern packing type should be 0, but it's 0x{:04X}?",
+                    pat_pak_type
+            ).into());
+        }
         pat_header_len  = read_u32_le(buf, offset); // should be 9
         pat_data_size   = read_u16_le(buf, 0x0007 + offset) as u32;
         offset += (pat_header_len + pat_data_size) as usize; 
     }
-    offset as usize
+    Ok(offset as usize)
 }
 
 // Needs refactoring, it works..
@@ -156,7 +164,9 @@ fn build_samples(
         };
         // Obtain additional infomation from 
         // instrument header
-        smp_header_size = read_u32_le(buf, 0x001d + offset); // should be 40?
+        // smp_header_size = read_u32_le(buf, 0x001d + offset); // should be 40?
+        // bug fix: make it 40
+        smp_header_size = 40;
         
         offset += ins_header_size as usize; // skip to sample headers
 
@@ -261,12 +271,10 @@ fn gen_offset3(){
 }
 #[test]
 fn test_2() {
-    let xm = XMFile::load_module("samples/xm/xo-sat.xm").unwrap();
+    let xm = XMFile::load_module("samples/xm/mal/scarv00.xm").unwrap();
     println!("{}", xm.module_name());
     println!("{}", xm.number_of_samples());
-    
-
-    
+        
 }
 
 #[test]
@@ -275,4 +283,11 @@ fn test_3() {
     let b = a as i8;// casting u8 to i8 works as intended
     assert_eq!(b, -25);
     println!("{}", b);
+}
+
+#[test]
+fn zero() {
+    let buf = [0,0,0,0,0,0,0,0,0,0];
+    let size = read_u32_le(&buf, 0x0000);
+    println!("{}",size);
 }
