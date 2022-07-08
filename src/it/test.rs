@@ -88,3 +88,9 @@ fn test_dump() {
 //     let a = ITFile::load("samples/comp/worldies.it").unwrap();
 //     println!("{:04X}\n{:04X}", a.version, a.compat_version);
 // }
+
+#[test]
+fn smp() {
+    let a = ITFile::load_module("samples/IT fault (fixed)/ser_43_8bit.it").unwrap();
+    println!("{}",a.number_of_samples());
+}

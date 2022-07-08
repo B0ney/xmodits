@@ -70,7 +70,7 @@ impl TrackerDumper for MODFile {
         // This fix will set the end index to the length of the file to 
         // stop an overflow panic
         let end = match start + smp.length as usize {
-            e if e > self.buf.len() => { self.buf.len() },
+            e if e > self.buf.len() => { self.buf.len() - 1},
             end => end,
         };
         let pcm: Vec<u8>            = (&self.buf[start..end]).to_signed();

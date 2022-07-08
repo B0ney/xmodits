@@ -43,12 +43,13 @@ impl TrackerDumper for S3MFile {
         let ins_count: u16      = read_u16_le(&buf,0x0022);
         let ins_ptr_list: u16   = 0x0060 + ord_count;
 
-        let mut ins_ptrs: Vec<u16> = Vec::new();
+        let mut ins_ptrs: Vec<usize> = Vec::new();
 
         for i in 0..ins_count {
             let index: u16 = ins_ptr_list + (i * 2);
             // convert parameter to byte-level offset by << 4
-            ins_ptrs.push(read_u16_le(&buf, index as usize) << 4)
+            // cast to usize to avoid potential overflow
+            ins_ptrs.push((read_u16_le(&buf, index as usize) as usize) << 4)
         };
 
         let smp_data: Vec<S3MSample> = build_samples(&buf, ins_ptrs)?;
@@ -67,7 +68,8 @@ impl TrackerDumper for S3MFile {
 
         let smp: &S3MSample         = &self.smp_data[index];
         let start: usize            = smp.smp_ptr as usize;
-        let end: usize              = start + smp.smp_len as usize;
+        let mut end: usize          = start + smp.smp_len as usize;
+
         let wav_header: [u8; 44]    = wav::build_header(
             smp.smp_rate, smp.smp_bits,
             smp.smp_len, false
@@ -93,22 +95,22 @@ impl TrackerDumper for S3MFile {
     }
 }
 
-fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error> {
+fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Result<Vec<S3MSample>, Error> {
     let mut samples: Vec<S3MSample> = Vec::new();
 
     for i in ins_ptr {
         if buf[i as usize] != 0x1 { continue; } // if it's not a PCM instrument, skip
         // skip instrument header (13 bytes)
-        let index: usize        = i as usize + INS_HEAD_LENGTH; 
-
-        let smp_name: String    = string_from_chars(&buf[chars!(0x0023 + index, 28)]);
+        let index: usize        = i + INS_HEAD_LENGTH; 
         let smp_len: u32        = read_u32_le(buf, 0x0003 + index) & 0xffff;
-        let smp_rate: u32       = read_u32_le(buf, 0x0013 + index);
-
         let hi_ptr: u8          = buf[index];
         let lo_ptr: u16         = read_u16_le(buf, 0x0001 + index);
         let smp_ptr: u32        = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
 
+        if (smp_ptr + smp_len) > buf.len() as u32 { continue; }
+
+        let smp_name: String    = string_from_chars(&buf[chars!(0x0023 + index, 28)]);
+        let smp_rate: u32       = read_u32_le(buf, 0x0013 + index);
         let smp_flag: u8        = buf[0x0012 + index];
         let smp_bits: u8        = if (smp_flag & SMP_MASK_BITS) >> 3 == 1 { 16 } else { 8 };
         let smp_stereo: bool    = (smp_flag & SMP_MASK_STEREO) >> 2 == 1;

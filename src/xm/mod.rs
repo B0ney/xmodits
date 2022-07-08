@@ -10,7 +10,7 @@ const XM_SMP_BITS: u8       = 0b0001_0000;  // 1 = 16 bit samples, 0 = 8 bit
 const XM_SMP_SIZE: usize    = 40;
 
 pub struct XMSample {
-    smp_len: u32,       // length of sample in bytes??
+    smp_len: usize,     // length of sample in bytes??
     smp_name: String,   // sample name
     smp_flags: u8,      // sample bit flags
     smp_bits: u8,       // bits per sample
@@ -68,10 +68,13 @@ impl TrackerDumper for XMFile {
 
         let smp: &XMSample          = &self.smp_data[index];
         let start: usize            = smp.smp_ptr;
-        let end: usize              = start + smp.smp_len as usize;
+        let mut end: usize          = start + smp.smp_len as usize;
+        
+        // if end > self.buf.len() { end = self.buf.len() - 1; }
+
         let wav_header: [u8; 44]    = wav::build_header(
             smp.smp_rate, smp.smp_bits,
-            smp.smp_len, false
+            smp.smp_len as u32, false
         );
         let mut file: File = File::create(
             PathBuf::new()
@@ -144,13 +147,13 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
         offset += ins_header_size as usize; // skip to sample headers
 
         // (length, flag, name, finetune, relative note number)
-        let mut smp_info: Vec<(u32, u8, String, i8, i8)> = Vec::new();
+        let mut smp_info: Vec<(usize, u8, String, i8, i8)> = Vec::new();
 
         // Sample header follows after additional header
         // When this loop completes, the offset will land at sample data
         for _ in 0..ins_smp_num {
             smp_info.push((
-                read_u32_le(buf, offset),
+                read_u32_le(buf, offset) as usize,
                 buf[0x000e + offset],
                 string_from_chars(
                     &buf[chars!(0x0012 + offset, 22)]
@@ -172,6 +175,10 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
             let smp_rate: u32   = (8363.0 * 2.0_f32.powf((4608.0 - period) / 768.0)) as u32;
 
             let smp_bits: u8    = (((smp_flags & XM_SMP_BITS) >> 4) + 1) * 8;
+
+            if (offset + smp_len) > buf.len() { 
+                break; 
+            }
 
             samples.push(XMSample{
                 smp_bits, 

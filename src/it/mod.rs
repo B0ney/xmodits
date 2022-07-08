@@ -3,7 +3,7 @@ mod compression;
 use crate::utils::prelude::*;
 use self::compression::decompress_sample;
 
-const IT_HEADER_ID: &str    = "IMPM";    // IMPM
+const IT_HEADER_ID: &str    = "IMPM";    // I&MPM
 // const IT_SAMPLE_ID: u32     = 0x49_4D_50_53;    // IMPS
 const IT_HEADER_LEN: usize  = 192;
 const IT_SAMPLE_LEN: usize  = 80;
@@ -55,7 +55,7 @@ impl TrackerDumper for ITFile {
         let compat_ver: u16         = read_u16_le(&buf, 0x002A);
         let smp_ptr_list: u16       = 0x00c0 + ord_num + (ins_num * 4);
         let mut smp_ptrs: Vec<u32>  = Vec::new();
-
+        // println!("{}", smp_num);
         for i in 0..smp_num {
             let index = smp_ptr_list + (i * 4);
             smp_ptrs.push(read_u32_le(&buf, index as usize));
@@ -82,7 +82,7 @@ impl TrackerDumper for ITFile {
         }
 
         let smp: &ITSample          = &self.smp_data[index];
-        let start_ptr: usize        = smp.smp_ptr as usize;
+        let start: usize            = smp.smp_ptr as usize;
         let wav_header: [u8; 44]    = wav::build_header(
             smp.smp_rate, smp.smp_bits,
             smp.smp_len, smp.smp_stereo,
@@ -96,24 +96,20 @@ impl TrackerDumper for ITFile {
         // Write Wav Header
         file.write_all(&wav_header)?;
 
-        match smp.smp_comp {
-            true => {},
-            false => {},
-        };
-
         // Write PCM data
         if smp.smp_comp {
             let decomp: Vec<u8> = decompress_sample(
-                &self.buf[start_ptr..], smp.smp_len,
+                &self.buf[start..], smp.smp_len,
                 smp.smp_bits, self.compat_ver == IT215
             )?;
             file.write_all(&decomp)?;
 
         } else {
-            let end_ptr: usize = start_ptr + 
+            let mut end: usize = start + 
                 (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
-            let mut raw_data = &self.buf[start_ptr..end_ptr];
-            let mut b: Vec<u8> = Vec::new();
+
+            let mut raw_data: &[u8] = &self.buf[start..end];
+            let mut b: Vec<u8>      = Vec::new();
             
             // convert sample data to "signed" values if it's 8-bit  
             if smp.smp_bits == 8 {
@@ -136,24 +132,26 @@ impl TrackerDumper for ITFile {
     }
 }
 
-fn build_samples(it_data: &[u8], smp_ptr: Vec<u32>) -> Result<Vec<ITSample>, Error> {
+fn build_samples(buf: &[u8], smp_ptr: Vec<u32>) -> Result<Vec<ITSample>, Error> {
     let mut smp_meta: Vec<ITSample> = Vec::new();
 
     for i in smp_ptr {
         let offset: usize       = i as usize;
-        let smp_len: u32        = read_u32_le(it_data, 0x0030 + offset);
-        
+        let smp_len: u32        = read_u32_le(buf, 0x0030 + offset);
         if smp_len == 0 { continue; }
 
-        let filename: String    = string_from_chars(&it_data[chars!(0x0004 + offset, 12)]);
-        let name: String        = string_from_chars(&it_data[chars!(0x0014 + offset, 26)]);
-
-        let smp_ptr: u32        = read_u32_le(it_data, 0x0048 + offset);
-        let smp_rate: u32       = read_u32_le(it_data, 0x003C + offset);
-
-        let smp_flag: u8        = it_data[0x012 + offset];
+        let smp_ptr: u32        = read_u32_le(buf, 0x0048 + offset);
+        let smp_flag: u8        = buf[0x012 + offset];
         let smp_bits: u8        = (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8;
         let smp_comp: bool      = ((smp_flag & MASK_SMP_COMP) >> 3)     == 1;
+
+        if !smp_comp
+            && (smp_ptr + (smp_len * (smp_bits / 8) as u32)) > buf.len() as u32 { continue; }
+
+        let filename: String    = string_from_chars(&buf[chars!(0x0004 + offset, 12)]);
+        let name: String        = string_from_chars(&buf[chars!(0x0014 + offset, 26)]);
+        let smp_rate: u32       = read_u32_le(buf, 0x003C + offset);
+        
         let smp_stereo: bool    = ((smp_flag & MASK_SMP_STEREO) >> 2)   == 1;
 
         smp_meta.push(ITSample {
