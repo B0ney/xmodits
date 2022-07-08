@@ -8,7 +8,6 @@ const SMP_MASK_STEREO: u8       = 0b0000_0100;
 const SMP_MASK_BITS: u8         = 0b0000_1000;
 const INS_HEAD_LENGTH: usize    = 13;
 
-
 #[derive(Debug)]
 pub struct S3MSample {
     smp_name: String,
@@ -64,28 +63,23 @@ impl TrackerDumper for S3MFile {
     fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
         if !folder.as_ref().is_dir() {
             return Err("Path is not a folder".into());
-        }    
-        let smp = &self.smp_data[index];
-        // maybe get rid of this (It should still work but will just be mono)
-        // if smp.smp_stereo {
-        //     return Err(
-        //         format!("Stereo samples are not yet supported, please provide this module in your bug report: {}", self.title)
-        //         .into());
-        // }
-        let start: usize = smp.smp_ptr as usize;
-        let end: usize = start + smp.smp_len as usize;
-        // TODO: figure out how to include stereo 
-        let pcm: &[u8] = &self.buf[start..end]; // no need to convert to signed data
-        let wav_header: [u8; 44] = wav::build_header(
-            smp.smp_rate, smp.smp_bits, smp.smp_len, false /*smp.smp_stereo */,
-        );
-        let pathbuf: PathBuf = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.smp_name));
+        }
 
-        let mut file: File = File::create(pathbuf)?;
+        let smp: &S3MSample         = &self.smp_data[index];
+        let start: usize            = smp.smp_ptr as usize;
+        let end: usize              = start + smp.smp_len as usize;
+        let wav_header: [u8; 44]    = wav::build_header(
+            smp.smp_rate, smp.smp_bits,
+            smp.smp_len, false
+        );
+        let mut file: File = File::create(
+            PathBuf::new()
+                .join(folder)
+                .join(name_sample(index, &smp.smp_name))
+        )?;
+
         file.write_all(&wav_header)?;
-        file.write_all(pcm)?;
+        file.write_all(&self.buf[start..end])?;
 
         Ok(())
     }
@@ -104,12 +98,13 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
 
     for i in ins_ptr {
         if buf[i as usize] != 0x1 { continue; } // if it's not a PCM instrument, skip
+        // skip instrument header (13 bytes)
+        let index: usize        = i as usize + INS_HEAD_LENGTH; 
 
-        let index: usize        = i as usize + INS_HEAD_LENGTH; // skip instrument header (13 bytes)
         let smp_name: String    = string_from_chars(&buf[chars!(0x0023 + index, 28)]);
         let smp_len: u32        = read_u32_le(buf, 0x0003 + index) & 0xffff;
         let smp_rate: u32       = read_u32_le(buf, 0x0013 + index);
-        
+
         let hi_ptr: u8          = buf[index];
         let lo_ptr: u16         = read_u16_le(buf, 0x0001 + index);
         let smp_ptr: u32        = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
@@ -129,16 +124,4 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<u16>) -> Result<Vec<S3MSample>, Error>
     }
 
     Ok(samples)
-}
-
-#[test]
-fn test1() {
-    let a = S3MFile::load_module("samples/s3m/city_on_a_stick.s3m").unwrap();
-    println!("{}", a.number_of_samples());
-    for i in 0..a.number_of_samples() {
-        if let Err(e) = a.export(&format!("test/s3m/"), i) {
-            println!("{:?}", e);
-        }
-    }
-    
 }

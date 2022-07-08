@@ -23,3 +23,8 @@ macro_rules! long {
 macro_rules! chars  {
     ($i:expr, $e:expr) => {$i..$i + $e};
 }
+
+#[macro_export]
+macro_rules! slice  {
+    ($i:expr, $e:expr) => {$i..$i + $e};
+}

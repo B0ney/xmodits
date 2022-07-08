@@ -4,7 +4,7 @@ authors = ["B0ney <https://github.com/B0ney>"]
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at htptrPatternstps://doc.rust-lang.org/cargo/reference/manifest.html
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 byteorder = "1.4.3"

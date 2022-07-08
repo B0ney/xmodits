@@ -47,15 +47,14 @@ impl TrackerDumper for ITFile {
             return Err("File is not a valid Impulse Tracker Module".into());
         };
 
-        let title: String       = string_from_chars(&buf[chars!(0x0004, 26)]);
-        let ord_num: u16        = read_u16_le(&buf, 0x0020);
-        let ins_num: u16        = read_u16_le(&buf, 0x0022);
-        let smp_num: u16        = read_u16_le(&buf, 0x0024);
-        let version: u16        = read_u16_le(&buf, 0x0028);
-        let compat_ver: u16     = read_u16_le(&buf, 0x002A);
-        let smp_ptr_list: u16   = 0x00c0 + ord_num + (ins_num * 4);
-
-        let mut smp_ptrs: Vec<u32> = Vec::new();
+        let title: String           = string_from_chars(&buf[chars!(0x0004, 26)]);
+        let ord_num: u16            = read_u16_le(&buf, 0x0020);
+        let ins_num: u16            = read_u16_le(&buf, 0x0022);
+        let smp_num: u16            = read_u16_le(&buf, 0x0024);
+        let version: u16            = read_u16_le(&buf, 0x0028);
+        let compat_ver: u16         = read_u16_le(&buf, 0x002A);
+        let smp_ptr_list: u16       = 0x00c0 + ord_num + (ins_num * 4);
+        let mut smp_ptrs: Vec<u32>  = Vec::new();
 
         for i in 0..smp_num {
             let index = smp_ptr_list + (i * 4);
@@ -83,28 +82,35 @@ impl TrackerDumper for ITFile {
         }
 
         let smp: &ITSample          = &self.smp_data[index];
+        let start_ptr: usize        = smp.smp_ptr as usize;
         let wav_header: [u8; 44]    = wav::build_header(
             smp.smp_rate, smp.smp_bits,
             smp.smp_len, smp.smp_stereo,
         );
-        let start_ptr: usize    = smp.smp_ptr as usize;
-        let path: PathBuf       = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.filename));
-        let mut file: File      = File::create(path)?;
+        let mut file: File = File::create(
+        PathBuf::new()
+                .join(folder)
+                .join(name_sample(index, &smp.filename))
+        )?;
+
         // Write Wav Header
         file.write_all(&wav_header)?;
 
+        match smp.smp_comp {
+            true => {},
+            false => {},
+        };
+
         // Write PCM data
         if smp.smp_comp {
-            let decomp = decompress_sample(
+            let decomp: Vec<u8> = decompress_sample(
                 &self.buf[start_ptr..], smp.smp_len,
                 smp.smp_bits, self.compat_ver == IT215
             )?;
             file.write_all(&decomp)?;
 
         } else {
-            let end_ptr = start_ptr + 
+            let end_ptr: usize = start_ptr + 
                 (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
             let mut raw_data = &self.buf[start_ptr..end_ptr];
             let mut b: Vec<u8> = Vec::new();

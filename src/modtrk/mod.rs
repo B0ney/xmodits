@@ -64,25 +64,25 @@ impl TrackerDumper for MODFile {
         }
         let smp: &MODSample     = &self.smp_data[index];
         let start: usize        = smp.index;
-
         // BUG fix: In very rare cases, 
         // some samples will provide a length that, when added with its offset,
         // will exceed the length of the file.
         // This fix will set the end index to the length of the file to 
-        // stop an overflow error
+        // stop an overflow panic
         let end = match start + smp.length as usize {
             e if e > self.buf.len() => { self.buf.len() },
             end => end,
         };
-        let pcm: Vec<u8>        = (&self.buf[start..end]).to_signed();
-        let path: PathBuf       = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.name));
-        let mut file: File      = File::create(path)?;
-        let wav_header = wav::build_header(
+        let pcm: Vec<u8>            = (&self.buf[start..end]).to_signed();
+        let wav_header: [u8; 44]    = wav::build_header(
             8363, 8, smp.length as u32, false,
         );
-
+        let mut file: File          = File::create(
+            PathBuf::new()
+                .join(folder)
+                .join(name_sample(index, &smp.name))
+        )?;
+        
         file.write_all(&wav_header)?;
         file.write_all(&pcm)?;
         Ok(())
@@ -116,12 +116,4 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
     }
     
     smp_data
-}
-
-#[test]
-fn test_panic() {
-    // let moddy = MODFile::load_module("samples/mod out of bounds/soundwar.mod").unwrap();
-    let moddy = MODFile::load_module("samples/moduloparapack.mod").unwrap();
-    println!("{}", &moddy.number_of_samples());
-    moddy.dump(&"test/", &"test".to_owned()).unwrap();
 }

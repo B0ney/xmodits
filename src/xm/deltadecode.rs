@@ -7,7 +7,7 @@ use crate::dword;
 pub fn delta_decode_u8(buf: &[u8]) -> Vec<u8> {
     let mut buf: Vec<u8>    = buf.to_owned();
     let mut old: u8         = 0;
-    let mut new: u8         = 0;
+    let mut new: u8;
 
     for i in 0..buf.len() {
         new = buf[i].wrapping_add(old);
@@ -22,7 +22,7 @@ pub fn delta_decode_u8(buf: &[u8]) -> Vec<u8> {
 pub fn delta_decode_u16(buf: &[u8]) -> Vec<u8> {
     let mut buf: Vec<u8>    = buf.to_owned();
     let mut old: i16        = 0;
-    let mut new: i16        = 0;
+    let mut new: i16;
 
     for i in 0..((buf.len() / 2) - 1) {
         let idx: usize = i * 2;

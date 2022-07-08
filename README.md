@@ -1,20 +1,22 @@
-# **XMODITS**
-
 <p align="center">
     <img alt="XMODITS Logo" src="icon.png">
+    
 </p>
+<h1 align="center">
+XMODITS
+</h1>
+<h2 align="center">
+    A fast & lightweight tool to dump samples from popular tracker formats with ease.    
+</ph2>
 
-
-<!-- ![logo](icon.png "xmodits-logo") -->
-
-A **fast** & **lightweight** tool to dump samples from popular tracker formats with **ease**.
+---
 
 ## Supported Formats:
 
 |Key| Meaning|
 |---|---|
 |**✓** | Fully supported with little or no bugs.|
-| **/** | Sorta works|
+| **~** | Sorta works|
 | **-** | Format is a container|
 | **X** | unsupported |
 | **n/a** | Format doesn't support it|
@@ -26,13 +28,8 @@ A **fast** & **lightweight** tool to dump samples from popular tracker formats w
 |IT| ✓|✓|✓|⏳|
 | XM  | ✓| ✓| N/A| N/A|
 | S3M | ✓| ✓| N/A| ⏳|
-| MOD | /| N/A| N/A| N/A|
-| UMX | -| -| -| -|
+| MOD | ~| N/A| N/A| N/A|
 
-### UMX
-| IT | S3M | MOD | XM | 
-| ---| --- | --- | ---| 
-| 🚧 |🚧  | 🚧  | 🚧 |
 
 ## Download
 You can download builds for xmodits here.
@@ -64,6 +61,8 @@ This is because the tracker authour has applied effects such as pitch increase, 
 
 Replicating these effects is not a top priority. 
 
+## Resources
+The resources that made this project possible can be found [here](./resources/).
 ## Goals
 * Fully Support Listed formats.
 * Easy to use.
