@@ -69,8 +69,6 @@ impl TrackerDumper for XMFile {
         let smp: &XMSample          = &self.smp_data[index];
         let start: usize            = smp.smp_ptr;
         let mut end: usize          = start + smp.smp_len as usize;
-        
-        // if end > self.buf.len() { end = self.buf.len() - 1; }
 
         let wav_header: [u8; 44]    = wav::build_header(
             smp.smp_rate, smp.smp_bits,
@@ -130,7 +128,7 @@ fn skip_pat_header(buf: &[u8], patnum: usize) -> Result<usize, Error> {
 
 /* Needs refactoring, it works but looks horrible. */
 fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XMSample>, Error> {
-    let mut samples: Vec<XMSample>  = Vec::new();
+    let mut samples: Vec<XMSample>  = Vec::with_capacity(25); 
     let mut offset: usize           = ins_offset;
     let mut ins_header_size: u32;
     let mut ins_smp_num: u16;
@@ -152,6 +150,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
         // Sample header follows after additional header
         // When this loop completes, the offset will land at sample data
         for _ in 0..ins_smp_num {
+
             smp_info.push((
                 read_u32_le(buf, offset) as usize,
                 buf[0x000e + offset],
@@ -176,9 +175,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
 
             let smp_bits: u8    = (((smp_flags & XM_SMP_BITS) >> 4) + 1) * 8;
 
-            if (offset + smp_len) > buf.len() { 
-                break; 
-            }
+            if (offset + smp_len) > buf.len() { break; }
 
             samples.push(XMSample{
                 smp_bits, 

@@ -62,17 +62,9 @@ impl TrackerDumper for MODFile {
         if !folder.as_ref().is_dir() {
             return Err("Path is not a folder".into());
         }
-        let smp: &MODSample     = &self.smp_data[index];
-        let start: usize        = smp.index;
-        // BUG fix: In very rare cases, 
-        // some samples will provide a length that, when added with its offset,
-        // will exceed the length of the file.
-        // This fix will set the end index to the length of the file to 
-        // stop an overflow panic
-        let end = match start + smp.length as usize {
-            e if e > self.buf.len() => { self.buf.len() - 1},
-            end => end,
-        };
+        let smp: &MODSample         = &self.smp_data[index];
+        let start: usize            = smp.index;
+        let end: usize              = start + smp.length as usize;
         let pcm: Vec<u8>            = (&self.buf[start..end]).to_signed();
         let wav_header: [u8; 44]    = wav::build_header(
             8363, 8, smp.length as u32, false,
@@ -98,13 +90,15 @@ impl TrackerDumper for MODFile {
 }
 
 fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
-    let mut smp_data: Vec<MODSample> = Vec::new();
+    let mut smp_data: Vec<MODSample> = Vec::with_capacity(smp_num as usize);
     let mut smp_pcm_stream_index = smp_start;
 
     for i in 0..smp_num as usize {
         let offset = MOD_SMP_START + (i * MOD_SMP_LEN); 
-        let len = BE::read_u16(&buf[word!(0x0016 + offset)]) * 2; 
+        let len: u16 = BE::read_u16(&buf[word!(0x0016 + offset)]) * 2; 
         if len == 0 { continue; }
+
+        if len as usize + smp_pcm_stream_index > buf.len() { break; }
 
         smp_data.push(MODSample {
             name: string_from_chars(&buf[chars!(offset, 22)]),

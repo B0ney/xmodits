@@ -30,7 +30,6 @@ impl TrackerDumper for S3MFile {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
         where Self: Sized
     {
-        // TODO: add checks to see if valid
         if buf.len() < 0x0060
             || buf[0x001d] != S3M_MAGIC_NUMBER
             || read_chars(&buf, 0x002c, 4) != S3M_HEADER_ID.as_bytes()
@@ -39,11 +38,11 @@ impl TrackerDumper for S3MFile {
         }
 
         let title: String       = string_from_chars(&buf[chars!(0x0000, 28)]);
-        let ord_count: u16      = read_u16_le(&buf,0x0020);
-        let ins_count: u16      = read_u16_le(&buf,0x0022);
+        let ord_count: u16      = read_u16_le(&buf, 0x0020);
+        let ins_count: u16      = read_u16_le(&buf, 0x0022);
         let ins_ptr_list: u16   = 0x0060 + ord_count;
 
-        let mut ins_ptrs: Vec<usize> = Vec::new();
+        let mut ins_ptrs: Vec<usize> = Vec::with_capacity(ins_count as usize);
 
         for i in 0..ins_count {
             let index: u16 = ins_ptr_list + (i * 2);
@@ -69,7 +68,6 @@ impl TrackerDumper for S3MFile {
         let smp: &S3MSample         = &self.smp_data[index];
         let start: usize            = smp.smp_ptr as usize;
         let mut end: usize          = start + smp.smp_len as usize;
-
         let wav_header: [u8; 44]    = wav::build_header(
             smp.smp_rate, smp.smp_bits,
             smp.smp_len, false
@@ -96,18 +94,17 @@ impl TrackerDumper for S3MFile {
 }
 
 fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Result<Vec<S3MSample>, Error> {
-    let mut samples: Vec<S3MSample> = Vec::new();
+    let mut samples: Vec<S3MSample> = Vec::with_capacity(ins_ptr.len());
 
     for i in ins_ptr {
-        if buf[i as usize] != 0x1 { continue; } // if it's not a PCM instrument, skip
-        // skip instrument header (13 bytes)
-        let index: usize        = i + INS_HEAD_LENGTH; 
+        if buf[i as usize] != 0x1 { continue; }             // if it's not a PCM instrument, skip
+        let index: usize        = i + INS_HEAD_LENGTH;      // skip instrument header (13 bytes)
         let smp_len: u32        = read_u32_le(buf, 0x0003 + index) & 0xffff;
         let hi_ptr: u8          = buf[index];
         let lo_ptr: u16         = read_u16_le(buf, 0x0001 + index);
         let smp_ptr: u32        = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
 
-        if (smp_ptr + smp_len) > buf.len() as u32 { continue; }
+        if (smp_ptr + smp_len) > buf.len() as u32 { break; } // break out of loop if we get a funky offset
 
         let smp_name: String    = string_from_chars(&buf[chars!(0x0023 + index, 28)]);
         let smp_rate: u32       = read_u32_le(buf, 0x0013 + index);

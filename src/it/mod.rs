@@ -3,8 +3,7 @@ mod compression;
 use crate::utils::prelude::*;
 use self::compression::decompress_sample;
 
-const IT_HEADER_ID: &str    = "IMPM";    // I&MPM
-// const IT_SAMPLE_ID: u32     = 0x49_4D_50_53;    // IMPS
+const IT_HEADER_ID: &str    = "IMPM";           // IMPM
 const IT_HEADER_LEN: usize  = 192;
 const IT_SAMPLE_LEN: usize  = 80;
 const MASK_SMP_BITS: u8     = 0b0000_0010;      // 16/8bit samples
@@ -54,8 +53,8 @@ impl TrackerDumper for ITFile {
         let version: u16            = read_u16_le(&buf, 0x0028);
         let compat_ver: u16         = read_u16_le(&buf, 0x002A);
         let smp_ptr_list: u16       = 0x00c0 + ord_num + (ins_num * 4);
-        let mut smp_ptrs: Vec<u32>  = Vec::new();
-        // println!("{}", smp_num);
+        let mut smp_ptrs: Vec<u32>  = Vec::with_capacity(smp_num as usize);
+
         for i in 0..smp_num {
             let index = smp_ptr_list + (i * 4);
             smp_ptrs.push(read_u32_le(&buf, index as usize));
@@ -133,7 +132,7 @@ impl TrackerDumper for ITFile {
 }
 
 fn build_samples(buf: &[u8], smp_ptr: Vec<u32>) -> Result<Vec<ITSample>, Error> {
-    let mut smp_meta: Vec<ITSample> = Vec::new();
+    let mut smp_meta: Vec<ITSample> = Vec::with_capacity(smp_ptr.len());
 
     for i in smp_ptr {
         let offset: usize       = i as usize;
@@ -145,8 +144,8 @@ fn build_samples(buf: &[u8], smp_ptr: Vec<u32>) -> Result<Vec<ITSample>, Error> 
         let smp_bits: u8        = (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8;
         let smp_comp: bool      = ((smp_flag & MASK_SMP_COMP) >> 3)     == 1;
 
-        if !smp_comp
-            && (smp_ptr + (smp_len * (smp_bits / 8) as u32)) > buf.len() as u32 { continue; }
+        if !smp_comp    // break out of loop if we get a funky offset
+            && (smp_ptr + (smp_len * (smp_bits / 8) as u32)) > buf.len() as u32 { break; }
 
         let filename: String    = string_from_chars(&buf[chars!(0x0004 + offset, 12)]);
         let name: String        = string_from_chars(&buf[chars!(0x0014 + offset, 26)]);

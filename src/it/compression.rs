@@ -63,8 +63,8 @@ impl <'a>BitReader<'a> {
         Self { 
             bitnum: 0,
             bitbuf:0,
-            buf,
             blk_data: Vec::new(),
+            buf,
             blk_index: 0,
             block_offset: 0x0000,
         }
@@ -74,32 +74,28 @@ impl <'a>BitReader<'a> {
         // First 2 bytes combined to u16 (LE). Tells us size of compressed block. 
         let block_size: u16 = read_u16_le(self.buf, self.block_offset);
 
-        if block_size == 0 {
-            return Err("block size is zero >:(".into());
-        } 
-
-        // copy section of buffer for mutation.
-        self.blk_data = self._allocate(block_size as usize)?;
+        if self.blk_data.is_empty() { 
+            self.blk_data = self._allocate(block_size as usize)?;
+        } else {
+            // Move to next block when called again
+            // Add 2 since we need to skip previous length field
+            self.block_offset += block_size as usize + 2;  
+        }
+        
         // Set to 2 to skip length field
-        self.blk_index = 2; 
-        // Initialize bit buffer.
+        self.blk_index = 2 + self.block_offset; 
+        // Initialize bit buffers.
         // (Following the original by setting it to 0 caused a lot of headaches :D)
         self.bitbuf = self.blk_data[self.blk_index] as u32; 
         self.bitnum = 8;
-
-        // Move to next block when called again
-        // Add 2 since we need to skip previous length field
-        self.block_offset += block_size as usize + 2;  
         Ok(())
     }   
-
+    // only do this once 
     fn _allocate(&self, size: usize) -> Result<Vec<u8>, Error> {
         if self.buf.len() < self.block_offset + size + 2 {
             return Err("Cannot Allocate, buffer is too small".into());
         }
-        // TODO: make allocation copy small sections of buffer
-        // without copying nearly everything
-        Ok(self.buf[self.block_offset..].to_vec())
+        Ok(self.buf[self.block_offset..].to_owned())
     } 
 
     fn read_bits_u16(&mut self, n: u8) -> Result<u16, Error> { 
@@ -109,7 +105,7 @@ impl <'a>BitReader<'a> {
     fn read_bits_u32(&mut self, n: u8) -> Result<u32, Error> { 
         // prevent panic if user forgets to call before reading bits.
         // tbh this is more useful when unit testing than here... 
-        if self.blk_data.is_empty() { self.read_next_block()?; }
+        // if self.blk_data.is_empty() { self.read_next_block()?; }
 
         let mut value: u32 = 0;
         let i =  n;
@@ -153,7 +149,7 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
     let mut d2: i8 = 0;         // second integrator buffer for IT2.15   (Note i8 for 8 bit samples)
     let mut width: u8;          // Bit width. (Starts at 9 For 8-Bit samples)
     let mut value: u16;         // Value read (Note u16 for 8-bit samples)
-    let mut dest_buf: Vec<u8>       = Vec::new();               // Buffer to write decompressed data
+    let mut dest_buf: Vec<u8>       = Vec::with_capacity(len as usize);               // Buffer to write decompressed data
     let mut bitreader: BitReader    = BitReader::new(buf);    // solution to C's horrible global variables
 
     // Unpack data
@@ -250,7 +246,7 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error>
     let mut d2: i16 = 0;            // second integrator buffer for IT2.15   (Note i16 for 16 bit samples)
     let mut width: u8;              // Bit width. (Starts at 17 For 16-Bit samples)
     let mut value: u32;             // Value read (Note u32 for 16 bit sample)
-    let mut dest_buf: Vec<u8>       = Vec::new();               // Buffer to write decompressed data
+    let mut dest_buf: Vec<u8>       = Vec::with_capacity(len as usize * 2);               // Buffer to write decompressed data
     let mut bitreader: BitReader    = BitReader::new(buf);    // solution to C's horrible global variables
 
     while len != 0 {
@@ -351,7 +347,7 @@ fn readbit() {
         0b1010_1010, 0b1100_1100,
     ];
     let mut b = BitReader::new(&buf);
-    b.read_next_block().unwrap(); // this must be called before reading bits. UPDATE: will automatically do
+    b.read_next_block().unwrap(); 
 
     // test group 1
     assert_eq!(b.read_bits_u16(8).unwrap(), 0b_1111_1110);
