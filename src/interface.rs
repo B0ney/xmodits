@@ -51,10 +51,14 @@ pub trait TrackerDumper {
     /// Dump all samples
     fn dump(&self, folder: &dyn AsRef<Path>, module_name: &String) -> Result<(), Error> 
     {
-        if !&folder.as_ref().is_dir() 
-        {
+        if self.number_of_samples() == 0 {
+            return Err("Module has no samples.".into());
+        }
+
+        if !&folder.as_ref().is_dir() {
             return Err("folder provided either doesn't exist or is not a directory".into());
         }
+
         // Create root folder
         let root: PathBuf = PathBuf::new()
             .join(folder).join(module_name);

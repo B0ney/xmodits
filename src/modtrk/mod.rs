@@ -48,7 +48,11 @@ impl TrackerDumper for MODFile {
             (0x0438 - offset) + (largest_pat + 1) * 1024 
         }; 
 
-        let smp_data = build_samples(smp_num, &buf, smp_index);
+        let smp_data: Vec<MODSample> = build_samples(smp_num, &buf, smp_index);
+
+        if (smp_data.len() == 0) && (smp_num == 15) {
+            return Err("Unsupported MOD format.".into()); 
+        }
 
         Ok(Box::new(Self {
             title,
