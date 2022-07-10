@@ -16,39 +16,41 @@ pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool) -> Res
         _ => Ok(decompress_8bit(buf, len, it215)?.to_signed()), 
     }
 }
+/*
+/ My solution to C's awful shared states.
+/ 
+/ In the original C implementation, "read bits" and "read block"
+/ share a lot of data. 
+/ 
+/ So why not combine them?
+/ 
+/ 
+/ bit reading order:
+/ ```
+/ 0101_1100, 1011_0111,   ....._.....
+/ |       |  |       |    |         |
+/ \   <-<-|  \   <-<-|    \       <-|
+/         |          |-------|      |-(3) Contiune until desired bits are met
+/         |                  |
+/         |-(1) Start here   |
+/           (Right -> Left)  |
+/                            |-(2) When it reaches MSB (Most Significant Bit)
+/                               Move to next byte. Continue reading until it hits MSB.
+/  
+/ If I want to read 12 bits, the result would be:
+/ 
+/ 0111__0101_1100
+/    |  |_______|
+/    |          |-- From first Byte
+/    |--------|
+/             |---- From second Byte
+/ 
+/ You'd pad the Left Most bits like so:
+/ 
+/ 0000_0111__0101_1100
+/ ```
+*/
 
-/// My solution to C's awful shared states.
-/// 
-/// In the original C implementation, "read bits" and "read block"
-/// share a lot of data. 
-/// 
-/// So why not combine them?
-/// 
-/// 
-/// bit reading order:
-/// ```
-/// 0101_1100, 1011_0111,   ....._.....
-/// |       |  |       |    |         |
-/// \   <-<-|  \   <-<-|    \       <-|
-///         |          |-------|      |-(3) Contiune until desired bits are met
-///         |                  |
-///         |-(1) Start here   |
-///           (Right -> Left)  |
-///                            |-(2) When it reaches MSB (Most Significant Bit)
-///                               Move to next byte. Continue reading until it hits MSB.
-///  
-/// If I want to read 12 bits, the result would be:
-/// 
-/// 0111__0101_1100
-///    |  |_______|
-///    |          |-- From first Byte
-///    |--------|
-///             |---- From second Byte
-/// 
-/// You'd pad the Left Most bits like so:
-/// 
-/// 0000_0111__0101_1100
-/// ```
 struct BitReader<'a> {
     block_offset: usize,    // Location of next block
     bitnum: u8,             // Bits left. When it hits 0, it resets to 8 & "blk_index" increments by 1.  

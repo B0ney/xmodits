@@ -5,7 +5,6 @@ mod s3m;
 mod umx;
 mod utils;
 mod interface;
-
 pub use interface::{TrackerDumper, TrackerModule};
 pub use utils::Error;
 

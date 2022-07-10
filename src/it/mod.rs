@@ -11,7 +11,6 @@ const MASK_SMP_COMP: u8     = 0b0000_1000;      // Does sample use compression?
 const MASK_SMP_STEREO: u8   = 0b0000_0100;      // 0 = mono, 1 = stereo
 const IT215: u16            = 0x0215;           // IT215 compression 
 
-#[derive(Debug)]
 pub struct ITSample {
     pub filename: String,
     pub name: String,           
@@ -24,7 +23,6 @@ pub struct ITSample {
     pub smp_stereo: bool,       // Is sample stereo?
 }
 
-#[derive(Debug)]
 pub struct ITFile {
     title: String,
     buf: Vec<u8>,
