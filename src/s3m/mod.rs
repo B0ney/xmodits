@@ -99,10 +99,13 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
         if buf[i as usize] != 0x1 { continue; }             // if it's not a PCM instrument, skip
         let index: usize        = i + INS_HEAD_LENGTH;      // skip instrument header (13 bytes)
         let smp_len: u32        = read_u32_le(buf, 0x0003 + index) & 0xffff;
+
+        if smp_len == 0 { continue; }
+
         let hi_ptr: u8          = buf[index];
         let lo_ptr: u16         = read_u16_le(buf, 0x0001 + index);
         let smp_ptr: u32        = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
-
+        
         if (smp_ptr + smp_len) > buf.len() as u32 { break; } // break out of loop if we get a funky offset
 
         let smp_name: String    = string_from_chars(&buf[chars!(0x0023 + index, 28)]);
