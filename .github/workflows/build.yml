@@ -8,14 +8,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
-      - name: Install latest rust toolchain
+      - name: Install latest nightly
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           default: true
-          override: true
+          # override: true
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
 
       - name: Build
         run: cargo +nightly build --features="ascii_art" -p xmodits -Z build-std=std,panic_abort --release --target=x86_64-unknown-linux-gnu && mv target/release/xmodits target/release/xmodits_linux
