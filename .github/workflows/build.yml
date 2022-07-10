@@ -22,7 +22,7 @@ jobs:
           command: check
 
       - name: Build
-        run: cargo +nightly build --features="ascii_art" -p xmodits -Z build-std=std,panic_abort --release --target=x86_64-unknown-linux-gnu && mv target/release/xmodits target/release/xmodits_linux
+        run: cargo build --features="ascii_art" -p xmodits --release && mv target/release/xmodits target/release/xmodits_linux
 
       - name: Release
         uses: softprops/action-gh-release@v1
