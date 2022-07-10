@@ -16,6 +16,7 @@ winres = "0.1"
 
 [features]
 ascii_art = []
+parallel_dumping = []
 
 [profile.release]
 strip = true
@@ -23,9 +24,3 @@ opt-level = "s"
 lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 panic = 'abort'  
-
-[profile.dev]
-opt-level = "z"
-lto = true          # Enable Link Time Optimization 
-incremental = true
-

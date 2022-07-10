@@ -52,7 +52,7 @@ pub trait TrackerDumper {
     fn dump(&self, folder: &dyn AsRef<Path>, module_name: &String) -> Result<(), Error> 
     {
         if self.number_of_samples() == 0 {
-            return Err("Module has no samples.".into());
+            return Err("Module has no samples".into());
         }
 
         if !&folder.as_ref().is_dir() {

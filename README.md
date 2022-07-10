@@ -16,7 +16,7 @@ XMODITS
 |Key| Meaning|
 |---|---|
 |**✓** | Fully supported with little or no bugs.|
-| **~** | Sorta works|
+| **~** | Sorta works |
 | **-** | Format is a container|
 | **X** | unsupported |
 | **n/a** | Format doesn't support it|
@@ -26,9 +26,9 @@ XMODITS
 |Format| 8-bit| 16-bit| compression|Stereo|
 | --- | --- | --- | --- | --- |
 |IT| ✓|✓|✓|⏳|
-| XM  | ✓| ✓| N/A| N/A|
+| XM  | ~| ~| N/A| N/A|
 | S3M | ✓| ✓| N/A| ⏳|
-| MOD | ~| N/A| N/A| N/A|
+| MOD | ✓| N/A| N/A| N/A|
 
 
 ## Download
