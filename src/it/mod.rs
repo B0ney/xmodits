@@ -60,7 +60,7 @@ impl TrackerDumper for ITFile {
             smp_ptrs.push(read_u32_le(&buf, index as usize));
         }
 
-        let smp_data: Vec<ITSample> = build_samples(&buf, smp_ptrs)?;
+        let smp_data: Vec<ITSample> = build_samples(&buf, smp_ptrs);
                 
         let smp_num: u16 = smp_data.len() as u16;
 
@@ -131,7 +131,7 @@ impl TrackerDumper for ITFile {
     }
 }
 
-fn build_samples(buf: &[u8], smp_ptr: Vec<u32>) -> Result<Vec<ITSample>, Error> {
+fn build_samples(buf: &[u8], smp_ptr: Vec<u32>) -> Vec<ITSample> {
     let mut smp_meta: Vec<ITSample> = Vec::with_capacity(smp_ptr.len());
 
     for i in smp_ptr {
@@ -166,5 +166,5 @@ fn build_samples(buf: &[u8], smp_ptr: Vec<u32>) -> Result<Vec<ITSample>, Error> 
         })
     }
 
-    Ok(smp_meta)
+    smp_meta
 }

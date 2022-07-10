@@ -51,7 +51,7 @@ impl TrackerDumper for S3MFile {
             ins_ptrs.push((read_u16_le(&buf, index as usize) as usize) << 4)
         };
 
-        let smp_data: Vec<S3MSample> = build_samples(&buf, ins_ptrs)?;
+        let smp_data: Vec<S3MSample> = build_samples(&buf, ins_ptrs);
 
         Ok(Box::new(Self{
             title,
@@ -93,7 +93,7 @@ impl TrackerDumper for S3MFile {
     }
 }
 
-fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Result<Vec<S3MSample>, Error> {
+fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
     let mut samples: Vec<S3MSample> = Vec::with_capacity(ins_ptr.len());
 
     for i in ins_ptr {
@@ -122,5 +122,5 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Result<Vec<S3MSample>, Erro
         })
     }
 
-    Ok(samples)
+    samples
 }

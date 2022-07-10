@@ -8,6 +8,7 @@ const XM_MAGIC_NUM: u8      = 0x1a;
 const XM_MIN_VER: u16       = 0x0104;
 const XM_SMP_BITS: u8       = 0b0001_0000;  // 1 = 16 bit samples, 0 = 8 bit
 const XM_SMP_SIZE: usize    = 40;
+const XM_FLG_FRQ_TABLE: u16 = 0x1;  // 0th bit
 
 pub struct XMSample {
     smp_len: usize,     // length of sample in bytes??
@@ -43,6 +44,19 @@ impl TrackerDumper for XMFile {
         if version < XM_MIN_VER {
             return Err("Unsupported XM version! (is below 0104)".into());
         }
+        let uses_amigia_table: bool = (read_u16_le(&buf, 0x004a) & XM_FLG_FRQ_TABLE) == 0;
+        if uses_amigia_table  {
+            /*  If we ignore this and treat AMIGA FREQUENCY as LINEAR FREQUENCY: 
+                * The sampling frquency will be correct, but the waveform wouldn't.
+                * Its waveform appears to have its amplitudes constrained to 0.5,-0.5
+                rather than 1,-1.
+                
+                * The waveform when looked at in detail, will have slight differences 
+                compared to a waveform dumped by schism (ignoring the first buggy sample points).
+            */
+            
+            return Err("Unsupported XM file. It use the 'AMIGA FREQUENCY TABLE' for its sample data.".into()); 
+        }
 
         let module_name: String         = string_from_chars(&buf[chars!(0x0011, 20)]);
         let patnum: u16                 = read_u16_le(&buf, 0x0046);
@@ -68,8 +82,7 @@ impl TrackerDumper for XMFile {
 
         let smp: &XMSample          = &self.smp_data[index];
         let start: usize            = smp.smp_ptr;
-        let mut end: usize          = start + smp.smp_len as usize;
-
+        let end: usize              = start + smp.smp_len as usize;
         let wav_header: [u8; 44]    = wav::build_header(
             smp.smp_rate, smp.smp_bits,
             smp.smp_len as u32, false
@@ -82,10 +95,12 @@ impl TrackerDumper for XMFile {
 
         file.write_all(&wav_header)?;
 
-        let deltad: Vec<u8> = match smp.smp_bits {
+        let mut deltad: Vec<u8>;
+
+        deltad = match smp.smp_bits {
             16 => { delta_decode_u16(&self.buf[start..end]) }
             8  => { delta_decode_u8(&self.buf[start..end]).to_signed() }
-            e  => return Err(format!("Why is it {} bits per sample?",e).into())
+            e  => return Err(format!("Why is it {} bits per sample?", e).into())
         };
 
         file.write_all(&deltad)?; 
@@ -143,39 +158,35 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
         };
         
         offset += ins_header_size as usize; // skip to sample headers
-
+        
         // (length, flag, name, finetune, relative note number)
         let mut smp_info: Vec<(usize, u8, String, i8, i8)> = Vec::new();
 
         // Sample header follows after additional header
         // When this loop completes, the offset will land at sample data
         for _ in 0..ins_smp_num {
-
             smp_info.push((
                 read_u32_le(buf, offset) as usize,
                 buf[0x000e + offset],
-                string_from_chars(
-                    &buf[chars!(0x0012 + offset, 22)]
-                ),
+                string_from_chars(&buf[chars!(0x0012 + offset, 22)]),
                 buf[0x000d + offset] as i8,
                 buf[0x0010 + offset] as i8,
             ));
+            
+            offset += XM_SMP_SIZE;
 
-            offset += XM_SMP_SIZE
+            if offset + 0x0010 > buf.len() { break; }
         }
 
-        // TODO: ignore if instrument uses AMIGA frequency table
         for (smp_len, smp_flags,
             smp_name, finetune, notenum) in smp_info 
         {
             if smp_len == 0 { continue; }
+            if (offset + smp_len) > buf.len() { break; }
 
             let period: f32     = 7680.0 - ((48.0 + notenum as f32) * 64.0) - (finetune as f32 / 2.0);
             let smp_rate: u32   = (8363.0 * 2.0_f32.powf((4608.0 - period) / 768.0)) as u32;
-
             let smp_bits: u8    = (((smp_flags & XM_SMP_BITS) >> 4) + 1) * 8;
-
-            if (offset + smp_len) > buf.len() { break; }
 
             samples.push(XMSample{
                 smp_bits, 

@@ -33,15 +33,13 @@ fn main() -> Result<(), Error> {
         .get_matches();
         
     let mod_path = match matches.get_one::<String>("module"){
-        Some(path) => {
-            PathBuf::new().join(path)
-        },
+        Some(path) => { PathBuf::new().join(path) },
         None => unimplemented!(),
     };
 
     let dest_dir = match matches.get_one::<String>("out_dir") {
-        Some(dest) => {PathBuf::new().join(dest)},
-        None => {std::env::current_dir()?}
+        Some(dest) => { PathBuf::new().join(dest) },
+        None => { std::env::current_dir()? }
     };
 
     if !mod_path.is_file() {
@@ -51,7 +49,7 @@ fn main() -> Result<(), Error> {
     let hint: String = file_extension(&mod_path).to_lowercase();
 
     let modname = mod_path.file_name().unwrap().to_str().unwrap().replace(".", "_");
-    // println!("{}", &modname);
+    
     let module: TrackerModule = match hint.as_str() {
         "it"    => ITFile::load_module(mod_path),
         "xm"    => XMFile::load_module(mod_path),
