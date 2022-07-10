@@ -1,15 +1,15 @@
-use crate::s3m::{S3MFile, TrackerDumper};
+// use crate::s3m::{S3MFile, TrackerDumper};
 
-#[test]
-fn test1() {
-    let a = S3MFile::load_module("samples/s3m/city_on_a_stick.s3m").unwrap();
-    println!("{}", a.number_of_samples());
-    for i in 0..a.number_of_samples() {
-        if let Err(e) = a.export(&format!("test/s3m/"), i) {
-            println!("{:?}", e);
-        }
-    }
-}
+// #[test]
+// fn test1() {
+//     let a = S3MFile::load_module("samples/s3m/city_on_a_stick.s3m").unwrap();
+//     println!("{}", a.number_of_samples());
+//     for i in 0..a.number_of_samples() {
+//         if let Err(e) = a.export(&format!("test/s3m/"), i) {
+//             println!("{:?}", e);
+//         }
+//     }
+// }
 
 // #[test]
 // fn generate_offsets() {
