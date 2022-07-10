@@ -51,7 +51,7 @@ impl TrackerDumper for MODFile {
         let smp_data: Vec<MODSample> = build_samples(smp_num, &buf, smp_index);
 
         if (smp_data.len() == 0) && (smp_num == 15) {
-            return Err("Unsupported MOD format.".into()); 
+            return Err("Unsupported MOD format".into()); 
         }
 
         Ok(Box::new(Self {

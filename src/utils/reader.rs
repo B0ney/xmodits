@@ -1,4 +1,4 @@
-use crate::{Error, word, chars, dword};
+use crate::{word, chars, dword};
 
 use byteorder::{ByteOrder, LE};
 
