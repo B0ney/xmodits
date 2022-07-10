@@ -18,10 +18,10 @@ jobs:
             archive: tar.gz tar.xz
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@main
       - name: Compile and release
-        # uses: rust-build/rust-build.action@v1.3.2
-        run: cargo build --features="ascii_art" -p xmodits --release
+        uses: rust-build/rust-build.action@v1.3.2
+#         run: cargo build --features="ascii_art" -p xmodits --release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
