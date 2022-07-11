@@ -32,7 +32,6 @@ impl TrackerDumper for XMFile {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
         where Self: Sized 
     {
-        // Some checks to verify buffer is an XM module
         if buf.len() < 60 
             || read_chars(&buf, 0x0000, 17) != XM_HEADER_ID.as_bytes() 
             || buf[0x0025] != XM_MAGIC_NUM 
@@ -45,7 +44,7 @@ impl TrackerDumper for XMFile {
             return Err("Unsupported XM version! (is below 0104)".into());
         }
         let uses_amigia_table: bool = (read_u16_le(&buf, 0x004a) & XM_FLG_FRQ_TABLE) == 0;
-        
+
         if uses_amigia_table  {
             /*  If we ignore this and treat AMIGA FREQUENCY as LINEAR FREQUENCY: 
                 * The sampling frquency will be correct, but the waveform wouldn't.

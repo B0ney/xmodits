@@ -1,4 +1,4 @@
-// mod app;
+#![windows_subsystem = "windows"]
 use std::path::{Path, PathBuf};
 use xmodits_lib::{Error, TrackerDumper, TrackerModule, tracker_formats::*,};
 use clap::{Command, arg, crate_version, crate_authors};
