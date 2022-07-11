@@ -43,6 +43,9 @@ pub trait TrackerDumper {
 
                 For large scale dumping in parallel, using Seek will be considered.
             */
+            if std::fs::metadata(&path)?.len() > 1024 * 1024 * 64 {
+                return Err("File provided is larger than 64MB. No tracker module should ever be close to that".into());
+            }
             
             let buf: Vec<u8> = fs::read(&path)?;
             Self::load_from_buf(buf)

@@ -63,24 +63,15 @@ impl TrackerDumper for S3MFile {
         if !folder.as_ref().is_dir() {
             return Err("Path is not a folder".into());
         }
-
         let smp: &S3MSample         = &self.smp_data[index];
         let start: usize            = smp.smp_ptr as usize;
-        let mut end: usize          = start + smp.smp_len as usize;
-        let wav_header: [u8; 44]    = wav::build_header(
-            smp.smp_rate, smp.smp_bits,
-            smp.smp_len, false
-        );
-        let mut file: File = File::create(
-            PathBuf::new()
-                .join(folder)
-                .join(name_sample(index, &smp.smp_name))
-        )?;
+        let mut end: usize          = start + (smp.smp_len * (smp.smp_stereo as u32 + 1)) as usize;
+        let path: PathBuf           = PathBuf::new()
+            .join(folder)
+            .join(name_sample(index, &smp.smp_name));
 
-        file.write_all(&wav_header)?;
-        file.write_all(&self.buf[start..end])?;
-
-        Ok(())
+        WAV::header(smp.smp_rate, smp.smp_bits, smp.smp_len, smp.smp_stereo)
+            .write_ref(path, &self.buf[start..end])
     }
 
     fn number_of_samples(&self) -> usize {
@@ -105,14 +96,16 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
         let hi_ptr: u8          = buf[index];
         let lo_ptr: u16         = read_u16_le(buf, 0x0001 + index);
         let smp_ptr: u32        = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
-        
-        if (smp_ptr + smp_len) > buf.len() as u32 { break; } // break out of loop if we get a funky offset
+        let smp_flag: u8        = buf[0x0012 + index];
+        // let smp_stereo: bool    = (smp_flag & SMP_MASK_STEREO) >> 2 == 1;
+        let smp_stereo: bool    = false;
+        let _channels: u32      = smp_stereo as u32 + 1;
+
+        if (smp_ptr + (smp_len * _channels)) > buf.len() as u32 { break; } // break out of loop if we get a funky offset
 
         let smp_name: String    = string_from_chars(&buf[chars!(0x0023 + index, 28)]);
         let smp_rate: u32       = read_u32_le(buf, 0x0013 + index);
-        let smp_flag: u8        = buf[0x0012 + index];
         let smp_bits: u8        = if (smp_flag & SMP_MASK_BITS) >> 3 == 1 { 16 } else { 8 };
-        let smp_stereo: bool    = (smp_flag & SMP_MASK_STEREO) >> 2 == 1;
 
         samples.push(S3MSample {
             smp_name,

@@ -83,29 +83,18 @@ impl TrackerDumper for XMFile {
         let smp: &XMSample          = &self.smp_data[index];
         let start: usize            = smp.smp_ptr;
         let end: usize              = start + smp.smp_len as usize;
-        let wav_header: [u8; 44]    = wav::build_header(
-            smp.smp_rate, smp.smp_bits,
-            smp.smp_len as u32, false
-        );
-        let mut file: File = File::create(
-            PathBuf::new()
-                .join(folder)
-                .join(name_sample(index, &smp.smp_name))
-        )?;
+        let path: PathBuf           = PathBuf::new()
+            .join(folder)
+            .join(name_sample(index, &smp.smp_name));
 
-        file.write_all(&wav_header)?;
-
-        let mut deltad: Vec<u8>;
-
-        deltad = match smp.smp_bits {
-            16 => { delta_decode_u16(&self.buf[start..end]) }
-            8  => { delta_decode_u8(&self.buf[start..end]).to_signed() }
-            e  => return Err(format!("Why is it {} bits per sample?", e).into())
-        };
-
-        file.write_all(&deltad)?; 
-
-        Ok(())
+        WAV::header(smp.smp_rate, smp.smp_bits, smp.smp_len as u32, false)
+            .write(
+                path,
+                match smp.smp_bits {
+                    8   => { delta_decode_u8(&self.buf[start..end]).to_signed() }
+                    _   => { delta_decode_u16(&self.buf[start..end]) }
+                }
+            )
     }
 
     fn number_of_samples(&self) -> usize {

@@ -1,7 +1,8 @@
 mod test;
 use crate::utils::prelude::*;
+use crate::{dword, word};
 use byteorder::{BE, ByteOrder};
-//https://www.aes.id.au/modformat.html
+
 const MOD_SMP_START: usize = 0x0014; // offset where title ends & smp data begins
 const MOD_SMP_LEN: usize = 0x1e;
 const PAT_META: usize = 0x3b8;
@@ -20,14 +21,13 @@ pub struct MODFile {
 }
 
 use crate::{TrackerDumper, TrackerModule};
-/// Too many bugs here...
+
 /// I need to work on "MOD Format.md" before I continue working on this. 
 impl TrackerDumper for MODFile {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
         where Self: Sized
     {
         // TODO: add checks to validate
-
         let title: String = string_from_chars(&buf[chars!(0x0000, 20)]);
         // if it contains any non-ascii, it was probably made with ultimate sound tracker
         let smp_num: u8 = { 
@@ -70,18 +70,12 @@ impl TrackerDumper for MODFile {
         let start: usize            = smp.index;
         let end: usize              = start + smp.length as usize;
         let pcm: Vec<u8>            = (&self.buf[start..end]).to_signed();
-        let wav_header: [u8; 44]    = wav::build_header(
-            8363, 8, smp.length as u32, false,
-        );
-        let mut file: File          = File::create(
-            PathBuf::new()
-                .join(folder)
-                .join(name_sample(index, &smp.name))
-        )?;
-        
-        file.write_all(&wav_header)?;
-        file.write_all(&pcm)?;
-        Ok(())
+        let path: PathBuf           = PathBuf::new()
+            .join(folder)
+            .join(name_sample(index, &smp.name));
+
+        WAV::header(8363, 8, smp.length as u32, false)
+            .write(path, (&self.buf[start..end]).to_signed())
     }
 
     fn number_of_samples(&self) -> usize {

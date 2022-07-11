@@ -45,10 +45,9 @@ fn main() -> Result<(), Error> {
     if !mod_path.is_file() {
         return Err("Path provided either doesn't exist or is not a file".into());
     }
-
-    let hint: String = file_extension(&mod_path).to_lowercase();
-
-    let modname = mod_path.file_name().unwrap().to_str().unwrap().replace(".", "_");
+    
+    let hint: String    = file_extension(&mod_path).to_lowercase();
+    let modname: String = mod_path.file_name().unwrap().to_str().unwrap().replace(".", "_");
     
     let module: TrackerModule = match hint.as_str() {
         "it"    => ITFile::load_module(mod_path),

@@ -1,5 +1,6 @@
 mod test;
 mod compression;
+
 use crate::utils::prelude::*;
 use self::compression::decompress_sample;
 
@@ -59,8 +60,7 @@ impl TrackerDumper for ITFile {
         }
 
         let smp_data: Vec<ITSample> = build_samples(&buf, smp_ptrs);
-                
-        let smp_num: u16 = smp_data.len() as u16;
+        let smp_num: u16            = smp_data.len() as u16;
 
         Ok(Box::new(Self {
             title,
@@ -72,52 +72,42 @@ impl TrackerDumper for ITFile {
             
         }))
     }
-    // Needs to be more readable
+
     fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
         if !folder.as_ref().is_dir() {
             return Err("Path is not a folder".into());
         }
-
         let smp: &ITSample          = &self.smp_data[index];
         let start: usize            = smp.smp_ptr as usize;
-        let wav_header: [u8; 44]    = wav::build_header(
-            smp.smp_rate, smp.smp_bits,
-            smp.smp_len, smp.smp_stereo,
-        );
-        let mut file: File = File::create(
-        PathBuf::new()
-                .join(folder)
-                .join(name_sample(index, &smp.filename))
-        )?;
+        let filename: PathBuf       = PathBuf::new()
+            .join(folder)
+            .join(name_sample(index, &smp.filename));
 
-        // Write Wav Header
-        file.write_all(&wav_header)?;
+        WAV::header(smp.smp_rate, smp.smp_bits, smp.smp_len, smp.smp_stereo)
+            .write(filename, 
+                match smp.smp_comp {
+                    true => {
+                        decompress_sample(
+                            &self.buf[start..], smp.smp_len,
+                            smp.smp_bits, self.compat_ver == IT215,
+                            smp.smp_stereo
+                        )?
+                    },
+                    
+                    false => {
+                        let end: usize = start + 
+                            (smp.smp_len 
+                                * (smp.smp_bits as u32 / 8)
+                                * (smp.smp_stereo as u32 + 1)
+                            ) as usize;
 
-        // Write PCM data
-        if smp.smp_comp {
-            let decomp: Vec<u8> = decompress_sample(
-                &self.buf[start..], smp.smp_len,
-                smp.smp_bits, self.compat_ver == IT215
-            )?;
-            file.write_all(&decomp)?;
-
-        } else {
-            let mut end: usize = start + 
-                (smp.smp_len * (smp.smp_bits as u32 / 8)) as usize;
-
-            let mut raw_data: &[u8] = &self.buf[start..end];
-            let mut b: Vec<u8>      = Vec::new();
-            
-            // convert sample data to "signed" values if it's 8-bit  
-            if smp.smp_bits == 8 {
-                b = raw_data.to_signed(); 
-                raw_data = &b; // make raw data reference b instead
-            }
-
-            file.write_all(raw_data)?;
-        }
-
-        Ok(())
+                        match smp.smp_bits {
+                            8 => (&self.buf[start..end]).to_signed(),
+                            _ => (&self.buf[start..end]).to_owned(),
+                        }
+                    },
+                }
+            )
     }
 
     fn number_of_samples(&self) -> usize {
@@ -141,15 +131,17 @@ fn build_samples(buf: &[u8], smp_ptr: Vec<u32>) -> Vec<ITSample> {
         let smp_flag: u8        = buf[0x012 + offset];
         let smp_bits: u8        = (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8;
         let smp_comp: bool      = ((smp_flag & MASK_SMP_COMP) >> 3)     == 1;
+        // let smp_stereo: bool    = ((smp_flag & MASK_SMP_STEREO) >> 2)   == 1;
+        let smp_stereo: bool    = false;
 
         if !smp_comp    // break out of loop if we get a funky offset
-            && (smp_ptr + (smp_len * (smp_bits / 8) as u32)) > buf.len() as u32 { break; }
+            && (smp_ptr + (smp_len 
+                * (smp_bits / 8) as u32)
+                * (smp_stereo as u32 + 1) ) > buf.len() as u32 { break; }
 
         let filename: String    = string_from_chars(&buf[chars!(0x0004 + offset, 12)]);
         let name: String        = string_from_chars(&buf[chars!(0x0014 + offset, 26)]);
         let smp_rate: u32       = read_u32_le(buf, 0x003C + offset);
-        
-        let smp_stereo: bool    = ((smp_flag & MASK_SMP_STEREO) >> 2)   == 1;
 
         smp_meta.push(ITSample {
             filename,
