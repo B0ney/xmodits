@@ -28,7 +28,7 @@ impl WAV {
         let wav_scs:            u32 = 16;                       // sec chunk size
         let wav_type:           u16 = 1;                        // 1 = pcm
         let channels:           u16 = false as u16 + 1;         // 0x01 = mono, 0x02 = stereo
-        let channels_:          u16 = stereo as u16 + 1;         // 0x01 = mono, 0x02 = stereo
+        let channels_:/* test */u16 = stereo as u16 + 1;         // 0x01 = mono, 0x02 = stereo
 
         let sample_frequency:   u32 = smp_rate;
         let bytes_sec:          u32 = smp_rate * channels_ as u32;   // sample_rate * channels (DOUBLE CHECK)
@@ -59,9 +59,7 @@ impl WAV {
     }
     pub fn write_ref<P: AsRef<Path>>(&self, path: P, pcm: &[u8]) -> Result<(), Error> { 
         let mut file: File = File::create(path)?;
-
         file.write_all(&self.header_data)?;
-        println!("{}", pcm.len());
 
         match self.stereo {
             true    => { write_interleaved(file, &pcm, self.smp_bits) },
@@ -71,7 +69,7 @@ impl WAV {
 }
 
 fn write_interleaved(mut file: File, pcm: &[u8], smp_bits: u8) -> Result<(), Error> {
-    // return Err("Writing stereo data is not yet supported".into());
-    file.write_all(pcm).map_err(|e| e.into())
+    return Err("Writing stereo data is not yet supported".into());
+    // file.write_all(pcm).map_err(|e| e.into())
     // Ok(())
 }

@@ -1,4 +1,3 @@
-mod test;
 use crate::utils::prelude::*;
 use crate::{dword, word};
 use byteorder::{BE, ByteOrder};
@@ -69,7 +68,6 @@ impl TrackerDumper for MODFile {
         let smp: &MODSample         = &self.smp_data[index];
         let start: usize            = smp.index;
         let end: usize              = start + smp.length as usize;
-        let pcm: Vec<u8>            = (&self.buf[start..end]).to_signed();
         let path: PathBuf           = PathBuf::new()
             .join(folder)
             .join(name_sample(index, &smp.name));

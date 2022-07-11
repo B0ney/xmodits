@@ -6,7 +6,7 @@
 /// https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
 
 use crate::utils::{Error, reader::read_u16_le};
-use crate::word;
+// use crate::word;
 use byteorder::{ByteOrder, LE};
 
 pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo: bool) -> Result<Vec<u8>, Error> {
@@ -102,11 +102,11 @@ impl <'a>BitReader<'a> {
         Ok(self.buf[self.block_offset..].to_owned())
     } 
 
-    fn read_bits_u16(&mut self, n: u8) -> Result<u16, Error> { 
-        Ok(self.read_bits_u32(n)? as u16)
+    fn read_bits_u16(&mut self, n: u8) -> u16 { 
+        self.read_bits_u32(n) as u16
     }
 
-    fn read_bits_u32(&mut self, n: u8) -> Result<u32, Error> { 
+    fn read_bits_u32(&mut self, n: u8) -> u32 { 
         // prevent panic if user forgets to call before reading bits.
         // tbh this is more useful when unit testing than here... 
         // if self.blk_data.is_empty() { self.read_next_block()?; }
@@ -126,7 +126,7 @@ impl <'a>BitReader<'a> {
             self.bitnum -= 1;
         }
 
-        Ok(value >> (32 - n))
+        value >> (32 - n)
     }   
 }
 
@@ -149,8 +149,8 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool, channels: u32) -> Result<V
     let mut blklen: u16;                // uncompressed block length. Usually 0x8000 for 8-Bit samples
     let mut blkpos: u16;                // block position
     let mut sample_value: i8;           // decompressed sample value             (Note i8 for 8 bit samples)
-    let mut d1: i8 = 0;                 // integrator buffer for IT2.14          (Note i8 for 8 bit samples)
-    let mut d2: i8 = 0;                 // second integrator buffer for IT2.15   (Note i8 for 8 bit samples)
+    let mut d1: i8;                     // integrator buffer for IT2.14          (Note i8 for 8 bit samples)
+    let mut d2: i8;                     // second integrator buffer for IT2.15   (Note i8 for 8 bit samples)
     let mut width: u8;                  // Bit width. (Starts at 9 For 8-Bit samples)
     let mut value: u16;                 // Value read (Note u16 for 8-bit samples)
     let mut dest_buf: Vec<u8>       = Vec::with_capacity(len as usize);               // Buffer to write decompressed data
@@ -174,13 +174,13 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool, channels: u32) -> Result<V
                 return Err(format!("Invalid Bit width. Why is it {}?", width).into());
             }
 
-            value = bitreader.read_bits_u16(width)?;
+            value = bitreader.read_bits_u16(width);
             
             if width < 7 { // Method 1, 1-6 bits
 
                 if value == (1 << (width - 1)) as u16
                 {
-                    value = bitreader.read_bits_u16(3)? + 1;
+                    value = bitreader.read_bits_u16(3) + 1;
 
                     let val = value as u8;
                     width = if val < width { val } else { val + 1 };
@@ -246,13 +246,13 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool, channels: u32) -> Result<
     let mut blklen: u16;                // uncompressed block length. Usually 0x4000 for 16-Bit samples
     let mut blkpos: u16;                // block position
     let mut sample_value: i16;          // decompressed sample value             (Note i16 for 16 bit samples)
-    let mut d1: i16 = 0;                // integrator buffer for IT2.14          (Note i16 for 16 bit samples)
-    let mut d2: i16 = 0;                // second integrator buffer for IT2.15   (Note i16 for 16 bit samples)
+    let mut d1: i16;                    // integrator buffer for IT2.14          (Note i16 for 16 bit samples)
+    let mut d2: i16;                    // second integrator buffer for IT2.15   (Note i16 for 16 bit samples)
     let mut width: u8;                  // Bit width. (Starts at 17 For 16-Bit samples)
     let mut value: u32;                 // Value read (Note u32 for 16 bit sample)
     let mut dest_buf: Vec<u8>       = Vec::with_capacity(len as usize * 2);               // Buffer to write decompressed data
     let mut bitreader: BitReader    = BitReader::new(buf);    // solution to C's horrible global variables
-    // println!("len: {}", len / (1024*1024));
+
     while len != 0 {
         // Read new block, reset variables
         bitreader.read_next_block()?;
@@ -270,13 +270,13 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool, channels: u32) -> Result<
                 return Err(format!("Invalid Bit width. Why is it {}?", width).into());
             }
 
-            value = bitreader.read_bits_u32(width)?;
+            value = bitreader.read_bits_u32(width);
 
             if width < 7 { // Method 1, 1-6 bits
                 
                 if value == (1 << (width - 1)) as u32
                 {
-                    value = bitreader.read_bits_u32(4)? + 1;
+                    value = bitreader.read_bits_u32(4) + 1;
 
                     let val = value as u8;
                     width = if val < width { val } else { val + 1 };
@@ -354,16 +354,16 @@ fn readbit() {
     b.read_next_block().unwrap(); 
 
     // test group 1
-    assert_eq!(b.read_bits_u16(8).unwrap(), 0b_1111_1110);
-    assert_eq!(b.read_bits_u16(8).unwrap(), 0b_1111_1111);
+    assert_eq!(b.read_bits_u16(8), 0b_1111_1110);
+    assert_eq!(b.read_bits_u16(8), 0b_1111_1111);
     
     // test group 2
-    assert_eq!(b.read_bits_u16(4).unwrap(), 0b_0000_1110);
-    assert_eq!(b.read_bits_u16(4).unwrap(), 0b_0000_1010);
+    assert_eq!(b.read_bits_u16(4), 0b_0000_1110);
+    assert_eq!(b.read_bits_u16(4), 0b_0000_1010);
 
     // test group 3
-    assert_eq!(b.read_bits_u16(16).unwrap(), 0b_1100_1111_1100_1100);
-    assert_eq!(b.read_bits_u16(9).unwrap(), 0b_0_0011_1010);
+    assert_eq!(b.read_bits_u16(16), 0b_1100_1111_1100_1100);
+    assert_eq!(b.read_bits_u16(9), 0b_0_0011_1010);
 
     // println!("{:016b}", b.read_bits(8).unwrap());
 }

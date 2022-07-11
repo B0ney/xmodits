@@ -1,12 +1,9 @@
-mod test;
 mod compression;
-
 use crate::utils::prelude::*;
 use self::compression::decompress_sample;
 
 const IT_HEADER_ID: &str    = "IMPM";           // IMPM
 const IT_HEADER_LEN: usize  = 192;
-const IT_SAMPLE_LEN: usize  = 80;
 const MASK_SMP_BITS: u8     = 0b0000_0010;      // 16/8bit samples
 const MASK_SMP_COMP: u8     = 0b0000_1000;      // Does sample use compression?
 const MASK_SMP_STEREO: u8   = 0b0000_0100;      // 0 = mono, 1 = stereo

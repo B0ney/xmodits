@@ -45,6 +45,7 @@ impl TrackerDumper for XMFile {
             return Err("Unsupported XM version! (is below 0104)".into());
         }
         let uses_amigia_table: bool = (read_u16_le(&buf, 0x004a) & XM_FLG_FRQ_TABLE) == 0;
+        
         if uses_amigia_table  {
             /*  If we ignore this and treat AMIGA FREQUENCY as LINEAR FREQUENCY: 
                 * The sampling frquency will be correct, but the waveform wouldn't.

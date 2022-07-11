@@ -1,4 +1,3 @@
-pub mod test;
 use std::path::PathBuf;
 use crate::utils::prelude::*;
 
@@ -65,7 +64,7 @@ impl TrackerDumper for S3MFile {
         }
         let smp: &S3MSample         = &self.smp_data[index];
         let start: usize            = smp.smp_ptr as usize;
-        let mut end: usize          = start + (smp.smp_len * (smp.smp_stereo as u32 + 1)) as usize;
+        let end: usize              = start + (smp.smp_len * (smp.smp_stereo as u32 + 1)) as usize;
         let path: PathBuf           = PathBuf::new()
             .join(folder)
             .join(name_sample(index, &smp.smp_name));
