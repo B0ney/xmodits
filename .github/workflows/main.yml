@@ -36,13 +36,13 @@ jobs:
         run: sudo apt install -y libatk1.0-0 mingw-w64 librust-atk-dev
 
       - name: compile linux
-        run: cargo build --features="ascii_art" --release -p xmodits
+        run: cargo build  --release -p xmodits
 
       - name: compile windows
-        run: cargo build --features="ascii_art" --target=x86_64-pc-windows-gnu --release -p xmodits
+        run: cargo build  --target=x86_64-pc-windows-gnu --release -p xmodits
 
       - name: version
-        run: echo "::set-output name=version::$(./target/release/xmodits -v)"
+        run: echo "::set-output name=version::$(./target/release/xmodits --version)"
         id: version
 
       - name: zip up linux
@@ -54,6 +54,6 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "freedeck-companion-linux.zip,freedeck-companion-windows.zip"
+          artifacts: "xmodits-linux.zip,xmodits-windows.zip"
           token: ${{ github.token }}
           tag: ${{ steps.version.outputs.version }}
