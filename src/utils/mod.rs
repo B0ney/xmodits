@@ -37,6 +37,7 @@ pub type Error = Box<dyn std::error::Error>;
 / crate::offset_chars;
 / ```
 */
+#[allow(unused)]
 pub mod prelude {
     // Bulk common imports
     pub use std::fs::{self, File};

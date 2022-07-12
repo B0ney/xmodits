@@ -13,7 +13,7 @@ const XM_FLG_FRQ_TABLE: u16 = 0x1;  // 0th bit
 pub struct XMSample {
     smp_len: usize,     // length of sample in bytes??
     smp_name: String,   // sample name
-    smp_flags: u8,      // sample bit flags
+    _smp_flags: u8,      // sample bit flags
     smp_bits: u8,       // bits per sample
     smp_ptr: usize,     // offset to sample data
     smp_rate: u32,      // sample sampling rate
@@ -181,7 +181,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
                 smp_bits, 
                 smp_len,
                 smp_name,
-                smp_flags,
+                _smp_flags: smp_flags,
                 smp_ptr: offset,
                 smp_rate
             });

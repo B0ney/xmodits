@@ -26,6 +26,7 @@ impl TrackerDumper for MODFile {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
         where Self: Sized
     {
+
         // TODO: add checks to validate
         let title: String = string_from_chars(&buf[chars!(0x0000, 20)]);
         // if it contains any non-ascii, it was probably made with ultimate sound tracker
@@ -91,7 +92,7 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Vec<MODSample> {
 
     for i in 0..smp_num as usize {
         let offset = MOD_SMP_START + (i * MOD_SMP_LEN); 
-        let len: u16 = BE::read_u16(&buf[word!(0x0016 + offset)]) * 2; 
+        let len: u16 = BE::read_u16(&buf[word!(0x0016 + offset)]).wrapping_mul(2); 
         if len == 0 { continue; }
 
         if len as usize + smp_pcm_stream_index > buf.len() { break; }
