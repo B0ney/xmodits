@@ -68,7 +68,7 @@ impl WAV {
     }
 }
 
-fn write_interleaved(mut file: File, pcm: &[u8], smp_bits: u8) -> Result<(), Error> {
+fn write_interleaved(mut _file: File, _pcm: &[u8], _smp_bits: u8) -> Result<(), Error> {
     return Err("Writing stereo data is not yet supported".into());
     // file.write_all(pcm).map_err(|e| e.into())
     // Ok(())
