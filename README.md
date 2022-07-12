@@ -1,27 +1,10 @@
 <p align="center">
     <img alt="XMODITS Logo" src="icon.png">
-    
 </p>
-<h1 align="center">
-XMODITS
-</h1>
-<h2 align="center">
-    A fast & lightweight tool to dump samples from popular tracker formats with ease.    
-</ph2>
 
----
+# XMODITS - A fast & lightweight tool to rip samples from tracker modules
 
 ## Supported Formats:
-
-|Key| Meaning|
-|---|---|
-|**✓** | Fully supported with little or no bugs.|
-| **~** | Sorta works |
-| **-** | Format is a container|
-| **X** | unsupported |
-| **n/a** | Format doesn't support it|
-| ⏳ | In progress|
-| 🚧 | Part of roadmap |
 
 |Format| 8-bit| 16-bit| compression|Stereo|
 | --- | --- | --- | --- | --- |
@@ -31,26 +14,56 @@ XMODITS
 | MOD | ✓| N/A| N/A| N/A|
 
 
+
+|Key| Meaning|
+|---|---|
+|**✓** | Fully supported with little or no bugs|
+| **~** | Sorta works |
+| **n/a** | Format doesn't support it|
+| ⏳ | In progress|
+| 🚧 | Part of roadmap |
+
+
+
+
 ## Download
 You can download builds for xmodits here.
 
-If you wish to build from source, go to [Building](#building).
+If you wish to build from source, go to [building](#building).
 
 ## How to Use
-To dump samples from a module:
+
+**On Windows, you can simply drag and drop a supported module(s) onto the binary.** 
+
+If successfull, a folder with a similar name to the module should appear.
+
+### In the terminal:
+
 ```
-xmodits <module path>
+xmodits <module path> [destination folder]
 
 e.g:
-    xmodits test.s3m
+    xmodits test.s3m ~/Music/Samples/
 ```
-To dump samples to a folder:
+### The destination folder is optional, you can just do this:
 ```
-xmodits <module path> [dest folder]
+xmodits test.s3m
+```
 
-e.g:
-    xmodits test.s3m ~/B0ney/Downloads/Samples/
+xmodits will place the ripped samples wherever the program is located.
+
+
+### Rip from multiple trackers:
 ```
+xmodits mod1.mod mod2.it mod3.s3m [destination folder]
+```
+### Rip from multiple trackers (Linux):
+```
+xmodits ./*.mod [destination folder]
+```
+(I haven't tested this on windows)
+
+
 
 ## Note
 The purpose of this tool (the core) is to dump samples that's it.

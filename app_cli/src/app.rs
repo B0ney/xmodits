@@ -22,7 +22,5 @@ pub fn dump_samples(mod_path: &PathBuf, dest_dir: &PathBuf) -> Result<(), Error>
         f       => return Err(format!("'{}' is not a supported format.", f).into()),
     }?;
 
-    module.dump(dest_dir, &modname)?;
-    
-    Ok(())
+    module.dump(dest_dir, &modname)
 }

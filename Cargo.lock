@@ -177,7 +177,7 @@ dependencies = [
 
 [[package]]
 name = "xmodits"
-version = "0.8.3-alpha"
+version = "0.8.5-alpha"
 dependencies = [
  "clap",
  "winres",

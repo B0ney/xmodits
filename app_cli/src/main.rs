@@ -1,6 +1,6 @@
 // #![windows_subsystem = "windows"]
 mod app;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use xmodits_lib::Error;
 use clap::{Command, arg, crate_version, crate_authors};
 
@@ -21,11 +21,6 @@ fn main() -> Result<(), Error> {
                 .multiple_values(true)
         )
         .get_matches();
-        
-    let mod_path = match matches.get_one::<String>("module"){
-        Some(path) => { PathBuf::new().join(path) },
-        None => unimplemented!(),
-    };
 
     let mut paths: Vec<PathBuf> = matches.get_many::<String>("module")
         .unwrap()
@@ -37,13 +32,13 @@ fn main() -> Result<(), Error> {
         p if p.is_dir() && paths.len() > 1 => paths.pop().unwrap(),
         _ => std::env::current_dir()?,
     };
-
+    
     paths
         .iter()
         .filter(|f| f.is_file())
         .for_each(|mod_path| {
             if let Err(e) = app::dump_samples(mod_path, &dest_dir) {
-                println!("{}", e);
+                eprintln!("{}", e);
             }
         }
     );
