@@ -42,7 +42,7 @@ jobs:
         run: cargo build  --target=x86_64-pc-windows-gnu --release -p xmodits
 
       - name: version
-        run: echo "0.8.0"
+        run: echo "::set-output name=version::0.8.0"
         id: version
 
       - name: zip up linux
