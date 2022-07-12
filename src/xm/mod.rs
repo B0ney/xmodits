@@ -124,7 +124,16 @@ fn skip_pat_header(buf: &[u8], patnum: usize) -> Result<usize, Error> {
         }
         pat_header_len  = read_u32_le(buf, offset); // should be 9?
         pat_data_size   = read_u16_le(buf, 0x0007 + offset) as u32;
-        offset += (pat_header_len + pat_data_size) as usize; 
+        offset += (pat_header_len + pat_data_size) as usize;
+
+        // if pat_data_size > 9 {
+        //     offset += pat_header_len as usize - 9;
+        // }
+        // offset += (
+        //     pat_data_size
+        //     + pat_header_len - if pat_data_size > 9 { 0 } else { 9 }
+        // ) as usize; 
+        
     }
 
     Ok(offset as usize)

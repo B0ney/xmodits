@@ -33,13 +33,13 @@ jobs:
       - uses: Swatinem/rust-cache@v1
 
       - name: install deps
-        run: sudo apt install -y libatk1.0-0 mingw-w64 librust-atk-dev
+        run: sudo apt install -y mingw-w64
 
       - name: compile linux
-        run: cargo build  --release -p xmodits
+        run: cargo build --features="ascii_art" --release -p xmodits
 
       - name: compile windows
-        run: cargo build  --target=x86_64-pc-windows-gnu --release -p xmodits
+        run: cargo build  --features="ascii_art" --target=x86_64-pc-windows-gnu --release -p xmodits
 
       - name: version
         run: echo "::set-output name=version::0.8.0"

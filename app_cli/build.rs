@@ -1,12 +1,8 @@
 use std::env;
 use std::path::Path;
 use std::path::PathBuf;
-use version_check as rustc;
 
 fn main() {
-    // if !rustc::is_max_version("1.60").unwrap() {
-    //     panic!("This app requires Rust 1.60 or older.");
-    // }
     if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows" {
         use winres::WindowsResource;
         let mut ws = WindowsResource::new();
