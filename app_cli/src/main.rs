@@ -82,7 +82,7 @@ fn main() -> Result<(), Error> {
         let e = app::dump_samples(mod_path, &dest_dir);
         #[cfg(unix)]
         if e.is_err()  {
-            eprintln!("Error: {}", e);
+            eprintln!("Error: {:?}", e);
         }
     });
 
