@@ -43,6 +43,23 @@ fn total_size_MB(paths: &Vec<PathBuf>) -> u64 {
         .sum::<u64>() / (1024 * 1024)
 }
 
+fn help() {
+    println!("{LOGO}-{VERSION}");
+    println!("By {AUTHOR}");
+    println!("{HELP}");
+}
+
+fn version() {
+    println!("{VERSION}");
+}
+
+fn toal_size(paths: Vec<PathBuf>) -> u64 {
+    paths
+        .iter()
+        .map(|e| if let Ok(m) = e.metadata() {m.len()} else {0}).sum()
+
+}
+
 fn main() -> Result<(), Error> {
     let args: Vec<std::ffi::OsString> = env::args_os().skip(1).collect();
 
