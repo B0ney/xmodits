@@ -33,11 +33,12 @@ If you wish to build from source, go to [building](#building).
 
 ## How to Use
 
-**On Windows, you can simply drag and drop a supported module(s) onto the binary.** 
+### Windows: 
+you simply drag and drop a supported module(s) onto the binary.
 
 If successfull, a folder with a similar name to the module should appear.
 
-### In the terminal:
+### In the terminal (Linux):
 
 ```
 xmodits <module path> [destination folder]
