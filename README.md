@@ -91,37 +91,8 @@ Requirements:
 
 The easiest way to compile xmodits is through this command.
 
-The binary size should be acceptable (<1MB)
+The binary size should be acceptable (<500KB)
 
 ```
 cargo build -p xmodits --release
 ```
-
-## Building (Advanced)
-If you want to make the binary size smaller, you can do so here. (nightly version required)
-
-If you have nightly installed, update it to minimize the chance of a build failure:
-```
-rustup update
-```
-If you don't have nightly installed:
-```
-rustup toolchain install nightly
-```
-
-To build on windows (MSVC):
-```
-cargo +nightly build -p xmodits -Z build-std=std,panic_abort --target=x86_64-pc-windows-msvc --release
-```
-To build on windows (GNU):
-```
-cargo +nightly build -p xmodits -Z build-std=std,panic_abort --target=x86_64-pc-windows-gnu --release
-```
-
-
-To build on Linux:
-```
-cargo +nightly build -p xmodits -Z build-std=std,panic_abort --target=x86_64-unknown-linux-gnu --release
-```
-
----
