@@ -47,8 +47,8 @@ jobs:
 
       - name: copy_extra_files
         run: |
-          cp ./LICENSE ./target/release/ ./target/x86_64-pc-windows-gnu/release/
-          cp ./README.md ./target/release/ ./target/x86_64-pc-windows-gnu/release/
+          cp ./LICENSE ./target/release/
+          cp ./README.md ./target/release/
 
           cp ./LICENSE ./target/x86_64-pc-windows-gnu/release/
           cp ./README.md ./target/x86_64-pc-windows-gnu/release/
