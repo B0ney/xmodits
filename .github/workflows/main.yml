@@ -42,7 +42,7 @@ jobs:
         run: cargo build  --features="ascii_art" --target=x86_64-pc-windows-gnu --release -p xmodits
 
       - name: version
-        run: echo "::set-output name=version::${./target/release/xmodits -v}"
+        run: echo "::set-output name=version::$(./target/release/xmodits -v)"
         id: version
 
       - name: copy_extra_files
