@@ -34,7 +34,7 @@ dependencies = [
 
 [[package]]
 name = "xmodits"
-version = "0.8.7-alpha"
+version = "0.8.7"
 dependencies = [
  "winres",
  "xmodits-lib",
