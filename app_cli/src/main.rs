@@ -1,4 +1,4 @@
-// #![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 mod app;
 use std::env;
 use std::path::PathBuf;
@@ -10,7 +10,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 const HELP: &str = "
 USAGE:
-  xmodits <module(s)> [destination folder]
+  xmodits <module>... [destination folder]
 
 FLAGS:
   -h, --help            Prints help information
@@ -35,39 +35,73 @@ fn help() {
 fn version() {
     println!("{VERSION}");
 }
+
+fn total_size_MB(paths: &Vec<PathBuf>) -> u64 {
+    paths
+        .iter()
+        .map(|e| if let Ok(m) = e.metadata() { m.len() } else { 0 })
+        .sum::<u64>() / (1024 * 1024)
+}
+
+fn help() {
+    println!("{LOGO}-{VERSION}");
+    println!("By {AUTHOR}");
+    println!("{HELP}");
+}
+
+fn version() {
+    println!("{VERSION}");
+}
+
 fn toal_size(paths: Vec<PathBuf>) -> u64 {
     paths
         .iter()
         .map(|e| if let Ok(m) = e.metadata() {m.len()} else {0}).sum()
 
 }
+
 fn main() -> Result<(), Error> {
     let args: Vec<std::ffi::OsString> = env::args_os().skip(1).collect();
 
     if args.len() == 0 { help(); return Ok(()); }
 
+    #[cfg(unix)]
     match args[0].to_str() {
-        Some("-v") | Some("--version")  => { version(); return Ok(()); },
-        Some("-h") | Some("--help")     => { help(); return Ok(()); },
+        Some("-v") | Some("--version")  => { return Ok(version()); },
+        Some("-h") | Some("--help")     => { return Ok(help()); },
         _ => {},
     }
 
-    let mut paths: Vec<PathBuf> = args.iter().map(|f| PathBuf::from(f)).collect();
+    let mut paths: Vec<PathBuf> = args
+        .iter()
+        .map(|f| PathBuf::from(f))
+        .collect();
+    
+    #[cfg(unix)]{ 
+    let total_size_mb = total_size_MB(&paths);
+    if total_size_mb > 32 {
+        println!("Ripping {} MB worth of trackers, please wait...", total_size_mb);
+    }}
 
     let dest_dir: PathBuf = match paths.last().unwrap() {
         p if p.is_dir() && paths.len() > 1 => paths.pop().unwrap(),
         _ => env::current_dir()?,
     };
-        
-    paths
+
+    let modules: Vec<&PathBuf> = paths
         .iter()
         .filter(|f| f.is_file())
-        .for_each(|mod_path| {
-            if let Err(e) = app::dump_samples(mod_path, &dest_dir) {
-                eprintln!("Error: {}", e);
-            }
+        .collect();    
+
+    if modules.len() == 0 { return Ok(help()); }
+    
+    modules.iter().for_each(|mod_path| {
+        let e = app::dump_samples(mod_path, &dest_dir);
+        #[cfg(unix)]
+        if e.is_err()  {
+            eprintln!("Error: {:?}", e);
         }
-    );
+    });
 
     Ok(())
 } 

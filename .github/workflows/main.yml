@@ -42,14 +42,23 @@ jobs:
         run: cargo build  --features="ascii_art" --target=x86_64-pc-windows-gnu --release -p xmodits
 
       - name: version
-        run: echo "::set-output name=version::0.8.0"
+        run: echo "::set-output name=version::$(./target/release/xmodits -v)"
         id: version
 
+      - name: copy_extra_files
+        run: |
+          cp ./LICENSE ./target/release/
+          cp ./README.md ./target/release/
+
+          cp ./LICENSE ./target/x86_64-pc-windows-gnu/release/
+          cp ./README.md ./target/x86_64-pc-windows-gnu/release/
+
+
       - name: zip up linux
-        run: zip -j xmodits-linux ./target/release/xmodits
+        run: zip -j xmodits-linux ./target/release/{xmodits,LICENSE,README.md}
 
       - name: zip up windows
-        run: zip -j xmodits-windows ./target/x86_64-pc-windows-gnu/release/xmodits.exe
+        run: zip -j xmodits-windows ./target/x86_64-pc-windows-gnu/release/{xmodits.exe,LICENSE,README.md}
 
       - uses: ncipollo/release-action@v1
         with:
