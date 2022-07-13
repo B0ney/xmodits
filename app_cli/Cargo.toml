@@ -1,17 +1,12 @@
 [package]
 name = "xmodits"
 authors = ["B0ney - https://github.com/B0ney"]
-version = "0.8.5-alpha"
+version = "0.8.7-alpha"
 edition = "2021"
 build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-# libxmodits ~305KiB
 [dependencies]
-clap = {version="3.2.6", features=["cargo"]} # +650KiB
-# bpaf = "0.4.7"
-# try https://crates.io/crates/pico-args + 23KiB
-# or https://crates.io/crates/bpaf + 150KiB
 xmodits-lib = {path = "../"}
 
 [build-dependencies]
@@ -19,11 +14,10 @@ winres = "0.1.12"
 
 [features]
 ascii_art = []
-parallel_dumping = []
 
 [profile.release]
 strip = true
-opt-level = "z"
+opt-level = "s"
 lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 panic = 'abort'  
