@@ -9,9 +9,9 @@ mod cli;
 #[cfg(unix)]
 mod app_unix;
 
-// #[cfg(target_os = "windows")]
+#[cfg(target_os = "windows")]
 mod app_win;
-// #[cfg(target_os = "windows")]
+#[cfg(target_os = "windows")]
 mod dialoge;
 
 fn main() -> Result<(), Error> {
@@ -56,9 +56,9 @@ fn main() -> Result<(), Error> {
         #[cfg(unix)]{ return Ok(cli::help()); }
     }
 
-    // #[cfg(unix)]
-    // return app_unix::run(&modules, &dest_dir); 
+    #[cfg(unix)]
+    return app_unix::run(&modules, &dest_dir); 
 
-    // #[cfg(windows)]
+    #[cfg(windows)]
     return app_win::run(modules, dest_dir);
 }

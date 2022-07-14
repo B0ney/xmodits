@@ -11,6 +11,7 @@ use crate::dialoge;
 enum Msg {
     Success,
     SuccessPartial(Vec<String>),
+    Error(String),
     LatestModule(std::ffi::OsString),
 }
 
@@ -29,13 +30,12 @@ pub fn run(modules: Vec<PathBuf>, dest_dir: PathBuf)-> Result<(), Error> {
         modules
             .iter()
             .for_each(|mod_path| {
-                // send name of module it is currently ripping
-                // please refactor
+                // send name of module it is currently ripping. Please refactor
                 tx.send(Msg::LatestModule(mod_path.file_name().unwrap().to_owned())).unwrap();
 
                 if let Err(error) = app::dump_samples(mod_path, &dest) {
                     errors.push(format!(
-                        "Error ripping: {:?}\n      - {}\n\n",
+                        "Error ripping: {:?}\n{}\n\n",
                         mod_path.file_name().unwrap(),
                         error
                     ));
@@ -47,7 +47,11 @@ pub fn run(modules: Vec<PathBuf>, dest_dir: PathBuf)-> Result<(), Error> {
         // Send errors to main thread if there's any.
         match errors.is_empty() {
             true => tx.send(Msg::Success).unwrap(),
-            false => tx.send(Msg::SuccessPartial(errors)).unwrap()
+            false => if errors.len() > 1 {
+                tx.send(Msg::SuccessPartial(errors)).unwrap()
+            } else { 
+                tx.send(Msg::Error(errors[0].to_owned())).unwrap() 
+            }
         }
     });
 
@@ -56,8 +60,10 @@ pub fn run(modules: Vec<PathBuf>, dest_dir: PathBuf)-> Result<(), Error> {
             Ok(Msg::LatestModule(module)) => {
                 latest_module = module; // used in case the thread panics
             }
-
+            
             Ok(Msg::Success) => dialoge::success(),
+
+            Ok(Msg::Error(e)) => dialoge::failed_single(&e),
 
             Ok(Msg::SuccessPartial(errors)) => {
                 let error_log = PathBuf::new()
