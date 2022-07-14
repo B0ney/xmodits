@@ -48,10 +48,10 @@ pub fn no_valid_modules() {
     )
 }
 
-pub fn critical_error(error: &str) {
+pub fn critical_error(error: &str, module: &std::ffi::OsStr) {
     show_dialoge(
         "Fatal Error",
-        &format!("{}", error),
+        &format!("An internal panic occured while attemping to rip from {:?}\n\nError: {}\nPlease provide this module in your bug report.", module, error),
         MessageType::Error
     )
 }
