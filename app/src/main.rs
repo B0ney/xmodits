@@ -1,13 +1,17 @@
 #![windows_subsystem = "windows"]
-mod app_unix;
-mod app_win;
-mod cli;
 mod app;
 use std::env;
 use std::path::PathBuf;
 use xmodits_lib::Error;
 
-// #[cfg(target_os="windows")]
+#[cfg(unix)] 
+mod cli;
+#[cfg(unix)]
+mod app_unix;
+
+#[cfg(target_os = "windows")]
+mod app_win;
+#[cfg(target_os = "windows")]
 mod dialoge;
 
 fn main() -> Result<(), Error> {
@@ -18,6 +22,7 @@ fn main() -> Result<(), Error> {
     // On Windows, this is a dialogue box
     if args.len() == 0 { 
         #[cfg(windows)]{ return Ok(dialoge::show_help_box()); }
+
         #[cfg(unix)]{ return Ok(cli::help()); }
     }
 
@@ -56,4 +61,4 @@ fn main() -> Result<(), Error> {
 
     #[cfg(windows)]
     return app_win::run(modules, dest_dir);
-} 
+}

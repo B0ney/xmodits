@@ -32,5 +32,4 @@ pub fn run(modules: &[PathBuf], dest_dir: &PathBuf) -> Result<(), Error> {
     });
 
     Ok(())
-
 }
