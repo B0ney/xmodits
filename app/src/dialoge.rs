@@ -12,7 +12,7 @@ fn show_dialoge(title: &str, msg: &str, msg_type: MessageType) {
 pub fn show_help_box() {
     show_dialoge(
         "No tracker modules",
-        "Please drag and drop a valid tracker module onto xmodits.\nSupported formats: .it .s3m .mod .xm",
+        "Please drag and drop a valid tracker module onto xmodits.\nSupported formats: IT, S3M, MOD, XM",
         MessageType::Info
     )
 }
@@ -35,14 +35,14 @@ pub fn success_partial<P: AsRef<std::path::Path>>(log_path: P) {
 pub fn success_partial_no_log(error: &str) {
     show_dialoge(
         "Some errors have occured",
-        &format!("There were some errors while dumping, but I couldn't create a log file: {}", error ),
+        &format!("There were some errors while dumping, but I couldn't create a log file: {}", error),
         MessageType::Warning
     )
 }
 
 pub fn failed_single(error: &str) {
     show_dialoge(
-        "Couldn't rip from this file",
+        "Can't rip from this file",
         &format!("{}", error),
         MessageType::Warning
     )
@@ -51,7 +51,7 @@ pub fn failed_single(error: &str) {
 pub fn no_valid_modules() {
     show_dialoge(
         "No files provided",
-        "You haven't provided any files.\nxmodits supports the following formats: .it .s3m .mod .xm",
+        "You haven't provided any files.\nSupported formats: IT, S3M, MOD, XM",
         MessageType::Error
     )
 }
