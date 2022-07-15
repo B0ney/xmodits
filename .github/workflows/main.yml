@@ -18,12 +18,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      - name: install rustup
-        # You may pin to the exact commit or the version.
-        # uses: EgorDm/gha-yarn-node-cache@5e3a518810b21a8e0e1d236a3db83a18cfc1be9e
-        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
+      - uses: actions/checkout@v3
 
       - name: setup rustup
         run: |

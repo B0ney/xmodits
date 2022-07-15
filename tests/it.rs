@@ -51,3 +51,8 @@ fn it_test_4() {
     let a = ITFile::load_module("tests/mods/it/songofthesky.it").unwrap();
     assert_eq!(a.number_of_samples(), 14);
 }
+
+// #[test]
+fn it_test_mmcmp() {
+    let a = ITFile::load_module("tests/mods/it/creagaia.it").unwrap();
+}
