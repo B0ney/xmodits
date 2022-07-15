@@ -34,11 +34,13 @@ If you wish to build from source, go to [building](#building).
 ## How to Use
 
 ### Windows: 
-you simply drag and drop a supported module(s) onto the binary.
+You simply drag and drop a module(s) onto the binary.
 
-If successfull, a folder with a similar name to the module should appear.
+If successful, a folder with a similar name to the module should appear.
 
-### In the terminal (Linux):
+NOTE: xmodits will place the ripped samples wherever the program is located.
+
+### Linux:
 
 ```
 xmodits <module path> [destination folder]
@@ -58,13 +60,10 @@ xmodits will place the ripped samples wherever the program is located.
 ```
 xmodits mod1.mod mod2.it mod3.s3m [destination folder]
 ```
-### Rip from multiple trackers (Linux):
+### Rip from multiple trackers via "*" :
 ```
 xmodits ./*.mod [destination folder]
 ```
-(I haven't tested this on windows)
-
-
 
 ## Note
 The purpose of this tool (the core) is to dump samples that's it.
@@ -91,7 +90,7 @@ Requirements:
 
 The easiest way to compile xmodits is through this command.
 
-The binary size should be acceptable (<500KB)
+The binary size should be acceptable (<1MB)
 
 ```
 cargo build -p xmodits --release

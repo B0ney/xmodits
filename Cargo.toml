@@ -8,10 +8,11 @@ edition = "2021"
 # libxmodits ~307KiB
 [dependencies]
 byteorder = "1.4.3"
+# thiserror = "1.0.31"
 
 [workspace]
 members = [
-    "app_cli",
+    "app",
 ]
 
 [profile.release]

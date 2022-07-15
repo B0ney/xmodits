@@ -33,3 +33,6 @@ which will lead us to the sample data
 
 sample data is placed sequentially.
 
+## XPK-compression
+Very few MOD files are compressed with Power Packer.
+They can be idntified from "PP20"

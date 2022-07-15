@@ -1,7 +1,6 @@
 use std::path::Path;
 use xmodits_lib::{TrackerDumper, tracker_formats::*};
 
-#[ignore = "todo"]
 #[test]
 fn mod_empty() {
     let a = MODFile::load_module("tests/mods/mod/empty.mod");
@@ -9,7 +8,7 @@ fn mod_empty() {
 }
 
 #[test]
-fn mod_unsupported() {
+fn xpk_mod_unsupported() {
     let a = MODFile::load_module("tests/mods/mod/synthmat.mod");
     assert!(a.is_err());
 }
