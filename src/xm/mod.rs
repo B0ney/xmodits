@@ -9,7 +9,7 @@ const XM_MIN_VER: u16       = 0x0104;
 const XM_SMP_BITS: u8       = 0b0001_0000;  // 1 = 16 bit samples, 0 = 8 bit
 const XM_SMP_SIZE: usize    = 40;
 const XM_FLG_FRQ_TABLE: u16 = 0x1;  // 0th bit
-
+const XM_INS_SIZE: u32 = 263;
 pub struct XMSample {
     smp_len: usize,     // length of sample in bytes??
     smp_name: String,   // sample name
@@ -43,9 +43,9 @@ impl TrackerDumper for XMFile {
         if version < XM_MIN_VER {
             return Err("Unsupported XM version! (is below 0104)".into());
         }
-        let uses_amigia_table: bool = (read_u16_le(&buf, 0x004a) & XM_FLG_FRQ_TABLE) == 0;
+        let uses_amiga_table: bool = (read_u16_le(&buf, 0x004a) & XM_FLG_FRQ_TABLE) == 0;
 
-        if uses_amigia_table  {
+        if uses_amiga_table  {
             /*  If we ignore this and treat AMIGA FREQUENCY as LINEAR FREQUENCY: 
                 * The sampling frquency will be correct, but the waveform wouldn't.
                 * Its waveform appears to have its amplitudes constrained to 0.5,-0.5
@@ -53,15 +53,18 @@ impl TrackerDumper for XMFile {
                 
                 * The waveform when looked at in detail, will have slight differences 
                 compared to a waveform dumped by schism (ignoring the first buggy sample points).
+            
+                refer to https://github.com/Artefact2/libxm/blob/master/src/play.c
             */
             
             return Err("Unsupported XM file. It use the 'AMIGA FREQUENCY TABLE' for its sample data.".into()); 
         }
 
         let module_name: String         = string_from_chars(&buf[chars!(0x0011, 20)]);
+        let header_size: u32            = read_u32_le(&buf, 0x003c);
         let patnum: u16                 = read_u16_le(&buf, 0x0046);
         let insnum: u16                 = read_u16_le(&buf, 0x0048);
-        let ins_offset: usize           = skip_pat_header(&buf, patnum as usize)?;
+        let ins_offset: usize           = skip_pat_header(&buf, patnum as usize, header_size)?;
         let samples: Vec<XMSample>      = build_samples(
             &buf, ins_offset, insnum as usize
         )?;
@@ -108,32 +111,18 @@ impl TrackerDumper for XMFile {
 
 /// Skip xm pattern headers so that we can access instrument headers.
 /// Pattern headers do not have a fixed size so we need to calculate them.
-fn skip_pat_header(buf: &[u8], patnum: usize) -> Result<usize, Error> {
-    let mut offset: usize = 0x0150;
+fn skip_pat_header(buf: &[u8], patnum: usize, header_size: u32) -> Result<usize, Error> {
+    let mut offset: usize = 60 + header_size as usize; // add 60 to go to pat header
     let mut pat_header_len: u32;
     let mut pat_data_size: u32;
     let mut pat_pak_type: u8;
 
     for _ in 0..patnum {
         pat_pak_type = buf[0x0004 + offset];
-        if pat_pak_type != 0 {
-            return Err(
-                format!("Unsupported XM file: pattern packing type should be 0, but it's 0x{:04X}?",
-                    pat_pak_type
-            ).into());
-        }
-        pat_header_len  = read_u32_le(buf, offset); // should be 9?
+        pat_header_len  = read_u32_le(buf, offset);
         pat_data_size   = read_u16_le(buf, 0x0007 + offset) as u32;
-        offset += (pat_header_len + pat_data_size) as usize;
-
-        // if pat_data_size > 9 {
-        //     offset += pat_header_len as usize - 9;
-        // }
-        // offset += (
-        //     pat_data_size
-        //     + pat_header_len - if pat_data_size > 9 { 0 } else { 9 }
-        // ) as usize; 
         
+        offset += (pat_header_len + pat_data_size) as usize;        
     }
 
     Ok(offset as usize)
@@ -149,12 +138,13 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
     for _ in 0..ins_num {
         ins_header_size = read_u32_le(buf, offset);
         ins_smp_num     = read_u16_le(buf, 0x001b + offset);
-        // If instrument has no samples, move to next instrument header
-        if ins_smp_num == 0 {
-            offset += ins_header_size as usize;
-            continue;
-        };
-        
+
+        if ins_header_size == 0 
+            || ins_header_size > XM_INS_SIZE 
+        {
+            ins_header_size = XM_INS_SIZE;
+        }
+       
         offset += ins_header_size as usize; // skip to sample headers
         
         // (length, flag, name, finetune, relative note number)
@@ -172,8 +162,6 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
             ));
             
             offset += XM_SMP_SIZE;
-
-            if offset + 0x0010 > buf.len() { break; }
         }
 
         for (smp_len, smp_flags,
@@ -201,3 +189,19 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
 
     Ok(samples)
 }
+
+// pub fn peroid_linear(note: f32) -> f32 {
+//     6.0
+// }
+
+// pub fn peroid_amiga(note: f32) -> f32 {
+//     6.0
+// }
+
+// pub fn frequency_linear(period: f32) -> f32 {
+
+// }
+
+// pub fn frequency_amiga(period: f32) -> f32 {
+    
+// }

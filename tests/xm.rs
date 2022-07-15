@@ -50,14 +50,14 @@ fn xm_test_4() {
     assert_eq!(a.number_of_samples(), 30);
 }
 
-#[ignore = "not yet done"]
+
 #[test]
 fn xm_test_pat_pak_1() {
     let a = XMFile::load_module("tests/mods/xm/skuter_-_mind_validator.xm").unwrap();
     assert_eq!(a.number_of_samples(), 24);
 } 
 
-#[ignore = "not yet done"]
+
 #[test]
 fn xm_test_pat_pak_2() {
     let a = XMFile::load_module("tests/mods/xm/skuter_-_memoirs.xm").unwrap();
