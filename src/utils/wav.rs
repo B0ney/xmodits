@@ -27,15 +27,15 @@ impl WAV {
         let mut header:[u8; HEADER_SIZE] = [0u8; HEADER_SIZE];     
         let wav_scs:            u32 = 16;                       // sec chunk size
         let wav_type:           u16 = 1;                        // 1 = pcm
-        let channels:           u16 = false as u16 + 1;         // 0x01 = mono, 0x02 = stereo
-        let channels_:/* test */u16 = stereo as u16 + 1;         // 0x01 = mono, 0x02 = stereo
+        // let channels:           u16 = false as u16 + 1;         // 0x01 = mono, 0x02 = stereo
+        let channels:/* test */u16 = stereo as u16 + 1;         // 0x01 = mono, 0x02 = stereo
 
-        let sample_frequency:   u32 = smp_rate;
-        let bytes_sec:          u32 = smp_rate * channels_ as u32;   // sample_rate * channels (DOUBLE CHECK)
-        let block_align:        u16 = 0x01;                     // can be anything really
+        let sample_frequency:   u32 = smp_rate / channels as u32;
+        let bytes_sec:          u32 = smp_rate * channels as u32;   // sample_rate * channels (DOUBLE CHECK)
+        let block_align:        u16 = 0x01;                         // can be anything really
         let bits_sample:        u16 = smp_bits as u16;
-        let file_size:          u32 = HEADER_SIZE as u32 + pcm_len * ((channels_ * bits_sample / 8) as u32) - 8;
-        let size_of_chunk:      u32 = pcm_len * (channels_ * bits_sample / 8) as u32;
+        let file_size:          u32 = HEADER_SIZE as u32 + pcm_len * ((channels * bits_sample / 8) as u32) - 8;
+        let size_of_chunk:      u32 = pcm_len * (channels * bits_sample / 8) as u32;
     
         BE::write_u32(&mut header[dword!(0x0000)], RIFF);
         LE::write_u32(&mut header[dword!(0x0004)], file_size);
@@ -68,8 +68,23 @@ impl WAV {
     }
 }
 
+/// Is there a way to do this without making the program x100 slower?
+/// 
 fn write_interleaved(mut _file: File, _pcm: &[u8], _smp_bits: u8) -> Result<(), Error> {
     return Err("Writing stereo data is not yet supported".into());
-    // file.write_all(pcm).map_err(|e| e.into())
+
+    // Slowest thing in the universe
+    // Don't use this crap
+    
+    // let mut switch: bool = true;
+    // let smp_bytes: usize = (_smp_bits / 8) as usize;
+    // let offset: usize = _pcm.len() / 2;
+
+    // for i in 0..(_pcm.len() / 2) {
+    //     if (i * 2) % (2 * smp_bytes) == 0 {
+    //         switch = !switch
+    //     }
+    //     _file.write(&[_pcm[i + (offset * switch as usize)]])?;
+    // }
     // Ok(())
 }

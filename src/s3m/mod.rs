@@ -98,7 +98,6 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
         let smp_flag: u8        = buf[0x0012 + index];
         // let smp_stereo: bool    = (smp_flag & SMP_MASK_STEREO) >> 2 == 1;
         let smp_stereo: bool    = false;
-        // let _channels: u32      = smp_stereo as u32 + 1;
 
         if (smp_ptr + smp_len) > buf.len() as u32 { break; } // break out of loop if we get a funky offset
 

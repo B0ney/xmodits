@@ -5,7 +5,7 @@
 /// If the sample does have a name, it'll be "$n - $name.wav"
 pub fn name_sample(idx: usize, name: &str) -> String {
     format!(
-        "{}{}.wav",
+        "{:02}{}.wav",
         idx + 1, // use human readable indexing.
         match name.trim() {
             x if x.is_empty() => "".to_string(),
@@ -32,4 +32,9 @@ fn test2() {
 fn test3() { // is this desirable?
     let strw = "ooga v1.2 e.wav".split('.').collect::<Vec<&str>>()[0];
     println!("{:?}", strw); 
+}
+
+#[test]
+fn test4() {
+    println!("{:02}",99);
 }
