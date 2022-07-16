@@ -23,15 +23,20 @@ use crate::{TrackerDumper, TrackerModule};
 
 /// I need to work on "MOD Format.md" before I continue working on this. 
 impl TrackerDumper for MODFile {
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
-        where Self: Sized
-    {
+    fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 20 {
             return Err("Not a valid MOD file".into());
         }
         if BE::read_u32(&buf[dword!(0x0000)]) == MOD_XPK_MAGIC {
             return Err("XPK compressed MOD files are not supported".into());
         }
+        Ok(())
+    }
+    
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
+        where Self: Sized
+    {
+        Self::validate(&buf)?;
 
         let title: String = string_from_chars(&buf[chars!(0x0000, 20)]);
 

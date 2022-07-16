@@ -33,15 +33,20 @@ pub struct ITFile {
 use crate::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for ITFile {
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
-        where Self: Sized
-    {
+    fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < IT_HEADER_LEN
             || read_chars(&buf, 0x0000, 4) != IT_HEADER_ID.as_bytes()
         {
             return Err("File is not a valid Impulse Tracker Module".into());
-        };
-
+        }
+        Ok(())
+    }
+    
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
+        where Self: Sized
+    {
+        Self::validate(&buf)?;
+        
         let title: String           = string_from_chars(&buf[chars!(0x0004, 26)]);
         let ord_num: u16            = read_u16_le(&buf, 0x0020);
         let ins_num: u16            = read_u16_le(&buf, 0x0022);

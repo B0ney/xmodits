@@ -29,9 +29,7 @@ pub struct XMFile {
 use crate::interface::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for XMFile {
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
-        where Self: Sized 
-    {
+    fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 60 
             || read_chars(&buf, 0x0000, 17) != XM_HEADER_ID.as_bytes() 
             || buf[0x0025] != XM_MAGIC_NUM 
@@ -39,12 +37,10 @@ impl TrackerDumper for XMFile {
             return Err("Not a valid XM file".into())
         }
         let version: u16 = read_u16_le(&buf, 0x003A);
-
         if version < XM_MIN_VER {
             return Err("Unsupported XM version! (is below 0104)".into());
         }
         let uses_amiga_table: bool = (read_u16_le(&buf, 0x004a) & XM_FLG_FRQ_TABLE) == 0;
-
         if uses_amiga_table  {
             /*  If we ignore this and treat AMIGA FREQUENCY as LINEAR FREQUENCY: 
                 * The sampling frquency will be correct, but the waveform wouldn't.
@@ -59,6 +55,13 @@ impl TrackerDumper for XMFile {
             
             return Err("Unsupported XM file. It use the 'AMIGA FREQUENCY TABLE' for its sample data.".into()); 
         }
+        Ok(())
+    }
+    
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
+        where Self: Sized 
+    {
+        Self::validate(&buf)?;
 
         let module_name: String         = string_from_chars(&buf[chars!(0x0011, 20)]);
         let header_size: u32            = read_u32_le(&buf, 0x003c);

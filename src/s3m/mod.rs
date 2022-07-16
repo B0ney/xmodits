@@ -25,15 +25,20 @@ pub struct S3MFile {
 use crate::interface::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for S3MFile {
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
-        where Self: Sized
-    {
+    fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 0x0060
             || buf[0x001d] != S3M_MAGIC_NUMBER
             || read_chars(&buf, 0x002c, 4) != S3M_HEADER_ID.as_bytes()
         {
             return Err("File is not a valid Scream Tracker Module".into());
         }
+        Ok(())
+    }
+
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
+        where Self: Sized
+    {
+        Self::validate(&buf)?;
 
         let title: String       = string_from_chars(&buf[chars!(0x0000, 28)]);
         let ord_count: u16      = read_u16_le(&buf, 0x0020);

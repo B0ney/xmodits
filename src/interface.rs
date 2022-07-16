@@ -10,7 +10,8 @@ pub trait TrackerDumper {
         where Self: Sized;
 
     // check if tracker module is valid
-    // fn is_valid(buf: &[u8]) -> Result<(), Error>
+    fn validate(buf: &[u8]) -> Result<(), Error>
+        where Self: Sized;
 
     // export sample given index
     fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error>;
