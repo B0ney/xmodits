@@ -24,17 +24,6 @@ fn test1() {
 }
 
 #[test]
-fn test2() {
-    let strw = "ooga.wav".split('.').collect::<Vec<&str>>()[0];
-    println!("{:?}", strw); 
-}
-#[test]
-fn test3() { // is this desirable?
-    let strw = "ooga v1.2 e.wav".split('.').collect::<Vec<&str>>()[0];
-    println!("{:?}", strw); 
-}
-
-#[test]
 fn test4() {
     println!("{:02}",99);
 }
