@@ -131,7 +131,7 @@ fn check_thread_panic(r: thread::Result<()>, module: &PathBuf) {
             ) {
                 (Some(e), None) => dialoge::critical_error(&e, modname),
                 (None, Some(e)) => dialoge::critical_error(e, modname),
-                _ => dialoge::critical_error("Unkown error...", modname), // This should never happen
+                _ => dialoge::critical_error("Unknown error...", modname), // This should never happen
             }
     }
 }

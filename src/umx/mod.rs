@@ -26,7 +26,6 @@ impl TrackerDumper for UMXFile {
     }  
 
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
-        where Self: Sized  
     {
         Self::validate(&buf)?;
         // identify header to verify it is a um* package

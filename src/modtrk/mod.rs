@@ -34,7 +34,6 @@ impl TrackerDumper for MODFile {
     }
     
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
-        where Self: Sized
     {
         Self::validate(&buf)?;
 
