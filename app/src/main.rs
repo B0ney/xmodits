@@ -53,6 +53,7 @@ fn main() -> Result<(), Error> {
 
     if modules.len() == 0 { 
         #[cfg(windows)]{ return Ok(dialoge::no_valid_modules()); }
+
         #[cfg(unix)]{ return Ok(cli::help()); }
     }
 

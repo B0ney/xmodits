@@ -10,6 +10,7 @@ const XM_SMP_BITS: u8       = 0b0001_0000;  // 1 = 16 bit samples, 0 = 8 bit
 const XM_SMP_SIZE: usize    = 40;
 const XM_FLG_FRQ_TABLE: u16 = 0x1;  // 0th bit
 const XM_INS_SIZE: u32 = 263;
+
 pub struct XMSample {
     smp_len: usize,     // length of sample in bytes??
     smp_name: String,   // sample name
@@ -57,7 +58,7 @@ impl TrackerDumper for XMFile {
         }
         Ok(())
     }
-    
+
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
         where Self: Sized 
     {

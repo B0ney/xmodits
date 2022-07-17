@@ -1,6 +1,7 @@
 use std::io::Write;
 use std::thread;
-use std::sync::mpsc;
+use std::sync::Arc;
+use crossbeam_channel::unbounded;
 use std::path::PathBuf;
 use rand::Rng;
 use xmodits_lib::Error;
@@ -11,46 +12,69 @@ use crate::dialoge;
 enum Msg {
     Success,
     SuccessPartial(Vec<String>),
-    Error(String),
-    LatestModule(std::ffi::OsString),
+    Error(Vec<String>),
+    LatestModule(usize),
 }
 
 // I'm doing this crap because "using the terminal on Windows feels weird"
 pub fn run(modules: Vec<PathBuf>, dest_dir: PathBuf)-> Result<(), Error> {
-    let (tx, rx) = mpsc::channel::<Msg>();
+    // Store modules in Arc<T> to avoid expensive clones.
+    // The main thread still needs access to the modules in case the thread panics.
+    // If that happens, we can tell the user what file cased the panic.
+    let modules: Arc<Vec<PathBuf>> = Arc::new(modules);
+    let mut latest_module: usize = 0;
 
-    let mut latest_module: std::ffi::OsString = std::ffi::OsString::new();
+    let (tx, rx) = unbounded::<Msg>();
 
-    // Let external thread dump samples.
+    // External thread will dump samples
     // If it panics, we can notify the user.
-    let dest = dest_dir.clone();
+    let tx_modules: Arc<Vec<PathBuf>>   = modules.clone();
+    let tx_dest_dir: PathBuf            = dest_dir.clone();
+    
     let dumper_thread = thread::spawn(move || {
-        let mut errors: Vec<String> = Vec::new();
-
-        modules
+        // Preallocate potential errors to avoid reallocation in hot loop 
+        let mut errors: Vec<(usize, Error)> = Vec::with_capacity(tx_modules.len());
+        
+        // Iterate through modules and dump them
+        tx_modules
             .iter()
-            .for_each(|mod_path| {
-                // send name of module it is currently ripping. Please refactor
-                tx.send(Msg::LatestModule(mod_path.file_name().unwrap().to_owned())).unwrap();
+            .enumerate()
+            .for_each(|(index, mod_path)| {
+                // Send index of module it is currently ripping.
+                // Should be cheap to do.
+                tx.send(Msg::LatestModule(index)).unwrap();
 
-                if let Err(error) = app::dump_samples(mod_path, &dest) {
-                    errors.push(format!(
-                        "Error ripping: {:?}\n{}\n\n",
-                        mod_path.file_name().unwrap(),
-                        error
-                    ));
+                // If ripping fails, provide index of module & its error message.
+                // We push (usize, Box<dyn Error>) because it is cheap to do.
+                // This is good for performance in a hot loop.
+                if let Err(error) = app::dump_samples(mod_path, &tx_dest_dir) {
+                    errors.push((index, error));
                 }
-                
             }
         );
 
         // Send errors to main thread if there's any.
         match errors.is_empty() {
             true => tx.send(Msg::Success).unwrap(),
-            false => if errors.len() > 1 {
-                tx.send(Msg::SuccessPartial(errors)).unwrap()
-            } else { 
-                tx.send(Msg::Error(errors[0].to_owned())).unwrap() 
+            false => {
+                // When the loop finishes and if we get any errors,
+                // we can format the errors.
+                let errors: Vec<String> = errors
+                    .iter()
+                    .map(|(index, error)| {
+                        format!(
+                            "Error ripping: {:?}\n{}\n\n",
+                            tx_modules[*index].file_name().unwrap_or_default(),
+                            error
+                        )
+                    })
+                    .collect();
+
+                if errors.len() > 1 {
+                    tx.send(Msg::SuccessPartial(errors)).unwrap()
+                } else { 
+                    tx.send(Msg::Error(errors)).unwrap() 
+                }
             }
         }
     });
@@ -63,7 +87,7 @@ pub fn run(modules: Vec<PathBuf>, dest_dir: PathBuf)-> Result<(), Error> {
             
             Ok(Msg::Success) => dialoge::success(),
 
-            Ok(Msg::Error(e)) => dialoge::failed_single(&e),
+            Ok(Msg::Error(e)) => dialoge::failed_single(&e[0]),
 
             Ok(Msg::SuccessPartial(errors)) => {
                 let error_log = PathBuf::new()
@@ -89,25 +113,25 @@ pub fn run(modules: Vec<PathBuf>, dest_dir: PathBuf)-> Result<(), Error> {
             _ => break,
         }
     }
-    check_thread_panic(&dumper_thread.join(), &latest_module);
+    check_thread_panic(dumper_thread.join(), &modules[latest_module]);
+
     Ok(())
 }
 
 // If the thread panics, the send/recv channels are severed, breaking out of the loop.
 // We fetch the thread's dying wish and display it as a fatal error to the user 
 // alongside the module it was trying to rip.
-fn check_thread_panic(r: &thread::Result<()>, module: &std::ffi::OsStr) {
-    match r {
-        Ok(_) => {},
-        Err(e) => {
-            match (
+fn check_thread_panic(r: thread::Result<()>, module: &PathBuf) {
+    if let Err(e) = r {
+        let modname = module.file_name().unwrap_or_default();
+
+        match (
                 e.downcast_ref::<String>(),
                 e.downcast_ref::<&'static str>()
             ) {
-                (Some(e), None) => dialoge::critical_error(&e, module),
-                (None, Some(e)) => dialoge::critical_error(e, module),
-                _ => dialoge::critical_error("Unkown error...", module), // This should never happen
+                (Some(e), None) => dialoge::critical_error(&e, modname),
+                (None, Some(e)) => dialoge::critical_error(e, modname),
+                _ => dialoge::critical_error("Unkown error...", modname), // This should never happen
             }
-        }
     }
 }

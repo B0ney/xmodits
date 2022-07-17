@@ -11,7 +11,9 @@ xmodits-lib = {path = "../"}
 
 [target.'cfg(windows)'.dependencies]
 native-dialog = {version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
+crossbeam-channel = "0.5.5"
 rand = "0.8.5"
+
 
 [build-dependencies]
 winres = "0.1.12"
