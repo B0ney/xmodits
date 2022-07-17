@@ -60,7 +60,6 @@ impl TrackerDumper for XMFile {
     }
 
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
-        where Self: Sized 
     {
         Self::validate(&buf)?;
 
@@ -108,7 +107,7 @@ impl TrackerDumper for XMFile {
         self.smp_num
     }
 
-    fn module_name(&self) -> &String {
+    fn module_name(&self) -> &str {
         &self.module_name
     }
 }

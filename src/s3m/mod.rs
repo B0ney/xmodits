@@ -81,7 +81,7 @@ impl TrackerDumper for S3MFile {
         self.smp_data.len()
     }
     
-    fn module_name(&self) -> &String {
+    fn module_name(&self) -> &str {
         &self.title
     }
 }

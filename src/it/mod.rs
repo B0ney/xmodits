@@ -114,7 +114,7 @@ impl TrackerDumper for ITFile {
         self.smp_num as usize
     }
 
-    fn module_name(&self) -> &String {
+    fn module_name(&self) -> &str {
         &self.title
     }
 }

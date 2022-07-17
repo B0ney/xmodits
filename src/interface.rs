@@ -20,7 +20,7 @@ pub trait TrackerDumper {
     fn number_of_samples(&self) -> usize;
 
     /// Name of tracker module
-    fn module_name(&self) -> &String;
+    fn module_name(&self) -> &str;
 
     /// Load tracker module from given path
     fn load_module<P>(path: P) -> Result<TrackerModule, Error> 
