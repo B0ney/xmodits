@@ -48,3 +48,9 @@ fn mod_test_4() {
     let a = MODFile::load_module("tests/mods/mod/sleep.mod").unwrap();
     assert_eq!(a.number_of_samples(), 9);
 }
+
+#[test]
+fn mod_test_5() {
+    let a = MODFile::load_module("tests/mods/mod/space_debris.mod").unwrap();
+    assert_eq!(a.number_of_samples(), 17);
+}

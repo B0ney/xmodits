@@ -118,10 +118,8 @@ fn skip_pat_header(buf: &[u8], patnum: usize, header_size: u32) -> Result<usize,
     let mut offset: usize = 60 + header_size as usize; // add 60 to go to pat header
     let mut pat_header_len: u32;
     let mut pat_data_size: u32;
-    let mut pat_pak_type: u8;
 
     for _ in 0..patnum {
-        pat_pak_type = buf[0x0004 + offset];
         pat_header_len  = read_u32_le(buf, offset);
         pat_data_size   = read_u16_le(buf, 0x0007 + offset) as u32;
         

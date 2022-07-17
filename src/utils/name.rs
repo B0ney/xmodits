@@ -11,7 +11,7 @@ pub fn name_sample(idx: usize, name: &str) -> String {
             x if x.is_empty() => "".to_string(),
             x => format!(
                 " - {}", 
-                x.split('.').collect::<Vec<&str>>()[0]
+                x.replace(".wav", "").replace(".", "_")
             ),
         }
     )
@@ -37,4 +37,9 @@ fn test3() { // is this desirable?
 #[test]
 fn test4() {
     println!("{:02}",99);
+}
+#[test]
+fn test5() { // is this desirable?
+    let strw = "ooga v1.2 e.wav".replace(".wav", "").replace(".", "_");
+    println!("{:?}", strw); 
 }
