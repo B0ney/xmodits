@@ -448,7 +448,7 @@ dependencies = [
 
 [[package]]
 name = "xmodits"
-version = "0.9.1"
+version = "0.9.2"
 dependencies = [
  "crossbeam-channel",
  "native-dialog",
