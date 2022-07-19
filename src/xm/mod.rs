@@ -3,18 +3,18 @@ mod deltadecode;
 use crate::utils::prelude::*;
 use deltadecode::{delta_decode_u16, delta_decode_u8};
 
-const XM_HEADER_ID: &str    = "Extended Module: ";
-const XM_MAGIC_NUM: u8      = 0x1a;
-const XM_MIN_VER: u16       = 0x0104;
-const XM_SMP_BITS: u8       = 0b0001_0000;  // 1 = 16 bit samples, 0 = 8 bit
-const XM_SMP_SIZE: usize    = 40;
-const XM_FLG_FRQ_TABLE: u16 = 0x1;  // 0th bit
-const XM_INS_SIZE: u32 = 263;
+const XM_HEADER_ID: &[u8; 17]       = b"Extended Module: ";
+const MOD_PLUGIN_PACKED: &[u8; 20]  = b"MOD Plugin packed   ";
+const XM_MAGIC_NUM: u8              = 0x1a;
+const XM_MIN_VER: u16               = 0x0104;
+const XM_SMP_BITS: u8               = 0b0001_0000;  // 1 = 16 bit samples, 0 = 8 bit
+const XM_SMP_SIZE: usize            = 40;
+const XM_INS_SIZE: u32              = 263;
 
 pub struct XMSample {
     smp_len: usize,     // length of sample in bytes??
     smp_name: String,   // sample name
-    _smp_flags: u8,      // sample bit flags
+    _smp_flags: u8,     // sample bit flags
     smp_bits: u8,       // bits per sample
     smp_ptr: usize,     // offset to sample data
     smp_rate: u32,      // sample sampling rate
@@ -32,17 +32,20 @@ use crate::interface::{TrackerDumper, TrackerModule};
 impl TrackerDumper for XMFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 60 
-            || read_chars(&buf, 0x0000, 17) != XM_HEADER_ID.as_bytes() 
+            || read_chars(&buf, 0x0000, 17) != XM_HEADER_ID 
             || buf[0x0025] != XM_MAGIC_NUM 
-        {   // 3 checks should be enough, anything more is redundant.
+        {
             return Err("Not a valid XM file".into())
         }
+        if read_chars(&buf, 0x0026, 20) == MOD_PLUGIN_PACKED {
+            return Err("Unsupported XM: Uses 'MOD plugin packed'".into());
+        }
+
         let version: u16 = read_u16_le(&buf, 0x003A);
+
         if version < XM_MIN_VER {
             return Err("Unsupported XM version! (is below 0104)".into());
         }
-        let uses_amiga_table: bool = (read_u16_le(&buf, 0x004a) & XM_FLG_FRQ_TABLE) == 0;
-        // dbg!(uses_amiga_table);
 
         Ok(())
     }
@@ -100,8 +103,8 @@ impl TrackerDumper for XMFile {
     }
 }
 
-/// Skip xm pattern headers so that we can access instrument headers.
-/// Pattern headers do not have a fixed size so we need to calculate them.
+/// Skip xm pattern headers to access instrument headers.
+/// Pattern headers do not have a fixed size so they need to be calculated.
 fn skip_pat_header(buf: &[u8], patnum: usize, header_size: u32) -> Result<usize, Error> {
     let mut offset: usize = 60 + header_size as usize; // add 60 to go to pat header
     let mut pat_header_len: u32;
@@ -109,8 +112,7 @@ fn skip_pat_header(buf: &[u8], patnum: usize, header_size: u32) -> Result<usize,
 
     for _ in 0..patnum {
         pat_header_len  = read_u32_le(buf, offset);
-        pat_data_size   = read_u16_le(buf, 0x0007 + offset) as u32;
-        
+        pat_data_size   = read_u16_le(buf, 0x0007 + offset) as u32; 
         offset += (pat_header_len + pat_data_size) as usize;        
     }
 
@@ -149,7 +151,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
                 buf[0x000d + offset] as i8,
                 buf[0x0010 + offset] as i8,
             ));
-            
+            // dbg!(offset);
             offset += XM_SMP_SIZE;
         }
 
@@ -178,19 +180,3 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
 
     Ok(samples)
 }
-
-// pub fn peroid_linear(note: f32) -> f32 {
-//     6.0
-// }
-
-// pub fn peroid_amiga(note: f32) -> f32 {
-//     6.0
-// }
-
-// pub fn frequency_linear(period: f32) -> f32 {
-
-// }
-
-// pub fn frequency_amiga(period: f32) -> f32 {
-    
-// }

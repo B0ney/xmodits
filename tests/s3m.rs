@@ -3,8 +3,9 @@ use xmodits_lib::{TrackerDumper, tracker_formats::*};
 
 #[test]
 fn s3m_invalid_1() {
-    let a = S3MFile::load_module("tests/mods/s3m/invalid.s3m");
-    assert!(a.is_err());
+    assert!(
+        S3MFile::load_module("tests/mods/s3m/invalid.s3m").is_err()
+    );
 }
 
 #[test]

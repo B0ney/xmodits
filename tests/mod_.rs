@@ -3,14 +3,16 @@ use xmodits_lib::{TrackerDumper, tracker_formats::*};
 
 #[test]
 fn mod_empty() {
-    let a = MODFile::load_module("tests/mods/mod/empty.mod");
-    assert!(a.is_err());
+    assert!(
+        MODFile::load_module("tests/mods/mod/empty.mod").is_err()
+    );
 }
 
 #[test]
 fn xpk_mod_unsupported() {
-    let a = MODFile::load_module("tests/mods/mod/synthmat.mod");
-    assert!(a.is_err());
+    assert!(
+        MODFile::load_module("tests/mods/mod/synthmat.mod").is_err()
+    );
 }
 
 #[test]

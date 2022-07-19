@@ -20,11 +20,15 @@ macro_rules! long {
 }
 
 #[macro_export]
+/// chars!(offset, length)
+/// 
+/// Use read_chars() helper function.
 macro_rules! chars  {
     ($i:expr, $e:expr) => {$i..$i + $e};
 }
 
 #[macro_export]
+/// chars!(offset, length)
 macro_rules! slice  {
     ($i:expr, $e:expr) => {$i..$i + $e};
 }

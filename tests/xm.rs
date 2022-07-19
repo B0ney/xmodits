@@ -4,15 +4,18 @@ use xmodits_lib::{TrackerDumper, tracker_formats::*};
 
 #[test]
 fn xm_empty() {
-    let a = XMFile::load_module("tests/mods/xm/invalid.xm");
-    assert!(a.is_err());
+    assert!(
+        XMFile::load_module("tests/mods/xm/invalid.xm").is_err()
+    );
 }
 
-// #[test]
-// fn xm_unsupported() {
-//     let a = XMFile::load_module("tests/mods/xm/synthma.xm");
-//     assert!(a.is_err());
-// }
+#[test]
+fn xm_test_mod_plugin_packed() {
+    assert!(
+        XMFile::load_module("tests/mods/xm/vagyakozas.xm").is_err()
+    );
+}
+
 #[ignore = "not yet done"]
 #[test]
 fn xm_no_samples() {
@@ -25,6 +28,7 @@ fn xm_no_samples() {
     assert!(!export_path.exists());
     assert!(a.dump(&folder, name).is_err())
 }
+/* ####################################################################### */
 
 #[test]
 fn xm_test_1() {
@@ -66,17 +70,18 @@ fn xm_test_pat_pak_2() {
 
 /* ####################################################################### */
 
-#[test]
-fn xm_test_export_1_8bit() {}
+// #[test]
+// fn xm_test_export_1_8bit() {}
 
-#[test]
-fn xm_test_export_2_8bit() {}
+// #[test]
+// fn xm_test_export_2_8bit() {}
 
-#[test]
-fn xm_test_export_1_16bit() {}
+// #[test]
+// fn xm_test_export_1_16bit() {}
 
-#[test]
-fn xm_test_export_2_16bit() {}
+// #[test]
+// fn xm_test_export_2_16bit() {}
+
 
 /* Verify samples ripped from modules with amiga freq flag
    I'm doing this to confirm, that it does nothing to the actual data.

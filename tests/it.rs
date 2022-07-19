@@ -6,10 +6,17 @@ use xmodits_lib::{TrackerDumper, tracker_formats::*};
 
 #[test]
 fn it_empty() {
-    let a = ITFile::load_module("tests/mods/it/empty.it");
-    assert!(a.is_err());
+    assert!(
+        ITFile::load_module("tests/mods/it/empty.it").is_err()
+    );
 }
 
+#[test]
+fn it_test_mmcmp() {
+    assert!(
+        ITFile::load_module("tests/mods/it/creagaia.it").is_err()
+    );
+}
 #[test]
 fn it_no_samples() {
     let a = ITFile::load_module("tests/mods/it/no_samples.it").unwrap();
@@ -50,9 +57,4 @@ fn it_test_3() {
 fn it_test_4() {
     let a = ITFile::load_module("tests/mods/it/songofthesky.it").unwrap();
     assert_eq!(a.number_of_samples(), 14);
-}
-
-// #[test]
-fn it_test_mmcmp() {
-    let a = ITFile::load_module("tests/mods/it/creagaia.it").unwrap();
 }
