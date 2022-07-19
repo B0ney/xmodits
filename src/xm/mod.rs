@@ -44,7 +44,7 @@ impl TrackerDumper for XMFile {
         let version: u16 = read_u16_le(&buf, 0x003A);
 
         if version < XM_MIN_VER {
-            return Err("Unsupported XM version! (is below 0104)".into());
+            return Err("Unsupported XM: Version below 0104".into());
         }
 
         Ok(())
@@ -110,6 +110,10 @@ fn skip_pat_header(buf: &[u8], patnum: usize, header_size: u32) -> Result<usize,
     let mut pat_header_len: u32;
     let mut pat_data_size: u32;
 
+    if patnum > 256 {
+        return Err("Invalid XM: Contains more than 256 patterns".into())
+    }
+
     for _ in 0..patnum {
         pat_header_len  = read_u32_le(buf, offset);
         pat_data_size   = read_u16_le(buf, 0x0007 + offset) as u32; 
@@ -125,6 +129,10 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
     let mut offset: usize           = ins_offset;
     let mut ins_header_size: u32;
     let mut ins_smp_num: u16;
+
+    if ins_num > 128 {
+        return Err("Invalid XM: Contains more than 128 instruments".into());
+    }
 
     for _ in 0..ins_num {
         ins_header_size = read_u32_le(buf, offset);
@@ -144,14 +152,23 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
         // Sample header follows after additional header
         // When this loop completes, the offset will land at sample data
         for _ in 0..ins_smp_num {
+            let length = read_u32_le(buf, offset) as usize;
+
+            // break out of loop if offset leads to overflow panic
+            if 0x0010 + offset > buf.len()
+                || length + (XM_SMP_SIZE * ins_smp_num as usize) > buf.len()
+            {
+                break;
+            }
+
             smp_info.push((
-                read_u32_le(buf, offset) as usize,
+                length,
                 buf[0x000e + offset],
                 string_from_chars(&buf[chars!(0x0012 + offset, 22)]),
                 buf[0x000d + offset] as i8,
                 buf[0x0010 + offset] as i8,
             ));
-            // dbg!(offset);
+
             offset += XM_SMP_SIZE;
         }
 
