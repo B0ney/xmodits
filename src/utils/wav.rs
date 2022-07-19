@@ -27,15 +27,13 @@ impl WAV {
         let mut header:[u8; HEADER_SIZE] = [0u8; HEADER_SIZE];     
         let wav_scs:            u32 = 16;                       // sec chunk size
         let wav_type:           u16 = 1;                        // 1 = pcm
-        // let channels:           u16 = false as u16 + 1;         // 0x01 = mono, 0x02 = stereo
-        let channels:/* test */u16 = stereo as u16 + 1;         // 0x01 = mono, 0x02 = stereo
-
+        let channels:           u16 = stereo as u16 + 1;        // 0x01 = mono, 0x02 = stereo
         let sample_frequency:   u32 = smp_rate / channels as u32;
-        let bytes_sec:          u32 = smp_rate * channels as u32;   // sample_rate * channels (DOUBLE CHECK)
-        let block_align:        u16 = 0x01;                         // can be anything really
+        let block_align:        u16 = channels * (smp_bits / 8) as u16;
+        let bytes_sec:          u32 = smp_rate * block_align as u32;        // sample_rate * channels (DOUBLE CHECK)
         let bits_sample:        u16 = smp_bits as u16;
-        let file_size:          u32 = HEADER_SIZE as u32 + pcm_len * ((channels * bits_sample / 8) as u32) - 8;
-        let size_of_chunk:      u32 = pcm_len * (channels * bits_sample / 8) as u32;
+        let file_size:          u32 = HEADER_SIZE as u32 - 8 + pcm_len * channels as u32;
+        let size_of_chunk:      u32 = pcm_len * channels  as u32;
     
         BE::write_u32(&mut header[dword!(0x0000)], RIFF);
         LE::write_u32(&mut header[dword!(0x0004)], file_size);
@@ -51,7 +49,7 @@ impl WAV {
         BE::write_u32(&mut header[dword!(0x0024)], DATA);
         LE::write_u32(&mut header[dword!(0x0028)], size_of_chunk);
 
-        Self {smp_rate, smp_bits, pcm_len, stereo, header_data: header }
+        Self { smp_rate, smp_bits, pcm_len, stereo, header_data: header }
     }
 
     pub fn write<P: AsRef<Path>>(&self, path: P, pcm: Vec<u8>) -> Result<(), Error> {

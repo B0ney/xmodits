@@ -42,20 +42,8 @@ impl TrackerDumper for XMFile {
             return Err("Unsupported XM version! (is below 0104)".into());
         }
         let uses_amiga_table: bool = (read_u16_le(&buf, 0x004a) & XM_FLG_FRQ_TABLE) == 0;
-        if uses_amiga_table  {
-            /*  If we ignore this and treat AMIGA FREQUENCY as LINEAR FREQUENCY: 
-                * The sampling frquency will be correct, but the waveform wouldn't.
-                * Its waveform appears to have its amplitudes constrained to 0.5,-0.5
-                rather than 1,-1.
-                
-                * The waveform when looked at in detail, will have slight differences 
-                compared to a waveform dumped by schism (ignoring the first buggy sample points).
-            
-                refer to https://github.com/Artefact2/libxm/blob/master/src/play.c
-            */
-            
-            return Err("Unsupported XM file. It use the 'AMIGA FREQUENCY TABLE' for its sample data.".into()); 
-        }
+        // dbg!(uses_amiga_table);
+
         Ok(())
     }
 

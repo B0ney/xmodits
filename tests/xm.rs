@@ -1,5 +1,5 @@
 
-use std::path::Path;
+use std::{path::Path, fs};
 use xmodits_lib::{TrackerDumper, tracker_formats::*};
 
 #[test]
@@ -63,3 +63,45 @@ fn xm_test_pat_pak_2() {
     let a = XMFile::load_module("tests/mods/xm/skuter_-_memoirs.xm").unwrap();
     assert_eq!(a.number_of_samples(), 7);
 } 
+
+/* ####################################################################### */
+
+#[test]
+fn xm_test_export_1_8bit() {}
+
+#[test]
+fn xm_test_export_2_8bit() {}
+
+#[test]
+fn xm_test_export_1_16bit() {}
+
+#[test]
+fn xm_test_export_2_16bit() {}
+
+/* Verify samples ripped from modules with amiga freq flag
+   I'm doing this to confirm, that it does nothing to the actual data.
+*/
+
+// #[test]
+// fn xm_test_export_1_8bit_amig() {
+//     let mod1 = XMFile::load_module("tests/mods/xm/240-185_-_la_grenade_80s.xm").unwrap();
+//     mod1.export(&"tests/export/xm/test_export/", 0).unwrap();
+//     mod1.export(&"tests/export/xm/test_export/", 1).unwrap();
+
+// }
+
+// #[test]
+// fn xm_test_export_2_8bit_amig() {
+    
+// }
+
+// #[test]
+// fn xm_test_export_1_16bit_amig() {
+//     let mod1 = XMFile::load_module("tests/mods/xm/240-185_-_la_grenade_80s.xm").unwrap();
+//     mod1.export(&"tests/export/xm/test_export/", 19).unwrap();
+//     mod1.export(&"tests/export/xm/test_export/", 20).unwrap();
+
+// }
+
+// #[test]
+// fn xm_test_export_2_16bit_amig() {}
