@@ -33,4 +33,4 @@ opt-level = 1
 
 [package.metadata.winres]
 FileDescription = "Rip samples from tracker music with speed!"
-Comments = "This Software is licensed under GPLv3 (or later). You can obtain the source code here: https://github.com/B0ney/xmodits/"
+Comments = "This software is licensed under GPLv3 (or later). You can obtain the source code here: https://github.com/B0ney/xmodits/"

@@ -9,6 +9,8 @@ edition = "2021"
 [dependencies]
 byteorder = "1.4.3"
 # thiserror = "1.0.31"
+[dev-dependencies]
+sha2 = "0.10.2"
 
 [workspace]
 members = [

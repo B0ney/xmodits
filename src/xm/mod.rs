@@ -176,7 +176,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
             smp_name, finetune, notenum) in smp_info 
         {
             if smp_len == 0 { continue; }
-            if (offset + smp_len) > buf.len() { break; }
+            // if (offset + smp_len) > buf.len() { break; }
 
             let period: f32     = 7680.0 - ((48.0 + notenum as f32) * 64.0) - (finetune as f32 / 2.0);
             let smp_rate: u32   = (8363.0 * 2.0_f32.powf((4608.0 - period) / 768.0)) as u32;

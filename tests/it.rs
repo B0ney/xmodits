@@ -58,3 +58,6 @@ fn it_test_4() {
     let a = ITFile::load_module("tests/mods/it/songofthesky.it").unwrap();
     assert_eq!(a.number_of_samples(), 14);
 }
+
+/* ####################################################################### */
+

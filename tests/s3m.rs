@@ -48,3 +48,5 @@ fn s3m_test_4() {
     let a = S3MFile::load_module("tests/mods/s3m/arc-cell.s3m").unwrap();
     assert_eq!(a.number_of_samples(), 6);    
 }
+
+/* ####################################################################### */
