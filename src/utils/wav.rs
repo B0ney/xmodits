@@ -21,7 +21,7 @@ impl WAV {
     pub fn header(
         smp_rate: u32,  // sample rate
         smp_bits: u8,   // bits per sample
-        pcm_len: u32,   // length of byte array
+        pcm_len: u32,   // length of pcm data in BYTES
         stereo: bool    // is pcm stereo)#
     ) -> Self {
         let mut header:[u8; HEADER_SIZE] = [0u8; HEADER_SIZE];     

@@ -101,11 +101,7 @@ impl TrackerDumper for ITFile {
                     },
                     
                     false => {
-                        let end: usize = start + 
-                            (smp.smp_len 
-                                * (smp.smp_bits as u32 / 8)
-                                * (smp.smp_stereo as u32 + 1)
-                            ) as usize;
+                        let end: usize = start + smp.smp_len as usize;
 
                         match smp.smp_bits {
                             8 => (&self.buf[start..end]).to_signed(),
@@ -140,10 +136,13 @@ fn build_samples(buf: &[u8], smp_ptr: Vec<u32>) -> Vec<ITSample> {
         // let smp_stereo: bool    = ((smp_flag & MASK_SMP_STEREO) >> 2)   == 1;
         let smp_stereo: bool    = false;
 
+        // convert to length in bytes
+        let smp_len: u32 = smp_len 
+            * ((smp_bits / 8) as u32)
+            * (smp_stereo as u32 + 1);
+
         if !smp_comp    // break out of loop if we get a funky offset
-            && (smp_ptr + (smp_len 
-                * (smp_bits / 8) as u32)
-                * (smp_stereo as u32 + 1) ) > buf.len() as u32 { break; }
+            && (smp_ptr + smp_len) as usize > buf.len() { break; }
 
         let filename: String    = string_from_chars(&buf[chars!(0x0004 + offset, 12)]);
         let name: String        = string_from_chars(&buf[chars!(0x0014 + offset, 26)]);
