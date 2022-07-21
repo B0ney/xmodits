@@ -17,18 +17,18 @@ pub fn name_sample(idx: usize, name: &str) -> String {
     )
 }
 
-#[test]
-fn test1() {
-    let strw = "               ".trim();
-    println!("{:?}", strw.is_empty()); 
-}
+// #[test]
+// fn test1() {
+//     let strw = "               ".trim();
+//     println!("{:?}", strw.is_empty()); 
+// }
 
-#[test]
-fn test4() {
-    println!("{:02}",99);
-}
-#[test]
-fn test5() { // is this desirable?
-    let strw = "ooga v1.2 e.wav".replace(".wav", "").replace(".", "_");
-    println!("{:?}", strw); 
-}
+// #[test]
+// fn test4() {
+//     println!("{:02}",99);
+// }
+// #[test]
+// fn test5() { // is this desirable?
+//     let strw = "ooga v1.2 e.wav".replace(".wav", "").replace(".", "_");
+//     println!("{:?}", strw); 
+// }

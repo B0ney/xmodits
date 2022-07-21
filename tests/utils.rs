@@ -51,5 +51,12 @@ pub mod file_compare {
     }    
 }
 
+pub fn verify_sample_num(expected: usize, given: usize, modname: &str) {
+    assert_eq!(
+        expected, given, 
+        "{}",format!("\n\nMODNAME: {}\n     EXPECTED: {} SAMPLES, GOT: {} INSTEAD\n\n",modname, expected, given)
+    );
+}
+// pub use verify_sample_num;
 pub use file_hash::{clean_test_export,hash_file};
 pub use file_compare::compare_files;

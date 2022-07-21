@@ -11,11 +11,11 @@ use byteorder::{ByteOrder, LE};
 
 pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo: bool) -> Result<Vec<u8>, Error> {
     use crate::utils::signed::SignedByte;
-    let channels: u32 = stereo as u32 + 1;
+    let _channels: u32 = stereo as u32 + 1;
 
     match smp_bits {
-        16 => decompress_16bit(buf, len, it215, channels),
-        _ => Ok(decompress_8bit(buf, len, it215, channels)?.to_signed()), 
+        16 => decompress_16bit(buf, len, it215),
+        _ => Ok(decompress_8bit(buf, len, it215)?.to_signed()), 
     }
 }
 /*
@@ -145,8 +145,8 @@ impl <'a>BitReader<'a> {
 ///     Add stereo boolean parameter.
 ///
 #[rustfmt::skip]     
-fn decompress_8bit(buf: &[u8], len: u32, it215: bool, channels: u32) -> Result<Vec<u8>, Error> {
-    let mut len: u32 = len * channels;  // Length of uncompressed sample. (copied for mutation)
+fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
+    let mut len: u32 = len;  // Length of uncompressed sample. (copied for mutation)
     let mut blklen: u16;                // uncompressed block length. Usually 0x8000 for 8-Bit samples
     let mut blkpos: u16;                // block position
     let mut sample_value: i8;           // decompressed sample value             (Note i8 for 8 bit samples)
@@ -243,8 +243,8 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool, channels: u32) -> Result<V
 }
 
 #[rustfmt::skip]
-fn decompress_16bit(buf: &[u8], len: u32, it215: bool, channels: u32) -> Result<Vec<u8>, Error> {
-    let mut len: u32 = len * channels;  // Length of uncompressed sample. (copied for mutation)
+fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
+    let mut len: u32 = len / 2;  // Length of uncompressed sample. (copied for mutation)
     let mut blklen: u16;                // uncompressed block length. Usually 0x4000 for 16-Bit samples
     let mut blkpos: u16;                // block position
     let mut sample_value: i16;          // decompressed sample value             (Note i16 for 16 bit samples)
@@ -252,7 +252,7 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool, channels: u32) -> Result<
     let mut d2: i16;                    // second integrator buffer for IT2.15   (Note i16 for 16 bit samples)
     let mut width: u8;                  // Bit width. (Starts at 17 For 16-Bit samples)
     let mut value: u32;                 // Value read (Note u32 for 16 bit sample)
-    let mut dest_buf: Vec<u8>           = Vec::with_capacity(len as usize * 2); // Buffer to write decompressed data
+    let mut dest_buf: Vec<u8>           = Vec::with_capacity(len as usize); // Buffer to write decompressed data
     let mut bitreader: BitReader        = BitReader::new(buf);
 
     while len != 0 {

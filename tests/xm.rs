@@ -2,7 +2,7 @@ use std::{path::{Path, PathBuf}, io, fs, fmt::format};
 // use sha2::{Sha256, Digest};
 use xmodits_lib::{TrackerDumper, tracker_formats::*};
 mod utils;
-use utils::{clean_test_export, hash_file, compare_files};
+use utils::{clean_test_export, hash_file, compare_files, verify_sample_num};
 
 #[test]
 fn xm_empty() {
@@ -90,12 +90,12 @@ fn xm_test_pat_pak_2() {
     )
 } 
 
-pub fn verify_sample_num(expected: usize, given: usize, modname: &str) {
-    assert_eq!(
-        expected, given, 
-        "{}",format!("\n\nMODNAME: {}\n     EXPECTED: {} SAMPLES, GOT: {} INSTEAD\n\n",modname, expected, given)
-    );
-}
+// pub fn verify_sample_num(expected: usize, given: usize, modname: &str) {
+//     assert_eq!(
+//         expected, given, 
+//         "{}",format!("\n\nMODNAME: {}\n     EXPECTED: {} SAMPLES, GOT: {} INSTEAD\n\n",modname, expected, given)
+//     );
+// }
 /* ####################################################################### */
 // Verify exported samples match. this is useful when optimising functions.
 // Optimising can be destructive, so thorough testing is needed.
