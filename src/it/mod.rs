@@ -1,8 +1,9 @@
 mod compression;
-use crate::utils::prelude::*;
+use crate::{utils::prelude::*, dword};
 use self::compression::decompress_sample;
 
-const IT_HEADER_ID: &str    = "IMPM";           // IMPM
+const IT_HEADER_ID: &[u8]   = b"IMPM";          // IMPM
+const ZIRCON: &[u8]         = b"ziRCON";        // mmcmp compression
 const IT_HEADER_LEN: usize  = 192;
 const MASK_SMP_BITS: u8     = 0b0000_0010;      // 16/8bit samples
 const MASK_SMP_STEREO: u8   = 0b0000_0100;      // 0 = mono, 1 = stereo
@@ -34,11 +35,16 @@ use crate::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for ITFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
-        if buf.len() < IT_HEADER_LEN
-            || read_chars(&buf, 0x0000, 4) != IT_HEADER_ID.as_bytes()
-        {
+        if buf.len() < IT_HEADER_LEN {
+            return Err("File is not a valid Impulse Tracker module".into());
+        }
+        if &buf[chars!(0x0000, 6)] == ZIRCON {
+            return Err("Unsupported IT: Uses 'ziRCON' sample compression".into());
+        }
+        if &buf[dword!(0x0000)] != IT_HEADER_ID {
             return Err("File is not a valid Impulse Tracker Module".into());
         }
+
         Ok(())
     }
     

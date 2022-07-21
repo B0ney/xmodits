@@ -1,15 +1,20 @@
 use crate::utils::prelude::*;
 use crate::{dword, word};
+mod tables;
+use tables::FINETUNE_TABLE;
 use byteorder::{BE, ByteOrder};
-const MOD_XPK_MAGIC: u32 = 0x50503230; // PP20
-const MOD_SMP_START: usize = 0x0014; // offset where title ends & smp data begins
-const MOD_SMP_LEN: usize = 0x1e;
-const PAT_META: usize = 0x3b8;
+
+const MOD_XPK_MAGIC: u32        = 0x50503230; // PP20
+const MOD_SMP_START: usize      = 0x0014; // offset where title ends & smp data begins
+const MOD_SMP_LEN: usize        = 0x1e;
+const PAT_META: usize           = 0x3b8;
+const ALT_FINETUNE: [&[u8]; 2]  = [b"M&K!", b"FEST"];
 
 pub struct MODSample {
     name: String,
     length: u16,
-    index: usize
+    index: usize,
+    freq: u16,
 }
 
 pub struct MODFile {
@@ -24,7 +29,7 @@ use crate::{TrackerDumper, TrackerModule};
 /// I need to work on "MOD Format.md" before I continue working on this. 
 impl TrackerDumper for MODFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
-        if buf.len() < 20 {
+        if buf.len() < 1085 {
             return Err("Not a valid MOD file".into());
         }
         if BE::read_u32(&buf[dword!(0x0000)]) == MOD_XPK_MAGIC {
@@ -37,7 +42,8 @@ impl TrackerDumper for MODFile {
     {
         Self::validate(&buf)?;
 
-        let title: String = string_from_chars(&buf[chars!(0x0000, 20)]);
+        let title: String       = string_from_chars(&buf[chars!(0x0000, 20)]);
+        let alt_finetune: bool  = ALT_FINETUNE.contains(&&buf[dword!(0x0438)]);
 
         // if it contains any non-ascii, it was probably made with ultimate sound tracker
         let smp_num: u8 = { 
@@ -47,23 +53,30 @@ impl TrackerDumper for MODFile {
             { 15 } else { 31 }
         };     
           
-        // Fixed panic on modules made with ulitimate sound tracker.
-        let offset: usize = if smp_num == 15 { (15 + 1) * 30 } else { 0 };
+        // Fixed panic on modules made with ultimate sound tracker.
+        // ^ outdated
+        // TODO: Why did I add 1? I fogor
+        let offset: usize = if smp_num == 15 { (15+1) * 30 } else { 0 };
 
         let largest_pat = *buf[chars!(PAT_META - offset, 128)]
             .iter()
             .max()
             .unwrap() as usize;
 
+        // TODO: Document mysterious values
+        // 0x0428 = 4 byte tag to identify mod type add 4 to skip
         let smp_index: usize = {
-            (0x0438 - offset) + (largest_pat + 1) * 1024 
+            4 + (0x0438 - offset) + (largest_pat + 1) * 1024 
         }; 
 
+        if smp_index == buf.len() {
+            return Err("MOD has no samples".into())
+        }
         if smp_index >= buf.len() {
             return Err("Invalid MOD".into())
         }
-
-        let smp_data: Vec<MODSample> = build_samples(smp_num, &buf, smp_index)?;
+        
+        let smp_data: Vec<MODSample> = build_samples(smp_num, &buf, smp_index, alt_finetune)?;
 
         Ok(Box::new(Self {
             title,
@@ -84,7 +97,7 @@ impl TrackerDumper for MODFile {
             .join(folder)
             .join(name_sample(index, &smp.name));
 
-        WAV::header(8363, 8, smp.length as u32, false)
+        WAV::header(smp.freq as u32, 8, smp.length as u32, false)
             .write(path, (&self.buf[start..end]).to_signed())
     }
 
@@ -97,7 +110,7 @@ impl TrackerDumper for MODFile {
     }
 }
 
-fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Result<Vec<MODSample>, Error> {
+fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) -> Result<Vec<MODSample>, Error> {
     let mut smp_data: Vec<MODSample> = Vec::with_capacity(smp_num as usize);
     let mut smp_pcm_stream_index: usize = smp_start;
 
@@ -112,10 +125,22 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize) -> Result<Vec<MODSam
 
         if len as usize + smp_pcm_stream_index > buf.len() { break; }
 
+        let finetune: u8 = buf[0x0018 + offset];
+
+        let freq: u16 = match alt_finetune {
+            true => {
+                (// untested
+                    8363.0 * 2.0_f32.powf((-(finetune as i8).wrapping_shl(3)) as f32 / 1536.0)
+                ) as u16
+            },
+            false => FINETUNE_TABLE[((finetune & 0xf) ^ 8) as usize]
+        };
+
         smp_data.push(MODSample {
             name: string_from_chars(&buf[chars!(offset, 22)]),
             index: smp_pcm_stream_index,
             length: len, 
+            freq
         });
         
         smp_pcm_stream_index += len as usize;
