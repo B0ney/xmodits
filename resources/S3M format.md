@@ -92,8 +92,8 @@ smp ptr = Sample Parapointer
 
 ** flags NEEDS CHECKING
 ```
-0000_00x0 => loop on
-0000_0x00 => stereo
+0000_000x => loop on
+0000_00x0 => stereo
 0000_x000 => 16 bit LE sample
 
 

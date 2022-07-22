@@ -1,24 +1,21 @@
-// #[cfg(test)]
-// mod tests {
 use std::path::{Path, PathBuf};
 mod utils;
-use utils::{clean_test_export, hash_file, compare_files, verify_sample_num};
+use utils::{clean_test_export, compare_files, verify_sample_num};
 
 use xmodits_lib::{TrackerDumper, tracker_formats::*};
 
 #[test]
 fn it_empty() {
-    assert!(
-        ITFile::load_module("tests/mods/it/empty.it").is_err()
-    );
+    assert!(Path::new("tests/mods/it/empty.it").exists());
+    assert!(ITFile::load_module("tests/mods/it/empty.it").is_err());
 }
 
 #[test]
 fn it_test_mmcmp() {
-    assert!(
-        ITFile::load_module("tests/mods/it/creagaia.it").is_err()
-    );
+    assert!(Path::new("tests/mods/it/creagaia.it").exists());
+    assert!(ITFile::load_module("tests/mods/it/creagaia.it").is_err());
 }
+
 #[test]
 fn it_no_samples() {
     let a = ITFile::load_module("tests/mods/it/no_samples.it").unwrap();

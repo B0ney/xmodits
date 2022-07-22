@@ -28,9 +28,9 @@ impl WAV {
         let wav_scs:            u32 = 16;                       // sec chunk size
         let wav_type:           u16 = 1;                        // 1 = pcm
         let channels:           u16 = stereo as u16 + 1;        // 0x01 = mono, 0x02 = stereo
-        let sample_frequency:   u32 = smp_rate / channels as u32;
+        let sample_frequency:   u32 = smp_rate /*/ channels as u32*/;
         let block_align:        u16 = channels * (smp_bits / 8) as u16;
-        let bytes_sec:          u32 = smp_rate * block_align as u32;        // sample_rate * channels (DOUBLE CHECK)
+        let bytes_sec:          u32 = smp_rate * block_align as u32;
         let bits_sample:        u16 = smp_bits as u16;
         let file_size:          u32 = HEADER_SIZE as u32 - 8 + pcm_len * channels as u32;
         let size_of_chunk:      u32 = pcm_len * channels  as u32;
@@ -68,8 +68,11 @@ impl WAV {
 
 /// Is there a way to do this without making the program x100 slower?
 /// 
+/// s3m already interleaves stereo data, right?
 fn write_interleaved(mut _file: File, _pcm: &[u8], _smp_bits: u8) -> Result<(), Error> {
-    return Err("Writing stereo data is not yet supported".into());
+    _file.write_all(&_pcm).map_err(|e| e.into())
+    // Ok(())
+    // return Err("Writing stereo data is not yet supported".into());
 
     // Slowest thing in the universe
     // Don't use this crap

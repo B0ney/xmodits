@@ -3,9 +3,10 @@ pub mod file_hash {
     use std::{path::Path, fs, io};
 
     pub fn hash_file(file: &mut fs::File) -> String {
-    let mut hasher = Sha256::new();
-    let _ = io::copy(file, &mut hasher).unwrap();
-        format!("{:X}",hasher.finalize())
+        let mut hasher = Sha256::new();
+        let _ = io::copy(file, &mut hasher).unwrap();
+        
+        format!("{:X}", hasher.finalize())
     }
 
     pub fn clean_test_export<P: AsRef<Path>>(root: P, number: usize) -> Result<(), u8> {
@@ -14,7 +15,6 @@ pub mod file_hash {
             .map(|e| e.unwrap().path())
             .filter(|f| f.extension() == Some(std::ffi::OsStr::new("wav"))) 
         {
-            // dbg!(&file);
             fs::remove_file(file).unwrap();
         }
         Ok(())
@@ -22,8 +22,8 @@ pub mod file_hash {
 }
 
 pub mod file_compare {
-    use std::{path::Path, fs, io};
-    use super::{hash_file, clean_test_export};
+    use std::{path::Path, fs};
+    use super::hash_file;
     
     pub fn compare_files<T, U>(
         files: Vec<(&str, &str)>,
@@ -58,5 +58,5 @@ pub fn verify_sample_num(expected: usize, given: usize, modname: &str) {
     );
 }
 // pub use verify_sample_num;
-pub use file_hash::{clean_test_export,hash_file};
+pub use file_hash::{clean_test_export, hash_file};
 pub use file_compare::compare_files;

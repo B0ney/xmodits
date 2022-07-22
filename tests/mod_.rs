@@ -21,16 +21,6 @@ fn mod_no_samples() {
         MODFile::load_module("tests/mods/mod/no_samples.mod").is_err()
     );
 }
-// fn mod_no_samples() {
-//     let a = MODFile::load_module("tests/mods/mod/no_samples.mod").unwrap();
-//     let folder = "test/exports/";
-//     let name = "MOD-please-delete";
-//     let export_path = Path::new(folder).join(name);
-    
-//     assert_eq!(a.number_of_samples(), 0);
-//     assert!(!export_path.exists());
-//     assert!(a.dump(&folder, name).is_err())
-// }
 
 #[test]
 fn mod_test_1() {

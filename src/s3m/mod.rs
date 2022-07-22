@@ -3,8 +3,8 @@ use crate::utils::prelude::*;
 
 const S3M_HEADER_ID: &str       = "SCRM";
 const S3M_MAGIC_NUMBER: u8      = 0x10;
-const SMP_MASK_STEREO: u8       = 0b0000_0100;
-const SMP_MASK_BITS: u8         = 0b0000_1000;
+const SMP_MASK_STEREO: u8       = 0b0000_0010;
+const SMP_MASK_BITS: u8         = 0b0000_0100;
 const INS_HEAD_LENGTH: usize    = 13;
 
 pub struct S3MSample {
@@ -74,7 +74,12 @@ impl TrackerDumper for S3MFile {
             .join(name_sample(index, &smp.smp_name));
 
         WAV::header(smp.smp_rate, smp.smp_bits, smp.smp_len, smp.smp_stereo)
-            .write_ref(path, &self.buf[start..end])
+            .write(path, 
+                match smp.smp_bits {
+                    8 => self.buf[start..end].to_owned(),
+                    _ => (&self.buf[start..end]).to_signed_u16(),
+                }
+            )
     }
 
     fn number_of_samples(&self) -> usize {
@@ -100,21 +105,21 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
         let lo_ptr: u16         = read_u16_le(buf, 0x0001 + index);
         let smp_ptr: u32        = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
         let smp_flag: u8        = buf[0x0012 + index];
-        // let smp_stereo: bool    = (smp_flag & SMP_MASK_STEREO) >> 2 == 1;
-        let smp_stereo: bool    = false;
+        let smp_stereo: bool    = (smp_flag & SMP_MASK_STEREO) >> 1 == 1;
+        let smp_bits: u8        = if (smp_flag & SMP_MASK_BITS) >> 2 == 1 { 16 } else { 8 };
+        let smp_len: u32        = smp_len * (smp_stereo as u32 + 1) * (smp_bits/8) as u32;
 
         if (smp_ptr + smp_len) > buf.len() as u32 { break; } // break out of loop if we get a funky offset
 
         let smp_name: String    = string_from_chars(&buf[chars!(0x0023 + index, 28)]);
         let smp_rate: u32       = read_u32_le(buf, 0x0013 + index);
-        let smp_bits: u8        = if (smp_flag & SMP_MASK_BITS) >> 3 == 1 { 16 } else { 8 };
 
         samples.push(S3MSample {
             smp_name,
             smp_len,
             smp_rate,
             smp_bits,
-            smp_stereo,   
+            smp_stereo,
             smp_ptr
         })
     }

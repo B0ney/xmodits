@@ -1,8 +1,7 @@
-use std::{path::{Path, PathBuf}, io, fs, fmt::format};
-// use sha2::{Sha256, Digest};
+use std::path::{Path, PathBuf};
 use xmodits_lib::{TrackerDumper, tracker_formats::*};
 mod utils;
-use utils::{clean_test_export, hash_file, compare_files, verify_sample_num};
+use utils::{clean_test_export, compare_files, verify_sample_num};
 
 #[test]
 fn xm_empty() {
