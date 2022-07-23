@@ -58,7 +58,6 @@ struct BitReader<'a> {
     bitnum: u8,             // Bits left. When it hits 0, it resets to 8 & "blk_index" increments by 1.  
     bitbuf: u32,            // Internal buffer for storing read bits
     buf: &'a [u8],          // IT Module buffer (read-only because reading data shouldn't modify anything)
-    blk_data: Vec<u8>,      // Sections of "buf" are copied here for modification. (may affect performance)
     blk_index: usize,       // Used to index blk_data.
 }
 
@@ -67,7 +66,6 @@ impl <'a>BitReader<'a> {
         Self { 
             bitnum: 0,
             bitbuf:0,
-            blk_data: Vec::new(),
             buf,
             blk_index: 0,
             block_offset: 0x0000,
@@ -77,30 +75,17 @@ impl <'a>BitReader<'a> {
     fn read_next_block(&mut self) -> Result<(), Error> {
         // First 2 bytes combined to u16 (LE). Tells us size of compressed block. 
         let block_size: u16 = read_u16_le(self.buf, self.block_offset);
-
-        if self.blk_data.is_empty() { 
-            self.blk_data = self._allocate(block_size as usize)?;
-        } else {
-            // Move to next block when called again
-            // Add 2 since we need to skip previous length field
-            self.block_offset += block_size as usize + 2;  
-        }
         
         // Set to 2 to skip length field
         self.blk_index = 2 + self.block_offset; 
+
         // Initialize bit buffers.
         // (Following the original by setting it to 0 caused a lot of headaches :D)
-        self.bitbuf = self.blk_data[self.blk_index] as u32; 
+        self.bitbuf = self.buf[self.blk_index] as u32; 
         self.bitnum = 8;
+        self.block_offset += block_size as usize + 2;  
         Ok(())
     }   
-    // only do this once 
-    fn _allocate(&self, size: usize) -> Result<Vec<u8>, Error> {
-        if self.buf.len() < self.block_offset + size + 2 {
-            return Err("Cannot Allocate, buffer is too small".into());
-        }
-        Ok(self.buf[self.block_offset..].to_owned())
-    } 
 
     fn read_bits_u16(&mut self, n: u8) -> u16 { 
         self.read_bits_u32(n) as u16
@@ -117,7 +102,7 @@ impl <'a>BitReader<'a> {
         for _ in 0..i {
             if self.bitnum == 0 {
                 self.blk_index += 1;
-                self.bitbuf = self.blk_data[self.blk_index] as u32;
+                self.bitbuf = self.buf[self.blk_index] as u32;
                 self.bitnum = 8;
             }
             value >>= 1;
