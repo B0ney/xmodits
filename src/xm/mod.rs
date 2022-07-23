@@ -148,15 +148,22 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
         
         // (length, flag, name, finetune, relative note number)
         let mut smp_info: Vec<(usize, u8, String, i8, i8)> = Vec::new();
-
         // Sample header follows after additional header
         // When this loop completes, the offset will land at sample data
+        let mut cumulative_size: usize = 0;
+
         for _ in 0..ins_smp_num {
-            let length = read_u32_le(buf, offset) as usize;
+            let length: usize = read_u32_le(buf, offset) as usize;
+            cumulative_size += length;
+
+            // restart loop if length is 0
+            if length == 0 { offset += XM_SMP_SIZE; continue; }
 
             // break out of loop if offset leads to overflow panic
             if 0x0010 + offset > buf.len()
-                || length + (XM_SMP_SIZE * ins_smp_num as usize) > buf.len()
+                || offset                                  // +
+                    + (XM_SMP_SIZE * ins_smp_num as usize) // + -> offset After loop
+                    + length > buf.len()
             {
                 break;
             }
@@ -175,9 +182,6 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
         for (smp_len, smp_flags,
             smp_name, finetune, notenum) in smp_info 
         {
-            if smp_len == 0 { continue; }
-            // if (offset + smp_len) > buf.len() { break; }
-
             let period: f32     = 7680.0 - ((48.0 + notenum as f32) * 64.0) - (finetune as f32 / 2.0);
             let smp_rate: u32   = (8363.0 * 2.0_f32.powf((4608.0 - period) / 768.0)) as u32;
             let smp_bits: u8    = (((smp_flags & XM_SMP_BITS) >> 4) + 1) * 8;
@@ -191,7 +195,8 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
                 smp_rate
             });
 
-            offset += smp_len as usize;
+            // Move offset to next sample data
+            offset += smp_len as usize; 
         }
     }
 

@@ -70,6 +70,16 @@ fn xm_test_4() {
 }
 
 #[test]
+fn xm_test_5_wacky_sample_size() {
+    let a = XMFile::load_module("tests/mods/xm/sb-joint.xm").unwrap();
+    verify_sample_num(
+        25,
+        a.number_of_samples(),
+        a.module_name()
+    );
+}
+
+#[test]
 fn xm_test_pat_pak_1() {
     let a = XMFile::load_module("tests/mods/xm/skuter_-_mind_validator.xm").unwrap();
     verify_sample_num(

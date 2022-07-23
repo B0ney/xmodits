@@ -131,7 +131,7 @@ impl <'a>BitReader<'a> {
 ///
 #[rustfmt::skip]     
 fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
-    let mut len: u32 = len;  // Length of uncompressed sample. (copied for mutation)
+    let mut len: u32 = len;             // Length of uncompressed sample. (copied for mutation)
     let mut blklen: u16;                // uncompressed block length. Usually 0x8000 for 8-Bit samples
     let mut blkpos: u16;                // block position
     let mut sample_value: i8;           // decompressed sample value             (Note i8 for 8 bit samples)
@@ -229,7 +229,7 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
 
 #[rustfmt::skip]
 fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
-    let mut len: u32 = len / 2;  // Length of uncompressed sample. (copied for mutation)
+    let mut len: u32 = len / 2;         // Length of uncompressed sample. (copied for mutation)
     let mut blklen: u16;                // uncompressed block length. Usually 0x4000 for 16-Bit samples
     let mut blkpos: u16;                // block position
     let mut sample_value: i16;          // decompressed sample value             (Note i16 for 16 bit samples)

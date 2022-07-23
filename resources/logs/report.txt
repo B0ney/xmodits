@@ -1,0 +1,81 @@
+**** xmodits report: 30 jun 2022 ****
+
+TESTED FORMATS:
+* IT
+* MOD
+* S3M
+
+TOTAL MODULES TESTED:
+* 8,902
+
+TIME ELAPSED:
+1m50.473s
+
+ERRORS:
+* Panics (hard crashes): 25 (Most likely from very old MOD formats)
+* Handeled Errors: 1        (Source: Impulse Tracker)
+* Conflicting Names: 1
+
+Total number of tracker modules **fully dumped**:
+8875
+
+Success rate: 99.69%
+
+Output size (including failed dumps): 2.1GiB (2,225,305,329 Bytes)
+
+
+**** xmodits report: 9 jul 2022 ****
+
+TESTED FORMATS:
+* IT
+* MOD
+* S3M
+
+TOTAL MODULES TESTED:
+* 8,902
+
+1m17.558s
+
+ERRORS:
+* Panics (hard crashes): 0
+* Handeled Errors: 1        (Source: Impulse Tracker)
+* Conflicting Names: 1
+
+Total number of tracker modules **fully dumped**:
+8,900
+
+Success: 99.98%
+
+Output size (including failed dumps): 2,210,344,004
+
+**** xmodits report: 12 jul 2022 ****
+
+everything is handeled in the binary, so no bash was needed.
+
+TOTAL MODULES TESTED:
+* 8,902
+
+0m43.376s
+
+**** xmodits report: 23 jul 2022 ****
+
+everything is handeled in the binary, so no bash was needed.
+
+TOTAL MODULES TESTED:
+* 8,902
+
+0m38.442s
+
+ERRORS:
+* Panics (hard crashes): 0
+* Handeled Errors:
+    * MOD:  5 (1 for conflicting names)
+    * IT:   2 (1 for invalid bit width)
+    * S3M:  0
+
+Total number of tracker modules **fully dumped**:
+* 8,897
+
+99.94%
+
+Output size (including failed dumps): 2,213,644,255

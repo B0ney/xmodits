@@ -1,0 +1,61 @@
+xm files: 3,389
+
+xm successfully dumped: 3,364
+
+Handled errors: 21
+panics: 3
+
+
+
+Error: "Unsupported XM version! (is below 0104)"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0080?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0016?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0020?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0001?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0006?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x001E?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0017?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0019?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0006?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0016?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0046?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0012?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x001B?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0001?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x000D?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0013?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x001D?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x001E?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0004?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0031?"
+Error: "Unsupported XM file: pattern packing type should be 0, but it's 0x0080?"
+
+thread 'main' panicked at 'range end index 141336 out of range for slice of length 138738',
+thread 'main' panicked at 'range end index 2064999 out of range for slice of length 2043904',
+thread 'main' panicked at 'range end index 399564 out of range for slice of length 362592',
+
+
+real    1m7.160s
+user    0m10.176s
+sys     0m6.617s
+
+
+23 07 2022
+
+Ripping 2757 MB worth of trackers, please wait...
+Error: "Invalid XM: Contains more than 128 instruments"
+Error: "Unsupported XM: Uses 'MOD plugin packed'"
+Error: "Unsupported XM: Version below 0104"
+Error: "Unsupported XM: Uses 'MOD plugin packed'"
+Error: "Unsupported XM: Uses 'MOD plugin packed'"
+Error: "Module has no samples"
+
+real    0m26.768s
+user    0m1.952s
+sys     0m5.493s
+
+panics = 0
+3389
+3383 success
+
+
