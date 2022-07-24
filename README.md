@@ -24,9 +24,6 @@
 | ⏳ | In progress|
 | 🚧 | Part of roadmap |
 
-
-
-
 ## Download
 You can download builds for xmodits [here](https://github.com/B0ney/xmodits/releases).
 
