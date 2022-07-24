@@ -1,7 +1,8 @@
 use std::path::PathBuf;
+use crate::dword;
 use crate::utils::prelude::*;
 
-const S3M_HEADER_ID: &str       = "SCRM";
+const S3M_HEADER_ID: &[u8]      = b"SCRM";
 const S3M_MAGIC_NUMBER: u8      = 0x10;
 const SMP_MASK_STEREO: u8       = 0b0000_0010;
 const SMP_MASK_BITS: u8         = 0b0000_0100;
@@ -28,7 +29,7 @@ impl TrackerDumper for S3MFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 0x0060
             || buf[0x001d] != S3M_MAGIC_NUMBER
-            || read_chars(&buf, 0x002c, 4) != S3M_HEADER_ID.as_bytes()
+            || &buf[dword!(0x002c)] != S3M_HEADER_ID
         {
             return Err("File is not a valid Scream Tracker Module".into());
         }
@@ -39,7 +40,7 @@ impl TrackerDumper for S3MFile {
     {
         Self::validate(&buf)?;
 
-        let title: String       = string_from_chars(&buf[chars!(0x0000, 28)]);
+        let title: String       = read_string(&buf, 0x0000, 28);
         let ord_count: u16      = read_u16_le(&buf, 0x0020);
         let ins_count: u16      = read_u16_le(&buf, 0x0022);
         let ins_ptr_list: u16   = 0x0060 + ord_count;
@@ -74,7 +75,8 @@ impl TrackerDumper for S3MFile {
             .join(name_sample(index, &smp.smp_name));
 
         WAV::header(smp.smp_rate, smp.smp_bits, smp.smp_len, smp.smp_stereo)
-            .write(path, 
+            .write(
+                path, 
                 match smp.smp_bits {
                     8 => self.buf[start..end].to_owned(),
                     _ => (&self.buf[start..end]).to_signed_u16(),
@@ -111,7 +113,7 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
 
         if (smp_ptr + smp_len) > buf.len() as u32 { break; } // break out of loop if we get a funky offset
 
-        let smp_name: String    = string_from_chars(&buf[chars!(0x0023 + index, 28)]);
+        let smp_name: String    = read_string(buf, 0x0023 + index, 28);
         let smp_rate: u32       = read_u32_le(buf, 0x0013 + index);
 
         samples.push(S3MSample {

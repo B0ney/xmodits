@@ -1,6 +1,7 @@
-use crate::{word, chars, dword};
+use crate::{word, slice, dword};
 
 use byteorder::{ByteOrder, LE};
+
 
 /*
 In this case, "#[inline]" sorta acts as a macro
@@ -25,6 +26,13 @@ pub fn read_u32_le(buf: &[u8], offset: usize) -> u32 {
 
 #[inline]
 /// Helper function to make chars! more readable
-pub fn read_chars(buf: &[u8], offset: usize, len: usize) -> &[u8] {
-    &buf[chars!(offset, len)]
+pub fn read_slice(buf: &[u8], offset: usize, len: usize) -> &[u8] {
+    &buf[slice!(offset, len)]
+}
+
+#[inline]
+/// Helper function to obtain String from ```&[u8]```
+pub fn read_string(buf: &[u8], offset: usize, len: usize) -> String {
+    use super::ascii::string_from_buf;
+    string_from_buf(read_slice(buf, offset, len))
 }

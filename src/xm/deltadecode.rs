@@ -1,5 +1,6 @@
-// XM samples are encoded in delta values
-// https://github.com/milkytracker/MilkyTracker/blob/master/resources/reference/xm-form.txt#L303=
+/*  XM samples are encoded in delta values
+    https://github.com/milkytracker/MilkyTracker/blob/master/resources/reference/xm-form.txt#L303= 
+*/
 use byteorder::{ByteOrder, LE};
 use crate::word;
 

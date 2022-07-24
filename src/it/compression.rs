@@ -1,12 +1,12 @@
-/// Impulse Tracker decompression
-/// 
-/// Reference:
-/// https://github.com/nicolasgramlich/AndEngineMODPlayerExtension/blob/master/jni/loaders/itsex.c
-/// https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
-/// https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
+/*  Impulse Tracker sample decompression
+
+    References:
+    https://github.com/nicolasgramlich/AndEngineMODPlayerExtension/blob/master/jni/loaders/itsex.c
+    https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
+    https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
+*/
 
 use crate::utils::{Error, reader::read_u16_le};
-// use crate::word;
 use byteorder::{ByteOrder, LE};
 
 pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo: bool) -> Result<Vec<u8>, Error> {
@@ -18,41 +18,40 @@ pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo
         _ => Ok(decompress_8bit(buf, len, it215)?.to_signed()), 
     }
 }
-/*
-/ My solution to C's awful shared states.
-/ 
-/ In the original C implementation, "read bits" and "read block"
-/ share a lot of data. 
-/ 
-/ So why not combine them?
-/ 
-/ 
-/ bit reading order:
-/ ```
-/ 0101_1100, 1011_0111,   ....._.....
-/ |       |  |       |    |         |
-/ \   <-<-|  \   <-<-|    \       <-|
-/         |          |-------|      |-(3) Contiune until desired bits are met
-/         |                  |
-/         |-(1) Start here   |
-/           (Right -> Left)  |
-/                            |-(2) When it reaches MSB (Most Significant Bit)
-/                               Move to next byte. Continue reading until it hits MSB.
-/  
-/ If I want to read 12 bits, the result would be:
-/ 
-/ 0111__0101_1100
-/    |  |_______|
-/    |          |-- From first Byte
-/    |--------|
-/             |---- From second Byte
-/ 
-/ You'd pad the Left Most bits like so:
-/ 
-/ 0000_0111__0101_1100
-/ ```
-*/
 
+/*
+My solution to C's awful shared states.
+
+In the original C implementation, "read bits" and "read block"
+share a lot of data. 
+
+So why not combine them?
+
+bit reading order:
+
+0101_1100, 1011_0111,   ....._.....
+|       |  |       |    |         |
+\   <-<-|  \   <-<-|    \       <-|
+        |          |-------|      |-(3) Contiune until desired bits are met
+        |                  |
+        |-(1) Start here   |
+          (Right -> Left)  |
+                           |-(2) When it reaches MSB (Most Significant Bit)
+                              Move to next byte. Continue reading until it hits MSB.
+ 
+If I want to read 12 bits, the result would be:
+
+0111__0101_1100
+   |  |_______|
+   |          |-- From first Byte
+   |--------|
+            |---- From second Byte
+
+You'd pad the Left Most bits like so:
+
+0000_0111__0101_1100
+
+*/
 struct BitReader<'a> {
     block_offset: usize,    // Location of next block
     bitnum: u8,             // Bits left. When it hits 0, it resets to 8 & "blk_index" increments by 1.  
@@ -92,10 +91,6 @@ impl <'a>BitReader<'a> {
     }
 
     fn read_bits_u32(&mut self, n: u8) -> u32 { 
-        // prevent panic if user forgets to call before reading bits.
-        // tbh this is more useful when unit testing than here... 
-        // if self.blk_data.is_empty() { self.read_next_block()?; }
-
         let mut value: u32 = 0;
         let i =  n;
 

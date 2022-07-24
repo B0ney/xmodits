@@ -4,11 +4,11 @@ mod tables;
 use tables::FINETUNE_TABLE;
 use byteorder::{BE, ByteOrder};
 
-const MOD_XPK_MAGIC: u32        = 0x50503230; // PP20
-const MOD_SMP_START: usize      = 0x0014; // offset where title ends & smp data begins
+const ALT_FINETUNE: [&[u8]; 2]  = [b"M&K!", b"FEST"];
+const MOD_XPK_MAGIC: &[u8]      = b"PP20";      // PP20
+const MOD_SMP_START: usize      = 0x0014;       // offset where title ends & smp data begins
 const MOD_SMP_LEN: usize        = 0x1e;
 const PAT_META: usize           = 0x3b8;
-const ALT_FINETUNE: [&[u8]; 2]  = [b"M&K!", b"FEST"];
 
 pub struct MODSample {
     name: String,
@@ -32,7 +32,7 @@ impl TrackerDumper for MODFile {
         if buf.len() < 1085 {
             return Err("Not a valid MOD file".into());
         }
-        if BE::read_u32(&buf[dword!(0x0000)]) == MOD_XPK_MAGIC {
+        if &buf[dword!(0x0000)] == MOD_XPK_MAGIC {
             return Err("XPK compressed MOD files are not supported".into());
         }
         Ok(())
@@ -42,7 +42,7 @@ impl TrackerDumper for MODFile {
     {
         Self::validate(&buf)?;
 
-        let title: String       = string_from_chars(&buf[chars!(0x0000, 20)]);
+        let title: String       = read_string(&buf, 0x0000, 20);
         let alt_finetune: bool  = ALT_FINETUNE.contains(&&buf[dword!(0x0438)]);
 
         // if it contains any non-ascii, it was probably made with ultimate sound tracker
@@ -58,13 +58,13 @@ impl TrackerDumper for MODFile {
         // TODO: Why did I add 1? I fogor
         let offset: usize = if smp_num == 15 { (15+1) * 30 } else { 0 };
 
-        let largest_pat = *buf[chars!(PAT_META - offset, 128)]
+        let largest_pat = *buf[slice!(PAT_META - offset, 128)]
             .iter()
             .max()
             .unwrap() as usize;
 
         // TODO: Document mysterious values
-        // 0x0428 = 4 byte tag to identify mod type add 4 to skip
+        // 0x0438 = 4 byte tag to identify mod type add 4 to skip
         let smp_index: usize = {
             4 + (0x0438 - offset) + (largest_pat + 1) * 1024 
         }; 
@@ -128,16 +128,12 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
         let finetune: u8 = buf[0x0018 + offset];
 
         let freq: u16 = match alt_finetune {
-            true => {
-                (// untested
-                    8363.0 * 2.0_f32.powf((-(finetune as i8).wrapping_shl(3)) as f32 / 1536.0)
-                ) as u16
-            },
-            false => FINETUNE_TABLE[((finetune & 0xf) ^ 8) as usize]
+            true    => alt_frequency(finetune as i8),
+            false   => FINETUNE_TABLE[((finetune & 0xf) ^ 8) as usize]
         };
 
         smp_data.push(MODSample {
-            name: string_from_chars(&buf[chars!(offset, 22)]),
+            name: read_string(&buf, offset, 22),
             index: smp_pcm_stream_index,
             length: len, 
             freq
@@ -147,4 +143,8 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
     }
     
     Ok(smp_data)
+}
+
+fn alt_frequency(finetune: i8) -> u16 {
+    (363.0 * 2.0_f32.powf(-finetune.wrapping_shl(3) as f32 / 1536.0 )) as u16
 }

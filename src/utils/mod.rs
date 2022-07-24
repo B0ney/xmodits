@@ -46,20 +46,19 @@ pub mod prelude {
     pub use std::path::PathBuf;
 
     // Import helper functions
-    // pub use super::wav;
     pub use super::wav::WAV;
 
     pub use super::signed::SignedByte;
     pub use super::name::name_sample;
-    pub use super::reader::read_chars;
+    pub use super::reader::read_slice;
+    pub use super::reader::read_string;
     pub use super::reader::read_u16_le;
     pub use super::reader::read_u32_le;
-    pub use super::ascii::string_from_chars;
     pub use super::Error;
 
     // Import macros
     // pub use crate::word;
     // pub use crate::dword;
-    pub use crate::chars;
+    pub use crate::slice;
 }
 

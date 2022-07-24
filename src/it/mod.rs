@@ -2,7 +2,7 @@ mod compression;
 use crate::{utils::prelude::*, dword};
 use self::compression::decompress_sample;
 
-const IT_HEADER_ID: &[u8]   = b"IMPM";          // IMPM
+const IT_HEADER_ID: &[u8]   = b"IMPM";
 const ZIRCON: &[u8]         = b"ziRCON";        // mmcmp compression
 const IT_HEADER_LEN: usize  = 192;
 const MASK_SMP_BITS: u8     = 0b0000_0010;      // 16/8bit samples
@@ -38,7 +38,7 @@ impl TrackerDumper for ITFile {
         if buf.len() < IT_HEADER_LEN {
             return Err("File is not a valid Impulse Tracker module".into());
         }
-        if &buf[chars!(0x0000, 6)] == ZIRCON {
+        if &buf[slice!(0x0000, 6)] == ZIRCON {
             return Err("Unsupported IT: Uses 'ziRCON' sample compression".into());
         }
         if &buf[dword!(0x0000)] != IT_HEADER_ID {
@@ -52,7 +52,7 @@ impl TrackerDumper for ITFile {
     {
         Self::validate(&buf)?;
         
-        let title: String           = string_from_chars(&buf[chars!(0x0004, 26)]);
+        let title: String           = read_string(&buf, 0x0004, 26);
         let ord_num: u16            = read_u16_le(&buf, 0x0020);
         let ins_num: u16            = read_u16_le(&buf, 0x0022);
         let smp_num: u16            = read_u16_le(&buf, 0x0024);
@@ -144,8 +144,8 @@ fn build_samples(buf: &[u8], smp_ptr: Vec<u32>) -> Vec<ITSample> {
         if !smp_comp    // break out of loop if we get a funky offset
             && (smp_ptr + smp_len) as usize > buf.len() { break; }
 
-        let filename: String    = string_from_chars(&buf[chars!(0x0004 + offset, 12)]);
-        let name: String        = string_from_chars(&buf[chars!(0x0014 + offset, 26)]);
+        let filename: String    = read_string(&buf,0x0004 + offset, 12);
+        let name: String        = read_string(&buf,0x0014 + offset, 26);
         let smp_rate: u32       = read_u32_le(buf, 0x003C + offset);
 
         smp_meta.push(ITSample {
