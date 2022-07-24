@@ -2,7 +2,7 @@
     <img alt="XMODITS Logo" src="icon.png">
 </p>
 
-# XMODITS - A fast & lightweight tool to rip samples from tracker modules
+# XMODITS - A fast & lightweight tool to rip samples from tracker music.
 [![unit_testing](https://github.com/B0ney/xmodits/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/B0ney/xmodits/actions/workflows/rust.yml)
 
 ## Supported Formats:
