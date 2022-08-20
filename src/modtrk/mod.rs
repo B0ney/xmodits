@@ -10,13 +10,6 @@ const MOD_SMP_START: usize      = 0x0014;       // offset where title ends & smp
 const MOD_SMP_LEN: usize        = 0x1e;
 const PAT_META: usize           = 0x3b8;
 
-pub struct MODSample {
-    name: String,
-    length: u16,
-    index: usize,
-    freq: u16,
-}
-
 pub struct MODFile {
     buf: Vec<u8>,
     title: String,
@@ -24,7 +17,8 @@ pub struct MODFile {
     smp_data: Vec<MODSample>,
 }
 
-use crate::{TrackerDumper, TrackerModule};
+type MODSample = TrackerSample;
+use crate::{TrackerDumper, TrackerModule, TrackerSample};
 
 /// I need to work on "MOD Format.md" before I continue working on this. 
 impl TrackerDumper for MODFile {
@@ -91,14 +85,12 @@ impl TrackerDumper for MODFile {
             return Err("Path is not a folder".into());
         }
         let smp: &MODSample         = &self.smp_data[index];
-        let start: usize            = smp.index;
-        let end: usize              = start + smp.length as usize;
         let path: PathBuf           = PathBuf::new()
             .join(folder)
             .join(name_sample(index, &smp.name));
 
-        WAV::header(smp.freq as u32, 8, smp.length as u32, false)
-            .write(path, (&self.buf[start..end]).to_signed())
+        WAV::header(smp.rate as u32, 8, smp.len as u32, false)
+            .write(path, (&self.buf[smp.ptr_range()]).to_signed())
     }
 
     fn number_of_samples(&self) -> usize {
@@ -107,6 +99,10 @@ impl TrackerDumper for MODFile {
 
     fn module_name(&self) -> &str {
         &self.title
+    }
+
+    fn list_sample_data(&self) -> &[TrackerSample] {
+        &self.smp_data
     }
 }
 
@@ -134,9 +130,12 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
 
         smp_data.push(MODSample {
             name: read_string(&buf, offset, 22),
-            index: smp_pcm_stream_index,
-            length: len, 
-            freq
+            index: i,
+            len: len as usize, 
+            ptr: smp_pcm_stream_index,
+            bits: 8,
+            rate: freq as u32,
+            ..Default::default()
         });
         
         smp_pcm_stream_index += len as usize;

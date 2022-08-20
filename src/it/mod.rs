@@ -10,18 +10,6 @@ const MASK_SMP_STEREO: u8   = 0b0000_0100;      // 0 = mono, 1 = stereo
 const MASK_SMP_COMP: u8     = 0b0000_1000;      // Does sample use compression?
 const IT215: u16            = 0x0215;           // IT215 compression 
 
-pub struct ITSample {
-    pub filename: String,
-    pub name: String,           
-    pub smp_len: u32,           // This is NOT in bytes
-    pub smp_ptr: u32,           // Sample Pointer
-    pub smp_rate: u32,          // Sample rate
-    pub smp_flag: u8,           // Sample flag
-    pub smp_bits: u8,           // Does sample use 16 or 8 bits
-    pub smp_comp: bool,         // Does sample use compression?
-    pub smp_stereo: bool,       // Is sample stereo?
-}
-
 pub struct ITFile {
     title: String,
     buf: Vec<u8>,
@@ -31,7 +19,8 @@ pub struct ITFile {
     pub smp_data: Vec<ITSample>,
 }
 
-use crate::{TrackerDumper, TrackerModule};
+type ITSample = TrackerSample;
+use crate::{TrackerDumper, TrackerModule, TrackerSample};
 
 impl TrackerDumper for ITFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
@@ -84,28 +73,25 @@ impl TrackerDumper for ITFile {
             return Err("Path is not a folder".into());
         }
         let smp: &ITSample          = &self.smp_data[index];
-        let start: usize            = smp.smp_ptr as usize;
         let filename: PathBuf       = PathBuf::new()
             .join(folder)
             .join(name_sample(index, &smp.filename));
 
-        WAV::header(smp.smp_rate, smp.smp_bits, smp.smp_len, smp.smp_stereo)
+        WAV::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
             .write(filename, 
-                match smp.smp_comp {
+                match smp.is_compressed {
                     true => {
                         decompress_sample(
-                            &self.buf[start..], smp.smp_len,
-                            smp.smp_bits, self.compat_ver == IT215,
-                            smp.smp_stereo
+                            &self.buf[smp.ptr..], smp.len as u32,
+                            smp.bits, self.compat_ver == IT215,
+                            smp.is_stereo
                         )?
                     },
                     
                     false => {
-                        let end: usize = start + smp.smp_len as usize;
-
-                        match smp.smp_bits {
-                            8 => (&self.buf[start..end]).to_signed(),
-                            _ => (&self.buf[start..end]).to_owned(),
+                        match smp.bits {
+                            8 => (&self.buf[smp.ptr_range()]).to_signed(),
+                            _ => (&self.buf[smp.ptr_range()]).to_owned(),
                         }
                     },
                 }
@@ -119,47 +105,52 @@ impl TrackerDumper for ITFile {
     fn module_name(&self) -> &str {
         &self.title
     }
+
+    fn list_sample_data(&self) -> &[TrackerSample] {
+        &self.smp_data
+    }
 }
 
-fn build_samples(buf: &[u8], smp_ptr: Vec<u32>) -> Vec<ITSample> {
-    let mut smp_meta: Vec<ITSample> = Vec::with_capacity(smp_ptr.len());
+fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
+    let mut sample_data: Vec<ITSample> = Vec::with_capacity(smp_ptrs.len());
 
-    for i in smp_ptr {
-        let offset: usize       = i as usize;
-        let smp_len: u32        = read_u32_le(buf, 0x0030 + offset);
-        if smp_len == 0 { continue; }
+    for (index, i) in smp_ptrs.iter().enumerate() {
+        let offset: usize           = *i as usize;
+        let len: u32                = read_u32_le(buf, 0x0030 + offset);
+        if len == 0 { continue; }
 
-        let smp_ptr: u32        = read_u32_le(buf, 0x0048 + offset);
-        let smp_flag: u8        = buf[0x012 + offset];
-        let smp_bits: u8        = (((smp_flag & MASK_SMP_BITS) >> 1) +  1) * 8;
-        let smp_comp: bool      = ((smp_flag & MASK_SMP_COMP) >> 3)     == 1;
-        // let smp_stereo: bool    = ((smp_flag & MASK_SMP_STEREO) >> 2)   == 1;
-        let smp_stereo: bool    = false;
+        let ptr: u32                = read_u32_le(buf, 0x0048 + offset);
+        let flags: u8               = buf[0x012 + offset];
+        let bits: u8                = (((flags & MASK_SMP_BITS) >> 1) +  1) * 8;
+        let is_compressed: bool     = ((flags & MASK_SMP_COMP) >> 3)     == 1;
+        // let smp_stereo: bool     = ((smp_flag & MASK_SMP_STEREO) >> 2)   == 1;
+        let is_stereo: bool         = false;
 
         // convert to length in bytes
-        let smp_len: u32 = smp_len 
-            * ((smp_bits / 8) as u32)
-            * (smp_stereo as u32 + 1);
+        let len: u32 = len 
+            * ((bits / 8) as u32)
+            * (is_stereo as u32 + 1);
 
-        if !smp_comp    // break out of loop if we get a funky offset
-            && (smp_ptr + smp_len) as usize > buf.len() { break; }
+        if !is_compressed    // break out of loop if we get a funky offset
+            && (ptr + len) as usize > buf.len() { break; }
 
         let filename: String    = read_string(&buf,0x0004 + offset, 12);
         let name: String        = read_string(&buf,0x0014 + offset, 26);
-        let smp_rate: u32       = read_u32_le(buf, 0x003C + offset);
+        let rate: u32           = read_u32_le(buf, 0x003C + offset);
 
-        smp_meta.push(ITSample {
-            filename,
+        sample_data.push(ITSample {
             name,
-            smp_len,
-            smp_ptr,
-            smp_rate,
-            smp_bits,
-            smp_comp,
-            smp_stereo,
-            smp_flag,
+            filename,
+            index,
+            len: len as usize,
+            ptr: ptr as usize,
+            flags,
+            rate,
+            is_stereo,
+            is_compressed,
+            bits,
         })
     }
 
-    smp_meta
+    sample_data
 }

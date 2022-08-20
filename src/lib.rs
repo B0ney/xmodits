@@ -9,7 +9,7 @@ mod umx;
 mod utils;
 mod interface;
 
-pub use interface::{TrackerDumper, TrackerModule};
+pub use interface::{TrackerDumper, TrackerModule, TrackerSample};
 pub use utils::Error;
 
 

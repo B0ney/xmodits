@@ -4,6 +4,41 @@ use crate::utils::Error;
 
 pub type TrackerModule = Box<dyn TrackerDumper>;
 
+#[derive(Default, Debug)]
+pub struct TrackerSample {
+    /// Sample name
+    pub name: String,
+    /// Sample filename
+    pub filename: String,
+    /// You should to call ```index()``` instead as this value is zero indexed.
+    pub index: usize,          
+    /// Sample length in BYTES
+    pub len: usize,             
+    /// Sample pointer
+    pub ptr: usize,             
+    /// Sample flags
+    pub flags: u8,             
+    /// Bits per sample
+    pub bits: u8,               
+    /// Sample rate
+    pub rate: u32,              
+    /// Is sample stereo?
+    pub is_stereo: bool,        
+    /// Is sample compressed?
+    pub is_compressed: bool,    
+}
+
+impl TrackerSample {
+    /// Return both Start & End pointers to sample data as a range.
+    pub fn ptr_range(&self) -> std::ops::Range<usize> {
+        self.ptr..(self.ptr + self.len)
+    }
+    /// Return Sample's index as if its listed in a tracker module.
+    pub fn index(&self) -> usize {
+        self.index + 1
+    }
+}
+
 pub trait TrackerDumper {
     /// Load tracker module from memory
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
@@ -21,6 +56,9 @@ pub trait TrackerDumper {
 
     /// Name of tracker module
     fn module_name(&self) -> &str;
+
+    /// List tracker sample infomation
+    fn list_sample_data(&self) -> &[TrackerSample];
 
     /// Load tracker module from given path
     fn load_module<P>(path: P) -> Result<TrackerModule, Error> 

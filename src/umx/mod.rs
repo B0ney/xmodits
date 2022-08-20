@@ -59,5 +59,8 @@ impl TrackerDumper for UMXFile {
     }
     fn module_name(&self) -> &str {
         unimplemented!()
+    }
+    fn list_sample_data(&self) -> &[crate::TrackerSample] {
+        unimplemented!()
     }  
 }
