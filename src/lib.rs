@@ -8,6 +8,7 @@ mod umx;
 #[allow(unused, dead_code)]
 mod utils;
 mod interface;
+mod error;
 
 pub use interface::{TrackerDumper, TrackerModule, TrackerSample};
 pub use utils::Error;

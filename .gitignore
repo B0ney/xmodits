@@ -7,3 +7,5 @@
 /extras/aseprite/
 /extras/old/
 *.wav
+/xmodits_py/.github/
+/xmodits_py/dev/
