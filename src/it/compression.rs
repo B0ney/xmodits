@@ -1,10 +1,10 @@
-/*  Impulse Tracker sample decompression
+/// Impulse Tracker sample decompression
+/// References:
+/// https://github.com/nicolasgramlich/AndEngineMODPlayerExtension/blob/master/jni/loaders/itsex.c
+/// https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
+/// https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
+/// 
 
-    References:
-    https://github.com/nicolasgramlich/AndEngineMODPlayerExtension/blob/master/jni/loaders/itsex.c
-    https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
-    https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
-*/
 
 use crate::{utils::{Error, reader::read_u16_le}, XmoditsError};
 use byteorder::{ByteOrder, LE};
@@ -153,7 +153,7 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
             if width > 9 {
                 return Err(
                     XmoditsError::SampleExtractionFailure(
-                        format!("Invalid Bit width. Why is it {}?", width).into()
+                        format!("Invalid Bit width. Why is it {}?", width)
                     )
                 );
             }
@@ -254,8 +254,9 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error>
             if width > 17 {
                 return Err(
                     XmoditsError::SampleExtractionFailure(
-                        format!("Invalid Bit width. Why is it {}?", width).into())
-                    );
+                        format!("Invalid Bit width. Why is it {}?", width)
+                    )
+                );
             }
 
             value = bitreader.read_bits_u32(width);

@@ -1,6 +1,8 @@
 use std::path::PathBuf;
-use crate::{dword, XmoditsError};
-use crate::utils::prelude::*;
+use crate::{
+    utils::prelude::*, dword,
+    TrackerDumper, TrackerModule, TrackerSample, XmoditsError
+};
 
 const S3M_HEADER_ID: &[u8]      = b"SCRM";
 const S3M_MAGIC_NUMBER: u8      = 0x10;
@@ -8,14 +10,13 @@ const SMP_MASK_STEREO: u8       = 0b0000_0010;
 const SMP_MASK_BITS: u8         = 0b0000_0100;
 const INS_HEAD_LENGTH: usize    = 13;
 
+type S3MSample = TrackerSample;
+
 pub struct S3MFile {
     buf: Vec<u8>,
     title: String,
     smp_data: Vec<S3MSample>,
 }
-
-type S3MSample = TrackerSample;
-use crate::interface::{TrackerDumper, TrackerModule, TrackerSample};
 
 impl TrackerDumper for S3MFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {

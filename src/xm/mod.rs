@@ -1,6 +1,10 @@
 mod deltadecode;
-use crate::{utils::prelude::*, XmoditsError};
 use deltadecode::{delta_decode_u16, delta_decode_u8};
+use crate::{
+    utils::prelude::*,
+    TrackerDumper, TrackerModule, TrackerSample,
+    XmoditsError
+};
 
 const XM_HEADER_ID: &[u8; 17]       = b"Extended Module: ";
 const MOD_PLUGIN_PACKED: &[u8; 20]  = b"MOD Plugin packed   ";
@@ -10,15 +14,14 @@ const MASK_SMP_BITS: u8             = 0b0001_0000;  // 1 = 16 bit samples, 0 = 8
 const XM_SMP_SIZE: usize            = 40;
 const XM_INS_SIZE: u32              = 263;
 
+type XMSample = TrackerSample;
+
 pub struct XMFile {
     buf: Vec<u8>,
     module_name: String,    // Name of tracker module
     samples: Vec<XMSample>,
     smp_num: usize,
 }
-
-type XMSample = TrackerSample;
-use crate::interface::{TrackerDumper, TrackerModule, TrackerSample};
 
 impl TrackerDumper for XMFile {
     fn validate(buf: &[u8]) -> Result<(), XmoditsError> {

@@ -1,6 +1,11 @@
 mod compression;
-use crate::{utils::prelude::*, dword};
 use self::compression::decompress_sample;
+use crate::{
+    utils::prelude::*, dword,
+    TrackerDumper, TrackerModule, TrackerSample, XmoditsError
+};
+
+type ITSample = TrackerSample;
 
 const IT_HEADER_ID: &[u8]   = b"IMPM";
 const ZIRCON: &[u8]         = b"ziRCON";        // mmcmp compression
@@ -18,9 +23,6 @@ pub struct ITFile {
     pub smp_num: u16,
     pub smp_data: Vec<ITSample>,
 }
-
-type ITSample = TrackerSample;
-use crate::{TrackerDumper, TrackerModule, TrackerSample, XmoditsError};
 
 impl TrackerDumper for ITFile {
     fn validate(buf: &[u8]) -> Result<(), XmoditsError> {

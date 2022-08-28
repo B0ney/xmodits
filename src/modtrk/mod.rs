@@ -1,8 +1,9 @@
-use crate::utils::prelude::*;
-use crate::{dword, word, XmoditsError};
-
 mod tables;
 use tables::FINETUNE_TABLE;
+use crate::{
+    utils::prelude::*, dword, word,
+    TrackerDumper, TrackerModule, TrackerSample, XmoditsError
+};
 use byteorder::{BE, ByteOrder};
 
 const ALT_FINETUNE: [&[u8]; 2]  = [b"M&K!", b"FEST"];
@@ -11,15 +12,14 @@ const MOD_SMP_START: usize      = 0x0014;       // offset where title ends & smp
 const MOD_SMP_LEN: usize        = 0x1e;
 const PAT_META: usize           = 0x3b8;
 
+type MODSample = TrackerSample;
+
 pub struct MODFile {
     buf: Vec<u8>,
     title: String,
     smp_num: u8,
     smp_data: Vec<MODSample>,
 }
-
-type MODSample = TrackerSample;
-use crate::{TrackerDumper, TrackerModule, TrackerSample};
 
 /// I need to work on "MOD Format.md" before I continue working on this. 
 impl TrackerDumper for MODFile {
