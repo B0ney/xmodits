@@ -14,10 +14,14 @@ pub enum XmoditsError {
     #[error("{0}")]
     IoError(#[from]std::io::Error),
 
+    #[error("{0}")]
+    FileError(String),
+
+    #[error("Module has no samples")]
+    EmptyModule,
+
     #[error("Generic Error: {0}")]
     GenericError(String)
-
-
 }
 
 impl From<&str> for XmoditsError {

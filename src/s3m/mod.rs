@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use crate::dword;
+use crate::{dword, XmoditsError};
 use crate::utils::prelude::*;
 
 const S3M_HEADER_ID: &[u8]      = b"SCRM";
@@ -23,12 +23,12 @@ impl TrackerDumper for S3MFile {
             || buf[0x001d] != S3M_MAGIC_NUMBER
             || &buf[dword!(0x002c)] != S3M_HEADER_ID
         {
-            return Err("File is not a valid Scream Tracker Module".into());
+            return Err(XmoditsError::InvalidModule("File is not a valid Scream Tracker Module".into()));
         }
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError> 
     {
         Self::validate(&buf)?;
 
@@ -55,11 +55,7 @@ impl TrackerDumper for S3MFile {
         }))
     }
 
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        if !folder.as_ref().is_dir() {
-            return Err("Path is not a folder".into());
-        }
-
+    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), XmoditsError> {
         let smp: &S3MSample         = &self.smp_data[index];
         let path: PathBuf           = PathBuf::new()
             .join(folder)
@@ -125,13 +121,3 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
 
     samples
 }
-
-// #[test]
-// fn list() {
-//     let a = S3MFile::load_module("samples/s3m/city_on_a_stick.s3m").unwrap();
-//     for i in a.list_sample_data() {
-//         println!("{}", i.index());
-//     }
-//     // dbg!(a.list_sample_data().len());
-//     // dbg!(a.list_sample_data());
-// }

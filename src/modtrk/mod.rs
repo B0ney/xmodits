@@ -1,5 +1,6 @@
 use crate::utils::prelude::*;
-use crate::{dword, word};
+use crate::{dword, word, XmoditsError};
+
 mod tables;
 use tables::FINETUNE_TABLE;
 use byteorder::{BE, ByteOrder};
@@ -24,10 +25,10 @@ use crate::{TrackerDumper, TrackerModule, TrackerSample};
 impl TrackerDumper for MODFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 1085 {
-            return Err("Not a valid MOD file".into());
+            return Err(XmoditsError::InvalidModule("Not a valid MOD file".into()));
         }
         if &buf[dword!(0x0000)] == MOD_XPK_MAGIC {
-            return Err("XPK compressed MOD files are not supported".into());
+            return Err(XmoditsError::UnsupportedFormat("XPK compressed MOD files are not supported".into()));
         }
         Ok(())
     }
@@ -64,10 +65,10 @@ impl TrackerDumper for MODFile {
         }; 
 
         if smp_index == buf.len() {
-            return Err("MOD has no samples".into())
+            return Err(XmoditsError::EmptyModule)
         }
         if smp_index >= buf.len() {
-            return Err("Invalid MOD".into())
+            return Err(XmoditsError::InvalidModule("Not a valid MOD file".into()))
         }
         
         let smp_data: Vec<MODSample> = build_samples(smp_num, &buf, smp_index, alt_finetune)?;
@@ -81,9 +82,6 @@ impl TrackerDumper for MODFile {
     }
     
     fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        if !folder.as_ref().is_dir() {
-            return Err("Path is not a folder".into());
-        }
         let smp: &MODSample         = &self.smp_data[index];
         let path: PathBuf           = PathBuf::new()
             .join(folder)
@@ -116,7 +114,7 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
         if len == 0 { continue; }
 
         if len as usize > (128 * 1024) {
-            return Err("MOD contains sample exceeding 128KB".into()); 
+            return Err(XmoditsError::InvalidModule("MOD contains sample exceeding 128KB".into())); 
         }
 
         if len as usize + smp_pcm_stream_index > buf.len() { break; }

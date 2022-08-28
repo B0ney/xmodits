@@ -69,9 +69,6 @@ impl TrackerDumper for ITFile {
     }
 
     fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), XmoditsError> {
-        if !folder.as_ref().is_dir() {
-            return Err("Path is not a folder".into());
-        }
         let smp: &ITSample          = &self.smp_data[index];
         let filename: PathBuf       = PathBuf::new()
             .join(folder)

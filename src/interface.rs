@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::fs;
+// use crate::XmoditsError;
 use crate::utils::Error;
 pub type TrackerModule = Box<dyn TrackerDumper>;
 
@@ -97,7 +98,7 @@ pub trait TrackerDumper {
         }
 
         if !&folder.as_ref().is_dir() {
-            return Err("folder provided either doesn't exist or is not a directory".into());
+            return Err("Path provided either doesn't exist or is not a directory".into());
         }
 
         // Create root folder
