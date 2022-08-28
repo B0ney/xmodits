@@ -1,8 +1,5 @@
-use crate::it::ITFile;
-use crate::s3m::S3MFile;
-use crate::modtrk::MODFile;
-use crate::xm::XMFile;
-use crate::utils::prelude::*;
+use crate::{it::ITFile, s3m::S3MFile, amig_mod::MODFile};
+use crate::{xm::XMFile, utils::prelude::*};
 
 const UM_MAGIC_NUMBER: u32 = 0x9E2A83C1;
 struct DontUseMe;

@@ -1,5 +1,4 @@
-mod tables;
-use tables::FINETUNE_TABLE;
+use crate::tables::FINETUNE_TABLE;
 use crate::{
     utils::prelude::*, dword, word,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError

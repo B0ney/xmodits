@@ -1,5 +1,5 @@
-mod deltadecode;
-use deltadecode::{delta_decode_u16, delta_decode_u8};
+// mod deltadecode;
+use crate::deltadecode::{delta_decode_u16, delta_decode_u8};
 use crate::{
     utils::prelude::*,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError

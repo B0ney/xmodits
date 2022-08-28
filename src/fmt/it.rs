@@ -1,5 +1,4 @@
-mod compression;
-use self::compression::decompress_sample;
+use crate::compression::decompress_sample;
 use crate::{
     utils::prelude::*, dword,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
