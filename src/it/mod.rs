@@ -20,24 +20,24 @@ pub struct ITFile {
 }
 
 type ITSample = TrackerSample;
-use crate::{TrackerDumper, TrackerModule, TrackerSample};
+use crate::{TrackerDumper, TrackerModule, TrackerSample, XmoditsError};
 
 impl TrackerDumper for ITFile {
-    fn validate(buf: &[u8]) -> Result<(), Error> {
+    fn validate(buf: &[u8]) -> Result<(), XmoditsError> {
         if buf.len() < IT_HEADER_LEN {
-            return Err("File is not a valid Impulse Tracker module".into());
+            return Err(XmoditsError::InvalidModule("File is not a valid Impulse Tracker module".into()));
         }
         if &buf[slice!(0x0000, 6)] == ZIRCON {
-            return Err("Unsupported IT: Uses 'ziRCON' sample compression".into());
+            return Err(XmoditsError::UnsupportedFormat("Unsupported IT: Uses 'ziRCON' sample compression".into()));
         }
         if &buf[dword!(0x0000)] != IT_HEADER_ID {
-            return Err("File is not a valid Impulse Tracker Module".into());
+            return Err(XmoditsError::InvalidModule("File is not a valid Impulse Tracker module".into()));
         }
 
         Ok(())
     }
     
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError>
     {
         Self::validate(&buf)?;
         
@@ -68,7 +68,7 @@ impl TrackerDumper for ITFile {
         }))
     }
 
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), XmoditsError> {
         if !folder.as_ref().is_dir() {
             return Err("Path is not a folder".into());
         }

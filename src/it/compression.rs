@@ -6,7 +6,7 @@
     https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
 */
 
-use crate::utils::{Error, reader::read_u16_le};
+use crate::{utils::{Error, reader::read_u16_le}, XmoditsError};
 use byteorder::{ByteOrder, LE};
 
 pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo: bool) -> Result<Vec<u8>, Error> {
@@ -71,7 +71,7 @@ impl <'a>BitReader<'a> {
         }
     }
 
-    fn read_next_block(&mut self) -> Result<(), Error> {
+    fn read_next_block(&mut self) {
         // First 2 bytes combined to u16 (LE). Tells us size of compressed block. 
         let block_size: u16 = read_u16_le(self.buf, self.block_offset);
         
@@ -83,7 +83,6 @@ impl <'a>BitReader<'a> {
         self.bitbuf = self.buf[self.blk_index] as u32; 
         self.bitnum = 8;
         self.block_offset += block_size as usize + 2;  
-        Ok(())
     }   
 
     fn read_bits_u16(&mut self, n: u8) -> u16 { 
@@ -140,7 +139,7 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
     // Unpack data
     while len != 0 {
         // Read new block, reset variables
-        bitreader.read_next_block()?;
+        bitreader.read_next_block();
 
         // Make sure block len won't exceed len.
         blklen = if len < 0x8000 { len as u16 } else { 0x8000 };
@@ -152,7 +151,11 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
         while blkpos < blklen {
 
             if width > 9 {
-                return Err(format!("Invalid Bit width. Why is it {}?", width).into());
+                return Err(
+                    XmoditsError::SampleExtractionFailure(
+                        format!("Invalid Bit width. Why is it {}?", width).into()
+                    )
+                );
             }
 
             value = bitreader.read_bits_u16(width);
@@ -237,7 +240,7 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error>
 
     while len != 0 {
         // Read new block, reset variables
-        bitreader.read_next_block()?;
+        bitreader.read_next_block();
 
         // Make sure block len won't exceed len.
         blklen = if len < 0x4000 { len as u16 } else { 0x4000 };
@@ -249,7 +252,10 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error>
         while blkpos < blklen {
 
             if width > 17 {
-                return Err(format!("Invalid Bit width. Why is it {}?", width).into());
+                return Err(
+                    XmoditsError::SampleExtractionFailure(
+                        format!("Invalid Bit width. Why is it {}?", width).into())
+                    );
             }
 
             value = bitreader.read_bits_u32(width);
@@ -333,7 +339,7 @@ fn readbit() {
         0b1010_1010, 0b1100_1100,
     ];
     let mut b = BitReader::new(&buf);
-    b.read_next_block().unwrap(); 
+    b.read_next_block(); 
 
     // test group 1
     assert_eq!(b.read_bits_u16(8), 0b_1111_1110);

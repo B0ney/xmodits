@@ -6,7 +6,9 @@ pub mod ascii;
 pub mod name;
 pub mod reader;
 
-pub type Error = Box<dyn std::error::Error>;
+// pub type Error = Box<dyn std::error::Error>;
+pub type Error = crate::XmoditsError;
+
 /*
 / Import useful helper functions & macros
 / and common imports

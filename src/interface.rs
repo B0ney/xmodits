@@ -1,7 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::fs;
 use crate::utils::Error;
-
 pub type TrackerModule = Box<dyn TrackerDumper>;
 
 #[derive(Default, Debug)]

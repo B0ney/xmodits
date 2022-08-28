@@ -8,7 +8,8 @@ edition = "2021"
 # libxmodits ~307KiB
 [dependencies]
 byteorder = "1.4.3"
-# thiserror = "1.0.31"
+thiserror = "1.0.32"
+
 [dev-dependencies]
 sha2 = "0.10.2"
 
