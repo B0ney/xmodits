@@ -77,7 +77,8 @@ impl TrackerDumper for ITFile {
             .join(name_sample(index, &smp.filename));
 
         WAV::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
-            .write(filename, 
+            .write(
+                filename, 
                 match smp.is_compressed {
                     true => {
                         decompress_sample(
