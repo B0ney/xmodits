@@ -1,21 +1,37 @@
 mod error;
-use error::XmoditsError;
+use error::XmError;
 
 use pyo3::prelude::*;
-use xmodits_lib;
+use xmodits_lib::*;
 
 #[pyfunction]
 fn dump(
+    // Path to tracker module
     path: String,
-    arg: Option<bool>
+
+    // folder to place dump
+    destination: String,
+
+    // Preserve sample number
+    preserve_sample_number: Option<bool>,
+    
+    // 
+    no_folder: Option<bool>,
+
+    no_padding: Option<bool>,
+
+    number_only: Option<bool>,
+
 ) -> PyResult<()> {
-
-    if let Some(true) = arg {
-        println!("nice");
-    } 
-
-    Err(XmoditsError(xmodits_lib::XmoditsError::EmptyModule).into())
+    
+    rip(path).map_err(|e| XmError(e).into())
+    // Err(Error(xmodits_lib::XmoditsError::EmptyModule).into())
     // Ok(())
+}
+
+fn rip(path: String) -> Result<(), Error> {
+    let _ = xmodits_lib::tracker_formats::S3MFile::load_module(path)?;
+    Ok(())
 }
 
 /// A Python module implemented in Rust.

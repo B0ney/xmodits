@@ -1,5 +1,5 @@
 use xmodits_lib::XmoditsError as _XmoditsError;
-use pyo3::{exceptions::PyTypeError, import_exception, PyErr, PyObject};
+use pyo3::{exceptions::{PyTypeError, PyIOError}, import_exception, PyErr, PyObject};
 
 macro_rules! batch_create_exceptions {
     ($($EXCEPTION:ident) *) => {
@@ -17,10 +17,10 @@ batch_create_exceptions!(
     Generic
 );
 
-pub struct XmoditsError(pub _XmoditsError);
+pub struct XmError(pub _XmoditsError);
 
-impl From<XmoditsError> for PyErr {
-    fn from(e: XmoditsError) -> Self {
+impl From<XmError> for PyErr {
+    fn from(e: XmError) -> Self {
         use _XmoditsError::*;
 
         match e.0 {
@@ -33,7 +33,7 @@ impl From<XmoditsError> for PyErr {
             InvalidModule(e) => {
                 PyErr::new::<InvalidModuleError, _>(format!("{}", e))
             },
-            IoError(_) => todo!(),
+            IoError(e) => PyErr::new::<PyIOError, _>(format!("{:?}", e.to_string())),
             FileError(_) => todo!(),
 
             EmptyModule => {

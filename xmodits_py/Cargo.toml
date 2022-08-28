@@ -9,5 +9,11 @@ name = "xmodits"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.16.5", features = ["extension-module"] }
+pyo3 = { version = "0.17.1", features = ["extension-module"] }
 xmodits-lib = { path = "../" }
+
+[profile.release]
+strip = true
+opt-level = 3       # We want to make it fast
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Reduce number of codegen units to increase optimizations.
