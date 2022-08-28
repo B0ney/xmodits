@@ -27,13 +27,13 @@ pub struct ITFile {
 impl TrackerDumper for ITFile {
     fn validate(buf: &[u8]) -> Result<(), XmoditsError> {
         if buf.len() < IT_HEADER_LEN {
-            return Err(XmoditsError::InvalidModule("File is not a valid Impulse Tracker module".into()));
+            return Err(XmoditsError::invalid("File is not a valid Impulse Tracker module"));
         }
         if &buf[slice!(0x0000, 6)] == ZIRCON {
-            return Err(XmoditsError::UnsupportedFormat("Unsupported IT: Uses 'ziRCON' sample compression".into()));
+            return Err(XmoditsError::unsupported("Unsupported IT: Uses 'ziRCON' sample compression"));
         }
         if &buf[dword!(0x0000)] != IT_HEADER_ID {
-            return Err(XmoditsError::InvalidModule("File is not a valid Impulse Tracker module".into()));
+            return Err(XmoditsError::invalid("File is not a valid Impulse Tracker module"));
         }
 
         Ok(())

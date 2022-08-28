@@ -25,10 +25,10 @@ pub struct MODFile {
 impl TrackerDumper for MODFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 1085 {
-            return Err(XmoditsError::InvalidModule("Not a valid MOD file".into()));
+            return Err(XmoditsError::invalid("Not a valid MOD file"));
         }
         if &buf[dword!(0x0000)] == MOD_XPK_MAGIC {
-            return Err(XmoditsError::UnsupportedFormat("XPK compressed MOD files are not supported".into()));
+            return Err(XmoditsError::unsupported("XPK compressed MOD files are not supported"));
         }
         Ok(())
     }
@@ -68,7 +68,7 @@ impl TrackerDumper for MODFile {
             return Err(XmoditsError::EmptyModule)
         }
         if smp_index >= buf.len() {
-            return Err(XmoditsError::InvalidModule("Not a valid MOD file".into()))
+            return Err(XmoditsError::invalid("Not a valid MOD file"));
         }
         
         let smp_data: Vec<MODSample> = build_samples(smp_num, &buf, smp_index, alt_finetune)?;
@@ -114,7 +114,7 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
         if len == 0 { continue; }
 
         if len as usize > (128 * 1024) {
-            return Err(XmoditsError::InvalidModule("MOD contains sample exceeding 128KB".into())); 
+            return Err(XmoditsError::invalid("MOD contains sample exceeding 128KB")); 
         }
 
         if len as usize + smp_pcm_stream_index > buf.len() { break; }

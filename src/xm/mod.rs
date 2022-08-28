@@ -2,8 +2,7 @@ mod deltadecode;
 use deltadecode::{delta_decode_u16, delta_decode_u8};
 use crate::{
     utils::prelude::*,
-    TrackerDumper, TrackerModule, TrackerSample,
-    XmoditsError
+    TrackerDumper, TrackerModule, TrackerSample, XmoditsError
 };
 
 const XM_HEADER_ID: &[u8; 17]       = b"Extended Module: ";
@@ -18,7 +17,7 @@ type XMSample = TrackerSample;
 
 pub struct XMFile {
     buf: Vec<u8>,
-    module_name: String,    // Name of tracker module
+    module_name: String,
     samples: Vec<XMSample>,
     smp_num: usize,
 }
@@ -67,7 +66,7 @@ impl TrackerDumper for XMFile {
         }))
     }
 
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), XmoditsError> {
         let smp: &XMSample          = &self.samples[index];
         let path: PathBuf           = PathBuf::new()
             .join(folder)
@@ -104,7 +103,7 @@ fn skip_pat_header(buf: &[u8], patnum: usize, hdr_size: u32) -> Result<usize, Er
     let mut pat_data_size: u32;
 
     if patnum > 256 {
-        return Err(XmoditsError::InvalidModule("Invalid XM: Contains more than 256 patterns".into()))
+        return Err(XmoditsError::invalid("Invalid XM: Contains more than 256 patterns"))
     }
 
     for _ in 0..patnum {
@@ -124,7 +123,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
     let mut ins_smp_num: u16;
 
     if ins_num > 128 {
-        return Err(XmoditsError::InvalidModule("Invalid XM: Contains more than 128 instruments".into()));
+        return Err(XmoditsError::invalid("Invalid XM: Contains more than 128 instruments"));
     }
 
     for _ in 0..ins_num {

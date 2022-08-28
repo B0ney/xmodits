@@ -24,6 +24,16 @@ pub enum XmoditsError {
     GenericError(String)
 }
 
+impl XmoditsError {
+    pub fn invalid(e: &str) -> Self {
+        Self::InvalidModule(e.to_owned())
+    }
+
+    pub fn unsupported(e: &str) -> Self {
+        Self::UnsupportedFormat(e.to_owned())
+    }
+}
+
 impl From<&str> for XmoditsError {
     fn from(e: &str) -> Self {
         Self::GenericError(e.to_owned())
