@@ -16,7 +16,7 @@ sha2 = "0.10.2"
 [workspace]
 members = [
     "app",
-    "xmodits_py"
+    "pylib"
 ]
 
 [profile.release]

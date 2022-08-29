@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::fs;
-// use crate::XmoditsError;
+use crate::XmoditsError;
 use crate::utils::Error;
 pub type TrackerModule = Box<dyn TrackerDumper>;
 
@@ -83,7 +83,9 @@ pub trait TrackerDumper {
                 For large scale dumping in parallel, using Seek will be considered.
             */
             if std::fs::metadata(&path)?.len() > 1024 * 1024 * 64 {
-                return Err("File provided is larger than 64MB. No tracker module should ever be close to that".into());
+                return Err(
+                    XmoditsError::file("File provided is larger than 64MB. No tracker module should ever be close to that")
+                );
             }
             
             let buf: Vec<u8> = fs::read(&path)?;
@@ -94,11 +96,13 @@ pub trait TrackerDumper {
     fn dump(&self, folder: &dyn AsRef<Path>, module_name: &str) -> Result<(), Error> 
     {
         if self.number_of_samples() == 0 {
-            return Err("Module has no samples".into());
+            return Err(XmoditsError::EmptyModule);
         }
 
         if !&folder.as_ref().is_dir() {
-            return Err("Path provided either doesn't exist or is not a directory".into());
+            return Err(
+                XmoditsError::file(&format!("Destination '{}' either doesn't exist or is not a directory", folder.as_ref().display()))
+            );
         }
 
         // Create root folder
@@ -106,7 +110,9 @@ pub trait TrackerDumper {
             .join(folder).join(module_name);
     
         if root.exists() {
-            return Err(format!("Folder Already exists: '{}'", root.display()).into());
+            return Err(
+                XmoditsError::file(&format!("Folder already exists: '{}'", root.canonicalize()?.display()))
+            );
         }
 
         std::fs::create_dir(&root)?;

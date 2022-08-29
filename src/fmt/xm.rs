@@ -28,16 +28,16 @@ impl TrackerDumper for XMFile {
             || read_slice(&buf, 0x0000, 17) != XM_HEADER_ID 
             || buf[0x0025] != XM_MAGIC_NUM 
         {
-            return Err(XmoditsError::InvalidModule("Not a valid XM file".into()));
+            return Err(XmoditsError::invalid("Not a valid Extended Module"));
         }
         if read_slice(&buf, 0x0026, 20) == MOD_PLUGIN_PACKED {
-            return Err(XmoditsError::UnsupportedFormat("Unsupported XM: Uses 'MOD plugin packed'".into()));
+            return Err(XmoditsError::unsupported("Unsupported XM: Uses 'MOD plugin packed'"));
         }
 
         let version: u16 = read_u16_le(&buf, 0x003A);
 
         if version < XM_MIN_VER {
-            return Err(XmoditsError::UnsupportedFormat("Unsupported XM: Version below 0104".into()));
+            return Err(XmoditsError::unsupported("Unsupported XM: Version below 0104"));
         }
 
         Ok(())

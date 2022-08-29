@@ -32,6 +32,10 @@ impl XmoditsError {
     pub fn unsupported(e: &str) -> Self {
         Self::UnsupportedFormat(e.to_owned())
     }
+
+    pub fn file(e: &str) -> Self {
+        Self::FileError(e.to_owned())
+    }
 }
 
 impl From<&str> for XmoditsError {
