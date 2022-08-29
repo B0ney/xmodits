@@ -1,6 +1,5 @@
 mod error;
 use error::XmError;
-
 use pyo3::prelude::*;
 use xmodits_lib::*;
 
@@ -13,7 +12,6 @@ fn dump(
     no_padding: Option<bool>,
     number_only: Option<bool>
 ) -> PyResult<()> {
-    
     rip(path, destination)
         .map_err(|e| XmError(e).into())
 
@@ -28,7 +26,11 @@ fn xmodits(_py: Python, m: &PyModule) -> PyResult<()> {
 
 // xmodits.dump("../samples/s3m/arc-cell.s3m", "/ii/")
 fn rip(path: String, destination: String) -> Result<(), Error> {
-    xmodits_lib::load_module(path)?.dump(&destination, "test_dump")?;
+    let modname: String = std::path::Path::new(&path).to_str().unwrap().replace(".", "_");
+
+    xmodits_lib::load_module(path)?
+    
+        .dump(&destination, &modname)?;
 
     Ok(())
 }
