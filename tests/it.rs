@@ -16,16 +16,20 @@ fn it_test_mmcmp() {
     assert!(ITFile::load_module("tests/mods/it/creagaia.it").is_err());
 }
 
+// We don't want xmodits to create an empty folder when attempting to dump an empty module
 #[test]
 fn it_no_samples() {
     let a = ITFile::load_module("tests/mods/it/no_samples.it").unwrap();
-    let folder = "test/exports/";
+    let folder = "tests/exports/";
     let name = "IT-please-delete";
     let export_path = Path::new(folder).join(name);
 
     assert_eq!(a.number_of_samples(), 0);
     assert!(!export_path.exists());
-    assert!(a.dump(&folder, name).is_err())
+
+    
+    std::fs::create_dir(&export_path).unwrap();
+    assert!(a.dump(&export_path).is_err())
 }
 
 #[test]

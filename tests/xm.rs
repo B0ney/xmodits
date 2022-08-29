@@ -22,10 +22,11 @@ fn xm_no_samples() {
     let folder = "test/exports/";
     let name = "MOD-please-delete";
     let export_path = Path::new(folder).join(name);
-    
+    std::fs::create_dir(&export_path).unwrap();
+
     assert_eq!(a.number_of_samples(), 0);
     assert!(!export_path.exists());
-    assert!(a.dump(&folder, name).is_err())
+    assert!(a.dump(&export_path).is_err())
 }
 /* ####################################################################### */
 

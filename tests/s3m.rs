@@ -13,12 +13,14 @@ fn s3m_invalid_1() {
 #[test]
 fn s3m_no_samples() {
     let a = S3MFile::load_module("tests/mods/s3m/no_samples.s3m").unwrap();
-    let folder = "test/exports/";
+    let folder = "tests/exports/";
     let name = "S3M-please-delete";
+    let dest = Path::new(folder).join(name);
+    std::fs::create_dir(&dest).unwrap();
     let export_path = Path::new(folder).join(name);
     assert_eq!(a.number_of_samples(), 0);
     assert!(!export_path.exists());
-    assert!(a.dump(&folder, name).is_err())
+    assert!(a.dump(&dest).is_err())
 }
 
 #[test]

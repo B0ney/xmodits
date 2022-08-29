@@ -114,17 +114,16 @@ pub trait TrackerDumper {
         Self::load_from_buf(buf)
     }
 
-    /// Dump all samples
-    fn dump(&self, folder: &dyn AsRef<Path>, module_name: &str) -> Result<(), Error> 
+    /// Dump all samples to a folder
+    fn dump(&self, folder: &dyn AsRef<Path>) -> Result<(), Error> 
     {
-        self.dump_with_sample_namer(folder, module_name, &crate::utils::prelude::name_sample)
+        self.dump_with_sample_namer(folder, &crate::utils::prelude::name_sample)
     }
 
     /// Dump all samples with the added ability to format sample names to our likinng.
     fn dump_with_sample_namer(
         &self,
         folder: &dyn AsRef<Path>,
-        module_name: &str,
         sample_namer_func: &SampleNamerFunc ) -> Result<(), Error> 
     {
         if self.number_of_samples() == 0 {
@@ -133,24 +132,14 @@ pub trait TrackerDumper {
 
         if !&folder.as_ref().is_dir() {
             return Err(
-                XmoditsError::file(&format!("Destination '{}' either doesn't exist or is not a directory", folder.as_ref().display()))
+                XmoditsError::file(
+                    &format!("Destination '{}' either doesn't exist or is not a directory", folder.as_ref().display())
+                )
             );
         }
-
-        // Create root folder
-        let root: PathBuf = PathBuf::new()
-            .join(folder).join(module_name);
-    
-        if root.exists() {
-            return Err(
-                XmoditsError::file(&format!("Folder already exists: '{}'", root.canonicalize()?.display()))
-            );
-        }
-
-        std::fs::create_dir(&root)?;
         
         for i in 0..self.number_of_samples() {
-            self.export_advanced(&root, i, sample_namer_func)?;
+            self.export_advanced(&folder, i, sample_namer_func)?;
         }
 
         Ok(())
