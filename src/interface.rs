@@ -49,7 +49,14 @@ pub trait TrackerDumper {
         where Self: Sized;
 
     // export sample given index
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error>;
+    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+        let sample: &TrackerSample  = &self.list_sample_data()[index];
+        let file: PathBuf           = PathBuf::new()
+            .join(folder)
+            .join(crate::utils::prelude::name_sample(index, &sample.filename));
+
+        self.write_wav(&sample, &file)
+    }
 
     /// Number of samples a tracker module contains
     fn number_of_samples(&self) -> usize;
@@ -59,6 +66,8 @@ pub trait TrackerDumper {
 
     /// List tracker sample infomation
     fn list_sample_data(&self) -> &[TrackerSample];
+
+    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error>;
 
     /// Load tracker module from given path
     fn load_module<P>(path: P) -> Result<TrackerModule, Error> 

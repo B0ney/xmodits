@@ -65,16 +65,10 @@ impl TrackerDumper for XMFile {
             smp_num,
         }))
     }
-
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), XmoditsError> {
-        let smp: &XMSample          = &self.samples[index];
-        let path: PathBuf           = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.name));
-
+    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
         WAV::header(smp.rate, smp.bits, smp.len as u32, false)
             .write(
-                path,
+                file,
                 match smp.bits {
                     8   => { delta_decode_u8(&self.buf[smp.ptr_range()]).to_signed() }
                     _   => { delta_decode_u16(&self.buf[smp.ptr_range()]) }
@@ -92,7 +86,7 @@ impl TrackerDumper for XMFile {
 
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         &self.samples
-    }
+    }    
 }
 
 /// Skip xm pattern headers to access instrument headers.
@@ -166,6 +160,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
             let rate: u32       = (8363.0 * 2.0_f32.powf((4608.0 - period) / 768.0)) as u32;
             
             samples.push(XMSample{
+                filename: name.clone(),
                 name,
                 index: samples.len(),
                 len,

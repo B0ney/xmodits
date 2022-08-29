@@ -79,15 +79,10 @@ impl TrackerDumper for MODFile {
             buf
         }))
     }
-    
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        let smp: &MODSample         = &self.smp_data[index];
-        let path: PathBuf           = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.name));
 
+    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
         WAV::header(smp.rate as u32, 8, smp.len as u32, false)
-            .write(path, (&self.buf[smp.ptr_range()]).to_signed())
+            .write(file, (&self.buf[smp.ptr_range()]).to_signed())
     }
 
     fn number_of_samples(&self) -> usize {
@@ -100,7 +95,7 @@ impl TrackerDumper for MODFile {
 
     fn list_sample_data(&self) -> &[TrackerSample] {
         &self.smp_data
-    }
+    }    
 }
 
 fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) -> Result<Vec<MODSample>, Error> {

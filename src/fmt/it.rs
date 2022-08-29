@@ -17,10 +17,10 @@ const IT215: u16            = 0x0215;           // IT215 compression
 pub struct ITFile {
     title: String,
     buf: Vec<u8>,
-    pub version: u16,
-    pub compat_ver: u16,
-    pub smp_num: u16,
-    pub smp_data: Vec<ITSample>,
+    version: u16,
+    compat_ver: u16,
+    smp_num: u16,
+    smp_data: Vec<ITSample>,
 }
 
 impl TrackerDumper for ITFile {
@@ -69,15 +69,10 @@ impl TrackerDumper for ITFile {
         }))
     }
 
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), XmoditsError> {
-        let smp: &ITSample          = &self.smp_data[index];
-        let filename: PathBuf       = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.filename));
-
+    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
         WAV::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
             .write(
-                filename, 
+                file, 
                 match smp.is_compressed {
                     true => {
                         decompress_sample(

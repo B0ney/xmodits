@@ -56,15 +56,10 @@ impl TrackerDumper for S3MFile {
         }))
     }
 
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), XmoditsError> {
-        let smp: &S3MSample         = &self.smp_data[index];
-        let path: PathBuf           = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.name));
-
+    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
         WAV::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
             .write(
-                path, 
+                file, 
                 match smp.bits {
                     8 => self.buf[smp.ptr_range()].to_owned(),
                     _ => (&self.buf[smp.ptr_range()]).to_signed_u16(),
@@ -109,6 +104,7 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
         let rate: u32           = read_u32_le(buf, 0x0013 + offset);
 
         samples.push(S3MSample {
+            filename: name.clone(),
             name,
             index,
             len: len as usize,

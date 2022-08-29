@@ -79,7 +79,7 @@ fn s3m_test_exported() {
     let root: &Path = Path::new("tests/export/s3m/");
     let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
     let mod1 = S3MFile::load_module("tests/mods/s3m/hip_-_640k_of_space.s3m").unwrap();
-
+    dbg!(&test_export_path);
     clean_test_export(root, test_no).unwrap();
 
     mod1.export(&test_export_path, 0).unwrap();
