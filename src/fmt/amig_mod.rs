@@ -122,7 +122,7 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
 
         smp_data.push(MODSample {
             name: read_string(&buf, offset, 22),
-            index: i,
+            raw_index: i,
             len: len as usize, 
             ptr: smp_pcm_stream_index,
             bits: 8,

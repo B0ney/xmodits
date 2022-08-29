@@ -135,7 +135,7 @@ fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
         sample_data.push(ITSample {
             name,
             filename,
-            index,
+            raw_index: index,
             len: len as usize,
             ptr: ptr as usize,
             flags,

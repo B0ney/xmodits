@@ -60,7 +60,7 @@ impl TrackerDumper for UMXFile {
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         unimplemented!()
     }
-    fn write_wav(&self, smp: &crate::TrackerSample, file: &PathBuf) -> Result<(), Error> {
+    fn write_wav(&self, _: &crate::TrackerSample, _: &PathBuf) -> Result<(), Error> {
         unimplemented!()
     }  
 }

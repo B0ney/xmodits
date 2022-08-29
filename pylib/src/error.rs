@@ -45,8 +45,8 @@ impl From<XmError> for PyErr {
             InvalidModule(e) => {
                 PyErr::new::<InvalidModuleError, _>(format!("{}", e))
             },
-            IoError(e) => PyErr::new::<PyIOError, _>(format!("{:?}", e.to_string())),
-            FileError(e) => PyErr::new::<PyIOError, _>(format!("{:?}", e.to_string())),
+            IoError(e) => PyErr::new::<PyIOError, _>(format!("{}", e.to_string())),
+            FileError(e) => PyErr::new::<PyIOError, _>(format!("{}", e)),
 
             EmptyModule => {
                 PyErr::new::<EmptyModuleError, _>("Module has no samples")

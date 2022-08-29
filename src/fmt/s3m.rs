@@ -106,7 +106,7 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
         samples.push(S3MSample {
             filename: name.clone(),
             name,
-            index,
+            raw_index: index,
             len: len as usize,
             ptr: ptr as usize,
             bits,

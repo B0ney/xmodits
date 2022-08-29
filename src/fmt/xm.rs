@@ -1,4 +1,3 @@
-// mod deltadecode;
 use crate::deltadecode::{delta_decode_u16, delta_decode_u8};
 use crate::{
     utils::prelude::*,
@@ -65,6 +64,7 @@ impl TrackerDumper for XMFile {
             smp_num,
         }))
     }
+
     fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
         WAV::header(smp.rate, smp.bits, smp.len as u32, false)
             .write(
@@ -162,7 +162,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
             samples.push(XMSample{
                 filename: name.clone(),
                 name,
-                index: samples.len(),
+                raw_index: samples.len(),
                 len,
                 ptr,
                 flags,
