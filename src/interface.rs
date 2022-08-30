@@ -117,25 +117,31 @@ pub trait TrackerDumper {
     /// Dump all samples to a folder
     fn dump(&self, folder: &dyn AsRef<Path>) -> Result<(), Error> 
     {
-        self.dump_with_sample_namer(folder, &crate::utils::prelude::name_sample)
+        self.dump_with_sample_namer(folder, &crate::utils::prelude::name_sample, false)
     }
 
     /// Dump all samples with the added ability to format sample names to our likinng.
     fn dump_with_sample_namer(
         &self,
         folder: &dyn AsRef<Path>,
-        sample_namer_func: &SampleNamerFunc ) -> Result<(), Error> 
+        sample_namer_func: &SampleNamerFunc,
+        create_dir_if_absent: bool,
+    ) -> Result<(), Error>  
     {
         if self.number_of_samples() == 0 {
             return Err(XmoditsError::EmptyModule);
         }
 
         if !&folder.as_ref().is_dir() {
-            return Err(
-                XmoditsError::file(
-                    &format!("Destination '{}' either doesn't exist or is not a directory", folder.as_ref().display())
-                )
-            );
+            if create_dir_if_absent {
+                fs::create_dir(&folder)?;
+            } else {
+                return Err(
+                    XmoditsError::file(
+                        &format!("Destination '{}' either doesn't exist or is not a directory", folder.as_ref().display())
+                    )
+                );
+            }
         }
         
         for i in 0..self.number_of_samples() {
