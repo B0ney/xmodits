@@ -5,7 +5,7 @@ use crate::utils::Error;
 pub type TrackerModule = Box<dyn TrackerDumper>;
 
 /// Function type signature to flexibly format sample names.
-type SampleNamerFunc = dyn Fn(&TrackerSample, usize) -> String;
+pub type SampleNamerFunc = dyn Fn(&TrackerSample, usize) -> String;
 
 #[derive(Default, Debug)]
 pub struct TrackerSample {

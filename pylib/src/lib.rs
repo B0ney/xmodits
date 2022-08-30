@@ -27,10 +27,25 @@ fn xmodits(_py: Python, m: &PyModule) -> PyResult<()> {
 // xmodits.dump("../samples/s3m/arc-cell.s3m", "/ii/")
 fn rip(path: String, destination: String) -> Result<(), Error> {
     let modname: String = std::path::Path::new(&path).to_str().unwrap().replace(".", "_");
+    let namer = SampleNamer{};
 
     xmodits_lib::load_module(path)?
-    
-        .dump(&destination, &modname)?;
+        .dump_with_sample_namer(
+            &destination,
+            &namer.func_builder()
+        )
+}
 
-    Ok(())
+struct SampleNamer {
+
+}
+
+impl SampleNamer {
+    /// dynamically build a function to format sample names given its internal parameters
+    /// Ideas:
+    /// Add recursion?
+    /// match statements
+    fn func_builder(&self) -> Box<SampleNamerFunc> {
+        Box::new(|smp, _| format!("{}.wav", smp.raw_index()))
+    }
 }

@@ -5,7 +5,7 @@ mod utils;
 mod interface;
 mod error;
 
-pub use interface::{TrackerDumper, TrackerModule, TrackerSample};
+pub use interface::{TrackerDumper, TrackerModule, TrackerSample, SampleNamerFunc};
 pub use error::XmoditsError;
 pub use utils::Error;
 
