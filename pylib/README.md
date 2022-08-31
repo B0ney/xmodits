@@ -108,31 +108,11 @@ with_folder=True
 
 It will produce a new folder within the destination folder
 
-Samples are, by default named in this format:
-```
-00 - SAMPLE_NAME.wav
-
-e.g.
-    08 - trumpet.wav
-    12 - vocal.wav
-
-```
-If a sample doesn't have a name, the naming format will be:
-```
-00.wav
-
-e.g
-    19.wav
-```
 # Required Arguments
 |Argument| Meaning|
 | --- | --- |
 | ```Path``` | Path to a tracker module |
 | ```Destination``` | Destination folder for dumped samples |
-
-
-
-
 
 # Additional Arguments
 
@@ -154,5 +134,3 @@ They're pretty much self explanitory.
 | ```UnsupportedFormatError```  | |
 | ```InvalidModuleError``` | |
 | ```EmptyModuleError``` | The tracker module is valid but it has no samples! |
-
-Generic
