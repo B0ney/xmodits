@@ -7,6 +7,7 @@ use pyo3::prelude::*;
 fn dump(
     path: String,                   // Path to tracker module
     destination: String,            // folder to place dump
+    
     index_raw: Option<bool>,        // Preserve sample number
     index_padding: Option<usize>,   // Set sample number padding
     index_only: Option<bool>,       // Only name sample by their number
