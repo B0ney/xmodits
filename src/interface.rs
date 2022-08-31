@@ -115,13 +115,13 @@ pub trait TrackerDumper {
     }
 
     /// Dump all samples to a folder
-    fn dump(&self, folder: &dyn AsRef<Path>) -> Result<(), Error> 
+    fn dump(&self, folder: &dyn AsRef<Path>, create_dir_if_absent: bool) -> Result<(), Error> 
     {
-        self.dump_with_sample_namer(folder, &crate::utils::prelude::name_sample, false)
+        self.dump_advanced(folder, &crate::utils::prelude::name_sample, create_dir_if_absent)
     }
 
     /// Dump all samples with the added ability to format sample names to our likinng.
-    fn dump_with_sample_namer(
+    fn dump_advanced(
         &self,
         folder: &dyn AsRef<Path>,
         sample_namer_func: &SampleNamerFunc,

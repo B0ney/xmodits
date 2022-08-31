@@ -26,7 +26,7 @@ fn xm_no_samples() {
 
     assert_eq!(a.number_of_samples(), 0);
     assert!(!export_path.exists());
-    assert!(a.dump(&export_path).is_err())
+    assert!(a.dump(&export_path, true).is_err())
 }
 /* ####################################################################### */
 

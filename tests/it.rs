@@ -27,9 +27,7 @@ fn it_no_samples() {
     assert_eq!(a.number_of_samples(), 0);
     assert!(!export_path.exists());
 
-    
-    std::fs::create_dir(&export_path).unwrap();
-    assert!(a.dump(&export_path).is_err())
+    assert!(a.dump(&export_path, true).is_err())
 }
 
 #[test]

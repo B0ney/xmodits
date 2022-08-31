@@ -34,7 +34,7 @@ pub fn rip(
     let create_if_absent: bool = namer.with_folder.is_some();
 
     xmodits_lib::load_module(path)?
-        .dump_with_sample_namer(
+        .dump_advanced(
             &destination,
             &namer.to_func(),
             create_if_absent

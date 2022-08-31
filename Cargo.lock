@@ -700,7 +700,7 @@ dependencies = [
 
 [[package]]
 name = "xmodits"
-version = "0.9.5"
+version = "0.9.6"
 dependencies = [
  "crossbeam-channel",
  "native-dialog",
@@ -711,7 +711,7 @@ dependencies = [
 
 [[package]]
 name = "xmodits-lib"
-version = "0.1.0"
+version = "0.1.8"
 dependencies = [
  "byteorder",
  "sha2",

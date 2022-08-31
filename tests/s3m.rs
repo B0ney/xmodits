@@ -16,11 +16,11 @@ fn s3m_no_samples() {
     let folder = "tests/exports/";
     let name = "S3M-please-delete";
     let dest = Path::new(folder).join(name);
-    std::fs::create_dir(&dest).unwrap();
+
     let export_path = Path::new(folder).join(name);
     assert_eq!(a.number_of_samples(), 0);
     assert!(!export_path.exists());
-    assert!(a.dump(&dest).is_err())
+    assert!(a.dump(&dest, true).is_err())
 }
 
 #[test]

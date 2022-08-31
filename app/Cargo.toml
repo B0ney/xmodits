@@ -1,7 +1,7 @@
 [package]
 name = "xmodits"
 authors = ["B0ney - https://github.com/B0ney"]
-version = "0.9.5"
+version = "0.9.6"
 edition = "2021"
 build = "build.rs"
 

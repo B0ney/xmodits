@@ -27,7 +27,7 @@ pub fn run(modules: &[PathBuf], dest_dir: &PathBuf) -> Result<(), Error> {
 
     modules.iter().for_each(|mod_path| {
         if let Err(e) = app::dump_samples(mod_path, &dest_dir) {
-            eprintln!("Error: {:?}", e);
+            eprintln!("{}", e);
         }
     });
 
