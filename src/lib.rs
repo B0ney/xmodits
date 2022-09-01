@@ -17,9 +17,10 @@ pub mod tracker_formats {
     pub use crate::umx::UMXFile;
 }
 
+/// Load a tracker module based on file extension
 pub fn load_module<P: AsRef<std::path::Path>>(path: P) -> Result<TrackerModule, XmoditsError> {
     use tracker_formats::*;
-    match file_extension(&path).as_str() {
+    match file_extension(&path).to_lowercase().as_str() {
         "it"    => ITFile::load_module(path),
         "xm"    => XMFile::load_module(path),
         "s3m"   => S3MFile::load_module(path),

@@ -42,7 +42,7 @@ pub fn rip(
 }
 
 #[derive(Default)]
-struct SampleNamer {    
+struct SampleNamer {
     index_only: Option<bool>,
     index_padding: Option<usize>,
     index_raw: Option<bool>,
@@ -54,35 +54,33 @@ impl SampleNamer {
     fn to_func(self) -> Box<SampleNamerFunc> {
         const DEFAULT_PADDING: usize = 2;
 
-        Box::new(
-            move |smp: &TrackerSample, idx: usize| {
-                format!(
-                    "{}{}.wav",
-                    // Index component
-                    {
-                        let index = match self.index_raw {
-                            Some(true)  => smp.raw_index(),
-                            _           => idx + 1,
-                        };
-                        match self.index_padding {
-                            Some(padding)   => format!("{:0padding$}", index),
-                            None            => format!("{:0DEFAULT_PADDING$}", index),
-                        }
-                    },
-                    // Name component
-                    match self.index_only {
-                        Some(true) => "".to_string(),
-                        _ => match smp.filename.trim() 
-                        {
-                            name if name.is_empty() => "".to_string(),
-                            name => format!(
-                                " - {}", 
-                                name.replace(".wav", "").replace(".", "_")
-                            ),
-                        }
+        Box::new(move |smp: &TrackerSample, idx: usize| {
+            format!(
+                "{}{}.wav",
+                // Index component
+                {
+                    let index = match self.index_raw {
+                        Some(true)  => smp.raw_index(),
+                        _           => idx + 1,
+                    };
+                    match self.index_padding {
+                        Some(padding)   => format!("{:0padding$}", index),
+                        None            => format!("{:0DEFAULT_PADDING$}", index),
                     }
-                )
-            }
-        )
+                },
+                // Name component
+                match self.index_only {
+                    Some(true) => "".to_string(),
+                    _ => match smp.filename.trim() 
+                    {
+                        name if name.is_empty() => "".to_string(),
+                        name => format!(
+                            " - {}", 
+                            name.replace(".wav", "").replace(".", "_")
+                        ),
+                    }
+                }
+            )
+        })
     }
 }

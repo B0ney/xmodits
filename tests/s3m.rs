@@ -23,55 +23,41 @@ fn s3m_no_samples() {
     assert!(a.dump(&dest, true).is_err())
 }
 
-#[test]
-fn s3m_should_be_32_samples_not_99() {
-    let a = S3MFile::load_module("tests/mods/s3m/space_odyssey_v1_2.s3m").unwrap();
-    verify_sample_num(
-        32,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    s3m_should_be_32_samples_not_99
+    path: "tests/mods/s3m/space_odyssey_v1_2.s3m",
+    with: 32
+);
 
-#[test]
-fn s3m_test_1() {
-    let a = S3MFile::load_module("tests/mods/s3m/bluesky.s3m").unwrap();
-    verify_sample_num(
-        10,
-        a.number_of_samples(),
-        a.module_name()
-    );  
-}
+check_sample_number!(
+    s3m_test_0
+    path: "tests/mods/s3m/no_samples.s3m",
+    with: 0
+);
 
-#[test]
-fn s3m_test_2() {
-    let a = S3MFile::load_module("tests/mods/s3m/synth_city.s3m").unwrap();
-    verify_sample_num(
-        20,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    s3m_test_1
+    path: "tests/mods/s3m/bluesky.s3m",
+    with: 10
+);
 
-#[test]
-fn s3m_test_3() {
-    let a = S3MFile::load_module("tests/mods/s3m/torq_-_some_song.s3m").unwrap();
-    verify_sample_num(
-        9,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    s3m_test_2
+    path: "tests/mods/s3m/synth_city.s3m",
+    with: 20
+);
 
-#[test]
-fn s3m_test_4() {
-    let a = S3MFile::load_module("tests/mods/s3m/arc-cell.s3m").unwrap();
-    verify_sample_num(
-        6,
-        a.number_of_samples(),
-        a.module_name()
-    );  
-}
+check_sample_number!(
+    s3m_test_3
+    path: "tests/mods/s3m/torq_-_some_song.s3m",
+    with: 9
+);
+
+check_sample_number!(
+    s3m_test_4
+    path: "tests/mods/s3m/arc-cell.s3m",
+    with: 6
+);
 
 /* ####################################################################### */
 

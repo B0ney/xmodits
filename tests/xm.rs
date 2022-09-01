@@ -1,13 +1,45 @@
+use core::panic;
 use std::path::{Path, PathBuf};
-use xmodits_lib::{TrackerDumper, tracker_formats::*};
+use xmodits_lib::{TrackerDumper, tracker_formats::*, XmoditsError};
 mod utils;
 use utils::{clean_test_export, compare_files, verify_sample_num};
 
-#[test]
-fn xm_empty() {
-    assert!(Path::new("tests/mods/xm/invalid.xm").exists());
-    assert!(XMFile::load_module("tests/mods/xm/invalid.xm").is_err());
-}
+
+// macro_rules! test_invalid {
+//     ($test_name:ident path: $path:expr, err: $with_err:path) => {
+//         #[test]
+//         fn $test_name() 
+//         {
+//             assert!(Path::new($path).exists());
+//             assert!(
+//                 if let Err($with_err) = xmodits_lib::load_module($path) {
+//                     true
+//                 } else {
+//                     false
+//                 }
+//             );
+//         }
+//     };
+// }
+
+// test_invalid!{
+//     xm_invalid
+//     path: "tests/mods/xm/invalid.xm",
+//     err: XmoditsError::InvalidModule(e)
+// }
+
+
+
+// #[test]
+// fn xm_empty() {
+//     assert!(Path::new("tests/mods/xm/invalid.xm").exists());
+//     dbg!(xmodits_lib::load_module("tests/mods/xm/invalid.xm").map_err(|e| e.kind()));
+//     // if let Err(XmoditsError::EmptyModule) =  {
+        
+//     // } else {
+//     //     panic!()
+//     // };
+// }
 
 #[test]
 fn xm_test_mod_plugin_packed() {
@@ -15,90 +47,73 @@ fn xm_test_mod_plugin_packed() {
     assert!(XMFile::load_module("tests/mods/xm/vagyakozas.xm").is_err());
 }
 
-#[ignore = "not yet done"]
+
+
+
+
+/* ####################################################################### */
+
+
 #[test]
-fn xm_no_samples() {
-    let a = XMFile::load_module("tests/mods/xm/no_sample.xm").unwrap();
+fn xm_no_samples2() {
+    let a = XMFile::load_module("tests/mods/xm/no_samples.xm").unwrap();
     let folder = "test/exports/";
-    let name = "MOD-please-delete";
+    let name = "XM-please-delete";
     let export_path = Path::new(folder).join(name);
-    std::fs::create_dir(&export_path).unwrap();
 
     assert_eq!(a.number_of_samples(), 0);
     assert!(!export_path.exists());
     assert!(a.dump(&export_path, true).is_err())
 }
-/* ####################################################################### */
 
-#[test]
-fn xm_test_1() {
-    let a = XMFile::load_module("tests/mods/xm/DEADLOCK.XM").unwrap();
-    verify_sample_num(
-        32,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    xm_no_samples
+    path: "tests/mods/xm/no_samples.xm",
+    with: 0
+);
 
-#[test]
-fn xm_test_2() {
-    let a = XMFile::load_module("tests/mods/xm/lovetrp.xm").unwrap();
-    verify_sample_num(
-        41,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    xm_test_1
+    path: "tests/mods/xm/DEADLOCK.XM",
+    with: 32
+);
 
-#[test]
-fn xm_test_3() {
-    let a = XMFile::load_module("tests/mods/xm/sweetdre.xm").unwrap();
-    verify_sample_num(
-        24,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    xm_test_2
+    path: "tests/mods/xm/lovetrp.xm",
+    with: 41
+);
 
-#[test]
-fn xm_test_4() {
-    let a = XMFile::load_module("tests/mods/xm/xo-sat.xm").unwrap();
-    verify_sample_num(
-        30,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    xm_test_3
+    path: "tests/mods/xm/sweetdre.xm",
+    with: 24
+);
 
-#[test]
-fn xm_test_5_wacky_sample_size() {
-    let a = XMFile::load_module("tests/mods/xm/sb-joint.xm").unwrap();
-    verify_sample_num(
-        25,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    xm_test_4
+    path: "tests/mods/xm/xo-sat.xm",
+    with: 30
+);
 
-#[test]
-fn xm_test_pat_pak_1() {
-    let a = XMFile::load_module("tests/mods/xm/skuter_-_mind_validator.xm").unwrap();
-    verify_sample_num(
-        24,
-        a.number_of_samples(),
-        a.module_name()
-    );
-} 
+check_sample_number!(
+    xm_test_5_wacky_sample_size
+    path: "tests/mods/xm/sb-joint.xm",
+    with: 25
+);
 
-#[test]
-fn xm_test_pat_pak_2() {
-    let a = XMFile::load_module("tests/mods/xm/skuter_-_memoirs.xm").unwrap();
-    verify_sample_num(
-        7, 
-        a.number_of_samples(),
-        a.module_name()
-    )
-} 
+check_sample_number!(
+    xm_test_pat_pak_1
+    path: "tests/mods/xm/skuter_-_mind_validator.xm",
+    with: 24
+);
+
+check_sample_number!(
+    xm_test_pat_pak_2
+    path: "tests/mods/xm/skuter_-_memoirs.xm",
+    with: 7
+);
+
 
 // pub fn verify_sample_num(expected: usize, given: usize, modname: &str) {
 //     assert_eq!(
