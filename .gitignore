@@ -7,5 +7,5 @@
 /extras/aseprite/
 /extras/old/
 *.wav
-/pylib/.github/
+# /pylib/.github/
 /pylib/dev/
