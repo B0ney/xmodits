@@ -1,4 +1,5 @@
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf, Path};
+
 use xmodits_lib::*;
 
 pub fn rip(
@@ -7,16 +8,61 @@ pub fn rip(
     index_raw: Option<bool>,
     index_padding: Option<usize>,
     index_only: Option<bool>,
-    with_folder: Option<bool>,
+    with_folder: Option<bool>
 ) -> Result<(), Error> {
-    let namer: SampleNamer = SampleNamer{
-        index_only,
-        index_padding,
+    rip_multiple(
+        vec![path],
+        destination,
         index_raw,
-        with_folder,
-    };
+        index_padding,
+        index_only,
+        with_folder
+    )
+}
 
-    let destination: PathBuf = match namer.with_folder {
+pub fn rip_multiple(
+    paths: Vec<String>,
+    destination: String,
+    index_raw: Option<bool>,
+    index_padding: Option<usize>,
+    index_only: Option<bool>,
+    with_folder: Option<bool>
+) -> Result<(), Error> 
+{
+    let sample_namer: Box<SampleNamerFunc> = SampleNamer { 
+        index_only, index_padding, index_raw 
+    }
+    .to_func();
+
+    let create_if_absent: bool = with_folder.is_some();
+
+    let mut errors: Vec<XmoditsError> = paths
+        .into_iter()
+        .map(|path| {
+            let destination: PathBuf = folder(&destination, &path, with_folder);
+
+            xmodits_lib::load_module(path)?
+                .dump_advanced(
+                    &destination,
+                    &sample_namer,
+                    create_if_absent
+                )
+            }
+        )
+        .filter_map(|result| result.err())
+        .collect();
+    
+    use std::cmp::Ordering;
+
+    match errors.len().cmp(&1) {
+        Ordering::Less => Ok(()),
+        Ordering::Equal => Err(errors.pop().unwrap()),
+        Ordering::Greater => Err(XmoditsError::MultipleErrors(errors)),
+    } 
+}
+
+fn folder(destination: &String, path: &String, with_folder: Option<bool> ) -> PathBuf {
+    match with_folder {
         Some(true) => {
             let modname: String = Path::new(&path)
                 .file_name().unwrap()
@@ -29,16 +75,7 @@ pub fn rip(
             new_folder
         },
         _ => PathBuf::new().join(&destination),
-    };
-
-    let create_if_absent: bool = namer.with_folder.is_some();
-
-    xmodits_lib::load_module(path)?
-        .dump_advanced(
-            &destination,
-            &namer.to_func(),
-            create_if_absent
-        )
+    }
 }
 
 #[derive(Default)]
@@ -46,7 +83,6 @@ struct SampleNamer {
     index_only: Option<bool>,
     index_padding: Option<usize>,
     index_raw: Option<bool>,
-    with_folder: Option<bool>,
 }
 
 impl SampleNamer {
