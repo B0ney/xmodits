@@ -1,6 +1,8 @@
-mod deltadecode;
-use crate::utils::prelude::*;
-use deltadecode::{delta_decode_u16, delta_decode_u8};
+use crate::deltadecode::{delta_decode_u16, delta_decode_u8};
+use crate::{
+    utils::prelude::*,
+    TrackerDumper, TrackerModule, TrackerSample, XmoditsError
+};
 
 const XM_HEADER_ID: &[u8; 17]       = b"Extended Module: ";
 const MOD_PLUGIN_PACKED: &[u8; 20]  = b"MOD Plugin packed   ";
@@ -10,38 +12,37 @@ const MASK_SMP_BITS: u8             = 0b0001_0000;  // 1 = 16 bit samples, 0 = 8
 const XM_SMP_SIZE: usize            = 40;
 const XM_INS_SIZE: u32              = 263;
 
+type XMSample = TrackerSample;
+
 pub struct XMFile {
     buf: Vec<u8>,
-    module_name: String,    // Name of tracker module
+    module_name: String,
     samples: Vec<XMSample>,
     smp_num: usize,
 }
 
-type XMSample = TrackerSample;
-use crate::interface::{TrackerDumper, TrackerModule, TrackerSample};
-
 impl TrackerDumper for XMFile {
-    fn validate(buf: &[u8]) -> Result<(), Error> {
+    fn validate(buf: &[u8]) -> Result<(), XmoditsError> {
         if buf.len() < 60 
             || read_slice(&buf, 0x0000, 17) != XM_HEADER_ID 
             || buf[0x0025] != XM_MAGIC_NUM 
         {
-            return Err("Not a valid XM file".into())
+            return Err(XmoditsError::invalid("Not a valid Extended Module"));
         }
         if read_slice(&buf, 0x0026, 20) == MOD_PLUGIN_PACKED {
-            return Err("Unsupported XM: Uses 'MOD plugin packed'".into());
+            return Err(XmoditsError::unsupported("Unsupported XM: Uses 'MOD plugin packed'"));
         }
 
         let version: u16 = read_u16_le(&buf, 0x003A);
 
         if version < XM_MIN_VER {
-            return Err("Unsupported XM: Version below 0104".into());
+            return Err(XmoditsError::unsupported("Unsupported XM: Version below 0104"));
         }
 
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError>
     {
         Self::validate(&buf)?;
 
@@ -64,19 +65,10 @@ impl TrackerDumper for XMFile {
         }))
     }
 
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        if !folder.as_ref().is_dir() {
-            return Err("Path is not a folder".into());
-        }
-
-        let smp: &XMSample          = &self.samples[index];
-        let path: PathBuf           = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.name));
-
+    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
         WAV::header(smp.rate, smp.bits, smp.len as u32, false)
             .write(
-                path,
+                file,
                 match smp.bits {
                     8   => { delta_decode_u8(&self.buf[smp.ptr_range()]).to_signed() }
                     _   => { delta_decode_u16(&self.buf[smp.ptr_range()]) }
@@ -94,7 +86,7 @@ impl TrackerDumper for XMFile {
 
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         &self.samples
-    }
+    }    
 }
 
 /// Skip xm pattern headers to access instrument headers.
@@ -105,7 +97,7 @@ fn skip_pat_header(buf: &[u8], patnum: usize, hdr_size: u32) -> Result<usize, Er
     let mut pat_data_size: u32;
 
     if patnum > 256 {
-        return Err("Invalid XM: Contains more than 256 patterns".into())
+        return Err(XmoditsError::invalid("Invalid XM: Contains more than 256 patterns"))
     }
 
     for _ in 0..patnum {
@@ -125,7 +117,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
     let mut ins_smp_num: u16;
 
     if ins_num > 128 {
-        return Err("Invalid XM: Contains more than 128 instruments".into());
+        return Err(XmoditsError::invalid("Invalid XM: Contains more than 128 instruments"));
     }
 
     for _ in 0..ins_num {
@@ -154,7 +146,6 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
                 || start_smp_hdr
                     + total_smp_hdr_size + len > buf.len()
             {
-                println!(":(");
                 break;
             }
 
@@ -169,8 +160,9 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
             let rate: u32       = (8363.0 * 2.0_f32.powf((4608.0 - period) / 768.0)) as u32;
             
             samples.push(XMSample{
+                filename: name.clone(),
                 name,
-                index: samples.len(),
+                raw_index: samples.len(),
                 len,
                 ptr,
                 flags,
@@ -187,14 +179,3 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
 
     Ok(samples)
 }
-
-// #[test]
-// fn list() {
-//     let a = XMFile::load_module("samples/xm/xo-sat.xm").unwrap();
-//     for i in a.list_sample_data(){
-//         dbg!(i);
-//     }
-//     // dbg!(a.list_sample_data().len());
-//     // dbg!(a.list_sample_data());
-
-// }

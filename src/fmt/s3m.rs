@@ -1,6 +1,8 @@
 use std::path::PathBuf;
-use crate::dword;
-use crate::utils::prelude::*;
+use crate::{
+    utils::prelude::*, dword,
+    TrackerDumper, TrackerModule, TrackerSample, XmoditsError
+};
 
 const S3M_HEADER_ID: &[u8]      = b"SCRM";
 const S3M_MAGIC_NUMBER: u8      = 0x10;
@@ -8,14 +10,13 @@ const SMP_MASK_STEREO: u8       = 0b0000_0010;
 const SMP_MASK_BITS: u8         = 0b0000_0100;
 const INS_HEAD_LENGTH: usize    = 13;
 
+type S3MSample = TrackerSample;
+
 pub struct S3MFile {
     buf: Vec<u8>,
     title: String,
     smp_data: Vec<S3MSample>,
 }
-
-type S3MSample = TrackerSample;
-use crate::interface::{TrackerDumper, TrackerModule, TrackerSample};
 
 impl TrackerDumper for S3MFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
@@ -23,12 +24,12 @@ impl TrackerDumper for S3MFile {
             || buf[0x001d] != S3M_MAGIC_NUMBER
             || &buf[dword!(0x002c)] != S3M_HEADER_ID
         {
-            return Err("File is not a valid Scream Tracker Module".into());
+            return Err(XmoditsError::invalid("File is not a valid Scream Tracker Module"));
         }
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError> 
     {
         Self::validate(&buf)?;
 
@@ -55,19 +56,10 @@ impl TrackerDumper for S3MFile {
         }))
     }
 
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        if !folder.as_ref().is_dir() {
-            return Err("Path is not a folder".into());
-        }
-
-        let smp: &S3MSample         = &self.smp_data[index];
-        let path: PathBuf           = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.name));
-
+    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
         WAV::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
             .write(
-                path, 
+                file, 
                 match smp.bits {
                     8 => self.buf[smp.ptr_range()].to_owned(),
                     _ => (&self.buf[smp.ptr_range()]).to_signed_u16(),
@@ -112,8 +104,9 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
         let rate: u32           = read_u32_le(buf, 0x0013 + offset);
 
         samples.push(S3MSample {
+            filename: name.clone(),
             name,
-            index,
+            raw_index: index,
             len: len as usize,
             ptr: ptr as usize,
             bits,
@@ -125,13 +118,3 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
 
     samples
 }
-
-// #[test]
-// fn list() {
-//     let a = S3MFile::load_module("samples/s3m/city_on_a_stick.s3m").unwrap();
-//     for i in a.list_sample_data() {
-//         println!("{}", i.index());
-//     }
-//     // dbg!(a.list_sample_data().len());
-//     // dbg!(a.list_sample_data());
-// }

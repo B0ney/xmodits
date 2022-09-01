@@ -1,7 +1,8 @@
-use crate::utils::prelude::*;
-use crate::{dword, word};
-mod tables;
-use tables::FINETUNE_TABLE;
+use crate::tables::FINETUNE_TABLE;
+use crate::{
+    utils::prelude::*, dword, word,
+    TrackerDumper, TrackerModule, TrackerSample, XmoditsError
+};
 use byteorder::{BE, ByteOrder};
 
 const ALT_FINETUNE: [&[u8]; 2]  = [b"M&K!", b"FEST"];
@@ -10,6 +11,8 @@ const MOD_SMP_START: usize      = 0x0014;       // offset where title ends & smp
 const MOD_SMP_LEN: usize        = 0x1e;
 const PAT_META: usize           = 0x3b8;
 
+type MODSample = TrackerSample;
+
 pub struct MODFile {
     buf: Vec<u8>,
     title: String,
@@ -17,17 +20,14 @@ pub struct MODFile {
     smp_data: Vec<MODSample>,
 }
 
-type MODSample = TrackerSample;
-use crate::{TrackerDumper, TrackerModule, TrackerSample};
-
 /// I need to work on "MOD Format.md" before I continue working on this. 
 impl TrackerDumper for MODFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 1085 {
-            return Err("Not a valid MOD file".into());
+            return Err(XmoditsError::invalid("Not a valid MOD file"));
         }
         if &buf[dword!(0x0000)] == MOD_XPK_MAGIC {
-            return Err("XPK compressed MOD files are not supported".into());
+            return Err(XmoditsError::unsupported("XPK compressed MOD files are not supported"));
         }
         Ok(())
     }
@@ -64,10 +64,10 @@ impl TrackerDumper for MODFile {
         }; 
 
         if smp_index == buf.len() {
-            return Err("MOD has no samples".into())
+            return Err(XmoditsError::EmptyModule)
         }
         if smp_index >= buf.len() {
-            return Err("Invalid MOD".into())
+            return Err(XmoditsError::invalid("Not a valid MOD file"));
         }
         
         let smp_data: Vec<MODSample> = build_samples(smp_num, &buf, smp_index, alt_finetune)?;
@@ -79,18 +79,10 @@ impl TrackerDumper for MODFile {
             buf
         }))
     }
-    
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        if !folder.as_ref().is_dir() {
-            return Err("Path is not a folder".into());
-        }
-        let smp: &MODSample         = &self.smp_data[index];
-        let path: PathBuf           = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.name));
 
+    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
         WAV::header(smp.rate as u32, 8, smp.len as u32, false)
-            .write(path, (&self.buf[smp.ptr_range()]).to_signed())
+            .write(file, (&self.buf[smp.ptr_range()]).to_signed())
     }
 
     fn number_of_samples(&self) -> usize {
@@ -103,7 +95,7 @@ impl TrackerDumper for MODFile {
 
     fn list_sample_data(&self) -> &[TrackerSample] {
         &self.smp_data
-    }
+    }    
 }
 
 fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) -> Result<Vec<MODSample>, Error> {
@@ -116,7 +108,7 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
         if len == 0 { continue; }
 
         if len as usize > (128 * 1024) {
-            return Err("MOD contains sample exceeding 128KB".into()); 
+            return Err(XmoditsError::invalid("MOD contains sample exceeding 128KB")); 
         }
 
         if len as usize + smp_pcm_stream_index > buf.len() { break; }
@@ -130,7 +122,7 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
 
         smp_data.push(MODSample {
             name: read_string(&buf, offset, 22),
-            index: i,
+            raw_index: i,
             len: len as usize, 
             ptr: smp_pcm_stream_index,
             bits: 8,

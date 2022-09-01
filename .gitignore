@@ -7,3 +7,6 @@
 /extras/aseprite/
 /extras/old/
 *.wav
+/pylib/.github/
+/pylib/dev/
+Cargo.lock

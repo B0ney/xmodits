@@ -1,6 +1,10 @@
-mod compression;
-use crate::{utils::prelude::*, dword};
-use self::compression::decompress_sample;
+use crate::compression::decompress_sample;
+use crate::{
+    utils::prelude::*, dword,
+    TrackerDumper, TrackerModule, TrackerSample, XmoditsError
+};
+
+type ITSample = TrackerSample;
 
 const IT_HEADER_ID: &[u8]   = b"IMPM";
 const ZIRCON: &[u8]         = b"ziRCON";        // mmcmp compression
@@ -13,31 +17,28 @@ const IT215: u16            = 0x0215;           // IT215 compression
 pub struct ITFile {
     title: String,
     buf: Vec<u8>,
-    pub version: u16,
-    pub compat_ver: u16,
-    pub smp_num: u16,
-    pub smp_data: Vec<ITSample>,
+    version: u16,
+    compat_ver: u16,
+    smp_num: u16,
+    smp_data: Vec<ITSample>,
 }
 
-type ITSample = TrackerSample;
-use crate::{TrackerDumper, TrackerModule, TrackerSample};
-
 impl TrackerDumper for ITFile {
-    fn validate(buf: &[u8]) -> Result<(), Error> {
+    fn validate(buf: &[u8]) -> Result<(), XmoditsError> {
         if buf.len() < IT_HEADER_LEN {
-            return Err("File is not a valid Impulse Tracker module".into());
+            return Err(XmoditsError::invalid("File is not a valid Impulse Tracker module"));
         }
         if &buf[slice!(0x0000, 6)] == ZIRCON {
-            return Err("Unsupported IT: Uses 'ziRCON' sample compression".into());
+            return Err(XmoditsError::unsupported("Unsupported IT: Uses 'ziRCON' sample compression"));
         }
         if &buf[dword!(0x0000)] != IT_HEADER_ID {
-            return Err("File is not a valid Impulse Tracker Module".into());
+            return Err(XmoditsError::invalid("File is not a valid Impulse Tracker module"));
         }
 
         Ok(())
     }
     
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError>
     {
         Self::validate(&buf)?;
         
@@ -68,17 +69,10 @@ impl TrackerDumper for ITFile {
         }))
     }
 
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        if !folder.as_ref().is_dir() {
-            return Err("Path is not a folder".into());
-        }
-        let smp: &ITSample          = &self.smp_data[index];
-        let filename: PathBuf       = PathBuf::new()
-            .join(folder)
-            .join(name_sample(index, &smp.filename));
-
+    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
         WAV::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
-            .write(filename, 
+            .write(
+                file, 
                 match smp.is_compressed {
                     true => {
                         decompress_sample(
@@ -141,7 +135,7 @@ fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
         sample_data.push(ITSample {
             name,
             filename,
-            index,
+            raw_index: index,
             len: len as usize,
             ptr: ptr as usize,
             flags,

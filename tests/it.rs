@@ -16,67 +16,49 @@ fn it_test_mmcmp() {
     assert!(ITFile::load_module("tests/mods/it/creagaia.it").is_err());
 }
 
+// We don't want xmodits to create an empty folder when attempting to dump an empty module
 #[test]
 fn it_no_samples() {
     let a = ITFile::load_module("tests/mods/it/no_samples.it").unwrap();
-    let folder = "test/exports/";
+    let folder = "tests/exports/";
     let name = "IT-please-delete";
     let export_path = Path::new(folder).join(name);
 
     assert_eq!(a.number_of_samples(), 0);
     assert!(!export_path.exists());
-    assert!(a.dump(&folder, name).is_err())
+
+    assert!(a.dump(&export_path, true).is_err())
 }
 
-#[test]
-fn it_should_be_17_samples_not_18() {
-    let a = ITFile::load_module("tests/mods/it/17_samples.it").unwrap();
-    verify_sample_num(
-        17,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    it_should_be_17_samples_not_18
+    path: "tests/mods/it/17_samples.it",
+    with: 17
+);
 
-#[test]
-fn it_test_1() {
-    let a = ITFile::load_module("tests/mods/it/asikwp_-_fc-freedrive_chiptune.it").unwrap();
-    verify_sample_num(
-        9,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    it_test_1
+    path: "tests/mods/it/asikwp_-_fc-freedrive_chiptune.it",
+    with: 9
+);
 
-#[test]
-fn it_test_2() {
-    let a = ITFile::load_module("tests/mods/it/beyond_-_flute.it").unwrap();
-    verify_sample_num(
-        2,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    it_test_2
+    path: "tests/mods/it/beyond_-_flute.it",
+    with: 2
+);
 
-#[test]
-fn it_test_3() {
-    let a = ITFile::load_module("tests/mods/it/sm-safari.it").unwrap();
-    verify_sample_num(
-        19,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    it_test_3
+    path: "tests/mods/it/sm-safari.it",
+    with: 19
+);
 
-#[test]
-fn it_test_4() {
-    let a = ITFile::load_module("tests/mods/it/songofthesky.it").unwrap();
-    verify_sample_num(
-        14,
-        a.number_of_samples(),
-        a.module_name()
-    );
-}
+check_sample_number!(
+    it_test_4
+    path: "tests/mods/it/songofthesky.it",
+    with: 14
+);
 
 /* ####################################################################### */
 

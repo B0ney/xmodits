@@ -1,5 +1,7 @@
 use std::path::Path;
 use xmodits_lib::{TrackerDumper, tracker_formats::*};
+mod utils;
+use crate::utils::verify_sample_num;
 
 #[test]
 fn mod_empty() {
@@ -22,34 +24,35 @@ fn mod_no_samples() {
     );
 }
 
-#[test]
-fn mod_test_1() {
-    let a = MODFile::load_module("tests/mods/mod/echobea3.mod").unwrap();
-    assert_eq!(a.number_of_samples(), 15);
-}
+check_sample_number!(
+    mod_test_1
+    path: "tests/mods/mod/echobea3.mod",
+    with: 15
+);
 
-#[test]
-fn mod_test_2() {
-    let a = MODFile::load_module("tests/mods/mod/slash-kill-maim-hit.mod").unwrap();
-    assert_eq!(a.number_of_samples(), 19);
-}
+check_sample_number!(
+    mod_test_2
+    path: "tests/mods/mod/slash-kill-maim-hit.mod",
+    with: 19
+);
 
-#[test]
-fn mod_test_3() {
-    let a = MODFile::load_module("tests/mods/mod/chop.mod").unwrap();
-    assert_eq!(a.number_of_samples(), 5);
-}
+check_sample_number!(
+    mod_test_3
+    path: "tests/mods/mod/chop.mod",
+    with: 5
+);
 
-#[test]
-fn mod_test_4() {
-    let a = MODFile::load_module("tests/mods/mod/sleep.mod").unwrap();
-    assert_eq!(a.number_of_samples(), 9);
-}
+check_sample_number!(
+    mod_test_4
+    path: "tests/mods/mod/sleep.mod",
+    with: 9
+);
 
-#[test]
-fn mod_test_5() {
-    let a = MODFile::load_module("tests/mods/mod/space_debris.mod").unwrap();
-    assert_eq!(a.number_of_samples(), 17);
-}
+
+check_sample_number!(
+    mod_test_5
+    path: "tests/mods/mod/space_debris.mod",
+    with: 17
+);
 
 /* ####################################################################### */

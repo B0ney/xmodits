@@ -57,6 +57,29 @@ pub fn verify_sample_num(expected: usize, given: usize, modname: &str) {
         "{}",format!("\n\nMODNAME: {}\n     EXPECTED: {} SAMPLES, GOT: {} INSTEAD\n\n",modname, expected, given)
     );
 }
+
+/// macro to verify sample number
+/// ```
+/// check_sample_number!(
+///     test_name
+///     path: "path/to/a/tracker.mod",
+///     with: EXPECTED_SAMPLE_NUMBER   
+/// )
+/// ```
+#[macro_export]
+macro_rules! check_sample_number {
+    // ($test_name:ident kind: $tracker:ty, path: $path:expr, with: $smp_no:tt) => {
+    ($test_name:ident path: $path:expr, with: $smp_no:tt) => {
+        #[test]
+        fn $test_name()
+        {
+            let a = xmodits_lib::load_module($path).unwrap();
+            verify_sample_num($smp_no, a.number_of_samples(), a.module_name());
+        }
+    };
+}
+
+
 // pub use verify_sample_num;
 pub use file_hash::{clean_test_export, hash_file};
 pub use file_compare::compare_files;

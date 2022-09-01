@@ -1,3 +1,5 @@
+/* Did you mean amig_mod.rs? */
+
 pub mod macros;
 pub mod signed;
 // pub mod array;
@@ -6,7 +8,8 @@ pub mod ascii;
 pub mod name;
 pub mod reader;
 
-pub type Error = Box<dyn std::error::Error>;
+pub type Error = crate::XmoditsError;
+
 /*
 / Import useful helper functions & macros
 / and common imports

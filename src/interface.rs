@@ -1,8 +1,11 @@
 use std::path::{Path, PathBuf};
 use std::fs;
+use crate::XmoditsError;
 use crate::utils::Error;
-
 pub type TrackerModule = Box<dyn TrackerDumper>;
+
+/// Function type signature to flexibly format sample names.
+pub type SampleNamerFunc = dyn Fn(&TrackerSample, usize) -> String;
 
 #[derive(Default, Debug)]
 pub struct TrackerSample {
@@ -11,7 +14,7 @@ pub struct TrackerSample {
     /// Sample filename
     pub filename: String,
     /// You should to call ```index()``` instead as this value is zero indexed.
-    pub index: usize,          
+    pub raw_index: usize,          
     /// Sample length in BYTES
     pub len: usize,             
     /// Sample pointer
@@ -33,9 +36,9 @@ impl TrackerSample {
     pub fn ptr_range(&self) -> std::ops::Range<usize> {
         self.ptr..(self.ptr + self.len)
     }
-    /// Return Sample's index as if its listed in a tracker module.
-    pub fn index(&self) -> usize {
-        self.index + 1
+    /// Return Sample's index as if it's listed in a tracker module.
+    pub fn raw_index(&self) -> usize {
+        self.raw_index + 1
     }
 }
 
@@ -44,12 +47,28 @@ pub trait TrackerDumper {
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
         where Self: Sized;
 
-    // check if tracker module is valid
+    /// Check if tracker module is valid
     fn validate(buf: &[u8]) -> Result<(), Error>
         where Self: Sized;
 
-    // export sample given index
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error>;
+    /// export sample given index
+    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+        self.export_advanced(folder, index, &crate::utils::prelude::name_sample)
+    }
+
+    fn export_advanced(
+        &self,
+        folder: &dyn AsRef<Path>,
+        index: usize,
+        name_sample: &SampleNamerFunc ) -> Result<(), Error>
+    {
+        let sample: &TrackerSample  = &self.list_sample_data()[index];
+        let file: PathBuf           = PathBuf::new()
+            .join(folder)
+            .join(name_sample(sample, index));
+
+        self.write_wav(sample, &file)
+    }
 
     /// Number of samples a tracker module contains
     fn number_of_samples(&self) -> usize;
@@ -60,59 +79,73 @@ pub trait TrackerDumper {
     /// List tracker sample infomation
     fn list_sample_data(&self) -> &[TrackerSample];
 
+    /// Write sample data to PCM
+    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error>;
+
     /// Load tracker module from given path
     fn load_module<P>(path: P) -> Result<TrackerModule, Error> 
-        where Self: Sized, P: AsRef<Path> 
-        {
-            /*
-                Tracker modules are frickin' tiny.
-                We can get away with loading it to memory directly
-                rather than using Seek.
-                
-                This allows us to access specific locations with offsets,
-                which makes everything easier to read and debug (hopefully).
-                
-                At any point should we consider optimizing the code,
-                using Seek *may* help performance...(At the cost of readability)
-
-                But this performance increase would mostly take effect with large files.
-
-                The largest tracker module iirc is ~21MB. 
-                The average tracker module (IT, XM, S3M) is < 2MB.
-
-                For large scale dumping in parallel, using Seek will be considered.
-            */
-            if std::fs::metadata(&path)?.len() > 1024 * 1024 * 64 {
-                return Err("File provided is larger than 64MB. No tracker module should ever be close to that".into());
-            }
+    where Self: Sized, P: AsRef<Path> 
+    {
+        /*
+            Tracker modules are frickin' tiny.
+            We can get away with loading it to memory directly
+            rather than using Seek.
             
-            let buf: Vec<u8> = fs::read(&path)?;
-            Self::load_from_buf(buf)
-        }
+            This allows us to access specific locations with offsets,
+            which makes everything easier to read and debug (hopefully).
+            
+            At any point should we consider optimizing the code,
+            using Seek *may* help performance...(At the cost of readability)
 
-    /// Dump all samples
-    fn dump(&self, folder: &dyn AsRef<Path>, module_name: &str) -> Result<(), Error> 
+            But this performance increase would mostly take effect with large files.
+
+            The largest tracker module iirc is ~21MB. 
+            The average tracker module (IT, XM, S3M) is < 2MB.
+
+            For large scale dumping in parallel, using Seek will be considered.
+        */
+        if std::fs::metadata(&path)?.len() > 1024 * 1024 * 64 {
+            return Err(
+                XmoditsError::file("File provided is larger than 64MB. No tracker module should ever be close to that")
+            );
+        }
+        
+        let buf: Vec<u8> = fs::read(&path)?;
+        Self::load_from_buf(buf)
+    }
+
+    /// Dump all samples to a folder
+    fn dump(&self, folder: &dyn AsRef<Path>, create_dir_if_absent: bool) -> Result<(), Error> 
+    {
+        self.dump_advanced(folder, &crate::utils::prelude::name_sample, create_dir_if_absent)
+    }
+
+    /// Dump all samples with the added ability to format sample names to our likinng.
+    fn dump_advanced(
+        &self,
+        folder: &dyn AsRef<Path>,
+        sample_namer_func: &SampleNamerFunc,
+        create_dir_if_absent: bool,
+    ) -> Result<(), Error>  
     {
         if self.number_of_samples() == 0 {
-            return Err("Module has no samples".into());
+            return Err(XmoditsError::EmptyModule);
         }
 
         if !&folder.as_ref().is_dir() {
-            return Err("folder provided either doesn't exist or is not a directory".into());
+            if create_dir_if_absent {
+                fs::create_dir(&folder)?;
+            } else {
+                return Err(
+                    XmoditsError::file(
+                        &format!("Destination '{}' either doesn't exist or is not a directory", folder.as_ref().display())
+                    )
+                );
+            }
         }
-
-        // Create root folder
-        let root: PathBuf = PathBuf::new()
-            .join(folder).join(module_name);
-    
-        if root.exists() {
-            return Err(format!("Folder Already exists: '{}'", root.display()).into());
-        }
-
-        std::fs::create_dir(&root)?;
         
         for i in 0..self.number_of_samples() {
-            self.export(&root, i)?;
+            self.export_advanced(&folder, i, sample_namer_func)?;
         }
 
         Ok(())
