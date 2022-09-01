@@ -14,6 +14,6 @@ xmodits-lib = { path = "../" }
 
 [profile.release]
 strip = true
-opt-level = 3       # We want to make it fast
+opt-level = "z"       # We want to make it fast
 lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.

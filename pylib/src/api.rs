@@ -2,27 +2,10 @@ use std::path::{PathBuf, Path};
 
 use xmodits_lib::*;
 
-pub fn rip(
-    path: String,
-    destination: String,
-    index_raw: Option<bool>,
-    index_padding: Option<usize>,
-    index_only: Option<bool>,
-    with_folder: Option<bool>
-) -> Result<(), Error> {
-    rip_multiple(
-        vec![path],
-        destination,
-        index_raw,
-        index_padding,
-        index_only,
-        with_folder
-    )
-}
-
 pub fn rip_multiple(
     paths: Vec<String>,
     destination: String,
+    
     index_raw: Option<bool>,
     index_padding: Option<usize>,
     index_only: Option<bool>,
