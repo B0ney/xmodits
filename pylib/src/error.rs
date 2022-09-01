@@ -41,19 +41,19 @@ impl From<XmError> for PyErr {
                 PyErr::new::<SampleExtractionError, _>(format!("Failed to rip sample: {}", e))
             },
             UnsupportedFormat(e) => {
-                PyErr::new::<UnsupportedFormatError, _>(format!("{}", e))
+                PyErr::new::<UnsupportedFormatError, _>(e)
             },
             InvalidModule(e) => {
-                PyErr::new::<InvalidModuleError, _>(format!("{}", e))
+                PyErr::new::<InvalidModuleError, _>(e)
             },
             IoError(e) => PyErr::new::<PyIOError, _>(format!("{}", e.to_string())),
-            FileError(e) => PyErr::new::<PyIOError, _>(format!("{}", e)),
+            FileError(e) => PyErr::new::<PyIOError, _>(e),
 
             EmptyModule => {
                 PyErr::new::<EmptyModuleError, _>("Module has no samples")
             },
             GenericError(e) => {
-                PyErr::new::<Generic, _>(format!("{}", e))
+                PyErr::new::<Generic, _>(e)
             },
         }
     }
