@@ -5,7 +5,8 @@ on:
     branches:
       - main
       - dev
-  pull_request:
+  # pull_request:
+  release:
 
 jobs:
   linux:
@@ -24,22 +25,19 @@ jobs:
         name: wheels
         path: dist
 
-  # windows:
-  #   runs-on: windows-latest
-  #   # defaults:
-  #   #   run:
-  #   #     working-directory: ./pylib
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - uses: messense/maturin-action@v1
-  #     with:
-  #       command: build
-  #       args: --release -m pylib/Cargo.toml --sdist -o dist --find-interpreter
-  #   - name: Upload wheels
-  #     uses: actions/upload-artifact@v2
-  #     with:
-  #       name: wheels
-  #       path: dist
+  windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: messense/maturin-action@v1
+      with:
+        command: build
+        args: --release -m pylib/Cargo.toml --sdist -o dist --find-interpreter
+    - name: Upload wheels
+      uses: actions/upload-artifact@v2
+      with:
+        name: wheels
+        path: dist
 
   # macos:
   #   runs-on: macos-latest
@@ -58,9 +56,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: "startsWith(github.ref, 'refs/tags/')"
+
+    # if: "startsWith(github.ref, 'refs/tags/')"
     # needs: [ macos, windows, linux ]
-    needs: [ linux ]
+    needs: [ linux, windows ]
 
     steps:
       - uses: actions/download-artifact@v2
