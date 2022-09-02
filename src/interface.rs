@@ -134,7 +134,8 @@ pub trait TrackerDumper {
 
         if !&folder.as_ref().is_dir() {
             if create_dir_if_absent {
-                fs::create_dir(&folder)?;
+                fs::create_dir(&folder)
+                    .map_err(|err| helpful_io_error(err, folder.as_ref()))?;
             } else {
                 return Err(
                     XmoditsError::file(
@@ -150,4 +151,22 @@ pub trait TrackerDumper {
 
         Ok(())
     }
+}
+
+fn helpful_io_error(err: std::io::Error, folder: &Path) -> XmoditsError {
+    XmoditsError::file(
+        &format!("Could not create folder '{}'{}", 
+            folder.display(),
+            
+            match err.kind() {
+                std::io::ErrorKind::NotFound => format!(".\nMake sure directory '{}' exists.", 
+                    match folder.ancestors().nth(1) {
+                        Some(p) => format!("{}", p.display()),
+                        _ => String::from("")
+                    }
+                ),
+                _ => format!(" {}", err.to_string())
+            },
+        )
+    )
 }
