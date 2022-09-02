@@ -10,16 +10,14 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./pylib/
     steps:
     - uses: actions/checkout@v3
     - uses: messense/maturin-action@v1
       with:
         manylinux: auto
         command: build
-        args: --release --sdist -o dist --find-interpreter
+        # https://github.com/messense/maturin-action/issues/23
+        args: --release -m pylib/Cargo.toml --sdist -o dist --find-interpreter
     - name: Upload wheels
       uses: actions/upload-artifact@v2
       with:
@@ -36,7 +34,7 @@ jobs:
   #   - uses: messense/maturin-action@v1
   #     with:
   #       command: build
-  #       args: --release -o dist --find-interpreter
+  #       args: --release -m pylib/Cargo.toml --sdist -o dist --find-interpreter
   #   - name: Upload wheels
   #     uses: actions/upload-artifact@v2
   #     with:
@@ -50,7 +48,7 @@ jobs:
   #   - uses: messense/maturin-action@v1
   #     with:
   #       command: build
-  #       args: --release -o dist --universal2 --find-interpreter
+  #       args: --release -m pylib/Cargo.toml --sdist -o dist --find-interpreter
   #   - name: Upload wheels
   #     uses: actions/upload-artifact@v2
   #     with:
