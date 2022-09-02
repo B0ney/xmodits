@@ -1,22 +1,52 @@
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf, Path};
+
 use xmodits_lib::*;
 
-pub fn rip(
-    path: String,
+pub fn rip_multiple(
+    paths: Vec<String>,
     destination: String,
+
     index_raw: Option<bool>,
     index_padding: Option<usize>,
     index_only: Option<bool>,
-    with_folder: Option<bool>,
-) -> Result<(), Error> {
-    let namer: SampleNamer = SampleNamer{
-        index_only,
-        index_padding,
-        index_raw,
-        with_folder,
-    };
+    with_folder: Option<bool>
+) -> Result<(), Error> 
+{
+    let sample_namer_func: Box<SampleNamerFunc> = SampleNamer::build_func(
+        index_only, index_padding, index_raw
+    );
+    let create_if_absent: bool = with_folder.is_some();
 
-    let destination: PathBuf = match namer.with_folder {
+    // Collect errors during dumping
+    let mut errors: Vec<XmoditsError> = paths
+        .into_iter()
+        .map(|path| {
+              xmodits_lib::load_module(&path)?
+                .dump_advanced(
+                    &folder(&destination, &path, with_folder),
+                    &sample_namer_func,
+                    create_if_absent
+                )
+            }
+        )
+        .filter_map(|result| result.err())
+        .collect();
+
+    use std::cmp::Ordering;
+    // Compare size of errors
+    // return Ok(()) if errors.len() = 0
+    // Extract a single error & return it if errors.len() = 1
+    // Construct "MultipleErrors" to contain errors and return it if errors.len() > 1 
+    
+    match errors.len().cmp(&1) {
+        Ordering::Less => Ok(()),
+        Ordering::Equal => Err(errors.pop().unwrap()),
+        Ordering::Greater => Err(XmoditsError::MultipleErrors(errors)),
+    } 
+}
+
+fn folder(destination: &String, path: &String, with_folder: Option<bool>) -> PathBuf {
+    match with_folder {
         Some(true) => {
             let modname: String = Path::new(&path)
                 .file_name().unwrap()
@@ -29,16 +59,7 @@ pub fn rip(
             new_folder
         },
         _ => PathBuf::new().join(&destination),
-    };
-
-    let create_if_absent: bool = namer.with_folder.is_some();
-
-    xmodits_lib::load_module(path)?
-        .dump_advanced(
-            &destination,
-            &namer.to_func(),
-            create_if_absent
-        )
+    }
 }
 
 #[derive(Default)]
@@ -46,7 +67,6 @@ struct SampleNamer {
     index_only: Option<bool>,
     index_padding: Option<usize>,
     index_raw: Option<bool>,
-    with_folder: Option<bool>,
 }
 
 impl SampleNamer {
@@ -54,7 +74,7 @@ impl SampleNamer {
     fn to_func(self) -> Box<SampleNamerFunc> {
         const DEFAULT_PADDING: usize = 2;
 
-        Box::new(move |smp: &TrackerSample, idx: usize| {
+        Box::new(move |smp: &TrackerSample, idx: usize| -> String {
             format!(
                 "{}{}.wav",
                 // Index component
@@ -82,5 +102,17 @@ impl SampleNamer {
                 }
             )
         })
+    }
+
+    fn build_func(
+        index_only: Option<bool>,
+        index_padding: Option<usize>,
+        index_raw: Option<bool>
+    ) -> Box<SampleNamerFunc> {
+        SampleNamer{
+            index_only,
+            index_padding,
+            index_raw,
+        }.to_func()
     }
 }

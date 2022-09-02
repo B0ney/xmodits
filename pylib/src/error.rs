@@ -31,7 +31,7 @@ impl From<_XmoditsError> for XmError {
         Self(e)
     }
 }
-
+// TODO: add module name / path to error
 impl From<XmError> for PyErr {
     fn from(e: XmError) -> Self {
         use _XmoditsError::*;
@@ -54,6 +54,10 @@ impl From<XmError> for PyErr {
             },
             GenericError(e) => {
                 PyErr::new::<Generic, _>(e)
+            },
+
+            MultipleErrors(errors) => {
+                PyErr::new::<Generic, _>(format!("multiple errors: {:#?}", errors))
             },
         }
     }

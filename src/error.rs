@@ -21,7 +21,10 @@ pub enum XmoditsError {
     EmptyModule,
 
     #[error("Generic Error: {0}")]
-    GenericError(String)
+    GenericError(String),
+
+    #[error("Multiple Errors")]
+    MultipleErrors(Vec<XmoditsError>)
 }
 
 impl XmoditsError {
