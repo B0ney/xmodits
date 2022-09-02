@@ -10,6 +10,9 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./pylib
     steps:
     - uses: actions/checkout@v3
     - uses: messense/maturin-action@v1
@@ -21,10 +24,13 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: wheels
-        path: dist
+        path: ./pylib/dist
 
   windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ./pylib
     steps:
     - uses: actions/checkout@v3
     - uses: messense/maturin-action@v1
@@ -35,7 +41,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: wheels
-        path: dist
+        path: ./pylib/dist
 
   macos:
     runs-on: macos-latest
@@ -49,7 +55,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: wheels
-        path: dist
+        path: ./pylib/dist
 
   release:
     name: Release
