@@ -4,17 +4,15 @@ on:
   push:
     branches:
       - main
-      - master
+      - dev
   pull_request:
-
-defaults:
-  run:
-    working-directory: ./pylib
 
 jobs:
   linux:
     runs-on: ubuntu-latest
-    
+    defaults:
+      run:
+        working-directory: ./pylib/
     steps:
     - uses: actions/checkout@v3
     - uses: messense/maturin-action@v1
