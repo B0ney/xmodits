@@ -15,7 +15,7 @@ pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo
 
     match smp_bits {
         16 => decompress_16bit(buf, len, it215),
-        _ => Ok(decompress_8bit(buf, len, it215)?.to_signed()), 
+        _ => Ok((decompress_8bit(buf, len, it215)?).to_signed_mut()), 
     }
 }
 
