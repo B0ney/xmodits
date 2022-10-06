@@ -19,9 +19,9 @@ pub fn run(modules: &[PathBuf], dest_dir: &PathBuf) -> Result<(), Error> {
         return Ok(help()); 
     }
 
-    let total_size_mb: u64 = total_size_MB(&modules);
+    let total_size_mb: f32 = total_size_MB(&modules);
 
-    if total_size_mb > 32 {
+    if total_size_mb > 32.0 {
         println!("Ripping {} MB worth of trackers, please wait...", total_size_mb);
     }
 

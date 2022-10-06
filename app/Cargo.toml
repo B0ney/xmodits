@@ -9,13 +9,13 @@ build = "build.rs"
 [dependencies]
 xmodits-lib = { path = "../" }
 clap = { version ="4.0.10", features = ["derive", "cargo", "wrap_help"]}
-
+progress_bar = "1.0.2"
+rayon = "1.5.3"
 
 [target.'cfg(windows)'.dependencies]
 native-dialog = {version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
 crossbeam-channel = "0.5.5"
 rand = "0.8.5"
-
 
 [build-dependencies]
 winres = "0.1.12"
@@ -23,7 +23,6 @@ winres = "0.1.12"
 [features]
 ascii_art = []
 advanced = []
-
 
 [profile.release]
 strip = true
@@ -37,4 +36,4 @@ opt-level = 1
 
 [package.metadata.winres]
 FileDescription = "Rip samples from tracker music with speed!"
-Comments = "This software is licensed under GPLv3 (or later). You can obtain the source code here: https://github.com/B0ney/xmodits/"
+Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"

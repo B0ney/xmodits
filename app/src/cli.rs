@@ -30,9 +30,9 @@ pub fn version() {
     println!("{VERSION}");
 }
 
-pub fn total_size_MB(paths: &[std::path::PathBuf]) -> u64 {
+pub fn total_size_MB(paths: &[std::path::PathBuf]) -> f32 {
     paths
         .iter()
-        .map(|e| if let Ok(m) = e.metadata() { m.len() } else { 0 })
-        .sum::<u64>() / (1024 * 1024)
+        .map(|e| if let Ok(m) = e.metadata() { m.len() as f32 } else { 0_f32 })
+        .sum::<f32>() / (1024.0 * 1024.0)
 }

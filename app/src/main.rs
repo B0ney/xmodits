@@ -1,8 +1,9 @@
 #![windows_subsystem = "windows"]
 mod app;
 use std::env;
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use xmodits_lib::Error;
+mod api;
 
 #[cfg(unix)] 
 mod cli;
@@ -69,46 +70,57 @@ mod dialoge;
 use clap::Parser;
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-struct Cli {
-	paths: Vec<String>,
+#[command(author, version, about, long_about = "cheese")] // TODO
+pub struct Cli {
+    paths: Vec<PathBuf>,
 
     #[arg(help="Only name samples with an index. E.g. 01.wav")]
     #[arg(short='i', long)]
-	index_only: bool,
+    index_only: bool,
 
     #[arg(help="Preserve sample indexing")]
     #[arg(short='r', long)]
-	index_raw: bool,
+    index_raw: bool,
 
     #[arg(help="Pad index with preceding 0s. e.g. 001, or 0001")]
     #[arg(default_value_t = 2, short='p', long="index-padding", value_parser=0..=5)]
-	index_padding: i64,
+    index_padding: i64,
 
     #[arg(help="Include embedded text from tracker (if it exists)")]
     #[arg(short='c', long)]
     with_comment: bool,
 
+    #[arg(help="Don't create a new folder for samples")]
     #[arg(short, long)]
-	with_folder: bool,
+    no_folder: bool,
 
     #[arg(help="Name samples in UPPER CASE")]
     #[arg(short, long="upper", conflicts_with="lower_case")]
-	upper_case: bool,
+    upper_case: bool,
 
     #[arg(help="Name samples in lower case")]
     #[arg(short, long="lower", conflicts_with="upper_case")]
-	lower_case: bool,
+    lower_case: bool,
 
     #[cfg(feature="advanced")]
     #[arg(help="Rip samples in parallel")]
     #[arg(short='k', long)]
-	parallel: bool,
+    parallel: bool,
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    dbg!(cli.with_comment);
-    dbg!(cli.paths);
+    #[cfg(feature="advanced")]
+    if cli.parallel {
+        api::rip_parallel(cli);
+        return;
+    }
+
+    dbg!(cli::total_size_MB(&cli.paths));
+
+    dbg!(&cli.with_comment);
+    dbg!(&cli.paths);
+    
+    api::rip(cli);    
 }
