@@ -80,7 +80,7 @@ pub trait TrackerDumper {
     fn list_sample_data(&self) -> &[TrackerSample];
 
     /// Write sample data to PCM
-    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error>;
+    fn write_wav(&self, smp: &TrackerSample, file: &Path) -> Result<(), Error>;
 
     /// Load tracker module from given path
     fn load_module<P>(path: P) -> Result<TrackerModule, Error> 
@@ -165,7 +165,7 @@ fn helpful_io_error(err: std::io::Error, folder: &Path) -> XmoditsError {
                         _ => String::from("")
                     }
                 ),
-                _ => format!(" {}", err.to_string())
+                _ => format!(" {}", err)
             },
         )
     )

@@ -95,11 +95,11 @@ pub struct Cli {
     no_folder: bool,
 
     #[arg(help="Name samples in UPPER CASE")]
-    #[arg(short, long="upper", conflicts_with="lower_case")]
+    #[arg(short, long="upper", conflicts_with="lower_case", conflicts_with="index_only")]
     upper_case: bool,
 
     #[arg(help="Name samples in lower case")]
-    #[arg(short, long="lower", conflicts_with="upper_case")]
+    #[arg(short, long="lower", conflicts_with="upper_case", conflicts_with="index_only")]
     lower_case: bool,
 
     #[cfg(feature="advanced")]

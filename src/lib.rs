@@ -25,7 +25,7 @@ pub fn load_module<P: AsRef<std::path::Path>>(path: P) -> Result<TrackerModule, 
         "xm"    => XMFile::load_module(path),
         "s3m"   => S3MFile::load_module(path),
         "mod"   => MODFile::load_module(path),
-        f   => return Err(
+        f   => Err(
             XmoditsError::UnsupportedFormat(
                 format!("'{}' is not a supported format.", f)
             )

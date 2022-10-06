@@ -9,7 +9,7 @@ const FMT_: u32 = 0x666D_7420; // "riff "
 const DATA: u32 = 0x6461_7461; // data
 const HEADER_SIZE: usize = 44;
 
-pub struct WAV {
+pub struct Wav {
     smp_rate: u32,  // sample rate
     smp_bits: u8,   // bits per sample
     pcm_len: u32,   // length of byte array
@@ -17,7 +17,7 @@ pub struct WAV {
     header_data: [u8; HEADER_SIZE],
 }
 
-impl WAV {
+impl Wav {
     pub fn header(
         smp_rate: u32,  // sample rate
         smp_bits: u8,   // bits per sample
@@ -60,8 +60,8 @@ impl WAV {
         file.write_all(&self.header_data)?;
 
         match self.stereo {
-            true    => { write_interleaved(file, &pcm, self.smp_bits) },
-            false   => { file.write_all(&pcm).map_err(|e| e.into()) }
+            true    => { write_interleaved(file, pcm, self.smp_bits) },
+            false   => { file.write_all(pcm).map_err(|e| e.into()) }
         }
     }
 }
@@ -70,7 +70,7 @@ impl WAV {
 /// 
 /// s3m already interleaves stereo data, right?
 fn write_interleaved(mut _file: File, _pcm: &[u8], _smp_bits: u8) -> Result<(), Error> {
-    _file.write_all(&_pcm).map_err(|e| e.into())
+    _file.write_all(_pcm).map_err(|e| e.into())
     // Ok(())
     // return Err("Writing stereo data is not yet supported".into());
 

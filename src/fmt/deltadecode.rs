@@ -10,9 +10,9 @@ pub fn delta_decode_u8(buf: &[u8]) -> Vec<u8> {
     let mut old: u8         = 0;
     let mut new: u8;
 
-    for i in 0..buf.len() {
-        new = buf[i].wrapping_add(old);
-        buf[i] = new;
+    for i in &mut buf{
+        new = i.wrapping_add(old);
+        *i = new;
         old = new;
     }
 

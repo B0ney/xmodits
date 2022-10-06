@@ -24,16 +24,16 @@ pub struct XMFile {
 impl TrackerDumper for XMFile {
     fn validate(buf: &[u8]) -> Result<(), XmoditsError> {
         if buf.len() < 60 
-            || read_slice(&buf, 0x0000, 17) != XM_HEADER_ID 
+            || read_slice(buf, 0x0000, 17) != XM_HEADER_ID 
             || buf[0x0025] != XM_MAGIC_NUM 
         {
             return Err(XmoditsError::invalid("Not a valid Extended Module"));
         }
-        if read_slice(&buf, 0x0026, 20) == MOD_PLUGIN_PACKED {
+        if read_slice(buf, 0x0026, 20) == MOD_PLUGIN_PACKED {
             return Err(XmoditsError::unsupported("Unsupported XM: Uses 'MOD plugin packed'"));
         }
 
-        let version: u16 = read_u16_le(&buf, 0x003A);
+        let version: u16 = read_u16_le(buf, 0x003A);
 
         if version < XM_MIN_VER {
             return Err(XmoditsError::unsupported("Unsupported XM: Version below 0104"));
@@ -65,8 +65,8 @@ impl TrackerDumper for XMFile {
         }))
     }
 
-    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
-        WAV::header(smp.rate, smp.bits, smp.len as u32, false)
+    fn write_wav(&self, smp: &TrackerSample, file: &Path) -> Result<(), Error> {
+        Wav::header(smp.rate, smp.bits, smp.len as u32, false)
             .write(
                 file,
                 match smp.bits {
@@ -150,7 +150,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
             }
 
             let ptr: usize      = start_smp_hdr + total_smp_hdr_size + smp_len_cumulative;
-            let name: String    = read_string(&buf, 0x0012 + offset,22);
+            let name: String    = read_string(buf, 0x0012 + offset,22);
             let flags: u8       = buf[0x000e + offset];
             let bits: u8        = (((flags & MASK_SMP_BITS) >> 4) + 1) * 8;
             let finetune: i8    = buf[0x000d + offset] as i8;

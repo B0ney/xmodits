@@ -1,7 +1,6 @@
 use super::Cli;
 use super::cli as application;
 use progress_bar::*;
-use rayon::prelude::*;
 
 pub fn rip(cli: Cli) {
     init_progress_bar(cli.paths.len());
@@ -52,6 +51,8 @@ pub fn rip(cli: Cli) {
 
 #[cfg(feature="advanced")]
 pub fn rip_parallel(cli: Cli) {
+    use rayon::prelude::*;
+
     init_progress_bar(cli.paths.len());
 
     let total_size = application::total_size_MB(&cli.paths);

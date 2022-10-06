@@ -80,8 +80,8 @@ impl TrackerDumper for MODFile {
         }))
     }
 
-    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
-        WAV::header(smp.rate as u32, 8, smp.len as u32, false)
+    fn write_wav(&self, smp: &TrackerSample, file: &Path) -> Result<(), Error> {
+        Wav::header(smp.rate as u32, 8, smp.len as u32, false)
             .write(file, (&self.buf[smp.ptr_range()]).to_signed())
     }
 
@@ -121,7 +121,7 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
         };
 
         smp_data.push(MODSample {
-            name: read_string(&buf, offset, 22),
+            name: read_string(buf, offset, 22),
             raw_index: i,
             len: len as usize, 
             ptr: smp_pcm_stream_index,

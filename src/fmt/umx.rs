@@ -34,11 +34,11 @@ impl TrackerDumper for UMXFile {
 
     fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 69 // for now
-            || read_u32_le(&buf, 0x0000) != UM_MAGIC_NUMBER 
+            || read_u32_le(buf, 0x0000) != UM_MAGIC_NUMBER 
         {
             return Err("Not a valid Unreal package".into());
         }
-        let export_count = read_u32_le(&buf, 0x0014);
+        let export_count = read_u32_le(buf, 0x0014);
 
         if export_count > 1 {
             return Err("Unreal Package contains more than 1 entry.".into());
@@ -60,7 +60,7 @@ impl TrackerDumper for UMXFile {
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         unimplemented!()
     }
-    fn write_wav(&self, _: &crate::TrackerSample, _: &PathBuf) -> Result<(), Error> {
+    fn write_wav(&self, _: &crate::TrackerSample, _: &Path) -> Result<(), Error> {
         unimplemented!()
     }  
 }

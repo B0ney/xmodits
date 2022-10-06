@@ -69,8 +69,8 @@ impl TrackerDumper for ITFile {
         }))
     }
 
-    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
-        WAV::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
+    fn write_wav(&self, smp: &TrackerSample, file: &Path) -> Result<(), Error> {
+        Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
             .write(
                 file, 
                 match smp.is_compressed {
@@ -85,7 +85,7 @@ impl TrackerDumper for ITFile {
                     false => {
                         match smp.bits {
                             8 => (&self.buf[smp.ptr_range()]).to_signed(),
-                            _ => (&self.buf[smp.ptr_range()]).to_owned(),
+                            _ => (self.buf[smp.ptr_range()]).to_owned(),
                         }
                     },
                 }
@@ -128,8 +128,8 @@ fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
         if !is_compressed    // break out of loop if we get a funky offset
             && (ptr + len) as usize > buf.len() { break; }
 
-        let filename: String    = read_string(&buf,0x0004 + offset, 12);
-        let name: String        = read_string(&buf,0x0014 + offset, 26);
+        let filename: String    = read_string(buf,0x0004 + offset, 12);
+        let name: String        = read_string(buf,0x0014 + offset, 26);
         let rate: u32           = read_u32_le(buf, 0x003C + offset);
 
         sample_data.push(ITSample {

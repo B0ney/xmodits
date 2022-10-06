@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use crate::{
     utils::prelude::*, dword,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
@@ -56,8 +55,8 @@ impl TrackerDumper for S3MFile {
         }))
     }
 
-    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
-        WAV::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
+    fn write_wav(&self, smp: &TrackerSample, file: &Path) -> Result<(), Error> {
+        Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
             .write(
                 file, 
                 match smp.bits {

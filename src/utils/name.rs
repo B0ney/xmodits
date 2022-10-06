@@ -11,7 +11,7 @@ pub fn name_sample(sample: &crate::TrackerSample, idx: usize) -> String {
             x if x.is_empty() => "".to_string(),
             x => format!(
                 " - {}", 
-                x.replace(".wav", "").replace(".", "_")
+                x.replace(".wav", "").replace('.', "_")
             ),
         }
     )
