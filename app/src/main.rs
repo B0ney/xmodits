@@ -72,7 +72,9 @@ use clap::Parser;
 #[derive(Parser)]
 #[command(author, version, about, long_about = "cheese")] // TODO
 pub struct Cli {
-    paths: Vec<PathBuf>,
+    #[arg(help="Trackers to rip, the last element can be a folder to place rips. E.g \"./music.s3m ./music.it ./dumps/\"")]
+    #[clap(required = true)]
+    trackers: Vec<PathBuf>,
 
     #[arg(help="Only name samples with an index. E.g. 01.wav")]
     #[arg(short='i', long)]
@@ -110,6 +112,11 @@ pub struct Cli {
 
 fn main() {
     let cli = Cli::parse();
+    if false {
+
+    } else {
+
+    } 
 
     #[cfg(feature="advanced")]
     if cli.parallel {
@@ -117,10 +124,11 @@ fn main() {
         return;
     }
 
-    dbg!(cli::total_size_MB(&cli.paths));
 
-    dbg!(&cli.with_comment);
-    dbg!(&cli.paths);
+    // dbg!(cli::total_size_MB(&cli.trackers));
+
+    // dbg!(&cli.with_comment);
+    // dbg!(&cli.trackers);
     
     api::rip(cli);    
 }
