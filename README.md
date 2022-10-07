@@ -62,6 +62,19 @@ xmodits mod1.mod mod2.it mod3.s3m [destination folder]
 ```
 xmodits ./*.mod [destination folder]
 ```
+### Advanced Arguments
+If you want to customize how ripped samples are named, the following arguments can be used:
+
+|short| long| Description|
+|--|--|--|
+|-i |--index-only| Ripped samples will only be named with an index|
+|-r |--index-raw| Preserve internal sample indexing|
+|-p |--index-padding| Pad sample index with preceding 0s|
+|-n |--no-folder| Do not create a new folder for ripped samples |
+|-u |--upper| Name samples in UPPER CASE |
+|-l |--lower| Name samples in lower case |
+|-c| --with-comment |Include embedded text from tracker (if it exists) 🚧|
+|-k |--parallel| Rip samples in parallel (Requires compiling with **``features=["advanced"]``**) |
 
 ## Note
 The purpose of this tool (the core) is to dump samples that's it.

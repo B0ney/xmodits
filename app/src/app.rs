@@ -25,7 +25,7 @@ pub fn dump_samples_advanced<T,U>(
 where   T: AsRef<Path>,
         U: AsRef<Path>,
 {
-    if dest_dir.as_ref().exists() && with_folder {
+    if dest_dir.as_ref().is_dir() && with_folder {
         return Err(XmoditsError::FileError(format!("Folder already exists: {}", &dest_dir.as_ref().display())));
     }
 

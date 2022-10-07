@@ -35,8 +35,8 @@ fn folder(destination: &PathBuf, path: &PathBuf, with_folder: bool) -> PathBuf {
 }
 
 pub fn rip(cli: Cli, destination: PathBuf) {
-    init_progress_bar(cli.trackers.len());
-
+    // init_progress_bar(cli.trackers.iter().filter(|f| f.is_file()).count());
+    // let pb = ProgressBar::new(cli.trackers.len() as u64);
     let sample_namer_func: Box<SampleNamerFunc> = build_namer(&cli);
 
     let total_size = application::total_size_MB(&cli.trackers);
@@ -47,34 +47,45 @@ pub fn rip(cli: Cli, destination: PathBuf) {
             &format!("Ripping {:.2} MiB worth of trackers. Please wait...", total_size),
             Color::Green, Style::Normal);
     }
-    // let pb = ProgressBar::new(1000);
-    // pb.set_style(
-    //     ProgressStyle::with_template(
-    //         "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] ({pos}/{len}, ETA {eta})",
-    //     )
-    //     .unwrap(),
-    // );
+    let pb = ProgressBar::new(cli.trackers.iter().filter(|f| f.is_file()).count() as u64);
     
-    set_progress_bar_action("Ripping", Color::Blue, Style::Bold);
+    pb.set_style(
+        ProgressStyle::with_template(
+            "{spinner:.green} [{elapsed}] [{bar:40.cyan/blue}] ({pos}/{len})",
+        )
+        .unwrap(),
+    );
+    
+    // set_progress_bar_action("Ripping", Color::Blue, Style::Bold);
+    pb.println("\x1B[32mRipping...");
 
     cli.trackers
         .into_iter()
-        .filter(|f| f.exists() && f.is_file())
+        .filter(|f| f.is_file())
         .for_each(|mod_path| {
             if let Err(error) = app::dump_samples_advanced(
                 &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
                 &sample_namer_func, !cli.no_folder
             ) {
-                print_progress_bar_info(
-                    "Error ", 
-                    &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy(),),
-                    Color::Red, Style::Normal
-                );
+                pb.println(format!("{} {}",
+                    "\x1B[31mError",
+                    &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
+                ));
+
+                // print_progress_bar_info(
+                //     "Error ", 
+                //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy(),),
+                //     Color::Red, Style::Normal
+                // );
             }
-            inc_progress_bar();
+            // inc_progress_bar();
+            pb.inc(1);
+            // pb.inc(1);
         }
     );
-    finalize_progress_bar();
+    // finalize_progress_bar();
+    pb.finish_with_message("done");
+
 }
 
 #[cfg(feature="advanced")]
@@ -134,15 +145,23 @@ fn test() {
     // }
 
     // Provide a custom bar style
-    let pb = ProgressBar::new(1000);
+    let pb = ProgressBar::new(10);
     pb.set_style(
         ProgressStyle::with_template(
-            "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] ({pos}/{len}, ETA {eta})",
+            "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] ({pos}/{len})",
         )
         .unwrap(),
     );
-    for _ in (0..1000).progress_with(pb) {
-        // ...
-        thread::sleep(Duration::from_millis(5));
+    // for _ in (0..10).progress_with(pb) {
+    //     // ...
+    //     println!("ygj");
+    //     thread::sleep(Duration::from_millis(500));
+    // }
+    // let pb = ProgressBar::new(100);
+    for i in 0..10 {
+        thread::sleep(Duration::from_millis(500));
+        pb.println(format!("[+] finished #{}", i));
+        pb.inc(1);
     }
+    pb.finish_with_message("done");
 }
