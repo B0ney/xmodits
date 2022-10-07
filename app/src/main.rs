@@ -7,8 +7,8 @@ mod api;
 
 #[cfg(unix)] 
 mod cli;
-#[cfg(unix)]
-mod app_unix;
+// #[cfg(unix)]
+// mod app_unix;
 
 #[cfg(target_os = "windows")]
 mod app_win;
@@ -118,7 +118,7 @@ fn main() {
 
     #[cfg(feature="advanced")]
     if cli.parallel {
-        api::rip_parallel(cli);
+        api::rip_parallel(cli, destination);
         return;
     }
 

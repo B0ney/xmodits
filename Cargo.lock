@@ -71,7 +71,7 @@ dependencies = [
  "once_cell",
  "strsim",
  "termcolor",
- "terminal_size 0.2.1",
+ "terminal_size",
 ]
 
 [[package]]
@@ -125,20 +125,6 @@ dependencies = [
  "foreign-types",
  "libc",
  "objc",
-]
-
-[[package]]
-name = "console"
-version = "0.15.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c050367d967ced717c04b65d8c619d863ef9292ce0c5760028655a2fb298718c"
-dependencies = [
- "encode_unicode",
- "lazy_static",
- "libc",
- "terminal_size 0.1.17",
- "unicode-width",
- "winapi",
 ]
 
 [[package]]
@@ -289,12 +275,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f107b87b6afc2a64fd13cac55fe06d6c8859f12d4b14cbcdd2c67d0976781be"
 
 [[package]]
-name = "encode_unicode"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
-
-[[package]]
 name = "errno"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -329,6 +309,12 @@ name = "foreign-types-shared"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
+
+[[package]]
+name = "formatx"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e94c620058a2b0d38357c78968094788d66016c4cc24bb0efd2e246d9781391c"
 
 [[package]]
 name = "generic-array"
@@ -367,18 +353,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "indicatif"
-version = "0.17.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfddc9561e8baf264e0e45e197fd7696320026eb10a8180340debc27b18f535b"
-dependencies = [
- "console",
- "number_prefix",
- "rayon",
- "unicode-width",
-]
-
-[[package]]
 name = "indoc"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -389,6 +363,17 @@ name = "io-lifetimes"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ea37f355c05dde75b84bba2d767906ad522e97cd9e2eef2be7a4ab7fb442c06"
+
+[[package]]
+name = "kdam"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60b27d86b76a35364a888b698cc4842b788c83441276c312d165f237faf873ed"
+dependencies = [
+ "formatx",
+ "terminal_size",
+ "unicode-segmentation",
+]
 
 [[package]]
 name = "lazy_static"
@@ -465,12 +450,6 @@ dependencies = [
  "hermit-abi",
  "libc",
 ]
-
-[[package]]
-name = "number_prefix"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "830b246a0e5f20af87141b25c173cd1b609bd7779a4617d6ec582abaf90870f3"
 
 [[package]]
 name = "objc"
@@ -573,15 +552,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94e2ef8dbfc347b10c094890f778ee2e36ca9bb4262e86dc99cd217e35f3470b"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "progress_bar"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b4be7cf2db9f2c65ff33764fa928b5b839d6343254627edf4f4d8de99655aaa"
-dependencies = [
- "lazy_static",
 ]
 
 [[package]]
@@ -813,16 +783,6 @@ dependencies = [
 
 [[package]]
 name = "terminal_size"
-version = "0.1.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "633c1a546cee861a1a6d0dc69ebeca693bf4296661ba7852b9d21d159e0506df"
-dependencies = [
- "libc",
- "winapi",
-]
-
-[[package]]
-name = "terminal_size"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8440c860cf79def6164e4a0a983bcc2305d82419177a0e0c71930d049e3ac5a1"
@@ -873,10 +833,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5bd2fe26506023ed7b5e1e315add59d6f584c621d037f9368fea9cfb988f368c"
 
 [[package]]
-name = "unicode-width"
-version = "0.1.10"
+name = "unicode-segmentation"
+version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0edd1e5b14653f783770bce4a4dabb4a5108a5370a5f5d8cfe8710c361f6c8b"
+checksum = "0fdbf052a0783de01e944a6ce7a8cb939e295b1e7be835a1112c3b9a7f047a5a"
 
 [[package]]
 name = "unindent"
@@ -1006,9 +966,8 @@ version = "0.9.7"
 dependencies = [
  "clap",
  "crossbeam-channel",
- "indicatif",
+ "kdam",
  "native-dialog",
- "progress_bar",
  "rand",
  "rayon",
  "winres",

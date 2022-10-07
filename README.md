@@ -74,7 +74,7 @@ If you want to customize how ripped samples are named, the following arguments c
 |-u |--upper| Name samples in UPPER CASE |
 |-l |--lower| Name samples in lower case |
 |-c| --with-comment |Include embedded text from tracker (if it exists) 🚧|
-|-k |--parallel| Rip samples in parallel (Requires compiling with **``features=["advanced"]``**) |
+|-k |--parallel| Rip samples in parallel (Requires compiling with **``features="advanced"``**) |
 
 ## Note
 The purpose of this tool (the core) is to dump samples that's it.

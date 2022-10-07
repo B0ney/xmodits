@@ -1,34 +1,34 @@
-#[cfg(feature="ascii_art")] const LOGO: &str = include_str!("../../extras/ascii_art.txt");
-#[cfg(not(feature="ascii_art"))] const LOGO: &str = "xmodits";
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
-pub const HELP: &str = "
-USAGE:
-  xmodits <module>... [destination folder]
+// #[cfg(feature="ascii_art")] const LOGO: &str = include_str!("../../extras/ascii_art.txt");
+// #[cfg(not(feature="ascii_art"))] const LOGO: &str = "xmodits";
+// pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+// pub const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
+// pub const HELP: &str = "
+// USAGE:
+//   xmodits <module>... [destination folder]
 
-FLAGS:
-  -h, --help            Prints help information
-  -v, --version         Prints version
+// FLAGS:
+//   -h, --help            Prints help information
+//   -v, --version         Prints version
 
-EXAMPLES:
-    xmodits song1.s3m
+// EXAMPLES:
+//     xmodits song1.s3m
 
-    xmodits song1.s3m ~/Downloads/
+//     xmodits song1.s3m ~/Downloads/
 
-    xmodits song1.s3m song2.it 
+//     xmodits song1.s3m song2.it 
 
-    xmodits song1.s3m song2.it ~/Downloads/
-";
+//     xmodits song1.s3m song2.it ~/Downloads/
+// ";
 
-pub fn help() {
-    println!("{LOGO}-{VERSION}");
-    println!("By {AUTHOR}");
-    println!("{HELP}");
-}
+// pub fn help() {
+//     println!("{LOGO}-{VERSION}");
+//     println!("By {AUTHOR}");
+//     println!("{HELP}");
+// }
 
-pub fn version() {
-    println!("{VERSION}");
-}
+// pub fn version() {
+//     println!("{VERSION}");
+// }
 
 pub fn total_size_MB(paths: &[std::path::PathBuf]) -> f32 {
     paths

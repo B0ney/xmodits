@@ -1,16 +1,17 @@
 use std::path::Path;
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::app;
-
 use super::Cli;
 use super::cli as application;
-use indicatif::ProgressIterator;
-use progress_bar::*;
+
 use xmodits_lib::{SampleNamer, SampleNamerFunc};
+
+use kdam::prelude::*;
+use kdam::{Column, RichProgress};
 
 pub fn build_namer(cli: &Cli) -> Box<SampleNamerFunc> {
     SampleNamer::build_func(
@@ -35,133 +36,129 @@ fn folder(destination: &PathBuf, path: &PathBuf, with_folder: bool) -> PathBuf {
 }
 
 pub fn rip(cli: Cli, destination: PathBuf) {
-    // init_progress_bar(cli.trackers.iter().filter(|f| f.is_file()).count());
-    // let pb = ProgressBar::new(cli.trackers.len() as u64);
     let sample_namer_func: Box<SampleNamerFunc> = build_namer(&cli);
+    let items = cli.trackers.iter().filter(|f| f.is_file()).count();
 
+    let mut pb = progress_bar(items);
     let total_size = application::total_size_MB(&cli.trackers);
 
     if total_size > 512.0 {
-        print_progress_bar_info(
-            "Info:",
-            &format!("Ripping {:.2} MiB worth of trackers. Please wait...", total_size),
-            Color::Green, Style::Normal);
+        pb.write(&format!("Ripping {:.2} MiB worth of trackers. Please wait...", total_size).colorize("green"));
+    } else {
+        pb.write("Ripping...".colorize("green"));
     }
-    let pb = ProgressBar::new(cli.trackers.iter().filter(|f| f.is_file()).count() as u64);
-    
-    pb.set_style(
-        ProgressStyle::with_template(
-            "{spinner:.green} [{elapsed}] [{bar:40.cyan/blue}] ({pos}/{len})",
-        )
-        .unwrap(),
-    );
-    
-    // set_progress_bar_action("Ripping", Color::Blue, Style::Bold);
-    pb.println("\x1B[32mRipping...");
+
+    for mod_path in cli.trackers.iter().filter(|f| f.is_file()) {
+        if let Err(error) = app::dump_samples_advanced(
+            &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
+            &sample_namer_func, !cli.no_folder
+        ) {
+            // pb.write(format!("{} {}",
+            //     "Error".colorize("red"),
+            //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
+            // ));
+        }
+        // pb.update(1);
+    }
+
+    pb.write("Done!".colorize("bold green"));
+}
+
+#[cfg(feature="advanced")]
+pub fn rip_parallel(cli: Cli, destination: PathBuf) {
+    use rayon::prelude::*;
+
+    let sample_namer_func: Box<SampleNamerFunc>= build_namer(&cli);
+    // sample_namer_func
+    let items = cli.trackers.iter().filter(|f| f.is_file()).count();
+
+    let mut pb = progress_bar(items);
+    let total_size = application::total_size_MB(&cli.trackers);
+
+    if total_size > 512.0 {
+        pb.write(&format!("Ripping {:.2} MiB worth of trackers in parallel. Please wait...", total_size).colorize("green"));
+    } else {
+        pb.write("Ripping {:.2} MiB worth of trackers in parallel is no faster when done serially.".colorize("orange"));
+    }
+    // pb;
 
     cli.trackers
-        .into_iter()
-        .filter(|f| f.is_file())
+        .into_par_iter()
+        .filter(|f|f.is_file())
         .for_each(|mod_path| {
+            // let a = a.clone();
             if let Err(error) = app::dump_samples_advanced(
                 &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
                 &sample_namer_func, !cli.no_folder
             ) {
-                pb.println(format!("{} {}",
-                    "\x1B[31mError",
-                    &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
-                ));
-
-                // print_progress_bar_info(
-                //     "Error ", 
-                //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy(),),
-                //     Color::Red, Style::Normal
-                // );
+                // a.lock().unwrap().write(format!("{} {}",
+                //     "Error".colorize("red"),
+                //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
+                // ));
             }
-            // inc_progress_bar();
-            pb.inc(1);
-            // pb.inc(1);
+            // a.lock().unwrap().update(1);
         }
     );
-    // finalize_progress_bar();
-    pb.finish_with_message("done");
-
+    pb.write("Done!".colorize("bold green"));
 }
 
-#[cfg(feature="advanced")]
-pub fn rip_parallel(cli: Cli) {
-    use rayon::prelude::*;
-
-    init_progress_bar(cli.trackers.len());
-
-    let total_size = application::total_size_MB(&cli.trackers);
-
-    if total_size < 512.0 {
-        print_progress_bar_info(
-            "Warning:",
-            &format!("Ripping {:.2} MiB worth of trackers in parallel is no faster when done serially.", total_size),
-            Color::Yellow, Style::Normal);
-    } else {
-        print_progress_bar_info(
-            "Info:",
-            &format!("Ripping {:.2} MiB worth of trackers. Please wait...", total_size),
-            Color::Green, Style::Normal);
-    }
-
-    set_progress_bar_action("Ripping", Color::Blue, Style::Bold);
-
-    cli.trackers
-        .into_par_iter()
-        .filter(|f| f.exists() && f.is_file())
-        .for_each(|mod_path| {
-            if let Err(error) = app::dump_samples(&mod_path, "/home/boney/Downloads/Folders/modarchive_2021_additions/dump/") {
-                print_progress_bar_info(
-                    "Error", 
-                    &format!("{} --> \"{}\"",  error,mod_path.file_name().unwrap().to_string_lossy(),),
-                    Color::Red, Style::Normal
-                );
-            }
-            // inc_progress_bar();
-            // a. 1;
-        }
-    );
-    finalize_progress_bar();
+fn progress_bar(total: usize) -> RichProgress {
+    RichProgress::new(
+        tqdm!(
+            total = total,
+            unit_scale = true,
+            unit_divisor = 1024,
+            unit = "B"
+        ),
+        vec![
+            Column::Spinner(
+                "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+                    .chars()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>(),
+                80.0,
+                1.0,
+            ),
+            Column::text("[bold blue]?"),
+            Column::Bar,
+            Column::Percentage(1),
+            Column::text("•"),
+            Column::CountTotal,
+            Column::text("•"),
+            // Column::Rate,
+            // Column::text("•"),
+            Column::RemainingTime,
+        ],
+    )
 }
+
 
 #[test]
 fn test() {
-    use indicatif::{ProgressBar, ProgressStyle};
+    let mut pb = progress_bar(200);
 
-    // // Default styling, attempt to use Iterator::size_hint to count input size
-    // for _ in (0..1000).progress() {
-    //     // ...
-    //     thread::sleep(Duration::from_millis(5));
-    // }
+    pb.write("download will begin in 5 seconds".colorize("bold red"));
 
-    // // Provide explicit number of elements in iterator
-    // for _ in (0..1000).progress_count(1000) {
-    //     // ...
-    //     thread::sleep(Duration::from_millis(5));
-    // }
-
-    // Provide a custom bar style
-    let pb = ProgressBar::new(10);
-    pb.set_style(
-        ProgressStyle::with_template(
-            "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] ({pos}/{len})",
-        )
-        .unwrap(),
-    );
-    // for _ in (0..10).progress_with(pb) {
-    //     // ...
-    //     println!("ygj");
-    //     thread::sleep(Duration::from_millis(500));
-    // }
-    // let pb = ProgressBar::new(100);
-    for i in 0..10 {
-        thread::sleep(Duration::from_millis(500));
-        pb.println(format!("[+] finished #{}", i));
-        pb.inc(1);
+    while pb.pb.elapsed_time() <= 5.0 {
+        pb.refresh();
     }
-    pb.finish_with_message("done");
+
+    pb.replace(1, Column::text("[bold blue]docker.exe"));
+    pb.write("downloading docker.exe".colorize("bold cyan"));
+    pb.write(format!("{} test","downloading docker.exe".colorize("bold cyan")));
+
+
+    let total_size = 200;
+    let mut downloaded = 0;
+
+    while downloaded < total_size {
+        let new = std::cmp::min(downloaded + 10, total_size);
+        downloaded = new;
+        // pb.update_to(new);
+        pb.update(10);
+        std::thread::sleep(std::time::Duration::from_millis(590));
+    }
+
+    pb.write("downloaded docker.exe".colorize("bold green"));
+    eprintln!();
 }
