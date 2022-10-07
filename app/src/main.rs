@@ -111,12 +111,12 @@ pub struct Cli {
 }
 
 fn main() {
-    let cli = Cli::parse();
-    if false {
+    let mut cli = Cli::parse();
 
-    } else {
-
-    } 
+    let destination: PathBuf = match cli.trackers.last().unwrap() {
+        p if p.is_dir() && cli.trackers.len() > 1 => cli.trackers.pop().unwrap(),
+        _ => env::current_dir().unwrap(),
+    };
 
     #[cfg(feature="advanced")]
     if cli.parallel {
@@ -124,11 +124,5 @@ fn main() {
         return;
     }
 
-
-    // dbg!(cli::total_size_MB(&cli.trackers));
-
-    // dbg!(&cli.with_comment);
-    // dbg!(&cli.trackers);
-    
-    api::rip(cli);    
+    api::rip(cli, destination);   
 }

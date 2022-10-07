@@ -3,11 +3,13 @@ use fmt::*;
 #[allow(unused, dead_code)]
 mod utils;
 mod interface;
+mod formatter;
 mod error;
 
 pub use interface::{TrackerDumper, TrackerModule, TrackerSample, SampleNamerFunc};
 pub use error::XmoditsError;
 pub use utils::Error;
+pub use formatter::SampleNamer;
 
 pub mod tracker_formats {
     pub use crate::it::ITFile;
