@@ -65,19 +65,17 @@ mod dialoge;
 //     return app_win::run(modules, dest_dir);
 // }
 
-
-
 use clap::Parser;
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = "cheese")] // TODO
+#[command(author, version, about, long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M & MOD formats.\nhttps://github.com/B0ney/xmodits - GPLv3")] // TODO
 pub struct Cli {
-    #[arg(help="Trackers to rip, the last element can be a folder to place rips. E.g \"./music.s3m ./music.it ./dumps/\"")]
+    #[arg(help="Trackers to rip, the last element can be a folder to place your rips. E.g \"./music.s3m ./music.it ./dumps/\"")]
     #[clap(required = true)]
     trackers: Vec<PathBuf>,
 
     #[arg(help="Only name samples with an index. E.g. 01.wav")]
-    #[arg(short='i', long)]
+    #[arg(short='i', long, conflicts_with="upper_case", conflicts_with="lower_case")]
     index_only: bool,
 
     #[arg(help="Preserve sample indexing")]
@@ -88,20 +86,20 @@ pub struct Cli {
     #[arg(default_value_t = 2, short='p', long="index-padding", value_parser=0..=5)]
     index_padding: i64,
 
-    #[arg(help="Include embedded text from tracker (if it exists)")]
-    #[arg(short='c', long)]
-    with_comment: bool,
+    // #[arg(help="Include embedded text from tracker (if it exists)")]
+    // #[arg(short='c', long)]
+    // with_comment: bool,
 
-    #[arg(help="Don't create a new folder for samples")]
+    #[arg(help="Don't create a new folder for samples.")]
     #[arg(short, long)]
     no_folder: bool,
 
     #[arg(help="Name samples in UPPER CASE")]
-    #[arg(short, long="upper", conflicts_with="lower_case", conflicts_with="index_only")]
+    #[arg(short, long="upper", conflicts_with="lower_case")]
     upper_case: bool,
 
     #[arg(help="Name samples in lower case")]
-    #[arg(short, long="lower", conflicts_with="upper_case", conflicts_with="index_only")]
+    #[arg(short, long="lower", conflicts_with="upper_case")]
     lower_case: bool,
 
     #[cfg(feature="advanced")]

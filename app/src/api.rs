@@ -1,12 +1,15 @@
 use std::path::Path;
 use std::path::PathBuf;
+use std::thread;
+use std::time::Duration;
+use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::app;
 
 use super::Cli;
 use super::cli as application;
+use indicatif::ProgressIterator;
 use progress_bar::*;
-use indicatif::ProgressBar;
 use xmodits_lib::{SampleNamer, SampleNamerFunc};
 
 pub fn build_namer(cli: &Cli) -> Box<SampleNamerFunc> {
@@ -38,27 +41,33 @@ pub fn rip(cli: Cli, destination: PathBuf) {
 
     let total_size = application::total_size_MB(&cli.trackers);
 
-    if total_size > 512.0 { // change to >
+    if total_size > 512.0 {
         print_progress_bar_info(
             "Info:",
             &format!("Ripping {:.2} MiB worth of trackers. Please wait...", total_size),
             Color::Green, Style::Normal);
     }
-
+    // let pb = ProgressBar::new(1000);
+    // pb.set_style(
+    //     ProgressStyle::with_template(
+    //         "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] ({pos}/{len}, ETA {eta})",
+    //     )
+    //     .unwrap(),
+    // );
+    
     set_progress_bar_action("Ripping", Color::Blue, Style::Bold);
 
     cli.trackers
         .into_iter()
         .filter(|f| f.exists() && f.is_file())
         .for_each(|mod_path| {
-            // println!("{}", );
             if let Err(error) = app::dump_samples_advanced(
                 &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
                 &sample_namer_func, !cli.no_folder
             ) {
                 print_progress_bar_info(
-                    "Error", 
-                    &format!("{} <-- \"{}\"",  error, mod_path.file_name().unwrap().to_string_lossy(),),
+                    "Error ", 
+                    &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy(),),
                     Color::Red, Style::Normal
                 );
             }
@@ -68,7 +77,7 @@ pub fn rip(cli: Cli, destination: PathBuf) {
     finalize_progress_bar();
 }
 
-// #[cfg(feature="advanced")]
+#[cfg(feature="advanced")]
 pub fn rip_parallel(cli: Cli) {
     use rayon::prelude::*;
 
@@ -108,5 +117,32 @@ pub fn rip_parallel(cli: Cli) {
     finalize_progress_bar();
 }
 
+#[test]
+fn test() {
+    use indicatif::{ProgressBar, ProgressStyle};
 
+    // // Default styling, attempt to use Iterator::size_hint to count input size
+    // for _ in (0..1000).progress() {
+    //     // ...
+    //     thread::sleep(Duration::from_millis(5));
+    // }
 
+    // // Provide explicit number of elements in iterator
+    // for _ in (0..1000).progress_count(1000) {
+    //     // ...
+    //     thread::sleep(Duration::from_millis(5));
+    // }
+
+    // Provide a custom bar style
+    let pb = ProgressBar::new(1000);
+    pb.set_style(
+        ProgressStyle::with_template(
+            "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] ({pos}/{len}, ETA {eta})",
+        )
+        .unwrap(),
+    );
+    for _ in (0..1000).progress_with(pb) {
+        // ...
+        thread::sleep(Duration::from_millis(5));
+    }
+}

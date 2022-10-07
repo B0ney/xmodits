@@ -9,7 +9,7 @@ build = "build.rs"
 [dependencies]
 xmodits-lib = { path = "../" }
 clap = { version ="4.0.10", features = ["derive", "cargo", "wrap_help"]}
-progress_bar = "1.0.2"
+progress_bar = "1.0.2" # LINUX ONLY
 indicatif = {version = "*", features = ["rayon"]}
 rayon = "1.5.3"
 
