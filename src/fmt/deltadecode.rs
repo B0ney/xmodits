@@ -12,7 +12,7 @@ pub fn delta_decode_u8(buf: &[u8]) -> Vec<u8> {
 
     for i in &mut buf{
         new = i.wrapping_add(old);
-        *i = new;
+        *i = new.wrapping_sub(128); // convert to signed
         old = new;
     }
 

@@ -63,3 +63,10 @@ fn write_u16(pcm: &[u8]) -> Vec<u8>{
 
     out
 }
+
+pub fn make_signed_u8(buf: &mut [u8]) -> &[u8] {
+    for i in buf.iter_mut() {
+        *i = i.wrapping_sub(128)
+    }
+    buf
+}

@@ -6,7 +6,7 @@
 /// 
 
 
-use crate::{utils::{Error, reader::read_u16_le}, XmoditsError};
+use crate::{utils::{Error, reader::read_u16_le, signed::make_signed_u8}, XmoditsError};
 use byteorder::{ByteOrder, LE};
 
 pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo: bool) -> Result<Vec<u8>, Error> {
@@ -15,7 +15,7 @@ pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo
 
     match smp_bits {
         16 => decompress_16bit(buf, len, it215),
-        _ => Ok((decompress_8bit(buf, len, it215)?).to_signed_mut()), 
+        _ => decompress_8bit(buf, len, it215), 
     }
 }
 
@@ -221,7 +221,7 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
 
         len -= blklen as u32; 
     }
-
+    let _ = make_signed_u8(&mut dest_buf);
     Ok(dest_buf)
 }
 

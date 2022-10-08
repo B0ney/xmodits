@@ -70,7 +70,7 @@ impl TrackerDumper for XMFile {
             .write(
                 file,
                 match smp.bits {
-                    8   => { delta_decode_u8(&self.buf[smp.ptr_range()]).to_signed() }
+                    8   => { delta_decode_u8(&self.buf[smp.ptr_range()]) }
                     _   => { delta_decode_u16(&self.buf[smp.ptr_range()]) }
                 }
             )
