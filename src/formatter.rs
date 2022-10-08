@@ -36,7 +36,7 @@ impl SampleNamer {
                         name if name.is_empty() => "".to_string(),
                         name => format!(
                             " - {}", {
-                                let name = name.replace(".wav","").replace(".","_");
+                                let name = name.replace(".wav","").replace('.',"_");
 
                                 match (self.upper, self.lower) {
                                     (true, false)   => name.to_ascii_uppercase(),

@@ -80,9 +80,7 @@ impl TrackerDumper for ITFile {
                 smp.bits, self.compat_ver == IT215,
                 smp.is_stereo
             )?
-        } else {
-            Vec::with_capacity(0)
-        };
+        } else { Vec::with_capacity(0) };
 
         Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
             .write_ref(

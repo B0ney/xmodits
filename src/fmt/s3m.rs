@@ -1,5 +1,6 @@
+use std::cell::RefCell;
 use crate::{
-    utils::prelude::*, dword,
+    utils::{prelude::*, signed::make_signed_u16}, dword,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
 };
 
@@ -12,7 +13,7 @@ const INS_HEAD_LENGTH: usize    = 13;
 type S3MSample = TrackerSample;
 
 pub struct S3MFile {
-    buf: Vec<u8>,
+    buf: RefCell<Vec<u8>>,
     title: String,
     smp_data: Vec<S3MSample>,
 }
@@ -51,17 +52,19 @@ impl TrackerDumper for S3MFile {
         Ok(Box::new(Self{
             title,
             smp_data,
-            buf,
+            buf: RefCell::new(buf),
         }))
     }
 
     fn write_wav(&self, smp: &TrackerSample, file: &Path) -> Result<(), Error> {
+        let mut buf = self.buf.borrow_mut();
+
         Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
-            .write(
+            .write_ref(
                 file, 
                 match smp.bits {
-                    8 => self.buf[smp.ptr_range()].to_owned(),
-                    _ => (&self.buf[smp.ptr_range()]).to_signed_u16(),
+                    8 => &buf[smp.ptr_range()],
+                    _ => make_signed_u16(&mut buf[smp.ptr_range()]),
                 }
             )
     }

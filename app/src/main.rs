@@ -8,7 +8,7 @@ mod api;
 #[cfg(unix)] 
 mod cli;
 // #[cfg(unix)]
-// mod app_unix;
+mod app_unix;
 
 #[cfg(target_os = "windows")]
 mod app_win;
@@ -122,5 +122,6 @@ fn main() {
         return;
     }
 
-    api::rip(cli, destination);   
+    // api::rip(cli, destination);  
+    app_unix::run(&cli.trackers, &destination) ;
 }

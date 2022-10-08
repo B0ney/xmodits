@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use crate::deltadecode::{delta_decode_u16, delta_decode_u8};
 use crate::{
     utils::prelude::*,
@@ -15,7 +17,7 @@ const XM_INS_SIZE: u32              = 263;
 type XMSample = TrackerSample;
 
 pub struct XMFile {
-    buf: Vec<u8>,
+    buf: RefCell<Vec<u8>>,
     module_name: String,
     samples: Vec<XMSample>,
     smp_num: usize,
@@ -59,19 +61,21 @@ impl TrackerDumper for XMFile {
 
         Ok(Box::new(Self {
             module_name,
-            buf,
+            buf: RefCell::new(buf),
             samples,
             smp_num,
         }))
     }
 
     fn write_wav(&self, smp: &TrackerSample, file: &Path) -> Result<(), Error> {
+        let mut buf =  self.buf.borrow_mut();
+        
         Wav::header(smp.rate, smp.bits, smp.len as u32, false)
-            .write(
+            .write_ref(
                 file,
                 match smp.bits {
-                    8   => { delta_decode_u8(&self.buf[smp.ptr_range()]) }
-                    _   => { delta_decode_u16(&self.buf[smp.ptr_range()]) }
+                    8   => { delta_decode_u8(&mut buf[smp.ptr_range()]) }
+                    _   => { delta_decode_u16(&mut buf[smp.ptr_range()]) }
                 }
             )
     }

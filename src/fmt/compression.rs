@@ -9,8 +9,8 @@
 use crate::{utils::{Error, reader::read_u16_le, signed::make_signed_u8}, XmoditsError};
 use byteorder::{ByteOrder, LE};
 
+#[inline(always)]
 pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo: bool) -> Result<Vec<u8>, Error> {
-    use crate::utils::signed::SignedByte;
     let _channels: u32 = stereo as u32 + 1;
 
     match smp_bits {
@@ -123,6 +123,7 @@ impl <'a>BitReader<'a> {
 ///     refer to line 137 in compression.c for ideas.
 ///     Add stereo boolean parameter.
 ///
+#[inline(always)]
 #[rustfmt::skip]     
 fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
     let mut len: u32 = len;             // Length of uncompressed sample. (copied for mutation)
@@ -225,6 +226,7 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
     Ok(dest_buf)
 }
 
+#[inline(always)]
 #[rustfmt::skip]
 fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
     let mut len: u32 = len / 2;         // Length of uncompressed sample. (copied for mutation)
