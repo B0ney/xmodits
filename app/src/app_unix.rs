@@ -3,8 +3,8 @@ use std::path::PathBuf;
 
 use xmodits_lib::Error;
 use crate::app;
-use crate::cli;
-use cli::{total_size_MB };
+// use crate::cli;
+use app::total_size_MB;
 
 // pub fn check_args(args: &[std::ffi::OsString]) {
 //     match args[0].to_str() {

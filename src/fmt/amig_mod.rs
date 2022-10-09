@@ -124,9 +124,11 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
             true    => alt_frequency(finetune as i8),
             false   => FINETUNE_TABLE[((finetune & 0xf) ^ 8) as usize]
         };
-
+        let name = read_string(buf, offset, 22);
+        
         smp_data.push(MODSample {
-            name: read_string(buf, offset, 22),
+            // filename: name.clone(),
+            name,
             raw_index: i,
             len: len as usize, 
             ptr: smp_pcm_stream_index,

@@ -1,4 +1,3 @@
-use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::thread;
@@ -6,7 +5,6 @@ use std::time::Duration;
 
 use crate::app;
 use super::Cli;
-use super::cli as application;
 
 use xmodits_lib::{SampleNamer, SampleNamerFunc};
 
@@ -37,10 +35,15 @@ fn folder(destination: &PathBuf, path: &PathBuf, with_folder: bool) -> PathBuf {
 
 pub fn rip(cli: Cli, destination: PathBuf) {
     let sample_namer_func: Box<SampleNamerFunc> = build_namer(&cli);
+
     let items = cli.trackers.iter().filter(|f| f.is_file()).count();
 
+    if items == 0 {
+        return println!("{}", "There's nothing to rip!".colorize("green"));
+    }
+
     let mut pb = progress_bar(items);
-    let total_size = application::total_size_MB(&cli.trackers);
+    let total_size = app::total_size_MB(&cli.trackers);
 
     if total_size > 512.0 {
         pb.write(&format!("Ripping {:.2} MiB worth of trackers. Please wait...", total_size).colorize("green"));
@@ -53,12 +56,12 @@ pub fn rip(cli: Cli, destination: PathBuf) {
             &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
             &sample_namer_func, !cli.no_folder
         ) {
-            // pb.write(format!("{} {}",
-            //     "Error".colorize("red"),
-            //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
-            // ));
+            pb.write(format!("{} {}",
+                "Error".colorize("red"),
+                &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
+            ));
         }
-        // pb.update(1);
+        pb.update(1);
     }
 
     pb.write("Done!".colorize("bold green"));
@@ -73,33 +76,33 @@ pub fn rip_parallel(cli: Cli, destination: PathBuf) {
     let items = cli.trackers.iter().filter(|f| f.is_file()).count();
 
     let mut pb = progress_bar(items);
-    let total_size = application::total_size_MB(&cli.trackers);
+    let total_size = app::total_size_MB(&cli.trackers);
 
     if total_size > 512.0 {
         pb.write(&format!("Ripping {:.2} MiB worth of trackers in parallel. Please wait...", total_size).colorize("green"));
     } else {
         pb.write("Ripping {:.2} MiB worth of trackers in parallel is no faster when done serially.".colorize("orange"));
     }
-    // pb;
+    let pb = Arc::new(std::sync::Mutex::new(pb));
 
     cli.trackers
         .into_par_iter()
         .filter(|f|f.is_file())
         .for_each(|mod_path| {
-            // let a = a.clone();
+            let a = pb.clone();
             if let Err(error) = app::dump_samples_advanced(
                 &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
                 &sample_namer_func, !cli.no_folder
             ) {
-                // a.lock().unwrap().write(format!("{} {}",
-                //     "Error".colorize("red"),
-                //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
-                // ));
+                a.lock().unwrap().write(format!("{} {}",
+                    "Error".colorize("red"),
+                    &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
+                ));
             }
-            // a.lock().unwrap().update(1);
+            a.lock().unwrap().update(1);
         }
     );
-    pb.write("Done!".colorize("bold green"));
+    pb.lock().unwrap().write("Done!".colorize("bold green"));
 }
 
 fn progress_bar(total: usize) -> RichProgress {
@@ -125,8 +128,8 @@ fn progress_bar(total: usize) -> RichProgress {
             Column::text("•"),
             Column::CountTotal,
             Column::text("•"),
-            // Column::Rate,
-            // Column::text("•"),
+            Column::Rate,
+            Column::text("•"),
             Column::RemainingTime,
         ],
     )
@@ -139,11 +142,11 @@ fn test() {
 
     pb.write("download will begin in 5 seconds".colorize("bold red"));
 
-    while pb.pb.elapsed_time() <= 5.0 {
-        pb.refresh();
-    }
+    // while pb.pb.elapsed_time() <= 5.0 {
+    //     // pb.refresh();
+    // }
 
-    pb.replace(1, Column::text("[bold blue]docker.exe"));
+    // pb.replace(1, Column::text("[bold blue]docker.exe"));
     pb.write("downloading docker.exe".colorize("bold cyan"));
     pb.write(format!("{} test","downloading docker.exe".colorize("bold cyan")));
 
