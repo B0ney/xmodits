@@ -1009,6 +1009,7 @@ name = "xmodits-lib"
 version = "0.1.8"
 dependencies = [
  "byteorder",
+ "lazy_static",
  "sha2",
  "thiserror",
 ]
