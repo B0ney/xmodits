@@ -10,8 +10,8 @@ build = "build.rs"
 xmodits-lib = { path = "../" , features = ["thread"]}
 clap = { version ="4.0.10", features = ["derive", "cargo", "wrap_help"]}
 # progress_bar = "1.0.2" # LINUX ONLY
-# indicatif = {version = "*", features = ["rayon"]}
-kdam = "0.2.4"
+indicatif = { version = "*" }
+# kdam = "0.2.4"
 rayon = "1.5.3"
 
 [target.'cfg(windows)'.dependencies]
