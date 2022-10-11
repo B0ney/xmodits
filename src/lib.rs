@@ -10,6 +10,7 @@ mod error;
 
 pub use interface::{TrackerDumper, TrackerModule, TrackerSample, SampleNamerFunc};
 pub use error::XmoditsError;
+use once_cell::sync::Lazy;
 pub use utils::Error;
 pub use formatter::SampleNamer;
 
@@ -39,31 +40,33 @@ pub fn load_module<P: AsRef<std::path::Path>>(path: P) -> Result<TrackerModule, 
 
 // https://stackoverflow.com/questions/65157092/how-to-construct-a-hashmap-with-boxed-fn-values
 
-type ModLoaderFunc = Box<dyn Fn(&Path) -> Result<TrackerModule, XmoditsError>>;
+type ModLoaderFunc = fn(&Path) -> Result<TrackerModule, XmoditsError>;
 
-pub fn identify_and_load<P>(path: P) -> Result<TrackerModule, XmoditsError> 
+static LOADER: Lazy<HashMap<&str, ModLoaderFunc>> = Lazy::new(|| {
+    use tracker_formats::*;
+    let b: [(&str, ModLoaderFunc); 4] = [
+        ("it",|p| ITFile::load_module(&p)),
+        ("xm", |p| XMFile::load_module(&p)),
+        ("s3m", |p| S3MFile::load_module(&p)),
+        ("mod", |p| MODFile::load_module(&p)),
+    ];
+    HashMap::from(b)
+});
+
+pub fn load_module_robust<P>(path: P) -> Result<TrackerModule, XmoditsError> 
 where P: AsRef<std::path::Path>
 {
-    use tracker_formats::*;
-
-    let b: [(&str, ModLoaderFunc); 4]  = [
-        ("it", Box::new(|p| ITFile::load_module(&p))),
-        ("xm",  Box::new(|p| XMFile::load_module(&p))),
-        ("s3m",  Box::new(|p| S3MFile::load_module(&p))),
-        ("mod",  Box::new(|p| MODFile::load_module(&p))),
-    ];
-
-    let loaders = HashMap::from(b);
     let ext = file_extension(&path).to_lowercase();
     let path = path.as_ref();
 
-    match loaders.get(ext.as_str()) {
+    match LOADER.get(ext.as_str()) {
         Some(mod_loader) => {
             if let Ok(tracker) = mod_loader(&path) {
                 Ok(tracker)
             } else {
-                for (_, backup_loader) in loaders.iter().filter(|k| k.0 != &ext.as_str()) {
+                for (extension, backup_loader) in LOADER.iter().filter(|k| k.0 != &ext.as_str()) {
                     if let Ok(tracker) = backup_loader(&path) {
+                        println!("Detected: {}", extension);
                         return Ok(tracker);
                     } else {
                         continue
@@ -84,4 +87,12 @@ fn file_extension<P: AsRef<std::path::Path>>(p: P) -> String {
         None => "",
         Some(ext) => ext.to_str().unwrap_or(""),
     }).to_string()
+}
+
+// Hashmaps are not sorted
+#[test]
+fn robust() {
+    let a= load_module_robust("./tests/mods/xm/DEADLOCK.s3m").unwrap();
+
+    dbg!();
 }
