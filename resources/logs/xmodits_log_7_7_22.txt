@@ -77,3 +77,18 @@ user    0m1.894s
 sys     0m5.025s
 
 
+11 10 2022
+
+Ripping 2047.97 MiB worth of trackers. Please wait...
+Error Folder already exists: ./mod/sd_l1_mod <-- "sd_l1.mod"
+Error Invalid Module: Not a valid MOD file <-- "sirkustunnelmaan.mod"
+Error Failed to rip sample: Invalid Bit width. Why is it 127?  <-- "sj-kboar.it"
+Error XPK compressed MOD files are not supported <-- "synthmat.mod"
+▕====================▏Done!
+real    0m51.587s
+user    0m16.074s
+sys     0m5.799s
+
+* worst case
+* uses a hashmap
+
