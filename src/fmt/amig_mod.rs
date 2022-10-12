@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 use crate::tables::FINETUNE_TABLE;
-use crate::utils::signed::make_signed_u8;
+use crate::utils::signed::make_signed_u8_checked;
 use crate::{
     utils::prelude::*, dword, word,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
@@ -87,7 +87,7 @@ impl TrackerDumper for MODFile {
         let mut buf = self.buf.borrow_mut();
         
         Wav::header(smp.rate as u32, 8, smp.len as u32, false)
-            .write_ref(file, make_signed_u8(&mut buf[smp.ptr_range()]))
+            .write_ref(file, make_signed_u8_checked(&mut buf, smp))
     }
 
     fn number_of_samples(&self) -> usize {

@@ -68,7 +68,7 @@ where P: AsRef<std::path::Path>
 
         Err(original_err) => {
             for (_, backup_loader) in LOADER.iter().filter(|e| e.0 != ext.as_str() && e.0 != "mod") {
-                if let Ok(tracker) = backup_loader(&path.as_ref()) {
+                if let Ok(tracker) = backup_loader(path.as_ref()) {
                     return Ok(tracker);
                 } else {
                     continue

@@ -71,6 +71,8 @@ fn s3m_test_exported() {
     clean_test_export(root, test_no).unwrap();
 
     mod1.export(&test_export_path, 0).unwrap();
+    mod1.export(&test_export_path, 0).unwrap();
+
     mod1.export(&test_export_path, 1).unwrap();
     mod1.export(&test_export_path, 5).unwrap();
     mod1.export(&test_export_path, 6).unwrap();

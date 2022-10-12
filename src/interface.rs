@@ -31,7 +31,11 @@ pub struct TrackerSample {
     /// Is sample stereo?
     pub is_stereo: bool,        
     /// Is sample compressed?
-    pub is_compressed: bool,    
+    pub is_compressed: bool,
+    /// Can the sample data be read directly?
+    /// 
+    /// Wrapped in RefCell because we can mutate the sample data, and so, it makes sense to update the value at runtime.
+    pub is_readable: std::cell::RefCell<bool>,
 }
 
 impl TrackerSample {

@@ -76,6 +76,11 @@ fn it_test_exported() {
     mod1.export(&test_export_path, 6).unwrap();
     mod1.export(&test_export_path, 8).unwrap();
 
+    mod1.export(&test_export_path, 0).unwrap();
+    mod1.export(&test_export_path, 1).unwrap();
+    mod1.export(&test_export_path, 6).unwrap();
+    mod1.export(&test_export_path, 8).unwrap();
+
     let files = vec![
         ("01 - MEDP1_PAT.wav",      "smp_1_8bit"),
         ("02 - Left strings.wav",   "smp_2_8bit"),

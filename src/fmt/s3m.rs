@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use crate::{
-    utils::{prelude::*, signed::make_signed_u16}, dword,
+    utils::{prelude::*, signed::make_signed_u16_checked}, dword,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
 };
 
@@ -64,7 +64,7 @@ impl TrackerDumper for S3MFile {
                 file, 
                 match smp.bits {
                     8 => &buf[smp.ptr_range()],
-                    _ => make_signed_u16(&mut buf[smp.ptr_range()]),
+                    _ => make_signed_u16_checked(&mut buf, smp),
                 }
             )
     }

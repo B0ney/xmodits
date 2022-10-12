@@ -139,6 +139,11 @@ fn xm_test_exported() {
     mod1.export(&test_export_path, 17).unwrap();
     mod1.export(&test_export_path, 26).unwrap();
 
+    mod1.export(&test_export_path, 0).unwrap();
+    mod1.export(&test_export_path, 1).unwrap();
+    mod1.export(&test_export_path, 17).unwrap();
+    mod1.export(&test_export_path, 26).unwrap();
+
     let files = vec![
         ("01.wav", "smp_1_8bit"),
         ("02.wav", "smp_2_8bit"),

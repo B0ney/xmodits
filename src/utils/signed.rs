@@ -1,3 +1,29 @@
+use crate::TrackerSample;
+
+#[inline]
+pub fn make_signed_u8_checked<'a>(buf: &'a mut [u8], smp: &TrackerSample) -> &'a [u8] {
+    let mut is_signed = smp.is_readable.borrow_mut();
+
+    if *is_signed {
+        &buf[smp.ptr_range()]
+    } else {
+       *is_signed = true;
+       make_signed_u8(&mut buf[smp.ptr_range()])
+    }
+}
+
+#[inline]
+pub fn make_signed_u16_checked<'a>(buf: &'a mut [u8], smp: &TrackerSample) -> &'a [u8] {
+    let mut is_signed = smp.is_readable.borrow_mut();
+
+    if *is_signed {
+        &buf[smp.ptr_range()]
+    } else {
+       *is_signed = true;
+       make_signed_u16(&mut buf[smp.ptr_range()])
+    }
+}
+
 #[inline]
 pub fn make_signed_u8(buf: &mut [u8]) -> &[u8] {
     for i in buf.iter_mut() {

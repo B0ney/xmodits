@@ -1,10 +1,10 @@
 use std::cell::RefCell;
-use crate::compression::decompress_sample;
-use crate::utils::signed::make_signed_u8;
 use crate::{
     utils::prelude::*, dword,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
 };
+use crate::utils::signed::make_signed_u8_checked;
+use super::compression::decompress_sample;
 
 type ITSample = TrackerSample;
 
@@ -89,7 +89,7 @@ impl TrackerDumper for ITFile {
                     true => &decompressed,
                 
                     false => match smp.bits {
-                        8 => make_signed_u8(&mut buf[smp.ptr_range()]),
+                        8 => make_signed_u8_checked(&mut buf, smp),
                         _ => &buf[smp.ptr_range()],
                     }
                 }
@@ -147,6 +147,7 @@ fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
             is_stereo,
             is_compressed,
             bits,
+            ..Default::default()
         })
     }
 

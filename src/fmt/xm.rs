@@ -1,10 +1,10 @@
 use std::cell::RefCell;
-
-use crate::deltadecode::{delta_decode_u16, delta_decode_u8};
 use crate::{
     utils::prelude::*,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
 };
+
+use super::deltadecode::{delta_decode_u8_checked, delta_decode_u16_checked};
 
 const XM_HEADER_ID: &[u8; 17]       = b"Extended Module: ";
 const MOD_PLUGIN_PACKED: &[u8; 20]  = b"MOD Plugin packed   ";
@@ -74,8 +74,8 @@ impl TrackerDumper for XMFile {
             .write_ref(
                 file,
                 match smp.bits {
-                    8   => { delta_decode_u8(&mut buf[smp.ptr_range()]) }
-                    _   => { delta_decode_u16(&mut buf[smp.ptr_range()]) }
+                    8   => { delta_decode_u8_checked(&mut buf, smp) }
+                    _   => { delta_decode_u16_checked(&mut buf, smp) }
                 }
             )
     }

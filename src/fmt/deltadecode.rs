@@ -2,7 +2,33 @@
     https://github.com/milkytracker/MilkyTracker/blob/master/resources/reference/xm-form.txt#L303= 
 */
 use byteorder::{ByteOrder, LE};
-use crate::word;
+use crate::{word, TrackerSample};
+
+
+#[inline]
+pub fn delta_decode_u8_checked<'a>(buf: &'a mut [u8], smp: &TrackerSample) -> &'a [u8] { 
+    let mut is_deltad = smp.is_readable.borrow_mut();
+
+    if *is_deltad {
+        &buf[smp.ptr_range()]
+    } else {
+        *is_deltad = true;
+        delta_decode_u8(&mut buf[smp.ptr_range()])
+    }
+}
+
+#[inline]
+pub fn delta_decode_u16_checked<'a>(buf: &'a mut [u8], smp: &TrackerSample) -> &'a [u8] { 
+    let mut is_deltad = smp.is_readable.borrow_mut();
+    
+    if *is_deltad {
+        &buf[smp.ptr_range()]
+    } else {
+        *is_deltad = true;
+        delta_decode_u16(&mut buf[smp.ptr_range()])
+    }
+}
+
 
 #[inline]
 pub fn delta_decode_u8(buf: &mut [u8]) -> &[u8] {
