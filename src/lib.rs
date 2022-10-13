@@ -27,10 +27,10 @@ pub mod tracker_formats {
 
 type ModLoaderFunc = fn(&Path) -> Result<TrackerModule, XmoditsError>;
 
-use phf::phf_ordered_map;
+use phf::phf_map;
 use tracker_formats::*;
 
-pub static LOADERS: phf::OrderedMap<&str, ModLoaderFunc> = phf_ordered_map! {
+pub static LOADERS: phf::Map<&str, ModLoaderFunc> = phf_map! {
     "it" => |p| ITFile::load_module(&p),
     "xm" => |p| XMFile::load_module(&p),
     "s3m" => |p| S3MFile::load_module(&p),
@@ -56,8 +56,6 @@ where P: AsRef<std::path::Path>
                 for (_, backup_loader) in LOADERS.entries().filter(|k| k.0 != &ext.as_str() && k.0 != &"mod") {
                     if let Ok(tracker) = backup_loader(path) {
                         return Ok(tracker);
-                    } else {
-                        continue
                     }
                 }
                 Err(original_err)

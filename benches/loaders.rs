@@ -27,8 +27,8 @@ static LOADER_HASH: Lazy<HashMap<&'static str, ModLoaderFunc>> = Lazy::new (|| {
     HashMap::from(b)
 });
 
-use phf::phf_ordered_map;
-static LOADER_ORDERED_MAP: phf::OrderedMap<&str, ModLoaderFunc> = phf_ordered_map! {
+use phf::phf_map;
+static LOADER_ORDERED_MAP: phf::Map<&str, ModLoaderFunc> = phf_map! {
     "it" => |p| ITFile::load_module(&p),
     "xm" => |p| XMFile::load_module(&p),
     "s3m" => |p| S3MFile::load_module(&p),
@@ -57,11 +57,9 @@ where P: AsRef<std::path::Path>
         Ok(a) => Ok(a),
 
         Err(original_err) => {
-            for (_, backup_loader) in LOADER.iter().filter(|e| e.0 != ext.as_str()) {
+            for (_, backup_loader) in LOADER.iter().filter(|e| e.0 != ext.as_str()&& e.0 != "mod") {
                 if let Ok(tracker) = backup_loader(path.as_ref()) {
                     return Ok(tracker);
-                } else {
-                    continue
                 }
             }
             Err(original_err)
@@ -80,11 +78,9 @@ where P: AsRef<std::path::Path>
         Some(mod_loader) => match mod_loader(path) {
             Ok(tracker) => Ok(tracker),
             Err(original_err) => {
-                for (_, backup_loader) in LOADER_ORDERED_MAP.entries().filter(|k| k.0 != &ext.as_str()) {
+                for (_, backup_loader) in LOADER_ORDERED_MAP.entries().filter(|k| k.0 != &ext.as_str()&& k.0 != &"mod") {
                     if let Ok(tracker) = backup_loader(path) {
                         return Ok(tracker);
-                    } else {
-                        continue
                     }
                 }
                 Err(original_err)
@@ -107,8 +103,6 @@ where P: AsRef<std::path::Path>
                 for (_, backup_loader) in LOADER_HASH.iter().filter(|k| k.0 != &ext.as_str() && k.0 != &"mod") {
                     if let Ok(tracker) = backup_loader(path) {
                         return Ok(tracker);
-                    } else {
-                        continue
                     }
                 }
                 Err(original_err)

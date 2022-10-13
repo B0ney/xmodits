@@ -77,18 +77,19 @@ user    0m1.894s
 sys     0m5.025s
 
 
-11 10 2022
+13 10 2022
 
-Ripping 2047.97 MiB worth of trackers. Please wait...
-Error Folder already exists: ./mod/sd_l1_mod <-- "sd_l1.mod"
-Error Invalid Module: Not a valid MOD file <-- "sirkustunnelmaan.mod"
-Error Failed to rip sample: Invalid Bit width. Why is it 127?  <-- "sj-kboar.it"
-Error XPK compressed MOD files are not supported <-- "synthmat.mod"
-▕====================▏Done!
-real    0m51.587s
-user    0m16.074s
-sys     0m5.799s
+Ripping 2757.98 MiB worth of trackers. Please wait...
+Error Invalid Module: Invalid XM: Contains more than 128 instruments <-- "santas_dance.xm"
+Error Unsupported XM: Uses 'MOD plugin packed' <-- "sense_of_wonder.xm"
+Error Unsupported XM: Version below 0104 <-- "shelter.xm"
+Error Unsupported XM: Uses 'MOD plugin packed' <-- "sunbeam.xm"
+Error Unsupported XM: Uses 'MOD plugin packed' <-- "superstition.xm"
+Done!
 
-* worst case
-* uses a hashmap
+real    0m31.556s
+user    0m1.992s
+sys     0m5.628s
 
+
+it seems that the tool is io bound, maybe try async?
