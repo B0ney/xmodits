@@ -7,6 +7,7 @@
 /extras/aseprite/
 /extras/old/
 *.wav
+*.umx 
 /pylib/.github/
 /pylib/dev/
 Cargo.lock

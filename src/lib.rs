@@ -30,11 +30,12 @@ type ModLoaderFunc = fn(&Path) -> Result<TrackerModule, XmoditsError>;
 use phf::phf_ordered_map;
 use tracker_formats::*;
 
-static LOADERS: phf::OrderedMap<&str, ModLoaderFunc> = phf_ordered_map! {
+pub static LOADERS: phf::OrderedMap<&str, ModLoaderFunc> = phf_ordered_map! {
     "it" => |p| ITFile::load_module(&p),
     "xm" => |p| XMFile::load_module(&p),
     "s3m" => |p| S3MFile::load_module(&p),
     "mod" => |p| MODFile::load_module(&p),
+    "umx" => |p| UMXFile::load_module(&p),
 };
 
 /// A more robust method to load a module gven a path.
@@ -52,7 +53,7 @@ where P: AsRef<std::path::Path>
         Some(mod_loader) => match mod_loader(path) {
             Ok(tracker) => Ok(tracker),
             Err(original_err) => {
-                for (_, backup_loader) in LOADERS.entries().filter(|k| k.0 != &ext.as_str()) {
+                for (_, backup_loader) in LOADERS.entries().filter(|k| k.0 != &ext.as_str() && k.0 != &"mod") {
                     if let Ok(tracker) = backup_loader(path) {
                         return Ok(tracker);
                     } else {

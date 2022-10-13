@@ -16,6 +16,7 @@ const PAT_META: usize           = 0x3b8;
 
 type MODSample = TrackerSample;
 
+/// This format has the least checks, use with caution.
 pub struct MODFile {
     buf: RefCell<Vec<u8>>,
     title: String,

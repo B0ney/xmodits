@@ -7,10 +7,10 @@ build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-xmodits-lib = { path = "../" , features = ["thread"]}
+xmodits-lib = { path = "../" }
 clap = { version ="4.0.10", features = ["derive", "cargo", "wrap_help"]}
 # progress_bar = "1.0.2" # LINUX ONLY
-indicatif = { version = "*" }
+# indicatif = { version = "*" }
 # kdam = "0.2.4"
 rayon = "1.5.3"
 
