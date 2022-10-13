@@ -49,7 +49,17 @@ fn main() {
     let mut cli = Cli::parse();
 
     let destination: PathBuf = match cli.trackers.last().unwrap() {
-        p if p.is_dir() && cli.trackers.len() > 1 => cli.trackers.pop().unwrap(),
+        p if !p.is_file() && cli.trackers.len() > 1 => {
+            let folder = cli.trackers.pop().unwrap();
+
+            if !folder.is_dir() {
+                if let Err(e) = std::fs::create_dir(&folder) {
+                    return eprintln!("Error: Could not create destination folder \"{}\": {}", folder.display(), e);
+                };
+            }
+
+            folder
+        },
         _ => env::current_dir().expect("I need a current working directory. (>_<)"),
     };
 

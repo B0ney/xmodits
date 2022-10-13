@@ -32,6 +32,10 @@ pub struct TrackerSample {
     pub is_stereo: bool,        
     /// Is sample compressed?
     pub is_compressed: bool,
+    /// Is the stereo sample data interleaved?
+    /// 
+    /// Wrapped in RefCell because we can mutate the sample data, and so, it makes sense to update the value at runtime.
+    pub is_interleaved: std::cell::RefCell<bool>,
     /// Can the sample data be read directly?
     /// 
     /// Wrapped in RefCell because we can mutate the sample data, and so, it makes sense to update the value at runtime.

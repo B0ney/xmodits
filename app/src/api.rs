@@ -10,7 +10,7 @@ use xmodits_lib::{SampleNamer, SampleNamerFunc};
 
 // use kdam::prelude::*;
 // use kdam::{Column, RichProgress};
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+// use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 
 pub fn build_namer(cli: &Cli) -> Box<SampleNamerFunc> {
@@ -45,20 +45,22 @@ pub fn rip(cli: Cli, destination: PathBuf) {
     }
 
     // let mut pb = progress_bar(items);
-    let pb = ProgressBar::new(items as u64);
-    let s = ("Blocky:   ", "=> ", "magenta");
-    pb.set_style(
-        ProgressStyle::with_template(&format!("{{prefix:.bold}}▕{{bar:.{}}}▏{{msg}}", s.2))
-            .unwrap()
-            .progress_chars(s.1),
-    );
+    // let pb = ProgressBar::new(items as u64);
+    // let s = ("Blocky:   ", "=> ", "magenta");
+    // pb.set_style(
+    //     ProgressStyle::with_template(&format!("{{prefix:.bold}}▕{{bar:.{}}}▏{{msg}}", s.2))
+    //         .unwrap()
+    //         .progress_chars(s.1),
+    // );
 
     let total_size = app::total_size_MB(&cli.trackers);
 
     if total_size > 512.0 {
-        pb.println(&format!("Ripping {:.2} MiB worth of trackers. Please wait...", total_size));
+        // pb.println(&format!("Ripping {:.2} MiB worth of trackers. Please wait...", total_size));
+        println!("Ripping {:.2} MiB worth of trackers. Please wait...", total_size);
     } else {
-        pb.println("Ripping...");
+        // pb.println("Ripping...");
+        println!("Ripping...")
     }
 
     for mod_path in cli.trackers.iter().filter(|f| f.is_file()) {
@@ -66,17 +68,22 @@ pub fn rip(cli: Cli, destination: PathBuf) {
             &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
             &sample_namer_func, !cli.no_folder
         ) {
-            pb.println(format!("{} {}",
-                "Error"/*.colorize("red")*/,
-                &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
-            ));
+            // pb.println(format!("{} {}",
+            //     "Error"/*.colorize("red")*/,
+            //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
+            // ));
+            eprintln!(
+                "{} {}",
+                "Error",
+                format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
+            );
         }
         // pb.update(1);
-        pb.inc(1);
+        // pb.inc(1);
     }
-    pb.finish_with_message("Done!");
+    // pb.finish_with_message("Done!");
     // pb.write("Done!".colorize("bold green"));
-
+    println!("Done!");
 }
 
 // #[cfg(feature="advanced")]

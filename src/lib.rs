@@ -27,18 +27,15 @@ pub mod tracker_formats {
 
 type ModLoaderFunc = fn(&Path) -> Result<TrackerModule, XmoditsError>;
 
-lazy_static::lazy_static! {
-    static ref LOADER: [(&'static str, ModLoaderFunc); 4] = {
-        use tracker_formats::*;
-        [
-            ("it", |p| ITFile::load_module(&p)),
-            ("xm", |p| XMFile::load_module(&p)),
-            ("s3m", |p| S3MFile::load_module(&p)),
-            ("mod", |p| MODFile::load_module(&p)),
-            // ("umx", |p| UMXFile::load_module(&p)),
-        ]
-    };
-}
+use phf::phf_ordered_map;
+use tracker_formats::*;
+
+static LOADERS: phf::OrderedMap<&str, ModLoaderFunc> = phf_ordered_map! {
+    "it" => |p| ITFile::load_module(&p),
+    "xm" => |p| XMFile::load_module(&p),
+    "s3m" => |p| S3MFile::load_module(&p),
+    "mod" => |p| MODFile::load_module(&p),
+};
 
 /// A more robust method to load a module gven a path.
 /// 
@@ -48,34 +45,24 @@ lazy_static::lazy_static! {
 pub fn load_module<P>(path: P) -> Result<TrackerModule, XmoditsError> 
 where P: AsRef<std::path::Path>
 {
-    use tracker_formats::*;
-
     let ext = file_extension(&path).to_lowercase();
-    
-    let a = match ext.as_str() {
-        "it"    => ITFile::load_module(&path),
-        "xm"    => XMFile::load_module(&path),
-        "s3m"   => S3MFile::load_module(&path),
-        "mod"   => MODFile::load_module(&path),
-        f   => return Err(XmoditsError::UnsupportedFormat(
-                format!("'{}' is not a supported format.", f)
-            )
-        ),
-    };
+    let path = path.as_ref();
 
-    match a {
-        Ok(a) => Ok(a),
-
-        Err(original_err) => {
-            for (_, backup_loader) in LOADER.iter().filter(|e| e.0 != ext.as_str() && e.0 != "mod") {
-                if let Ok(tracker) = backup_loader(path.as_ref()) {
-                    return Ok(tracker);
-                } else {
-                    continue
+    match LOADERS.get(ext.as_str()) {
+        Some(mod_loader) => match mod_loader(path) {
+            Ok(tracker) => Ok(tracker),
+            Err(original_err) => {
+                for (_, backup_loader) in LOADERS.entries().filter(|k| k.0 != &ext.as_str()) {
+                    if let Ok(tracker) = backup_loader(path) {
+                        return Ok(tracker);
+                    } else {
+                        continue
+                    }
                 }
+                Err(original_err)
             }
-            Err(original_err)
-        }
+        },
+        None => Err(XmoditsError::UnsupportedFormat(format!("'{}' is not a supported format.", ext)))
     }
 }
 
@@ -87,10 +74,9 @@ fn file_extension<P: AsRef<std::path::Path>>(p: P) -> String {
     }).to_string()
 }
 
-// Hashmaps are not sorted
 #[test]
 fn robust() {
-    let a= load_module("./tests/mods/xm/DEADLOCK.ooga");
+    let a= load_module("./tests/mods/xm/DEADLOCK.s3m");
     // let a= load_module("./tests/mods/xm/invalid.xm");
 
     if let Err(a) = a {

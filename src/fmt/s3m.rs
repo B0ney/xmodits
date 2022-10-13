@@ -114,6 +114,7 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
             bits,
             rate,
             is_stereo,
+            is_interleaved: true.into(),
             ..Default::default()
         })
     }

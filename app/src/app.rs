@@ -8,7 +8,6 @@ pub fn total_size_MB(paths: &[std::path::PathBuf]) -> f32 {
         .sum::<f32>() / (1024.0 * 1024.0)
 }
 
-
 pub fn dump_samples<T,U>(mod_path: T, dest_dir: U) -> Result<(), XmoditsError>
 where   T: AsRef<Path>,
         U: AsRef<Path>,
