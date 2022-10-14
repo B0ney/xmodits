@@ -35,7 +35,7 @@ fn folder(destination: &PathBuf, path: &PathBuf, with_folder: bool) -> PathBuf {
     }
 }
 
-pub async fn rip(cli: Cli, destination: PathBuf) {
+pub fn rip(cli: Cli, destination: PathBuf) {
     let sample_namer_func: Box<SampleNamerFunc> = build_namer(&cli);
 
     let items = cli.trackers.iter().filter(|f| f.is_file()).count();
@@ -65,27 +65,27 @@ pub async fn rip(cli: Cli, destination: PathBuf) {
         // pb.println("Ripping...");
         println!("Ripping...")
     }
-    run(
-        &cli.trackers,
-        &destination,
-        &sample_namer_func,
-        !cli.no_folder
-    ).await;
+    // run(
+    //     &cli.trackers,
+    //     &destination,
+    //     &sample_namer_func,
+    //     !cli.no_folder
+    // ).await;
 
-    // for mod_path in cli.trackers.iter().filter(|f| f.is_file()) {
-    //     if let Err(error) = app::dump_samples_advanced(
-    //         &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
-    //         &sample_namer_func, !cli.no_folder
-    //     ) {
-    //         // pb.println(format!("{} {}",
-    //         //     "Error"/*.colorize("red")*/,
-    //         //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
-    //         // ));
-    //         eprintln!("Error {} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy());
-    //     }
-    //     // pb.update(1);
-    //     // pb.inc(1);
-    // }
+    for mod_path in cli.trackers.iter().filter(|f| f.is_file()) {
+        if let Err(error) = app::dump_samples_advanced(
+            &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
+            &sample_namer_func, !cli.no_folder
+        ) {
+            // pb.println(format!("{} {}",
+            //     "Error"/*.colorize("red")*/,
+            //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
+            // ));
+            eprintln!("Error {} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy());
+        }
+        // pb.update(1);
+        // pb.inc(1);
+    }
     // pb.finish_with_message("Done!");
     // pb.write("Done!".colorize("bold green"));
     println!("Done!");

@@ -47,8 +47,7 @@ pub struct Cli {
     // parallel: bool,
 }
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let mut cli = Cli::parse();
 
     let destination: PathBuf = match cli.trackers.last().unwrap() {
@@ -72,5 +71,5 @@ async fn main() {
     //     return;
     // }
 
-    api::rip(cli, destination).await;
+    api::rip(cli, destination);
 }

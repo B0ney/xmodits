@@ -22,7 +22,7 @@ fn name_folder(destination: &PathBuf, path: &PathBuf, with_folder: bool) -> Path
         _ => destination.to_path_buf(),
     }
 }
-
+/// experimental. tried it, it's not really any better + uses a lot of memory since xmodits loads modules into memory directly 
 pub async fn run(
     paths: &[PathBuf],
     destination: &PathBuf,
@@ -36,11 +36,7 @@ pub async fn run(
             .map(|path| rip(path, &destination, sample_namer, create_dir_if_absent))
     );
 
-    joined_futures.await
-        .into_iter()
-        .zip(paths)
-        .filter(|(f,e)| f.is_err())
-        .for_each(|(e, p)| eprintln!("Error {} <-- \"{}\"", e.err().unwrap(), p.display()));
+    joined_futures.await;
 }
 
 async fn rip(
@@ -49,14 +45,22 @@ async fn rip(
     namer: &SampleNamerFunc,
     create_dir_if_absent: bool
 ) -> Result<(), Error> {
-    let mut module = xmodits_lib::load_module(mod_path)?;
-    // dbg!(mod_path);
-    // dbg!(folder);
     let folder = name_folder(&folder, &mod_path, create_dir_if_absent);
-
     if folder.is_dir() && create_dir_if_absent {
         return Err(XmoditsError::FileError(format!("Folder already exists: {}", &folder.display())));
     }
+    dbg!("bah");
+    let mut module = xmodits_lib::load_module(mod_path)?;
+
+    dump_advanced(&mut module, &folder, namer, create_dir_if_absent).await
+}
+
+async fn dump_advanced(
+    module: &mut TrackerModule,
+    folder: &Path,
+    sample_namer_func: &SampleNamerFunc,
+    create_dir_if_absent: bool,
+)  -> Result<(), Error>  {
 
     if module.number_of_samples() == 0 {
         return Err(XmoditsError::EmptyModule);
@@ -74,29 +78,38 @@ async fn rip(
             );
         }
     }
-    // let
-
-    // let dest_path = 
     for i in 0..module.number_of_samples() {
-        async_export(&mut module, &folder, i, namer).await?;
-    };
+        async_export(module, folder, i, sample_namer_func).await?;
+    }
+
     Ok(())
 }
 
-
-async fn async_export(tracker: &mut TrackerModule, folder: &Path, index: usize, name_sample: &SampleNamerFunc) -> Result<(), Error> {
+async fn async_export(
+    tracker: &mut TrackerModule,
+    folder: &Path,
+    index: usize,
+    name_sample: &SampleNamerFunc
+) -> Result<(), Error> {
     let smp = &tracker.list_sample_data()[index];
     
     let file: PathBuf = PathBuf::new()
             .join(folder)
             .join(name_sample(smp, index));
     
-    let mut wav: File = File::create(file).await?;
-    
-    let wav_header = Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo).header_data;
+    async_write_wav(tracker, &file, index).await
+}
 
+async fn async_write_wav(
+    module: &mut TrackerModule,
+    file: &Path,
+    index: usize,
+)  -> Result<(), Error> {
+    let smp = &module.list_sample_data()[index];
+    let mut wav: File = File::create(file).await?;
+    let wav_header = Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo).header_data;
+   
     wav.write_all(&wav_header).await?;
-    wav.write_all(tracker.pcm(index)?).await?;
-    
+    wav.write_all(module.pcm(index)?).await?;
     Ok(())
 }
