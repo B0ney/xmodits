@@ -1,5 +1,7 @@
 mod app;
 mod api;
+mod rip_async;
+
 use std::env;
 use std::path::PathBuf;
 use clap::Parser;
@@ -27,7 +29,7 @@ pub struct Cli {
     // #[arg(short='c', long)]
     // with_comment: bool,
 
-    #[arg(help="Don't create a new folder for samples.")]
+    #[arg(help="Don't create a new folder for samples. This can overwrite data, BE CAREFUL!")]
     #[arg(short, long)]
     no_folder: bool,
 
@@ -45,7 +47,8 @@ pub struct Cli {
     // parallel: bool,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let mut cli = Cli::parse();
 
     let destination: PathBuf = match cli.trackers.last().unwrap() {
@@ -69,5 +72,5 @@ fn main() {
     //     return;
     // }
 
-    api::rip(cli, destination);
+    api::rip(cli, destination).await;
 }

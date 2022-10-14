@@ -11,6 +11,7 @@ pub use interface::TrackerDumper;
 pub use error::XmoditsError;
 pub use utils::Error;
 pub use utils::name::SampleNamer;
+pub use utils::wav;
 
 use std::path::Path;
 use tracker_formats::*;

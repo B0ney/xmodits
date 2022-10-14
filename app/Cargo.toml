@@ -12,7 +12,9 @@ clap = { version ="4.0.10", features = ["derive", "cargo", "wrap_help"]}
 # progress_bar = "1.0.2" # LINUX ONLY
 # indicatif = { version = "*" }
 # kdam = "0.2.4"
-rayon = "1.5.3"
+# rayon = "1.5.3"
+tokio = { version = "1.21.2", features = ["full"] }
+futures-util = "*"
 
 [target.'cfg(windows)'.dependencies]
 native-dialog = {version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }

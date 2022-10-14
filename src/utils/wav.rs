@@ -14,7 +14,7 @@ pub struct Wav {
     smp_bits: u8,   // bits per sample
     pcm_len: u32,   // length of byte array
     stereo: bool,   // is pcm stereo)
-    header_data: [u8; HEADER_SIZE],
+    pub header_data: [u8; HEADER_SIZE],
 }
 
 impl Wav {
