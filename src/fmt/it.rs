@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use crate::{
     utils::prelude::*, dword,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
@@ -18,7 +17,8 @@ const IT215: u16            = 0x0215;           // IT215 compression
 
 pub struct ITFile {
     title: String,
-    buf: RefCell<Vec<u8>>,
+    buf: Vec<u8>,
+    pcm_cache: Vec<Vec<u8>>,
     version: u16,
     compat_ver: u16,
     smp_num: u16,
@@ -67,33 +67,30 @@ impl TrackerDumper for ITFile {
             smp_data,
             version,
             compat_ver,
-            buf: RefCell::new(buf)
+            buf,
+            pcm_cache: vec![Vec::new(); smp_num as usize],
         }))
     }
 
-    fn write_wav(&self, smp: &TrackerSample, file: &Path) -> Result<(), Error> {
-        let mut buf = self.buf.borrow_mut();
+    fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
+        let smp = &self.smp_data[index];
 
-        let decompressed: Vec<u8> = if smp.is_compressed {
-            decompress_sample(
-                &buf[smp.ptr..], smp.len as u32,
+        if smp.is_compressed && self.pcm_cache[index].is_empty() {
+            self.pcm_cache[index] = decompress_sample(
+                &self.buf[smp.ptr..], smp.len as u32,
                 smp.bits, self.compat_ver == IT215,
                 smp.is_stereo
-            )?
-        } else { Vec::with_capacity(0) };
+            )?;
+        };
 
-        Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
-            .write_ref(
-                file, 
-                match smp.is_compressed {
-                    true => &decompressed,
-                
-                    false => match smp.bits {
-                        8 => make_signed_u8_checked(&mut buf, smp),
-                        _ => &buf[smp.ptr_range()],
-                    }
-                }
-            )
+        Ok(match smp.is_compressed {
+            true => &self.pcm_cache[index],
+        
+            false => match smp.bits {
+                8 => make_signed_u8_checked(&mut self.buf, smp),
+                _ => &self.buf[smp.ptr_range()],
+            }
+        })
     }
 
     fn number_of_samples(&self) -> usize {

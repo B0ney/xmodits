@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use crate::{
     utils::prelude::*,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
@@ -17,7 +16,7 @@ const XM_INS_SIZE: u32              = 263;
 type XMSample = TrackerSample;
 
 pub struct XMFile {
-    buf: RefCell<Vec<u8>>,
+    buf: Vec<u8>,
     module_name: String,
     samples: Vec<XMSample>,
     smp_num: usize,
@@ -61,24 +60,20 @@ impl TrackerDumper for XMFile {
 
         Ok(Box::new(Self {
             module_name,
-            buf: RefCell::new(buf),
+            buf,
             samples,
             smp_num,
         }))
     }
+    
+    fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
+        let smp = &self.samples[index];
 
-    fn write_wav(&self, smp: &TrackerSample, file: &Path) -> Result<(), Error> {
-        let mut buf =  self.buf.borrow_mut();
-        
-        Wav::header(smp.rate, smp.bits, smp.len as u32, false)
-            .write_ref(
-                file,
-                match smp.bits {
-                    8   => { delta_decode_u8_checked(&mut buf, smp) }
-                    _   => { delta_decode_u16_checked(&mut buf, smp) }
-                }
-            )
-    }
+        Ok(match smp.bits {
+            8   => delta_decode_u8_checked(&mut self.buf, smp),
+            _   => delta_decode_u16_checked(&mut self.buf, smp)
+        })
+    } 
 
     fn number_of_samples(&self) -> usize {
         self.smp_num
@@ -90,7 +85,7 @@ impl TrackerDumper for XMFile {
 
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         &self.samples
-    }    
+    }   
 }
 
 /// Skip xm pattern headers to access instrument headers.

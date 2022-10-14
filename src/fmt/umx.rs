@@ -15,9 +15,9 @@ use once_cell::sync::Lazy;
 
 static VALIDATE_LOADER: Lazy<[(ModValidatorFunc, ModLoaderFunc);3]> = Lazy::new(|| {
     [
-        (|p| ITFile::validate(&p), |p| ITFile::load_from_buf(p)),
-        (|p| XMFile::validate(&p), |p| XMFile::load_from_buf(p)),
-        (|p| S3MFile::validate(&p), |p| S3MFile::load_from_buf(p)),
+        (|p| ITFile::validate(p), ITFile::load_from_buf),
+        (|p| XMFile::validate(p), XMFile::load_from_buf),
+        (|p| S3MFile::validate(p), S3MFile::load_from_buf),
         // (|p| MODFile::validate(&p), |p| MODFile::load_from_buf(p))
     ]
 });
@@ -54,14 +54,14 @@ impl TrackerDumper for UMXFile {
             if validator(&buf).is_ok() {
                 return loader(buf)
             }
-        }
+        };
 
-        return Err(XmoditsError::unsupported("UMX doesn't contain a supported format"));
+        Err(XmoditsError::unsupported("UMX doesn't contain a supported format"))
     }
 
     /*  You should not call these methods from UMX (should be impossible).
         But incase someone somehow manages to do so, panic :) */ 
-    fn export(&self, _: &dyn AsRef<Path>, _: usize) -> Result<(), Error> {
+    fn export(&mut self, _: &dyn AsRef<Path>, _: usize) -> Result<(), Error> {
         unimplemented!()
     }
     fn number_of_samples(&self) -> usize {
@@ -73,7 +73,10 @@ impl TrackerDumper for UMXFile {
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         unimplemented!()
     }
-    fn write_wav(&self, _: &crate::TrackerSample, _: &Path) -> Result<(), Error> {
+    fn write_wav(&mut self, _: &Path, _: usize) -> Result<(), Error> {
+        unimplemented!()
+    }
+    fn pcm(&mut self, _: usize) -> Result<&[u8], Error> {
         unimplemented!()
     }  
 }

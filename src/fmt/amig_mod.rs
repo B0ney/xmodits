@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use crate::tables::FINETUNE_TABLE;
 use crate::utils::signed::make_signed_u8_checked;
 use crate::{
@@ -18,7 +16,7 @@ type MODSample = TrackerSample;
 
 /// This format has the least checks, use with caution.
 pub struct MODFile {
-    buf: RefCell<Vec<u8>>,
+    buf: Vec<u8>,
     title: String,
     smp_num: u8,
     smp_data: Vec<MODSample>,
@@ -80,16 +78,14 @@ impl TrackerDumper for MODFile {
             title,
             smp_num: smp_data.len() as u8,
             smp_data, 
-            buf: RefCell::new(buf)
+            buf
         }))
     }
 
-    fn write_wav(&self, smp: &TrackerSample, file: &Path) -> Result<(), Error> {
-        let mut buf = self.buf.borrow_mut();
-        
-        Wav::header(smp.rate as u32, 8, smp.len as u32, false)
-            .write_ref(file, make_signed_u8_checked(&mut buf, smp))
-    }
+    fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
+        let smp = &self.smp_data[index];       
+        Ok(make_signed_u8_checked(&mut self.buf, smp))
+    } 
 
     fn number_of_samples(&self) -> usize {
         self.smp_num as usize
@@ -101,7 +97,7 @@ impl TrackerDumper for MODFile {
 
     fn list_sample_data(&self) -> &[TrackerSample] {
         &self.smp_data
-    }    
+    }   
 }
 
 fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) -> Result<Vec<MODSample>, Error> {

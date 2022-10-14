@@ -91,5 +91,6 @@ real    0m31.556s
 user    0m1.992s
 sys     0m5.628s
 
-
+https://stackoverflow.com/questions/556405/what-do-real-user-and-sys-mean-in-the-output-of-time1
+keep an eye on real
 it seems that the tool is io bound, maybe try async?

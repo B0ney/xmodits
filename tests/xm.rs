@@ -56,7 +56,7 @@ fn xm_test_mod_plugin_packed() {
 
 #[test]
 fn xm_no_samples2() {
-    let a = XMFile::load_module("tests/mods/xm/no_samples.xm").unwrap();
+    let mut a = XMFile::load_module("tests/mods/xm/no_samples.xm").unwrap();
     let folder = "test/exports/";
     let name = "XM-please-delete";
     let export_path = Path::new(folder).join(name);
@@ -130,7 +130,7 @@ fn xm_test_exported() {
     let test_no: usize = 0;
     let root: &Path = Path::new("tests/export/xm/");
     let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
-    let mod1 = XMFile::load_module("tests/mods/xm/lovetrp.xm").unwrap();
+    let mut mod1 = XMFile::load_module("tests/mods/xm/lovetrp.xm").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 
@@ -162,7 +162,7 @@ fn xm_test_exported_amiga() {
     let test_no: usize = 1;
     let root: &Path = Path::new("tests/export/xm/");
     let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
-    let mod1 = XMFile::load_module("tests/mods/xm/240-185_-_la_grenade_80s.xm").unwrap();
+    let mut mod1 = XMFile::load_module("tests/mods/xm/240-185_-_la_grenade_80s.xm").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 

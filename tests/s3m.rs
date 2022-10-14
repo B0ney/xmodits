@@ -12,7 +12,7 @@ fn s3m_invalid_1() {
 
 #[test]
 fn s3m_no_samples() {
-    let a = S3MFile::load_module("tests/mods/s3m/no_samples.s3m").unwrap();
+    let mut a = S3MFile::load_module("tests/mods/s3m/no_samples.s3m").unwrap();
     let folder = "tests/exports/";
     let name = "S3M-please-delete";
     let dest = Path::new(folder).join(name);
@@ -66,7 +66,7 @@ fn s3m_test_exported() {
     let test_no: usize = 0;
     let root: &Path = Path::new("tests/export/s3m/");
     let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
-    let mod1 = S3MFile::load_module("tests/mods/s3m/hip_-_640k_of_space.s3m").unwrap();
+    let mut mod1 = S3MFile::load_module("tests/mods/s3m/hip_-_640k_of_space.s3m").unwrap();
     dbg!(&test_export_path);
     clean_test_export(root, test_no).unwrap();
 
