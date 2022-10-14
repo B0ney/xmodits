@@ -54,6 +54,7 @@ My docs shouldn't contain anything you won't find in these linked resources.
 * (Open Directory) https://modland.com/pub/modules/ 
 * (Open Directory) http://mod.zayda.net/mods/
 * (Open Directory) https://resources.openmpt.org/player_tests/
+* (Open Directory) https://ftp.scene.org/pub/music/
 
 ## Tracker Software/Player
 * SchismTracker: https://github.com/schismtracker/schismtracker

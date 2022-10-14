@@ -1,4 +1,3 @@
-use core::panic;
 use std::path::{Path, PathBuf};
 use xmodits_lib::{TrackerDumper, tracker_formats::*, XmoditsError};
 mod utils;

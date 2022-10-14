@@ -23,7 +23,7 @@ pub struct XMFile {
 }
 
 impl TrackerDumper for XMFile {
-    fn validate(buf: &[u8]) -> Result<(), XmoditsError> {
+    fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 60 
             || read_slice(buf, 0x0000, 17) != XM_HEADER_ID 
             || buf[0x0025] != XM_MAGIC_NUM 
@@ -43,7 +43,7 @@ impl TrackerDumper for XMFile {
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
     {
         Self::validate(&buf)?;
 

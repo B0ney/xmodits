@@ -1,7 +1,3 @@
-use std::env;
-use std::path::Path;
-use std::path::PathBuf;
-
 fn main() {
     if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows" {
         use winres::WindowsResource;

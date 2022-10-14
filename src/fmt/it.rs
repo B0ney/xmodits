@@ -26,7 +26,7 @@ pub struct ITFile {
 }
 
 impl TrackerDumper for ITFile {
-    fn validate(buf: &[u8]) -> Result<(), XmoditsError> {
+    fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < IT_HEADER_LEN {
             return Err(XmoditsError::invalid("File is not a valid Impulse Tracker module"));
         }
@@ -40,7 +40,7 @@ impl TrackerDumper for ITFile {
         Ok(())
     }
     
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
     {
         Self::validate(&buf)?;
         

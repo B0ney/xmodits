@@ -2,7 +2,6 @@ mod fmt;
 #[allow(unused, dead_code)]
 mod utils;
 mod interface;
-mod formatter;
 mod error;
 
 pub use interface::SampleNamerFunc;
@@ -10,13 +9,13 @@ pub use interface::TrackerSample;
 pub use interface::TrackerModule;
 pub use interface::TrackerDumper;
 pub use error::XmoditsError;
-
 pub use utils::Error;
-pub use formatter::SampleNamer;
+pub use utils::name::SampleNamer;
 
 use std::path::Path;
-use fmt::*;
+use tracker_formats::*;
 
+use fmt::*;
 pub mod tracker_formats {
     pub use crate::it::ITFile;
     pub use crate::xm::XMFile;
@@ -28,14 +27,12 @@ pub mod tracker_formats {
 type ModLoaderFunc = fn(&Path) -> Result<TrackerModule, XmoditsError>;
 
 use phf::phf_map;
-use tracker_formats::*;
-
 pub static LOADERS: phf::Map<&str, ModLoaderFunc> = phf_map! {
     "it" => |p| ITFile::load_module(&p),
     "xm" => |p| XMFile::load_module(&p),
     "s3m" => |p| S3MFile::load_module(&p),
-    "mod" => |p| MODFile::load_module(&p),
     "umx" => |p| UMXFile::load_module(&p),
+    "mod" => |p| MODFile::load_module(&p),
 };
 
 /// A more robust method to load a module gven a path.
@@ -71,15 +68,4 @@ fn file_extension<P: AsRef<std::path::Path>>(p: P) -> String {
         None => "",
         Some(ext) => ext.to_str().unwrap_or(""),
     }).to_string()
-}
-
-#[test]
-fn robust() {
-    let a= load_module("./tests/mods/xm/DEADLOCK.s3m");
-    // let a= load_module("./tests/mods/xm/invalid.xm");
-
-    if let Err(a) = a {
-        dbg!(a);
-    }
-    dbg!();
 }

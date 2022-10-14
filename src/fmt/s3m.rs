@@ -28,7 +28,7 @@ impl TrackerDumper for S3MFile {
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError> 
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
     {
         Self::validate(&buf)?;
 

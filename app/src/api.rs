@@ -72,11 +72,7 @@ pub fn rip(cli: Cli, destination: PathBuf) {
             //     "Error"/*.colorize("red")*/,
             //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
             // ));
-            eprintln!(
-                "{} {}",
-                "Error",
-                format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
-            );
+            eprintln!("Error {} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy());
         }
         // pb.update(1);
         // pb.inc(1);

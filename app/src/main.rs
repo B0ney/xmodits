@@ -39,10 +39,10 @@ pub struct Cli {
     #[arg(short, long="lower", conflicts_with="upper_case")]
     lower_case: bool,
 
-    #[cfg(feature="advanced")]
-    #[arg(help="Rip samples in parallel")]
-    #[arg(short='k', long)]
-    parallel: bool,
+    // #[cfg(feature="advanced")]
+    // #[arg(help="Rip samples in parallel")]
+    // #[arg(short='k', long)]
+    // parallel: bool,
 }
 
 fn main() {
@@ -63,11 +63,11 @@ fn main() {
         _ => env::current_dir().expect("I need a current working directory. (>_<)"),
     };
 
-    #[cfg(feature="advanced")]
-    if cli.parallel {
-        api::rip_parallel(cli, destination);
-        return;
-    }
+    // #[cfg(feature="advanced")]
+    // if cli.parallel {
+    //     api::rip_parallel(cli, destination);
+    //     return;
+    // }
 
     api::rip(cli, destination);
 }
