@@ -91,43 +91,55 @@ pub fn rip(cli: Cli, destination: PathBuf) {
     println!("Done!");
 }
 
-// #[cfg(feature="advanced")]
-// pub fn rip_parallel(cli: Cli, destination: PathBuf) {
-//     use rayon::prelude::*;
+#[cfg(feature="advanced")]
+pub fn rip_parallel(cli: Cli, destination: PathBuf) {
+    use rayon::prelude::*;
 
-//     let sample_namer_func: Box<SampleNamerFunc>= build_namer(&cli);
-//     // sample_namer_func
-//     let items = cli.trackers.iter().filter(|f| f.is_file()).count();
+    let sample_namer_func: Box<SampleNamerFunc> = build_namer(&cli);
+    // sample_namer_func
+    let items = cli.trackers.iter().filter(|f| f.is_file()).count();
 
-//     let mut pb = progress_bar(items);
-//     let total_size = app::total_size_MB(&cli.trackers);
+    if items == 0 {
+        return println!("{}", "There's nothing to rip!");
+    }
 
-//     if total_size > 512.0 {
-//         pb.write(&format!("Ripping {:.2} MiB worth of trackers in parallel. Please wait...", total_size).colorize("green"));
-//     } else {
-//         pb.write("Ripping {:.2} MiB worth of trackers in parallel is no faster when done serially.".colorize("orange"));
-//     }
-//     let pb = Arc::new(std::sync::Mutex::new(pb));
+    // let mut pb = progress_bar(items);
+    let total_size = app::total_size_MB(&cli.trackers);
 
-//     cli.trackers
-//         .into_par_iter()
-//         .filter(|f|f.is_file())
-//         .for_each(|mod_path| {
-//             let a = pb.clone();
-//             if let Err(error) = app::dump_samples_advanced(
-//                 &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
-//                 &sample_namer_func, !cli.no_folder
-//             ) {
-//                 a.lock().unwrap().write(format!("{} {}",
-//                     "Error".colorize("red"),
-//                     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
-//                 ));
-//             }
-//             a.lock().unwrap().update(1);
-//         }
-//     );
-//     pb.lock().unwrap().write("Done!".colorize("bold green"));
-// }
+    if total_size > 512.0 {
+        // pb.write(&format!("Ripping {:.2} MiB worth of trackers in parallel. Please wait...", total_size).colorize("green"));
+        println!("Ripping {:.2} MiB worth of trackers in parallel. Please wait...", total_size);
+
+    } else {
+        // pb.write("Ripping {:.2} MiB worth of trackers in parallel is no faster when done serially.".colorize("orange"));
+        println!("Ripping {:.2} MiB worth of trackers in parallel is no faster when done serially.", total_size);
+   
+    }
+
+    // let pb = Arc::new(std::sync::Mutex::new(pb));
+
+    cli.trackers
+        .into_par_iter()
+        .filter(|f|f.is_file())
+        .for_each(|mod_path| {
+            // let a = pb.clone();
+            if let Err(error) = app::dump_samples_advanced(
+                &mod_path, &folder(&destination, &mod_path, !cli.no_folder),
+                &sample_namer_func, !cli.no_folder
+            ) {
+                println!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy());
+                // a.lock().unwrap().write(format!("{} {}",
+                //     "Error".colorize("red"),
+                //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
+                // ));
+            }
+            // a.lock().unwrap().update(1);
+        }
+    );
+    println!("Done!");
+
+    // pb.lock().unwrap().write("Done!".colorize("bold green"));
+}
 
 // fn progress_bar(total: usize) -> RichProgress {
 //     RichProgress::new(

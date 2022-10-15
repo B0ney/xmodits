@@ -56,7 +56,7 @@ impl TrackerDumper for S3MFile {
     }
 
     fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
-        let smp = &self.smp_data[index];
+        let smp = &mut self.smp_data[index];
 
         Ok(match smp.bits {
             8 => &self.buf[smp.ptr_range()],
@@ -109,7 +109,7 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
             bits,
             rate,
             is_stereo,
-            is_interleaved: true.into(),
+            is_interleaved: true,
             ..Default::default()
         })
     }

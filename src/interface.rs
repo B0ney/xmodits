@@ -6,10 +6,10 @@ use crate::utils::prelude::Wav;
 pub type TrackerModule = Box<dyn TrackerDumper>;
 
 /// Function type signature to flexibly format sample names.
-// #[cfg(not(feature="thread"))]
+#[cfg(not(feature="thread"))]
 pub type SampleNamerFunc = dyn Fn(&TrackerSample, usize) -> String;
-// #[cfg(feature="thread")]
-// pub type SampleNamerFunc = dyn Fn(&TrackerSample, usize) -> String + Sync + Send;
+#[cfg(feature="thread")]
+pub type SampleNamerFunc = dyn Fn(&TrackerSample, usize) -> String + Sync + Send;
 
 #[derive(Default, Debug)]
 pub struct TrackerSample {
@@ -34,13 +34,9 @@ pub struct TrackerSample {
     /// Is sample compressed?
     pub is_compressed: bool,
     /// Is the stereo sample data interleaved?
-    /// 
-    /// Wrapped in RefCell because we can mutate the sample data, and so, it makes sense to update the value at runtime.
-    pub is_interleaved: std::cell::RefCell<bool>,
+    pub is_interleaved: bool,
     /// Can the sample data be read directly?
-    /// 
-    /// Wrapped in RefCell because we can mutate the sample data, and so, it makes sense to update the value at runtime.
-    pub is_readable: std::cell::RefCell<bool>,
+    pub is_readable: bool,
 }
 
 impl TrackerSample {
@@ -95,7 +91,7 @@ pub trait TrackerDumper {
     fn write_wav(&mut self, file: &Path, index: usize) -> Result<(), Error> {
         let smp =  &self.list_sample_data()[index];
 
-        Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
+        Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo, smp.is_interleaved)
             .write_ref(file, self.pcm(index)?)
     }
 

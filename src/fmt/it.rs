@@ -73,7 +73,7 @@ impl TrackerDumper for ITFile {
     }
 
     fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
-        let smp = &self.smp_data[index];
+        let smp = &mut self.smp_data[index];
 
         if smp.is_compressed && self.pcm_cache[index].is_empty() {
             self.pcm_cache[index] = decompress_sample(

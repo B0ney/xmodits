@@ -107,7 +107,7 @@ async fn async_write_wav(
 )  -> Result<(), Error> {
     let smp = &module.list_sample_data()[index];
     let mut wav: File = File::create(file).await?;
-    let wav_header = Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo).header_data;
+    let wav_header = Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo, smp.is_interleaved).header_data;
    
     wav.write_all(&wav_header).await?;
     wav.write_all(module.pcm(index)?).await?;

@@ -1472,6 +1472,7 @@ dependencies = [
  "futures-util",
  "native-dialog",
  "rand",
+ "rayon",
  "tokio",
  "winres",
  "xmodits-lib",

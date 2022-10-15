@@ -67,7 +67,7 @@ impl TrackerDumper for XMFile {
     }
     
     fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
-        let smp = &self.samples[index];
+        let smp = &mut self.samples[index];
 
         Ok(match smp.bits {
             8   => delta_decode_u8_checked(&mut self.buf, smp),

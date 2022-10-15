@@ -41,10 +41,10 @@ pub struct Cli {
     #[arg(short, long="lower", conflicts_with="upper_case")]
     lower_case: bool,
 
-    // #[cfg(feature="advanced")]
-    // #[arg(help="Rip samples in parallel")]
-    // #[arg(short='k', long)]
-    // parallel: bool,
+    #[cfg(feature="advanced")]
+    #[arg(help="Rip samples in parallel")]
+    #[arg(short='k', long)]
+    parallel: bool,
 }
 
 fn main() {
@@ -65,11 +65,19 @@ fn main() {
         _ => env::current_dir().expect("I need a current working directory. (>_<)"),
     };
 
-    // #[cfg(feature="advanced")]
-    // if cli.parallel {
-    //     api::rip_parallel(cli, destination);
-    //     return;
-    // }
+    #[cfg(feature="advanced")]
+    if cli.parallel {
+        return api::rip_parallel(cli, destination);
+    }
 
     api::rip(cli, destination);
+
+    #[cfg(windows)] {
+        use std::io::{stdout, stdin, Write};
+        let mut buf = String::new();
+        print!("Press Enter to continue... ");
+        let _ = stdout().flush();
+        let _ = stdin().read_line(&mut buf);
+        let _ = stdout().flush();
+    }
 }

@@ -83,7 +83,7 @@ impl TrackerDumper for MODFile {
     }
 
     fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
-        let smp = &self.smp_data[index];       
+        let smp = &mut self.smp_data[index];       
         Ok(make_signed_u8_checked(&mut self.buf, smp))
     } 
 
