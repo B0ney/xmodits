@@ -78,5 +78,8 @@ impl TrackerDumper for UMXFile {
     }
     fn pcm(&mut self, _: usize) -> Result<&[u8], Error> {
         unimplemented!()
+    }
+    fn format(&self) -> &str {
+        unimplemented!()
     }  
 }

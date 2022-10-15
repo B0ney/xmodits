@@ -104,6 +104,10 @@ impl TrackerDumper for ITFile {
     fn list_sample_data(&self) -> &[TrackerSample] {
         &self.smp_data
     }
+
+    fn format(&self) -> &str {
+        "Impulse Tracker"
+    }
 }
 
 fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {

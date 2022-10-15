@@ -97,6 +97,10 @@ impl TrackerDumper for MODFile {
 
     fn list_sample_data(&self) -> &[TrackerSample] {
         &self.smp_data
+    }
+
+    fn format(&self) -> &str {
+        "Amiga ProTracker"
     }   
 }
 

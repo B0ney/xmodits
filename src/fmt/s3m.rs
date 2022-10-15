@@ -75,6 +75,10 @@ impl TrackerDumper for S3MFile {
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         &self.smp_data
     }
+
+    fn format(&self) -> &str {
+        "Scream Tracker"
+    }
 }
 
 fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {

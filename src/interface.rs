@@ -84,6 +84,8 @@ pub trait TrackerDumper {
     /// Name of tracker module
     fn module_name(&self) -> &str;
 
+    fn format(&self) -> &str;
+
     /// List tracker sample infomation
     fn list_sample_data(&self) -> &[TrackerSample];
 

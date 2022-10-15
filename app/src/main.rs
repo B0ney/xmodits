@@ -1,5 +1,6 @@
 mod app;
 mod api;
+#[cfg(feature="async")]
 mod rip_async;
 
 use std::env;
@@ -41,6 +42,10 @@ pub struct Cli {
     #[arg(short, long="lower", conflicts_with="upper_case")]
     lower_case: bool,
 
+    #[arg(help="Print infomation about tracker")]
+    #[arg(long)]
+    info: bool,
+
     #[cfg(feature="advanced")]
     #[arg(help="Rip samples in parallel")]
     #[arg(short='k', long)]
@@ -68,6 +73,10 @@ fn main() {
     #[cfg(feature="advanced")]
     if cli.parallel {
         return api::rip_parallel(cli, destination);
+    }
+
+    if cli.info {
+        return api::info(cli)
     }
 
     api::rip(cli, destination);

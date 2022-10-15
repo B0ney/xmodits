@@ -27,6 +27,7 @@ winres = "0.1.12"
 [features]
 ascii_art = []
 advanced = []
+async = []
 
 [profile.release]
 strip = true

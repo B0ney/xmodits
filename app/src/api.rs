@@ -1,7 +1,6 @@
 use std::path::PathBuf;
-use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
+
+#[cfg(feature="async")]
 use crate::rip_async::run;
 use crate::app;
 use super::Cli;
@@ -17,6 +16,9 @@ pub fn build_namer(cli: &Cli) -> Box<SampleNamerFunc> {
     SampleNamer::build_func(
         cli.index_only, Some(cli.index_padding as usize), cli.index_raw, cli.lower_case, cli.upper_case
     )
+}
+fn file_name(path: &PathBuf) -> String {
+    path.file_name().unwrap().to_string_lossy().to_string()
 }
 
 fn folder(destination: &PathBuf, path: &PathBuf, with_folder: bool) -> PathBuf {
@@ -81,7 +83,7 @@ pub fn rip(cli: Cli, destination: PathBuf) {
             //     "Error"/*.colorize("red")*/,
             //     &format!("{} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy())
             // ));
-            eprintln!("Error {} <-- \"{}\"", error, mod_path.file_name().unwrap().to_string_lossy());
+            eprintln!("Error {} <-- \"{}\"", error, file_name(&mod_path))
         }
         // pb.update(1);
         // pb.inc(1);
@@ -89,6 +91,25 @@ pub fn rip(cli: Cli, destination: PathBuf) {
     // pb.finish_with_message("Done!");
     // pb.write("Done!".colorize("bold green"));
     println!("Done!");
+}
+
+pub fn info(cli: Cli) {
+    let items = cli.trackers.iter().filter(|f| f.is_file()).count();
+    if items == 0 {
+        return println!("{}", "You need to provide a valid module!");
+    }
+
+    let module = &cli.trackers[0];
+    match xmodits_lib::load_module(module) {
+        Ok(m) => {
+            println!(
+                "Module Name: {}\nFormat: {}\nSamples: {}\nApprox Total Sample Size (KiB): {}",
+                m.module_name(), m.format(), m.number_of_samples(),
+                m.list_sample_data().iter().map(|m| m.len).sum::<usize>() / 1024,
+            )
+        },
+        Err(e) => println!("Error {} <-- {}", e, file_name(module))
+    }
 }
 
 #[cfg(feature="advanced")]

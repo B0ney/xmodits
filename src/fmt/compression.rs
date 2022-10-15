@@ -152,11 +152,9 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
         while blkpos < blklen {
 
             if width > 9 {
-                return Err(
-                    XmoditsError::SampleExtractionFailure(
-                        format!("Invalid Bit width. Why is it {}?", width)
-                    )
-                );
+                return Err(XmoditsError::SampleExtractionFailure(
+                    format!("Invalid Bit width. Why is it {}?", width)
+                ));
             }
 
             value = bitreader.read_bits_u16(width);
@@ -254,11 +252,9 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error>
         while blkpos < blklen {
 
             if width > 17 {
-                return Err(
-                    XmoditsError::SampleExtractionFailure(
-                        format!("Invalid Bit width. Why is it {}?", width)
-                    )
-                );
+                return Err(XmoditsError::SampleExtractionFailure(
+                    format!("Invalid Bit width. Why is it {}?", width)
+                ));
             }
 
             value = bitreader.read_bits_u32(width);

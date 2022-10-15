@@ -85,6 +85,10 @@ impl TrackerDumper for XMFile {
 
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         &self.samples
+    }
+
+    fn format(&self) -> &str {
+        "Extended Module"
     }   
 }
 
