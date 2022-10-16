@@ -1,14 +1,13 @@
 mod app;
 mod api;
-#[cfg(feature="async")]
-mod rip_async;
 
 use std::env;
 use std::path::PathBuf;
 use clap::Parser;
 
 #[derive(Parser)]
-#[command(author, version, about, long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M & MOD formats.\nhttps://github.com/B0ney/xmodits - GPLv3")]
+#[command(author, version, about)]
+#[command(long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M & MOD formats.\nhttps://github.com/B0ney/xmodits - GPLv3")]
 pub struct Cli {
     #[arg(help="Modules to rip, the last element can be a folder to place your rips. E.g \"./music.s3m ./music.it ./dumps/\"")]
     #[arg(required = true)]

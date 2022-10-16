@@ -10,6 +10,9 @@ I have also written up some documentation. But they're used internally so not ev
 My docs shouldn't contain anything you won't find in these linked resources.
 
 ## Resources
+### General
+* [ModPlug (Public Domain)](https://github.com/Konstanty/libmodplug)
+
 ### IT
 * [General IT info](https://wiki.openmpt.org/Development:_Formats/IT)
 * [(ARCHIVE) ITTECH.TXT](https://web.archive.org/web/20220610182703/https://github.com/schismtracker/schismtracker/wiki/ITTECH.TXT)
