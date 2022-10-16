@@ -1,4 +1,5 @@
 use crate::tables::FINETUNE_TABLE;
+use crate::utils::signed::make_signed_u8_checked;
 use crate::{
     utils::prelude::*, dword, word,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
@@ -13,6 +14,7 @@ const PAT_META: usize           = 0x3b8;
 
 type MODSample = TrackerSample;
 
+/// This format has the least checks, use with caution.
 pub struct MODFile {
     buf: Vec<u8>,
     title: String,
@@ -80,10 +82,10 @@ impl TrackerDumper for MODFile {
         }))
     }
 
-    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
-        WAV::header(smp.rate as u32, 8, smp.len as u32, false)
-            .write(file, (&self.buf[smp.ptr_range()]).to_signed())
-    }
+    fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
+        let smp = &mut self.smp_data[index];       
+        Ok(make_signed_u8_checked(&mut self.buf, smp))
+    } 
 
     fn number_of_samples(&self) -> usize {
         self.smp_num as usize
@@ -95,7 +97,11 @@ impl TrackerDumper for MODFile {
 
     fn list_sample_data(&self) -> &[TrackerSample] {
         &self.smp_data
-    }    
+    }
+
+    fn format(&self) -> &str {
+        "Amiga ProTracker"
+    }   
 }
 
 fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) -> Result<Vec<MODSample>, Error> {
@@ -119,9 +125,11 @@ fn build_samples(smp_num: u8, buf: &[u8], smp_start: usize, alt_finetune: bool) 
             true    => alt_frequency(finetune as i8),
             false   => FINETUNE_TABLE[((finetune & 0xf) ^ 8) as usize]
         };
-
+        let name = read_string(buf, offset, 22);
+        
         smp_data.push(MODSample {
-            name: read_string(&buf, offset, 22),
+            // filename: name.clone(),
+            name,
             raw_index: i,
             len: len as usize, 
             ptr: smp_pcm_stream_index,

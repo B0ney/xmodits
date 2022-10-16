@@ -1,57 +1,25 @@
 /// Impulse Tracker sample decompression
 /// References:
 /// https://github.com/nicolasgramlich/AndEngineMODPlayerExtension/blob/master/jni/loaders/itsex.c
+/// https://github.com/Konstanty/libmodplug/blob/master/src/load_it.cpp#L1183
 /// https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
 /// https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
 /// 
 
 
-use crate::{utils::{Error, reader::read_u16_le}, XmoditsError};
+use crate::{utils::{Error, reader::read_u16_le, signed::make_signed_u8}, XmoditsError};
 use byteorder::{ByteOrder, LE};
 
+#[inline(always)]
 pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo: bool) -> Result<Vec<u8>, Error> {
-    use crate::utils::signed::SignedByte;
     let _channels: u32 = stereo as u32 + 1;
 
     match smp_bits {
         16 => decompress_16bit(buf, len, it215),
-        _ => Ok(decompress_8bit(buf, len, it215)?.to_signed()), 
+        _ => decompress_8bit(buf, len, it215), 
     }
 }
 
-/*
-My solution to C's awful shared states.
-
-In the original C implementation, "read bits" and "read block"
-share a lot of data. 
-
-So why not combine them?
-
-bit reading order:
-
-0101_1100, 1011_0111,   ....._.....
-|       |  |       |    |         |
-\   <-<-|  \   <-<-|    \       <-|
-        |          |-------|      |-(3) Contiune until desired bits are met
-        |                  |
-        |-(1) Start here   |
-          (Right -> Left)  |
-                           |-(2) When it reaches MSB (Most Significant Bit)
-                              Move to next byte. Continue reading until it hits MSB.
- 
-If I want to read 12 bits, the result would be:
-
-0111__0101_1100
-   |  |_______|
-   |          |-- From first Byte
-   |--------|
-            |---- From second Byte
-
-You'd pad the Left Most bits like so:
-
-0000_0111__0101_1100
-
-*/
 struct BitReader<'a> {
     block_offset: usize,    // Location of next block
     bitnum: u8,             // Bits left. When it hits 0, it resets to 8 & "blk_index" increments by 1.  
@@ -90,10 +58,10 @@ impl <'a>BitReader<'a> {
     }
 
     fn read_bits_u32(&mut self, n: u8) -> u32 { 
+        if n == 0 { return 0; }
         let mut value: u32 = 0;
-        let i =  n;
 
-        for _ in 0..i {
+        for _ in 0..n {
             if self.bitnum == 0 {
                 self.blk_index += 1;
                 self.bitbuf = self.buf[self.blk_index] as u32;
@@ -112,17 +80,9 @@ impl <'a>BitReader<'a> {
 
 /// Decompresses 8 bit sample from buffer.
 /// 
-/// At this stage, i'm not interested in optimisations
-/// 
 /// Think of this as a rustified version of itsex.c
-/// 
-/// The goal here is to achive simplicity.
-/// 
-/// TODO:
-///     deompressing stereo samples may not work.
-///     refer to line 137 in compression.c for ideas.
-///     Add stereo boolean parameter.
 ///
+#[inline(always)]
 #[rustfmt::skip]     
 fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
     let mut len: u32 = len;             // Length of uncompressed sample. (copied for mutation)
@@ -151,11 +111,9 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
         while blkpos < blklen {
 
             if width > 9 {
-                return Err(
-                    XmoditsError::SampleExtractionFailure(
-                        format!("Invalid Bit width. Why is it {}?", width)
-                    )
-                );
+                return Err(XmoditsError::SampleExtractionFailure(
+                    format!("Invalid Bit width. Why is it {}?", width)
+                ));
             }
 
             value = bitreader.read_bits_u16(width);
@@ -201,7 +159,6 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
                 let shift: u8 = 8 - width;
                 sample_value = (value << shift) as i8 ;
                 sample_value >>= shift as i8;
-
             } else {
                 sample_value = value as i8;
             }
@@ -221,10 +178,11 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
 
         len -= blklen as u32; 
     }
-
+    let _ = make_signed_u8(&mut dest_buf);
     Ok(dest_buf)
 }
 
+#[inline(always)]
 #[rustfmt::skip]
 fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> {
     let mut len: u32 = len / 2;         // Length of uncompressed sample. (copied for mutation)
@@ -252,11 +210,9 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error>
         while blkpos < blklen {
 
             if width > 17 {
-                return Err(
-                    XmoditsError::SampleExtractionFailure(
-                        format!("Invalid Bit width. Why is it {}?", width)
-                    )
-                );
+                return Err(XmoditsError::SampleExtractionFailure(
+                    format!("Invalid Bit width. Why is it {}?", width)
+                ));
             }
 
             value = bitreader.read_bits_u32(width);
@@ -341,6 +297,7 @@ fn readbit() {
     ];
     let mut b = BitReader::new(&buf);
     b.read_next_block(); 
+    b.read_bits_u16(0);
 
     // test group 1
     assert_eq!(b.read_bits_u16(8), 0b_1111_1110);

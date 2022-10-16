@@ -49,9 +49,10 @@ pub mod prelude {
     pub use std::path::PathBuf;
 
     // Import helper functions
-    pub use super::wav::WAV;
+    pub use super::wav::Wav;
 
-    pub use super::signed::SignedByte;
+    pub use super::signed::make_signed_u8;
+    pub use super::signed::make_signed_u16;
     pub use super::name::name_sample;
     pub use super::reader::read_slice;
     pub use super::reader::read_string;

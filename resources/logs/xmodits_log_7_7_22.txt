@@ -59,3 +59,38 @@ panics = 0
 3383 success
 
 
+
+08 10 2022
+
+xmodits v0.9.7
+
+Ripping 2757.98 MiB worth of trackers. Please wait...
+Error Invalid Module: Invalid XM: Contains more than 128 instruments <-- "santas_dance.xm"
+Error Unsupported XM: Uses 'MOD plugin packed' <-- "sense_of_wonder.xm"
+Error Unsupported XM: Version below 0104 <-- "shelter.xm"
+Error Unsupported XM: Uses 'MOD plugin packed' <-- "sunbeam.xm"
+Error Unsupported XM: Uses 'MOD plugin packed' <-- "superstition.xm"
+Done!
+⠙ ? ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.0% • 3.31k/3.31k • 00:00
+real    0m23.400s
+user    0m1.894s
+sys     0m5.025s
+
+
+13 10 2022
+
+Ripping 2757.98 MiB worth of trackers. Please wait...
+Error Invalid Module: Invalid XM: Contains more than 128 instruments <-- "santas_dance.xm"
+Error Unsupported XM: Uses 'MOD plugin packed' <-- "sense_of_wonder.xm"
+Error Unsupported XM: Version below 0104 <-- "shelter.xm"
+Error Unsupported XM: Uses 'MOD plugin packed' <-- "sunbeam.xm"
+Error Unsupported XM: Uses 'MOD plugin packed' <-- "superstition.xm"
+Done!
+
+real    0m31.556s
+user    0m1.992s
+sys     0m5.628s
+
+https://stackoverflow.com/questions/556405/what-do-real-user-and-sys-mean-in-the-output-of-time1
+keep an eye on real
+it seems that the tool is io bound, maybe try async?

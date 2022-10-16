@@ -1,6 +1,5 @@
-use std::path::PathBuf;
 use crate::{
-    utils::prelude::*, dword,
+    utils::{prelude::*, signed::make_signed_u16_checked}, dword,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
 };
 
@@ -29,7 +28,7 @@ impl TrackerDumper for S3MFile {
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError> 
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
     {
         Self::validate(&buf)?;
 
@@ -56,15 +55,13 @@ impl TrackerDumper for S3MFile {
         }))
     }
 
-    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
-        WAV::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
-            .write(
-                file, 
-                match smp.bits {
-                    8 => self.buf[smp.ptr_range()].to_owned(),
-                    _ => (&self.buf[smp.ptr_range()]).to_signed_u16(),
-                }
-            )
+    fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
+        let smp = &mut self.smp_data[index];
+
+        Ok(match smp.bits {
+            8 => &self.buf[smp.ptr_range()],
+            _ => make_signed_u16_checked(&mut self.buf, smp)
+        })
     }
 
     fn number_of_samples(&self) -> usize {
@@ -77,6 +74,10 @@ impl TrackerDumper for S3MFile {
 
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         &self.smp_data
+    }
+
+    fn format(&self) -> &str {
+        "Scream Tracker"
     }
 }
 
@@ -112,6 +113,7 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
             bits,
             rate,
             is_stereo,
+            is_interleaved: true,
             ..Default::default()
         })
     }

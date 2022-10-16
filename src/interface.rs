@@ -2,10 +2,14 @@ use std::path::{Path, PathBuf};
 use std::fs;
 use crate::XmoditsError;
 use crate::utils::Error;
+use crate::utils::prelude::Wav;
 pub type TrackerModule = Box<dyn TrackerDumper>;
 
 /// Function type signature to flexibly format sample names.
+#[cfg(not(feature="thread"))]
 pub type SampleNamerFunc = dyn Fn(&TrackerSample, usize) -> String;
+#[cfg(feature="thread")]
+pub type SampleNamerFunc = dyn Fn(&TrackerSample, usize) -> String + Sync + Send;
 
 #[derive(Default, Debug)]
 pub struct TrackerSample {
@@ -28,7 +32,11 @@ pub struct TrackerSample {
     /// Is sample stereo?
     pub is_stereo: bool,        
     /// Is sample compressed?
-    pub is_compressed: bool,    
+    pub is_compressed: bool,
+    /// Is the stereo sample data interleaved?
+    pub is_interleaved: bool,
+    /// Can the sample data be read directly?
+    pub is_readable: bool,
 }
 
 impl TrackerSample {
@@ -52,12 +60,12 @@ pub trait TrackerDumper {
         where Self: Sized;
 
     /// export sample given index
-    fn export(&self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
+    fn export(&mut self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
         self.export_advanced(folder, index, &crate::utils::prelude::name_sample)
     }
 
     fn export_advanced(
-        &self,
+        &mut self,
         folder: &dyn AsRef<Path>,
         index: usize,
         name_sample: &SampleNamerFunc ) -> Result<(), Error>
@@ -67,7 +75,7 @@ pub trait TrackerDumper {
             .join(folder)
             .join(name_sample(sample, index));
 
-        self.write_wav(sample, &file)
+        self.write_wav(&file, index)
     }
 
     /// Number of samples a tracker module contains
@@ -76,11 +84,21 @@ pub trait TrackerDumper {
     /// Name of tracker module
     fn module_name(&self) -> &str;
 
+    fn format(&self) -> &str;
+
     /// List tracker sample infomation
     fn list_sample_data(&self) -> &[TrackerSample];
 
     /// Write sample data to PCM
-    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error>;
+    fn write_wav(&mut self, file: &Path, index: usize) -> Result<(), Error> {
+        let smp =  &self.list_sample_data()[index];
+
+        Wav::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo, smp.is_interleaved)
+            .write_ref(file, self.pcm(index)?)
+    }
+
+    /// return reference to readable pcm data
+    fn pcm(&mut self, index: usize) -> Result<&[u8], Error>;
 
     /// Load tracker module from given path
     fn load_module<P>(path: P) -> Result<TrackerModule, Error> 
@@ -115,14 +133,14 @@ pub trait TrackerDumper {
     }
 
     /// Dump all samples to a folder
-    fn dump(&self, folder: &dyn AsRef<Path>, create_dir_if_absent: bool) -> Result<(), Error> 
+    fn dump(&mut self, folder: &dyn AsRef<Path>, create_dir_if_absent: bool) -> Result<(), Error> 
     {
         self.dump_advanced(folder, &crate::utils::prelude::name_sample, create_dir_if_absent)
     }
 
     /// Dump all samples with the added ability to format sample names to our likinng.
     fn dump_advanced(
-        &self,
+        &mut self,
         folder: &dyn AsRef<Path>,
         sample_namer_func: &SampleNamerFunc,
         create_dir_if_absent: bool,
@@ -165,7 +183,7 @@ fn helpful_io_error(err: std::io::Error, folder: &Path) -> XmoditsError {
                         _ => String::from("")
                     }
                 ),
-                _ => format!(" {}", err.to_string())
+                _ => format!(" {}", err)
             },
         )
     )

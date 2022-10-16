@@ -1,8 +1,9 @@
-use crate::compression::decompress_sample;
 use crate::{
     utils::prelude::*, dword,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
 };
+use crate::utils::signed::make_signed_u8_checked;
+use super::compression::decompress_sample;
 
 type ITSample = TrackerSample;
 
@@ -17,6 +18,7 @@ const IT215: u16            = 0x0215;           // IT215 compression
 pub struct ITFile {
     title: String,
     buf: Vec<u8>,
+    pcm_cache: Vec<Vec<u8>>,
     version: u16,
     compat_ver: u16,
     smp_num: u16,
@@ -24,7 +26,7 @@ pub struct ITFile {
 }
 
 impl TrackerDumper for ITFile {
-    fn validate(buf: &[u8]) -> Result<(), XmoditsError> {
+    fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < IT_HEADER_LEN {
             return Err(XmoditsError::invalid("File is not a valid Impulse Tracker module"));
         }
@@ -38,7 +40,7 @@ impl TrackerDumper for ITFile {
         Ok(())
     }
     
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
     {
         Self::validate(&buf)?;
         
@@ -65,31 +67,30 @@ impl TrackerDumper for ITFile {
             smp_data,
             version,
             compat_ver,
-            buf
+            buf,
+            pcm_cache: vec![Vec::new(); smp_num as usize],
         }))
     }
 
-    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
-        WAV::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo)
-            .write(
-                file, 
-                match smp.is_compressed {
-                    true => {
-                        decompress_sample(
-                            &self.buf[smp.ptr..], smp.len as u32,
-                            smp.bits, self.compat_ver == IT215,
-                            smp.is_stereo
-                        )?
-                    },
-                    
-                    false => {
-                        match smp.bits {
-                            8 => (&self.buf[smp.ptr_range()]).to_signed(),
-                            _ => (&self.buf[smp.ptr_range()]).to_owned(),
-                        }
-                    },
-                }
-            )
+    fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
+        let smp = &mut self.smp_data[index];
+
+        if smp.is_compressed && self.pcm_cache[index].is_empty() {
+            self.pcm_cache[index] = decompress_sample(
+                &self.buf[smp.ptr..], smp.len as u32,
+                smp.bits, self.compat_ver == IT215,
+                smp.is_stereo
+            )?;
+        };
+
+        Ok(match smp.is_compressed {
+            true => &self.pcm_cache[index],
+        
+            false => match smp.bits {
+                8 => make_signed_u8_checked(&mut self.buf, smp),
+                _ => &self.buf[smp.ptr_range()],
+            }
+        })
     }
 
     fn number_of_samples(&self) -> usize {
@@ -102,6 +103,10 @@ impl TrackerDumper for ITFile {
 
     fn list_sample_data(&self) -> &[TrackerSample] {
         &self.smp_data
+    }
+
+    fn format(&self) -> &str {
+        "Impulse Tracker"
     }
 }
 
@@ -128,8 +133,8 @@ fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
         if !is_compressed    // break out of loop if we get a funky offset
             && (ptr + len) as usize > buf.len() { break; }
 
-        let filename: String    = read_string(&buf,0x0004 + offset, 12);
-        let name: String        = read_string(&buf,0x0014 + offset, 26);
+        let filename: String    = read_string(buf,0x0004 + offset, 12);
+        let name: String        = read_string(buf,0x0014 + offset, 26);
         let rate: u32           = read_u32_le(buf, 0x003C + offset);
 
         sample_data.push(ITSample {
@@ -143,6 +148,7 @@ fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
             is_stereo,
             is_compressed,
             bits,
+            ..Default::default()
         })
     }
 

@@ -1,8 +1,9 @@
-use crate::deltadecode::{delta_decode_u16, delta_decode_u8};
 use crate::{
     utils::prelude::*,
     TrackerDumper, TrackerModule, TrackerSample, XmoditsError
 };
+
+use super::deltadecode::{delta_decode_u8_checked, delta_decode_u16_checked};
 
 const XM_HEADER_ID: &[u8; 17]       = b"Extended Module: ";
 const MOD_PLUGIN_PACKED: &[u8; 20]  = b"MOD Plugin packed   ";
@@ -22,18 +23,18 @@ pub struct XMFile {
 }
 
 impl TrackerDumper for XMFile {
-    fn validate(buf: &[u8]) -> Result<(), XmoditsError> {
+    fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 60 
-            || read_slice(&buf, 0x0000, 17) != XM_HEADER_ID 
+            || read_slice(buf, 0x0000, 17) != XM_HEADER_ID 
             || buf[0x0025] != XM_MAGIC_NUM 
         {
             return Err(XmoditsError::invalid("Not a valid Extended Module"));
         }
-        if read_slice(&buf, 0x0026, 20) == MOD_PLUGIN_PACKED {
+        if read_slice(buf, 0x0026, 20) == MOD_PLUGIN_PACKED {
             return Err(XmoditsError::unsupported("Unsupported XM: Uses 'MOD plugin packed'"));
         }
 
-        let version: u16 = read_u16_le(&buf, 0x003A);
+        let version: u16 = read_u16_le(buf, 0x003A);
 
         if version < XM_MIN_VER {
             return Err(XmoditsError::unsupported("Unsupported XM: Version below 0104"));
@@ -42,7 +43,7 @@ impl TrackerDumper for XMFile {
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError>
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
     {
         Self::validate(&buf)?;
 
@@ -64,17 +65,15 @@ impl TrackerDumper for XMFile {
             smp_num,
         }))
     }
+    
+    fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
+        let smp = &mut self.samples[index];
 
-    fn write_wav(&self, smp: &TrackerSample, file: &PathBuf) -> Result<(), Error> {
-        WAV::header(smp.rate, smp.bits, smp.len as u32, false)
-            .write(
-                file,
-                match smp.bits {
-                    8   => { delta_decode_u8(&self.buf[smp.ptr_range()]).to_signed() }
-                    _   => { delta_decode_u16(&self.buf[smp.ptr_range()]) }
-                }
-            )
-    }
+        Ok(match smp.bits {
+            8   => delta_decode_u8_checked(&mut self.buf, smp),
+            _   => delta_decode_u16_checked(&mut self.buf, smp)
+        })
+    } 
 
     fn number_of_samples(&self) -> usize {
         self.smp_num
@@ -86,7 +85,11 @@ impl TrackerDumper for XMFile {
 
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         &self.samples
-    }    
+    }
+
+    fn format(&self) -> &str {
+        "Extended Module"
+    }   
 }
 
 /// Skip xm pattern headers to access instrument headers.
@@ -150,7 +153,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
             }
 
             let ptr: usize      = start_smp_hdr + total_smp_hdr_size + smp_len_cumulative;
-            let name: String    = read_string(&buf, 0x0012 + offset,22);
+            let name: String    = read_string(buf, 0x0012 + offset,22);
             let flags: u8       = buf[0x000e + offset];
             let bits: u8        = (((flags & MASK_SMP_BITS) >> 4) + 1) * 8;
             let finetune: i8    = buf[0x000d + offset] as i8;

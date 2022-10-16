@@ -1,25 +1,29 @@
 [package]
 name = "xmodits"
 authors = ["B0ney - https://github.com/B0ney"]
-version = "0.9.6"
+version = "0.9.7"
 edition = "2021"
 build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-xmodits-lib = {path = "../"}
+xmodits-lib = { path = "../", features=["thread"] }
+clap = { version ="4.0.10", features = ["derive", "cargo", "wrap_help"]}
+
+rayon = "1.5.3"
 
 [target.'cfg(windows)'.dependencies]
 native-dialog = {version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
 crossbeam-channel = "0.5.5"
 rand = "0.8.5"
 
-
 [build-dependencies]
 winres = "0.1.12"
 
 [features]
 ascii_art = []
+advanced = []
+async = []
 
 [profile.release]
 strip = true
@@ -33,4 +37,4 @@ opt-level = 1
 
 [package.metadata.winres]
 FileDescription = "Rip samples from tracker music with speed!"
-Comments = "This software is licensed under GPLv3 (or later). You can obtain the source code here: https://github.com/B0ney/xmodits/"
+Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"

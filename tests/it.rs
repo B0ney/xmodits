@@ -19,7 +19,7 @@ fn it_test_mmcmp() {
 // We don't want xmodits to create an empty folder when attempting to dump an empty module
 #[test]
 fn it_no_samples() {
-    let a = ITFile::load_module("tests/mods/it/no_samples.it").unwrap();
+    let mut a = ITFile::load_module("tests/mods/it/no_samples.it").unwrap();
     let folder = "tests/exports/";
     let name = "IT-please-delete";
     let export_path = Path::new(folder).join(name);
@@ -67,9 +67,14 @@ fn it_test_exported() {
     let test_no: usize = 0;
     let root: &Path = Path::new("tests/export/it/");
     let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
-    let mod1 = ITFile::load_module("tests/mods/it/songofthesky.it").unwrap();
+    let mut mod1 = ITFile::load_module("tests/mods/it/songofthesky.it").unwrap();
 
     clean_test_export(root, test_no).unwrap();
+
+    mod1.export(&test_export_path, 0).unwrap();
+    mod1.export(&test_export_path, 1).unwrap();
+    mod1.export(&test_export_path, 6).unwrap();
+    mod1.export(&test_export_path, 8).unwrap();
 
     mod1.export(&test_export_path, 0).unwrap();
     mod1.export(&test_export_path, 1).unwrap();
@@ -91,7 +96,7 @@ fn it_test_exported_compression() {
     let test_no: usize = 1;
     let root: &Path = Path::new("tests/export/it/");
     let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
-    let mod1 = ITFile::load_module("tests/mods/it/before_the_explozion.it").unwrap();
+    let mut mod1 = ITFile::load_module("tests/mods/it/before_the_explozion.it").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 

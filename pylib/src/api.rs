@@ -20,6 +20,7 @@ pub fn rip_multiple(
     // Collect errors during dumping
     let mut errors: Vec<XmoditsError> = paths
         .into_iter()
+        .filter(|path| Path::new(path).is_file())
         .map(|path| {
               xmodits_lib::load_module(&path)?
                 .dump_advanced(

@@ -1,65 +1,91 @@
-#![windows_subsystem = "windows"]
 mod app;
+mod api;
+
 use std::env;
 use std::path::PathBuf;
-use xmodits_lib::Error;
+use clap::Parser;
 
-#[cfg(unix)] 
-mod cli;
-#[cfg(unix)]
-mod app_unix;
+#[derive(Parser)]
+#[command(author, version, about)]
+#[command(long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M & MOD formats.\nhttps://github.com/B0ney/xmodits - GPLv3")]
+pub struct Cli {
+    #[arg(help="Modules to rip, the last element can be a folder to place your rips. E.g \"./music.s3m ./music.it ./dumps/\"")]
+    #[arg(required = true)]
+    trackers: Vec<PathBuf>,
 
-#[cfg(target_os = "windows")]
-mod app_win;
-#[cfg(target_os = "windows")]
-mod dialoge;
+    #[arg(help="Only name samples with an index. E.g. 01.wav")]
+    #[arg(short='i', long, conflicts_with="upper_case", conflicts_with="lower_case")]
+    index_only: bool,
 
-fn main() -> Result<(), Error> {
-    // Collect arguments
-    let args: Vec<std::ffi::OsString> = env::args_os().skip(1).collect();
+    #[arg(help="Preserve sample indexing")]
+    #[arg(short='r', long)]
+    index_raw: bool,
 
-    // Show help to user if they launch the app with no arguments
-    // On Windows, this is a dialogue box
-    if args.len() == 0 { 
-        #[cfg(windows)]{ return Ok(dialoge::show_help_box()); }
+    #[arg(help="Pad index with preceding 0s. e.g. 001, or 0001")]
+    #[arg(default_value_t = 2, short='p', long="index-padding", value_parser=0..=5)]
+    index_padding: i64,
 
-        #[cfg(unix)]{ return Ok(cli::help()); }
-    }
+    // #[arg(help="Include embedded text from tracker (if it exists)")]
+    // #[arg(short='c', long)]
+    // with_comment: bool,
 
-    // On *nix systems we quit the application if given:
-    // -v, --version, -h, --help
-    #[cfg(unix)]{ app_unix::check_args(&args); }
+    #[arg(help="Don't create a new folder for samples. This can overwrite data, BE CAREFUL!")]
+    #[arg(short, long)]
+    no_folder: bool,
 
-    // Convert argument into a Vector of paths
-    let mut paths: Vec<PathBuf> = args
-        .iter()
-        .map(|f| PathBuf::from(f))
-        .collect();
-    
-    // We treat the last argumet as the destination folder
-    // If the last argument is not a valid folder, make the destination
-    // folder the current executable directory.
-    let dest_dir: PathBuf = match paths.last().unwrap() {
-        p if p.is_dir() && paths.len() > 1 => paths.pop().unwrap(),
-        _ => env::current_dir()?,
+    #[arg(help="Name samples in UPPER CASE")]
+    #[arg(short, long="upper", conflicts_with="lower_case")]
+    upper_case: bool,
+
+    #[arg(help="Name samples in lower case")]
+    #[arg(short, long="lower", conflicts_with="upper_case")]
+    lower_case: bool,
+
+    #[arg(help="Print infomation about tracker")]
+    #[arg(long)]
+    info: bool,
+
+    #[cfg(feature="advanced")]
+    #[arg(help="Rip samples in parallel")]
+    #[arg(short='k', long)]
+    parallel: bool,
+}
+
+fn main() {
+    let mut cli = Cli::parse();
+
+    let destination: PathBuf = match cli.trackers.last().unwrap() {
+        p if !p.is_file() && cli.trackers.len() > 1 => {
+            let folder = cli.trackers.pop().unwrap();
+
+            if !folder.is_dir() {
+                if let Err(e) = std::fs::create_dir(&folder) {
+                    return eprintln!("Error: Could not create destination folder \"{}\": {}", folder.display(), e);
+                };
+            }
+
+            folder
+        },
+        _ => env::current_dir().expect("I need a current working directory. (>_<)"),
     };
-    
-    // Filter paths to just contain files.
-    let modules: Vec<PathBuf> = paths
-        .iter()
-        .filter(|f| f.is_file())
-        .map(|f| f.clone())
-        .collect();   
 
-    if modules.len() == 0 { 
-        #[cfg(windows)]{ return Ok(dialoge::no_valid_modules()); }
-
-        #[cfg(unix)]{ return Ok(cli::help()); }
+    #[cfg(feature="advanced")]
+    if cli.parallel {
+        return api::rip_parallel(cli, destination);
     }
 
-    #[cfg(unix)]
-    return app_unix::run(&modules, &dest_dir); 
+    if cli.info {
+        return api::info(cli)
+    }
 
-    #[cfg(windows)]
-    return app_win::run(modules, dest_dir);
+    api::rip(cli, destination);
+
+    #[cfg(windows)] {
+        use std::io::{stdout, stdin, Write};
+        let mut buf = String::new();
+        print!("Press Enter to continue... ");
+        let _ = stdout().flush();
+        let _ = stdin().read_line(&mut buf);
+        let _ = stdout().flush();
+    }
 }

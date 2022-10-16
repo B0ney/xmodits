@@ -1,14 +1,22 @@
 mod fmt;
-use fmt::*;
 #[allow(unused, dead_code)]
 mod utils;
 mod interface;
 mod error;
 
-pub use interface::{TrackerDumper, TrackerModule, TrackerSample, SampleNamerFunc};
+pub use interface::SampleNamerFunc;
+pub use interface::TrackerSample;
+pub use interface::TrackerModule;
+pub use interface::TrackerDumper;
 pub use error::XmoditsError;
 pub use utils::Error;
+pub use utils::name::SampleNamer;
+pub use utils::wav;
 
+use std::path::Path;
+use tracker_formats::*;
+
+use fmt::*;
 pub mod tracker_formats {
     pub use crate::it::ITFile;
     pub use crate::xm::XMFile;
@@ -17,19 +25,41 @@ pub mod tracker_formats {
     pub use crate::umx::UMXFile;
 }
 
-/// Load a tracker module based on file extension
-pub fn load_module<P: AsRef<std::path::Path>>(path: P) -> Result<TrackerModule, XmoditsError> {
-    use tracker_formats::*;
-    match file_extension(&path).to_lowercase().as_str() {
-        "it"    => ITFile::load_module(path),
-        "xm"    => XMFile::load_module(path),
-        "s3m"   => S3MFile::load_module(path),
-        "mod"   => MODFile::load_module(path),
-        f   => return Err(
-            XmoditsError::UnsupportedFormat(
-                format!("'{}' is not a supported format.", f)
-            )
-        ),
+type ModLoaderFunc = fn(&Path) -> Result<TrackerModule, XmoditsError>;
+
+use phf::phf_map;
+pub static LOADERS: phf::Map<&str, ModLoaderFunc> = phf_map! {
+    "it" => |p| ITFile::load_module(&p),
+    "xm" => |p| XMFile::load_module(&p),
+    "s3m" => |p| S3MFile::load_module(&p),
+    "umx" => |p| UMXFile::load_module(&p),
+    "mod" => |p| MODFile::load_module(&p),
+};
+
+/// A more robust method to load a module gven a path.
+/// 
+/// Load a module given a file extension.
+/// 
+/// If it fails, loop through other module loaders, return if one succeeds.
+pub fn load_module<P>(path: P) -> Result<TrackerModule, XmoditsError> 
+where P: AsRef<std::path::Path>
+{
+    let ext = file_extension(&path).to_lowercase();
+    let path = path.as_ref();
+
+    match LOADERS.get(ext.as_str()) {
+        Some(mod_loader) => match mod_loader(path) {
+            Ok(tracker) => Ok(tracker),
+            Err(original_err) => {
+                for (_, backup_loader) in LOADERS.entries().filter(|k| k.0 != &ext.as_str() && k.0 != &"mod") {
+                    if let Ok(tracker) = backup_loader(path) {
+                        return Ok(tracker);
+                    }
+                }
+                Err(original_err)
+            }
+        },
+        None => Err(XmoditsError::UnsupportedFormat(format!("'{}' is not a supported format.", ext)))
     }
 }
 

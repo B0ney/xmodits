@@ -1,4 +1,3 @@
-use std::path::Path;
 use xmodits_lib::{TrackerDumper, tracker_formats::*};
 mod utils;
 use crate::utils::verify_sample_num;
