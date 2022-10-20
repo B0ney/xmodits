@@ -5,6 +5,12 @@
 # XMODITS - A fast & lightweight tool to rip samples from tracker music.
 [![unit_testing](https://github.com/B0ney/xmodits/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/B0ney/xmodits/actions/workflows/rust.yml)
 
+
+## Download
+You can download builds for xmodits [here](https://github.com/B0ney/xmodits/releases).
+
+If you wish to build from source, go to [building](#building).
+
 ## Supported Formats:
 
 |Format| 8-bit| 16-bit| compression|Stereo|
@@ -14,8 +20,6 @@
 | S3M | ✓| ✓| N/A| ⏳|
 | MOD | ✓| N/A| N/A| N/A|
 
-
-
 |Key| Meaning|
 |---|---|
 |**✓** | Fully supported with little or no bugs|
@@ -23,11 +27,6 @@
 | **n/a** | Format doesn't support it|
 | ⏳ | In progress|
 | 🚧 | Part of roadmap |
-
-## Download
-You can download builds for xmodits [here](https://github.com/B0ney/xmodits/releases).
-
-If you wish to build from source, go to [building](#building).
 
 ## How to Use
 
@@ -62,7 +61,7 @@ xmodits mod1.mod mod2.it mod3.s3m [destination folder]
 ```
 xmodits ./*.mod [destination folder]
 ```
-### Advanced Arguments
+<!-- ### Advanced Arguments
 If you want to customize how ripped samples are named, the following arguments can be used:
 
 |short| long| Description|
@@ -74,7 +73,7 @@ If you want to customize how ripped samples are named, the following arguments c
 |-u |--upper| Name samples in UPPER CASE |
 |-l |--lower| Name samples in lower case |
 |-c| --with-comment |Include embedded text from tracker (if it exists) 🚧|
-|-k |--parallel| Rip samples in parallel (Requires compiling with **``features="advanced"``**) |
+|-k |--parallel| Rip samples in parallel (Requires compiling with **``features="advanced"``**) | -->
 
 ## Note
 The purpose of this tool (the core) is to dump samples that's it.

@@ -2,6 +2,7 @@ use crate::XmoditsError;
 use crate::tracker_formats::*;
 use crate::{xm::XMFile, utils::prelude::*};
 
+
 const UM_MAGIC_NUMBER: u32 = 0x9E2A83C1;
 struct DontUseMe;
 pub struct UMXFile(DontUseMe);
@@ -27,13 +28,53 @@ impl TrackerDumper for UMXFile {
         if buf.len() < 69 // for now
             || read_u32_le(buf, 0x0000) != UM_MAGIC_NUMBER 
         {
-            return Err("Not a valid Unreal package".into());
+            return Err(XmoditsError::invalid("Not a valid Unreal package"));
         }
-        let export_count = read_u32_le(buf, 0x0014);
 
-        if export_count > 1 {
-            return Err("Unreal package contains more than 1 entry.".into());
+        let version = read_u32_le(buf, 0x0004);
+        if version < 61 {
+            return Err(XmoditsError::unsupported("UMX versions below 61 are unsupported"))
         }
+
+        let export_count = read_u32_le(buf, 0x0014);
+        if export_count > 1 {
+            return Err(XmoditsError::unsupported("Unreal package contains more than 1 entry."));
+        }
+
+        let name_count = read_u32_le(buf, 0x000C) as usize;
+        let name_offset = read_u32_le(buf, 0x0010) as usize;
+        
+        let export_offset = read_u32_le(buf, 0x0018);
+        let import_count = read_u32_le(buf, 0x001C);
+        let import_offset = read_u32_le(buf, 0x0020) & 0x00ff;
+
+        dbg!(version);
+        dbg!(name_count);
+        dbg!(name_offset);
+        dbg!(export_count);
+        dbg!(export_offset);
+        dbg!(import_count);
+        dbg!(import_offset);
+
+        // obtain names
+        let mut name_table: Vec<String> = Vec::with_capacity(name_count);
+        let mut offset = name_offset;
+
+        let length: usize = buf[offset + 1] as usize;
+        dbg!(length);
+        dbg!(read_string(buf, offset, length - 2));
+        // for i in 0..name_count  {
+
+            
+        //     name_table.push()
+        // }
+
+        let mut offset: usize = 0;
+
+        
+        
+        
+
         Ok(())
     }
 
@@ -81,5 +122,10 @@ impl TrackerDumper for UMXFile {
     }
     fn format(&self) -> &str {
         unimplemented!()
-    }  
+    }
+}
+
+#[test]
+fn test1() {
+    let a = UMXFile::load_module("./test/umx/UNATCO_Music.umx");
 }
