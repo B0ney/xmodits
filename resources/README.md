@@ -44,7 +44,7 @@ My docs shouldn't contain anything you won't find in these linked resources.
 ### UMX
 * [(ARCHIVE) wiki.beyondunreal.com/Legacy:Package_File_Format](https://web.archive.org/web/20220324122909/https://wiki.beyondunreal.com/Legacy:Package_File_Format)
 * [(ARCHIVE) bunnytrack.net/ut-package-format/](https://web.archive.org/web/20220319154052/https://bunnytrack.net/ut-package-format/)
-
+* [Compact integer algorithm](https://wiki.beyondunreal.com/Legacy:Package_File_Format/Data_Details)
 
 ## MISC
 ### OpenMPT Resources
