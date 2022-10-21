@@ -3,7 +3,9 @@ use crate::tracker_formats::*;
 use crate::{xm::XMFile, utils::prelude::*};
 // https://github.com/Konstanty/libmodplug/blob/d1b97ed0020bc620a059d3675d1854b40bd2608d/src/load_umx.cpp#L196
 
-const UM_MAGIC_NUMBER: u32 = 0x9E2A83C1;
+const UPKG_MAGIC: u32 = 0x9E2A83C1;
+const UPKG_HEADER_SIZE: usize = 64;
+
 struct DontUseMe;
 pub struct UMXFile(DontUseMe);
 
@@ -25,8 +27,8 @@ static VALIDATE_LOADER: Lazy<[(ModValidatorFunc, ModLoaderFunc);3]> = Lazy::new(
 
 impl TrackerDumper for UMXFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
-        if buf.len() < 69 // for now
-            || read_u32_le(buf, 0x0000) != UM_MAGIC_NUMBER 
+        if buf.len() < UPKG_HEADER_SIZE
+            || read_u32_le(buf, 0x0000) != UPKG_MAGIC 
         {
             return Err(XmoditsError::invalid("Not a valid Unreal package"));
         }
@@ -45,6 +47,13 @@ impl TrackerDumper for UMXFile {
 
         let name_count: usize   = read_u32_le(buf, 0x000C) as usize;
         let name_offset: usize  = read_u32_le(buf, 0x0010) as usize;
+        let import_count: usize  = read_u32_le(buf, 0x001C) as usize;
+        let import_offset: usize  = read_u32_le(buf, 0x0020) as usize;
+
+        dbg!(import_count);
+        dbg!(import_offset);
+
+
 
         let mut name_table: Vec<String> = Vec::with_capacity(name_count);
 
@@ -53,7 +62,9 @@ impl TrackerDumper for UMXFile {
         for _ in 0..name_count {
             let length: usize   = buf[offset] as usize;
             let name: String    = read_string(buf, offset, length);
-            dbg!(&name);
+            // dbg!(&name);
+            // dbg!(&length);
+
             name_table.push(name);
             offset += length + 1; // Add 1 to skip \00
             offset += 4;
@@ -95,13 +106,16 @@ impl TrackerDumper for UMXFile {
         offset += 4;
         offset += read_compact_index(&buf, offset).1; // obj name
         offset += 4; // obj flags
-
+        
+        dbg!(read_compact_index(&buf, offset).0);
         offset += read_compact_index(&buf, offset).1;   // serial size skip
 
 
         let (serial_offset, inc) = read_compact_index(&buf, offset);
+        dbg!(serial_offset);
         offset += inc;
         offset += 2;
+        dbg!(offset);
 
         // if version > 61 {
         //     offset += 2;
@@ -158,27 +172,24 @@ fn read_compact_index(buf: &[u8], offset: usize) -> (i32, usize) {
     let mut size: usize = 0;
 
     for i in 0..5 {
-        offset += 1;
         let x = buf[offset] as i32;
+        offset += 1;
 
         if i == 0 {
-            if x & 0x80 > 0 {
-                signed == true;
-            }
+            if (x & 0x80) > 0 { signed = true; }
 
             output |= x & 0x3F;
 
             if x & 0x40 == 0 {
                 break
             }
-        }
-        if i == 4 {
+        } else if i == 4 {
             output |= (x & 0x1F) << (6 + (3 * 7));
+
         } else {
             output |= (x & 0x7F) << (6 + ((i - 1) * 7));
-            if x & 0x80 == 0 {
-                break;
-            }
+            
+            if x & 0x80 == 0 { break; }
         }
         size += 1
     }
@@ -190,7 +201,26 @@ fn read_compact_index(buf: &[u8], offset: usize) -> (i32, usize) {
 
 #[test]
 fn test1() {
+    // let b = read_compact_index(&[0x74,0x07], 0);
+    // dbg!(b.0);
     // let a = UMXFile::load_module("./test/umx/UNATCO_Music.umx");
     let a: _ = UMXFile::load_module("./test/umx/MJ12_Music.umx");
+}
 
+// Test read compact index works
+#[test]
+fn test_compact_index() {
+    let tests: Vec<(i32, &[u8])> = vec![
+        (1, &[0x01]),
+        (500, &[0x74, 0x07]),
+        (1000, &[0x68, 0x0f]),
+        (10, &[0x0a]),
+        (100, &[0x64, 0x01]),
+        (10_000_000, &[0x40, 0xDA, 0xC4, 0x09]),
+        (1_000_000_000, &[0x40, 0xA8, 0xD6, 0xB9, 0x07]),
+    ]; 
+
+    for (number, compact) in tests {
+        assert_eq!(read_compact_index(compact, 0).0, number);
+    }
 }
