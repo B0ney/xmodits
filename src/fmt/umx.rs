@@ -7,6 +7,8 @@ const UPKG_MAGIC: u32 = 0x9E2A83C1;
 const UPKG_HEADER_SIZE: usize = 64;
 
 struct DontUseMe;
+
+/// "Abandon all hope ye who try to parse this file format." - Tim Sweeney, Unreal Packages
 pub struct UMXFile(DontUseMe);
 
 use crate::interface::{TrackerDumper, TrackerModule};
@@ -47,13 +49,11 @@ impl TrackerDumper for UMXFile {
 
         let name_count: usize   = read_u32_le(buf, 0x000C) as usize;
         let name_offset: usize  = read_u32_le(buf, 0x0010) as usize;
-        let import_count: usize  = read_u32_le(buf, 0x001C) as usize;
-        let import_offset: usize  = read_u32_le(buf, 0x0020) as usize;
+        // let import_count: usize  = read_u32_le(buf, 0x001C) as usize;
+        // let import_offset: usize  = read_u32_le(buf, 0x0020) as usize;
 
-        dbg!(import_count);
-        dbg!(import_offset);
-
-
+        // dbg!(import_count);
+        // dbg!(import_offset);
 
         let mut name_table: Vec<String> = Vec::with_capacity(name_count);
 
@@ -88,47 +88,69 @@ impl TrackerDumper for UMXFile {
         // let chunk_size = read_compact_index(&buf, offset).1;
 
         // dbg!(chunk_size);
-        dbg!(offset);
+        // dbg!(offset);
         // let mut offset: usize = 0;
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
+    fn load_from_buf(mut buf: Vec<u8>) -> Result<TrackerModule, Error>
     {
         Self::validate(&buf)?;
 
+        let version = read_u32_le(&buf, 0x0004);
         let export_offset: usize = read_u32_le(&buf, 0x0018) as usize;
         let mut offset: usize = export_offset;
+        // dbg!(export_offset);
 
         // The first item of the name table could be used to identify what module it contains?
+        // Export table
         offset += read_compact_index(&buf, offset).1; // class index
         offset += read_compact_index(&buf, offset).1; // super index
-        offset += 4;
+        offset += 4; // group
         offset += read_compact_index(&buf, offset).1; // obj name
         offset += 4; // obj flags
         
-        dbg!(read_compact_index(&buf, offset).0);
-        offset += read_compact_index(&buf, offset).1;   // serial size skip
+        let (serial_size, inc) = read_compact_index(&buf, offset);
+
+        if serial_size == 0 {
+            return Err(XmoditsError::invalid("UMX doesn't contain anything"));
+        }
+
+        // dbg!(serial_size);
+        offset += inc;   // serial size skip
 
 
-        let (serial_offset, inc) = read_compact_index(&buf, offset);
-        dbg!(serial_offset);
-        offset += inc;
-        offset += 2;
-        dbg!(offset);
-
-        // if version > 61 {
-        //     offset += 2;
-        // }
-
-        // identify header to verify it is a um* package
+        let (serial_offset, _) = read_compact_index(&buf, offset);
+        // dbg!(serial_offset);
+        // dbg!(inc);
         
-        // if possible determine format from header info
+        // jump to object
+        offset = serial_offset as usize;
+        let (name_index, inc) = read_compact_index(&buf, offset);
 
-        // otherwise, use tests such as using magic numbers.
+        offset += inc;
+        // offset += 2;
+        // dbg!(offset);
+
+        // a = buf.spl
+        // buf.dra
+        if version > 61 {
+            offset += 4;
+        }
+
+        let (obj_size, inc) = read_compact_index(&buf, offset);
+        offset += inc;
+        // dbg!(obj_size); 
+        // dbg!(offset);
+
+        
 
         // figure out what kind of module it contains
         // strip umx header from buffer
+
+        offset += 4; // TODO: Find out why we add 4 to offset
+
+        _ = buf.drain(..offset);
 
         // Technically validates the buffer twice... But who cares
         for (validator, loader) in VALIDATE_LOADER.iter() {
@@ -174,6 +196,7 @@ fn read_compact_index(buf: &[u8], offset: usize) -> (i32, usize) {
     for i in 0..5 {
         let x = buf[offset] as i32;
         offset += 1;
+        size += 1;
 
         if i == 0 {
             if (x & 0x80) > 0 { signed = true; }
@@ -191,7 +214,7 @@ fn read_compact_index(buf: &[u8], offset: usize) -> (i32, usize) {
             
             if x & 0x80 == 0 { break; }
         }
-        size += 1
+        
     }
 
     if signed { output *= -1; }
@@ -203,8 +226,9 @@ fn read_compact_index(buf: &[u8], offset: usize) -> (i32, usize) {
 fn test1() {
     // let b = read_compact_index(&[0x74,0x07], 0);
     // dbg!(b.0);
-    // let a = UMXFile::load_module("./test/umx/UNATCO_Music.umx");
+    // let a: _ = UMXFile::load_module("./test/umx/UNATCO_Music.umx");
     let a: _ = UMXFile::load_module("./test/umx/MJ12_Music.umx");
+    dbg!(a.unwrap().module_name());
 }
 
 // Test read compact index works
@@ -221,6 +245,8 @@ fn test_compact_index() {
     ]; 
 
     for (number, compact) in tests {
-        assert_eq!(read_compact_index(compact, 0).0, number);
+        let a = read_compact_index(compact, 0);
+        dbg!(a.1);
+        assert_eq!(a.0, number);
     }
 }

@@ -34,6 +34,10 @@ panic = 'abort'
 [profile.test]
 opt-level = 1
 
+# [[bin]]
+# name = "xmodits_win"
+# path = "src/win/app_win.rs"
+
 [package.metadata.winres]
 FileDescription = "Rip samples from tracker music with speed!"
 Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
