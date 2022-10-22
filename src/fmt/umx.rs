@@ -1,22 +1,10 @@
 use crate::XmoditsError;
 use crate::tracker_formats::*;
-use crate::{xm::XMFile, utils::prelude::*};
-// https://github.com/Konstanty/libmodplug/blob/d1b97ed0020bc620a059d3675d1854b40bd2608d/src/load_umx.cpp#L196
+use crate::utils::prelude::*;
+use once_cell::sync::Lazy;
 
 const UPKG_MAGIC: u32 = 0x9E2A83C1;
 const UPKG_HEADER_SIZE: usize = 64;
-
-struct DontUseMe;
-
-/// "Abandon all hope ye who try to parse this file format." - Tim Sweeney, Unreal Packages
-pub struct UMXFile(DontUseMe);
-
-use crate::interface::{TrackerDumper, TrackerModule};
-
-type ModValidatorFunc = fn(&[u8]) -> Result<(), XmoditsError>;
-type ModLoaderFunc = fn(Vec<u8>) -> Result<TrackerModule, XmoditsError>;
-
-use once_cell::sync::Lazy;
 
 static VALIDATE_LOADER: Lazy<[(ModValidatorFunc, ModLoaderFunc);3]> = Lazy::new(|| {
     [
@@ -26,6 +14,16 @@ static VALIDATE_LOADER: Lazy<[(ModValidatorFunc, ModLoaderFunc);3]> = Lazy::new(
         // (|p| MODFile::validate(&p), |p| MODFile::load_from_buf(p))
     ]
 });
+
+type ModValidatorFunc = fn(&[u8]) -> Result<(), XmoditsError>;
+type ModLoaderFunc = fn(Vec<u8>) -> Result<TrackerModule, XmoditsError>;
+
+struct DontUseMe;
+
+/// "Abandon all hope ye who try to parse this file format." - Tim Sweeney, Unreal Packages
+pub struct UMXFile(DontUseMe);
+
+use crate::interface::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for UMXFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
@@ -97,7 +95,6 @@ impl TrackerDumper for UMXFile {
 
         // jump to object
         offset = serial_offset;
-
         offset += read_compact_index(&buf, offset).1; // skip name index
 
         if version > 61 { offset += 4; }
@@ -158,9 +155,8 @@ fn read_compact_index(buf: &[u8], offset: usize) -> (i32, usize) {
 
             output |= x & 0x3F;
 
-            if x & 0x40 == 0 {
-                break
-            }
+            if x & 0x40 == 0 { break; }
+            
         } else if i == 4 {
             output |= (x & 0x1F) << (6 + (3 * 7));
 
