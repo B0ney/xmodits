@@ -49,11 +49,6 @@ impl TrackerDumper for UMXFile {
 
         let name_count: usize   = read_u32_le(buf, 0x000C) as usize;
         let name_offset: usize  = read_u32_le(buf, 0x0010) as usize;
-        // let import_count: usize  = read_u32_le(buf, 0x001C) as usize;
-        // let import_offset: usize  = read_u32_le(buf, 0x0020) as usize;
-
-        // dbg!(import_count);
-        // dbg!(import_offset);
 
         let mut name_table: Vec<String> = Vec::with_capacity(name_count);
 
@@ -62,9 +57,6 @@ impl TrackerDumper for UMXFile {
         for _ in 0..name_count {
             let length: usize   = buf[offset] as usize;
             let name: String    = read_string(buf, offset, length);
-            // dbg!(&name);
-            // dbg!(&length);
-
             name_table.push(name);
             offset += length + 1; // Add 1 to skip \00
             offset += 4;
@@ -74,22 +66,6 @@ impl TrackerDumper for UMXFile {
             return Err(XmoditsError::invalid("Unreal Package does not contain any music"));
         }
 
-        // let import_count = read_u32_le(buf, 0x001C);
-        // let import_offset = read_u32_le(buf, 0x0020) & 0x00ff;
-
-        // dbg!(version);
-        // dbg!(name_count);
-        // dbg!(name_offset);
-        // dbg!(export_count);
-        // dbg!(import_offset);
-
-        // obtain names
-    
-        // let chunk_size = read_compact_index(&buf, offset).1;
-
-        // dbg!(chunk_size);
-        // dbg!(offset);
-        // let mut offset: usize = 0;
         Ok(())
     }
 
@@ -100,7 +76,6 @@ impl TrackerDumper for UMXFile {
         let version = read_u32_le(&buf, 0x0004);
         let export_offset: usize = read_u32_le(&buf, 0x0018) as usize;
         let mut offset: usize = export_offset;
-        // dbg!(export_offset);
 
         // The first item of the name table could be used to identify what module it contains?
         // Export table
@@ -116,39 +91,19 @@ impl TrackerDumper for UMXFile {
             return Err(XmoditsError::invalid("UMX doesn't contain anything"));
         }
 
-        // dbg!(serial_size);
         offset += inc;   // serial size skip
 
+        let serial_offset = read_compact_index(&buf, offset).0 as usize;
 
-        let (serial_offset, _) = read_compact_index(&buf, offset);
-        // dbg!(serial_offset);
-        // dbg!(inc);
-        
         // jump to object
-        offset = serial_offset as usize;
-        let (name_index, inc) = read_compact_index(&buf, offset);
+        offset = serial_offset;
 
-        offset += inc;
-        // offset += 2;
-        // dbg!(offset);
+        offset += read_compact_index(&buf, offset).1; // skip name index
 
-        // a = buf.spl
-        // buf.dra
-        if version > 61 {
-            offset += 4;
-        }
+        if version > 61 { offset += 4; }
 
-        let (obj_size, inc) = read_compact_index(&buf, offset);
-        offset += inc;
-        // dbg!(obj_size); 
-        // dbg!(offset);
-
-        
-
-        // figure out what kind of module it contains
-        // strip umx header from buffer
-
-        offset += 4; // TODO: Find out why we add 4 to offset
+        offset += read_compact_index(&buf, offset).1; // skip obj_size field
+        offset += read_compact_index(&buf, offset).1; // skip size of object data
 
         _ = buf.drain(..offset);
 
@@ -214,7 +169,6 @@ fn read_compact_index(buf: &[u8], offset: usize) -> (i32, usize) {
             
             if x & 0x80 == 0 { break; }
         }
-        
     }
 
     if signed { output *= -1; }
