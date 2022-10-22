@@ -6,8 +6,11 @@
 // use rand::Rng;
 // use xmodits_lib::Error;
 
-// use crate::app;
-// use crate::dialoge;
+// mod dialoge;
+// mod xmodits;
+// use xmodits::app;
+
+// // use dialoge;
 
 // enum Msg {
 //     Success,
@@ -137,5 +140,5 @@
 // }
 
 // fn main() {
-
+//     println!("hi");
 // }

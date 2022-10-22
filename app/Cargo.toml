@@ -7,9 +7,8 @@ build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-xmodits-lib = { path = "../", features=["thread"] }
-clap = { version ="4.0.10", features = ["derive", "cargo", "wrap_help"]}
-
+xmodits-lib = { path = "../" } #, features=["thread"]
+clap = { version ="4.0.10", features = ["derive", "cargo", "wrap_help"] }
 rayon = "1.5.3"
 
 [target.'cfg(windows)'.dependencies]
@@ -34,6 +33,10 @@ panic = 'abort'
 
 [profile.test]
 opt-level = 1
+
+# [[bin]]
+# name = "xmodits_win"
+# path = "src/win/app_win.rs"
 
 [package.metadata.winres]
 FileDescription = "Rip samples from tracker music with speed!"
