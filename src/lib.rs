@@ -54,7 +54,7 @@ where
             Err(original_err) => {
                 for (_, backup_loader) in LOADERS
                     .entries()
-                    .filter(|k| k.0 != &ext.as_str() && !["mod", "umx"].contains(k.0))
+                    .filter(|k| k.0 != &ext.as_str() && k.0 != &"mod")
                 {
                     if let Ok(tracker) = backup_loader(path) {
                         return Ok(tracker);
