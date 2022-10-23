@@ -6,17 +6,18 @@ use once_cell::sync::Lazy;
 const UPKG_MAGIC: u32 = 0x9E2A83C1;
 const UPKG_HEADER_SIZE: usize = 64;
 
+type ModValidatorFunc = fn(&[u8]) -> Result<(), XmoditsError>;
+type ModLoaderFunc = fn(Vec<u8>) -> Result<TrackerModule, XmoditsError>;
+
 static VALIDATE_LOADER: Lazy<[(ModValidatorFunc, ModLoaderFunc); 4]> = Lazy::new(|| {
     [
         (|p| ITFile::validate(p), ITFile::load_from_buf),
         (|p| XMFile::validate(p), XMFile::load_from_buf),
         (|p| S3MFile::validate(p), S3MFile::load_from_buf),
-        (|p| MODFile::validate(p), MODFile::load_from_buf)
+        // Make sure MODFile is placed last since it has the least amount of checks.
+        (|p| MODFile::validate(p), MODFile::load_from_buf) 
     ]
 });
-
-type ModValidatorFunc = fn(&[u8]) -> Result<(), XmoditsError>;
-type ModLoaderFunc = fn(Vec<u8>) -> Result<TrackerModule, XmoditsError>;
 
 struct DontUseMe;
 
@@ -58,7 +59,8 @@ impl TrackerDumper for UMXFile {
             let mut name = String::new();
 
             if version < 64 {
-                while buf[offset] as char != '\0' {
+                // versions below 64 rely on null terminated strings
+                while buf[offset] != 0 { 
                     name.push(buf[offset] as char);
                     offset += 1;
                 }
@@ -69,7 +71,7 @@ impl TrackerDumper for UMXFile {
             }
             name_table.push(name);
 
-            offset += 1; // Add 1 to skip \00
+            offset += 1; // Add 1 to skip '\0'
             offset += 4;
         }
 
@@ -120,6 +122,9 @@ impl TrackerDumper for UMXFile {
 
         _ = buf.drain(..offset);
 
+        // The first item in the name table can be used as a "hint", but this is unreliable.
+        // This approach iterates through an array of tuples containing two functions:
+        // one validates the buffer, the other loads it.
         // Technically validates the buffer twice... But who cares
         for (validator, loader) in VALIDATE_LOADER.iter() {
             if validator(&buf).is_ok() {
