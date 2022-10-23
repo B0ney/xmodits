@@ -1,12 +1,11 @@
 /*  XM samples are encoded in delta values
-    https://github.com/milkytracker/MilkyTracker/blob/master/resources/reference/xm-form.txt#L303= 
+    https://github.com/milkytracker/MilkyTracker/blob/master/resources/reference/xm-form.txt#L303=
 */
-use byteorder::{ByteOrder, LE};
 use crate::{word, TrackerSample};
-
+use byteorder::{ByteOrder, LE};
 
 #[inline]
-pub fn delta_decode_u8_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) -> &'a [u8] { 
+pub fn delta_decode_u8_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) -> &'a [u8] {
     let is_deltad = &mut smp.is_readable;
 
     if *is_deltad {
@@ -18,9 +17,9 @@ pub fn delta_decode_u8_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) -
 }
 
 #[inline]
-pub fn delta_decode_u16_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) -> &'a [u8] { 
+pub fn delta_decode_u16_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) -> &'a [u8] {
     let is_deltad = &mut smp.is_readable;
-    
+
     if *is_deltad {
         &buf[smp.ptr_range()]
     } else {
@@ -28,7 +27,6 @@ pub fn delta_decode_u16_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) 
         delta_decode_u16(&mut buf[smp.ptr_range()])
     }
 }
-
 
 #[inline]
 pub fn delta_decode_u8(buf: &mut [u8]) -> &[u8] {

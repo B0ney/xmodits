@@ -21,6 +21,8 @@ macro_rules! long {
 
 #[macro_export]
 /// slice!(offset, length)
-macro_rules! slice  {
-    ($i:expr, $e:expr) => {$i..$i + $e};
+macro_rules! slice {
+    ($i:expr, $e:expr) => {
+        $i..$i + $e
+    };
 }

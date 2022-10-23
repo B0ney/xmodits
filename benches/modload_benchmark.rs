@@ -2,12 +2,7 @@ mod loaders;
 use loaders::{load_module, load_module_test, load_module_test_hash};
 
 // cargo bench
-use criterion::{
-    black_box,
-    criterion_group,
-    criterion_main,
-    Criterion
-};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 // echo "const PATHS: &[&str] = &[" >> ./benches/list.txt; for i in $(ls tests/mods/*/*); do echo "   \"$i\"," >> list.txt; done; echo  "];" >> ./benches/list.txt;
 const PATHS: &[&str] = &[
     "tests/mods/it/17_samples.it",
@@ -74,9 +69,9 @@ fn benchmark_modloader(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("compare");
 
-    group.bench_function("Match + lazy loaders",|f| f.iter(|| test_load_mod(ext)));
-    group.bench_function("Phf",|f| f.iter(|| test_load_mod_phf(ext)));
-    group.bench_function("unordered Hash",|f| f.iter(|| test_load_mod_hash(ext)));
+    group.bench_function("Match + lazy loaders", |f| f.iter(|| test_load_mod(ext)));
+    group.bench_function("Phf", |f| f.iter(|| test_load_mod_phf(ext)));
+    group.bench_function("unordered Hash", |f| f.iter(|| test_load_mod_hash(ext)));
 
     group.finish();
 }

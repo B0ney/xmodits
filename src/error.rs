@@ -12,7 +12,7 @@ pub enum XmoditsError {
     InvalidModule(String),
 
     #[error("{0}")]
-    IoError(#[from]std::io::Error),
+    IoError(#[from] std::io::Error),
 
     #[error("{0}")]
     FileError(String),
@@ -24,7 +24,7 @@ pub enum XmoditsError {
     GenericError(String),
 
     #[error("Multiple Errors")]
-    MultipleErrors(Vec<XmoditsError>)
+    MultipleErrors(Vec<XmoditsError>),
 }
 
 impl XmoditsError {

@@ -1,13 +1,14 @@
 use crate::{
-    utils::{prelude::*, signed::make_signed_u16_checked}, dword,
-    TrackerDumper, TrackerModule, TrackerSample, XmoditsError
+    dword,
+    utils::{prelude::*, signed::make_signed_u16_checked},
+    TrackerDumper, TrackerModule, TrackerSample, XmoditsError,
 };
 
-const S3M_HEADER_ID: &[u8]      = b"SCRM";
-const S3M_MAGIC_NUMBER: u8      = 0x10;
-const SMP_MASK_STEREO: u8       = 0b0000_0010;
-const SMP_MASK_BITS: u8         = 0b0000_0100;
-const INS_HEAD_LENGTH: usize    = 13;
+const S3M_HEADER_ID: &[u8] = b"SCRM";
+const S3M_MAGIC_NUMBER: u8 = 0x10;
+const SMP_MASK_STEREO: u8 = 0b0000_0010;
+const SMP_MASK_BITS: u8 = 0b0000_0100;
+const INS_HEAD_LENGTH: usize = 13;
 
 type S3MSample = TrackerSample;
 
@@ -23,19 +24,20 @@ impl TrackerDumper for S3MFile {
             || buf[0x001d] != S3M_MAGIC_NUMBER
             || &buf[dword!(0x002c)] != S3M_HEADER_ID
         {
-            return Err(XmoditsError::invalid("File is not a valid Scream Tracker Module"));
+            return Err(XmoditsError::invalid(
+                "File is not a valid Scream Tracker Module",
+            ));
         }
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> 
-    {
+    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> {
         Self::validate(&buf)?;
 
-        let title: String       = read_string(&buf, 0x0000, 28);
-        let ord_count: u16      = read_u16_le(&buf, 0x0020);
-        let ins_count: u16      = read_u16_le(&buf, 0x0022);
-        let ins_ptr_list: u16   = 0x0060 + ord_count;
+        let title: String = read_string(&buf, 0x0000, 28);
+        let ord_count: u16 = read_u16_le(&buf, 0x0020);
+        let ins_count: u16 = read_u16_le(&buf, 0x0022);
+        let ins_ptr_list: u16 = 0x0060 + ord_count;
 
         let mut ins_ptrs: Vec<usize> = Vec::with_capacity(ins_count as usize);
 
@@ -44,11 +46,11 @@ impl TrackerDumper for S3MFile {
             // convert parameter to byte-level offset by << 4
             // cast to usize to avoid potential overflow
             ins_ptrs.push((read_u16_le(&buf, index as usize) as usize) << 4)
-        };
+        }
 
         let smp_data: Vec<S3MSample> = build_samples(&buf, ins_ptrs);
 
-        Ok(Box::new(Self{
+        Ok(Box::new(Self {
             title,
             smp_data,
             buf,
@@ -60,14 +62,14 @@ impl TrackerDumper for S3MFile {
 
         Ok(match smp.bits {
             8 => &self.buf[smp.ptr_range()],
-            _ => make_signed_u16_checked(&mut self.buf, smp)
+            _ => make_signed_u16_checked(&mut self.buf, smp),
         })
     }
 
     fn number_of_samples(&self) -> usize {
         self.smp_data.len()
     }
-    
+
     fn module_name(&self) -> &str {
         &self.title
     }
@@ -85,24 +87,34 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
     let mut samples: Vec<S3MSample> = Vec::with_capacity(ins_ptr.len());
 
     for (index, i) in ins_ptr.iter().enumerate() {
-        if buf[*i] != 0x1 { continue; }             // if it's not a PCM instrument, skip
-        let offset: usize       = *i + INS_HEAD_LENGTH;      // skip instrument header (13 bytes)
-        let len: u32            = read_u32_le(buf, 0x0003 + offset) & 0xffff;
+        if buf[*i] != 0x1 {
+            continue;
+        } // if it's not a PCM instrument, skip
+        let offset: usize = *i + INS_HEAD_LENGTH; // skip instrument header (13 bytes)
+        let len: u32 = read_u32_le(buf, 0x0003 + offset) & 0xffff;
 
-        if len == 0 { continue; }
+        if len == 0 {
+            continue;
+        }
 
-        let hi_ptr: u8          = buf[offset];
-        let lo_ptr: u16         = read_u16_le(buf, 0x0001 + offset);
-        let ptr: u32            = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
-        let flags: u8           = buf[0x0012 + offset];
-        let is_stereo: bool     = (flags & SMP_MASK_STEREO) >> 1 == 1;
-        let bits: u8            = if (flags & SMP_MASK_BITS) >> 2 == 1 { 16 } else { 8 };
-        let len: u32            = len * (is_stereo as u32 + 1) * (bits / 8) as u32;
+        let hi_ptr: u8 = buf[offset];
+        let lo_ptr: u16 = read_u16_le(buf, 0x0001 + offset);
+        let ptr: u32 = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
+        let flags: u8 = buf[0x0012 + offset];
+        let is_stereo: bool = (flags & SMP_MASK_STEREO) >> 1 == 1;
+        let bits: u8 = if (flags & SMP_MASK_BITS) >> 2 == 1 {
+            16
+        } else {
+            8
+        };
+        let len: u32 = len * (is_stereo as u32 + 1) * (bits / 8) as u32;
 
-        if (ptr + len) > buf.len() as u32 { break; } // break out of loop if we get a funky offset
+        if (ptr + len) > buf.len() as u32 {
+            break;
+        } // break out of loop if we get a funky offset
 
-        let name: String        = read_string(buf, 0x0023 + offset, 28);
-        let rate: u32           = read_u32_le(buf, 0x0013 + offset);
+        let name: String = read_string(buf, 0x0023 + offset, 28);
+        let rate: u32 = read_u32_le(buf, 0x0013 + offset);
 
         samples.push(S3MSample {
             filename: name.clone(),

@@ -7,8 +7,8 @@ pub fn make_signed_u8_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) ->
     if *is_signed {
         &buf[smp.ptr_range()]
     } else {
-       *is_signed = true;
-       make_signed_u8(&mut buf[smp.ptr_range()])
+        *is_signed = true;
+        make_signed_u8(&mut buf[smp.ptr_range()])
     }
 }
 
@@ -19,8 +19,8 @@ pub fn make_signed_u16_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) -
     if *is_signed {
         &buf[smp.ptr_range()]
     } else {
-       *is_signed = true;
-       make_signed_u16(&mut buf[smp.ptr_range()])
+        *is_signed = true;
+        make_signed_u16(&mut buf[smp.ptr_range()])
     }
 }
 
@@ -35,8 +35,8 @@ pub fn make_signed_u8(buf: &mut [u8]) -> &[u8] {
 
 #[inline]
 pub fn make_signed_u16(buf: &mut [u8]) -> &[u8] {
-    use byteorder::{LE, ByteOrder, BE};
     use crate::word;
+    use byteorder::{ByteOrder, BE, LE};
 
     for i in 0..(buf.len() / 2) {
         let idx: usize = i * 2;

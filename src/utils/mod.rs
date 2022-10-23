@@ -3,37 +3,37 @@
 pub mod macros;
 pub mod signed;
 // pub mod array;
-pub mod wav;
 pub mod ascii;
 pub mod name;
 pub mod reader;
+pub mod wav;
 
 pub type Error = crate::XmoditsError;
 
 /*
 / Import useful helper functions & macros
 / and common imports
-/ 
+/
 / **Common Imports:**
-/ 
+/
 / ```rust
 / std::fs::{self, File};
 / std::io::Write;
 / std::path::Path;
 / std::path::PathBuf;
 / ```
-/ 
+/
 / **Helper funcion modules**:
-/ 
+/
 / ```rust
 / crate::utils::Error;
 / crate::utils::wav;
 / crate::utils::signed::SignedByte;
 / crate::utils::array::load_to_array;
 / ```
-/ 
+/
 / **Macros:**
-/ 
+/
 / ```rust
 / crate::offset_u16;
 / crate::offset_u32;
@@ -51,13 +51,13 @@ pub mod prelude {
     // Import helper functions
     pub use super::wav::Wav;
 
-    pub use super::signed::make_signed_u8;
-    pub use super::signed::make_signed_u16;
     pub use super::name::name_sample;
     pub use super::reader::read_slice;
     pub use super::reader::read_string;
     pub use super::reader::read_u16_le;
     pub use super::reader::read_u32_le;
+    pub use super::signed::make_signed_u16;
+    pub use super::signed::make_signed_u8;
     pub use super::Error;
 
     // Import macros
@@ -65,4 +65,3 @@ pub mod prelude {
     // pub use crate::dword;
     pub use crate::slice;
 }
-
