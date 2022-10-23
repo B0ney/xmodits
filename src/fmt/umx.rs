@@ -6,12 +6,12 @@ use once_cell::sync::Lazy;
 const UPKG_MAGIC: u32 = 0x9E2A83C1;
 const UPKG_HEADER_SIZE: usize = 64;
 
-static VALIDATE_LOADER: Lazy<[(ModValidatorFunc, ModLoaderFunc); 3]> = Lazy::new(|| {
+static VALIDATE_LOADER: Lazy<[(ModValidatorFunc, ModLoaderFunc); 4]> = Lazy::new(|| {
     [
         (|p| ITFile::validate(p), ITFile::load_from_buf),
         (|p| XMFile::validate(p), XMFile::load_from_buf),
         (|p| S3MFile::validate(p), S3MFile::load_from_buf),
-        // (|p| MODFile::validate(&p), |p| MODFile::load_from_buf(p))
+        (|p| MODFile::validate(p), MODFile::load_from_buf)
     ]
 });
 
@@ -38,14 +38,14 @@ impl TrackerDumper for UMXFile {
                 "UMX versions below 61 are unsupported.",
             ));
         }
-
-        let export_count = read_u32_le(buf, 0x0014);
-
-        if export_count > 1 {
-            return Err(XmoditsError::unsupported(
-                "Unreal package contains more than 1 entry.",
-            ));
-        }
+        // // Is this check even useful?
+        // let export_count = read_u32_le(buf, 0x0014);
+        // 
+        // if export_count > 1 {
+        //     return Err(XmoditsError::unsupported(
+        //         "Unreal package contains more than 1 entry.",
+        //     ));
+        // }
 
         let name_count: usize = read_u32_le(buf, 0x000C) as usize;
         let name_offset: usize = read_u32_le(buf, 0x0010) as usize;
@@ -53,12 +53,23 @@ impl TrackerDumper for UMXFile {
         let mut name_table: Vec<String> = Vec::with_capacity(name_count);
 
         let mut offset = name_offset;
-
+        
         for _ in 0..name_count {
-            let length: usize = buf[offset] as usize;
-            let name: String = read_string(buf, offset, length);
+            let mut name = String::new();
+
+            if version < 64 {
+                while buf[offset] as char != '\0' {
+                    name.push(buf[offset] as char);
+                    offset += 1;
+                }
+            } else {
+                let length: usize = buf[offset] as usize;
+                name = read_string(buf, offset, length);              
+                offset += length; 
+            }
             name_table.push(name);
-            offset += length + 1; // Add 1 to skip \00
+
+            offset += 1; // Add 1 to skip \00
             offset += 4;
         }
 
@@ -191,8 +202,10 @@ fn test1() {
     // let b = read_compact_index(&[0x74,0x07], 0);
     // dbg!(b.0);
     // let a: _ = UMXFile::load_module("./test/umx/UNATCO_Music.umx");
-    let a: _ = UMXFile::load_module("./test/umx/MJ12_Music.umx");
-    dbg!(a.unwrap().module_name());
+    // let a: _ = UMXFile::load_module("./test/umx/desu/MJ12_Music.umx");
+    let a: _ = UMXFile::load_module("./test/umx/ut_prob/Mech8.umx");
+
+    // dbg!(a.unwrap().module_name());
 }
 
 // Test read compact index works
