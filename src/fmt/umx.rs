@@ -117,9 +117,11 @@ impl TrackerDumper for UMXFile {
         }
 
         offset += read_compact_index(&buf, offset).1; // skip obj_size field
-        offset += read_compact_index(&buf, offset).1; // skip size of object data
+        let (size, inc) = read_compact_index(&buf, offset); 
+        offset += inc; // skip size of object data
 
-        _ = buf.drain(..offset);
+        _ = buf.drain(..offset);        // Strip UMX header
+        _ = buf.drain(size as usize..); // Strip UMX tables
 
         // The first item in the name table can be used as a "hint", but this is unreliable.
         // This approach iterates through an array of tuples containing two functions:
@@ -209,7 +211,7 @@ fn test1() {
     // let a: _ = UMXFile::load_module("./test/umx/desu/MJ12_Music.umx");
     let a: _ = UMXFile::load_module("./test/umx/ut_prob/Mech8.umx");
 
-    // dbg!(a.unwrap().module_name());
+    dbg!(a.unwrap().module_name());
 }
 
 // Test read compact index works
