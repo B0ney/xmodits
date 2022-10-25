@@ -105,3 +105,11 @@ The binary size should be acceptable (<1MB)
 ```
 cargo build -p xmodits --release
 ```
+
+windows
+
+```
+
+cargo build --release -p xmodits --bin xmodits
+
+```

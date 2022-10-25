@@ -16,7 +16,6 @@ pub struct ITFile {
     title: String,
     buf: Vec<u8>,
     pcm_cache: Vec<Vec<u8>>,
-    version: u16,
     compat_ver: u16,
     smp_num: u16,
     smp_data: Vec<ITSample>,
@@ -50,7 +49,6 @@ impl TrackerDumper for ITFile {
         let ord_num: u16 = read_u16_le(&buf, 0x0020);
         let ins_num: u16 = read_u16_le(&buf, 0x0022);
         let smp_num: u16 = read_u16_le(&buf, 0x0024);
-        let version: u16 = read_u16_le(&buf, 0x0028);
         let compat_ver: u16 = read_u16_le(&buf, 0x002A);
         let smp_ptr_list: u16 = 0x00c0 + ord_num + (ins_num * 4);
         let mut smp_ptrs: Vec<u32> = Vec::with_capacity(smp_num as usize);
@@ -67,7 +65,6 @@ impl TrackerDumper for ITFile {
             title,
             smp_num,
             smp_data,
-            version,
             compat_ver,
             buf,
             pcm_cache: vec![Vec::new(); smp_num as usize],

@@ -11,7 +11,7 @@ xmodits-lib = { path = "../" } #, features=["thread"]
 clap = { version ="4.0.10", features = ["derive", "cargo", "wrap_help"] }
 rayon = "1.5.3"
 
-[target.'cfg(windows)'.dependencies]
+# [target.'cfg(windows)'.dependencies]
 native-dialog = {version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
 crossbeam-channel = "0.5.5"
 rand = "0.8.5"
@@ -23,6 +23,7 @@ winres = "0.1.12"
 ascii_art = []
 advanced = []
 async = []
+win_cli = []
 
 [profile.release]
 strip = true
@@ -34,9 +35,14 @@ panic = 'abort'
 [profile.test]
 opt-level = 1
 
-# [[bin]]
-# name = "xmodits_win"
-# path = "src/win/app_win.rs"
+# For Windows platforms
+[[bin]]
+name = "xmodits"
+path = "src/app_win/win.rs"
+
+[[bin]]
+name = "xmodits-cli"
+path = "src/main.rs"
 
 [package.metadata.winres]
 FileDescription = "Rip samples from tracker music with speed!"

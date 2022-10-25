@@ -91,7 +91,6 @@ impl TrackerDumper for UMXFile {
         let export_offset: usize = read_u32_le(&buf, 0x0018) as usize;
         let mut offset: usize = export_offset;
 
-        // The first item of the name table could be used to identify what module it contains?
         // Export table
         offset += read_compact_index(&buf, offset).1; // class index
         offset += read_compact_index(&buf, offset).1; // super index
@@ -125,7 +124,7 @@ impl TrackerDumper for UMXFile {
         // The first item in the name table can be used as a "hint", but this is unreliable.
         // This approach iterates through an array of tuples containing two functions:
         // one validates the buffer, the other loads it.
-        // Technically validates the buffer twice... But who cares
+        // Technically validates the buffer twice... but who cares
         for (validator, loader) in VALIDATE_LOADER.iter() {
             if validator(&buf).is_ok() {
                 return loader(buf);

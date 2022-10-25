@@ -1,5 +1,5 @@
-use super::app;
-use super::Cli;
+use crate::{app, Cli};
+
 use std::path::PathBuf;
 
 use xmodits_lib::{SampleNamer, SampleNamerFunc};

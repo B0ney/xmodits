@@ -50,6 +50,8 @@ impl TrackerSample {
     }
 }
 
+const MAX_FILESIZE: u64 = 1024 * 1024 * 64;
+
 pub trait TrackerDumper {
     /// Load tracker module from memory
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
@@ -130,7 +132,7 @@ pub trait TrackerDumper {
 
             For large scale dumping in parallel, using Seek will be considered.
         */
-        if std::fs::metadata(&path)?.len() > 1024 * 1024 * 64 {
+        if std::fs::metadata(&path)?.len() > MAX_FILESIZE {
             return Err(XmoditsError::file(
                 "File provided is larger than 64MB. No tracker module should ever be close to that",
             ));

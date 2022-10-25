@@ -1,64 +1,7 @@
-// mod win;
-mod api;
-mod app;
-
-use clap::Parser;
-use std::env;
 use std::path::PathBuf;
+use clap::Parser;
 
-#[derive(Parser)]
-#[command(author, version, about)]
-#[command(
-    long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M & MOD formats.\nhttps://github.com/B0ney/xmodits - GPLv3"
-)]
-pub struct Cli {
-    #[arg(
-        help = "Modules to rip, the last element can be a folder to place your rips. E.g \"./music.s3m ./music.it ./dumps/\""
-    )]
-    #[arg(required = true)]
-    trackers: Vec<PathBuf>,
-
-    #[arg(help = "Only name samples with an index. E.g. 01.wav")]
-    #[arg(
-        short = 'i',
-        long,
-        conflicts_with = "upper_case",
-        conflicts_with = "lower_case"
-    )]
-    index_only: bool,
-
-    #[arg(help = "Preserve sample indexing")]
-    #[arg(short = 'r', long)]
-    index_raw: bool,
-
-    #[arg(help = "Pad index with preceding 0s. e.g. 001, or 0001")]
-    #[arg(default_value_t = 2, short='p', long="index-padding", value_parser=0..=5)]
-    index_padding: i64,
-
-    // #[arg(help="Include embedded text from tracker (if it exists)")]
-    // #[arg(short='c', long)]
-    // with_comment: bool,
-    #[arg(help = "Don't create a new folder for samples. This can overwrite data, BE CAREFUL!")]
-    #[arg(short, long)]
-    no_folder: bool,
-
-    #[arg(help = "Name samples in UPPER CASE")]
-    #[arg(short, long = "upper", conflicts_with = "lower_case")]
-    upper_case: bool,
-
-    #[arg(help = "Name samples in lower case")]
-    #[arg(short, long = "lower", conflicts_with = "upper_case")]
-    lower_case: bool,
-
-    #[arg(help = "Print information about tracker")]
-    #[arg(long)]
-    info: bool,
-
-    #[cfg(feature = "advanced")]
-    #[arg(help = "Rip samples in parallel")]
-    #[arg(short = 'k', long)]
-    parallel: bool,
-}
+use xmodits::{Cli, api};
 
 fn main() {
     let mut cli = Cli::parse();
@@ -79,17 +22,16 @@ fn main() {
 
             folder
         }
-        _ => env::current_dir().expect("I need a current working directory. (>_<)"),
+        _ => std::env::current_dir().expect("I need a current working directory. (>_<)"),
     };
+    if cli.info {
+        return api::info(cli);
+    }
 
     #[cfg(feature = "advanced")]
     if cli.parallel {
         return api::rip_parallel(cli, destination);
-    }
-
-    if cli.info {
-        return api::info(cli);
-    }
+    }   
 
     api::rip(cli, destination);
 
