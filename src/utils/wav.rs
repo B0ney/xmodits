@@ -1,21 +1,33 @@
 use crate::{dword, word, Error};
-use byteorder::{ByteOrder, BE, LE};
+// use byteorder::{ByteOrder, BE, LE};
 use std::path::Path;
 use std::{fs::File, io::Write};
 
-const RIFF: u32 = 0x5249_4646; // RIFF
-const WAVE: u32 = 0x5741_5645; // WAVE
-const FMT_: u32 = 0x666D_7420; // "riff "
-const DATA: u32 = 0x6461_7461; // data
-const HEADER_SIZE: usize = 44;
+const RIFF: [u8; 4] = [0x52, 0x49, 0x46, 0x46]; // RIFF
+const WAVE: [u8; 4] = [0x57, 0x41, 0x56, 0x45]; // WAVE
+const FMT_: [u8; 4] = [0x66, 0x6D, 0x74, 0x20]; // "riff "
+const DATA: [u8; 4] = [0x64, 0x61, 0x74, 0x61]; // data
+const HEADER_SIZE: u32 = 44;
 
 pub struct Wav {
     smp_rate: u32, // sample rate
     smp_bits: u8,  // bits per sample
     pcm_len: u32,  // length of byte array
     stereo: bool,  // is pcm stereo)
-    pub header_data: [u8; HEADER_SIZE],
     is_interleaved: bool,
+    header: WavHeader,
+}
+
+pub struct WavHeader {
+    file_size: [u8;4],
+    wav_scs: [u8;4],
+    wav_type: [u8;2],
+    channels: [u8;2],
+    sample_frequency: [u8;4],
+    bytes_sec: [u8;4],
+    block_align: [u8;2],
+    bits_sample: [u8;2],
+    size_of_chunk: [u8;4],
 }
 
 impl Wav {
@@ -26,38 +38,25 @@ impl Wav {
         stereo: bool,  // is pcm stereo)#
         is_interleaved: bool,
     ) -> Self {
-        let mut header: [u8; HEADER_SIZE] = [0u8; HEADER_SIZE];
-        let wav_scs: u32 = 16; // sec chunk size
-        let wav_type: u16 = 1; // 1 = pcm
-        let channels: u16 = stereo as u16 + 1; // 0x01 = mono, 0x02 = stereo
-        let sample_frequency:   u32 = smp_rate /*/ channels as u32*/;
-        let block_align: u16 = channels * (smp_bits / 8) as u16;
-        let bytes_sec: u32 = smp_rate * block_align as u32;
-        let bits_sample: u16 = smp_bits as u16;
-        let file_size: u32 = HEADER_SIZE as u32 - 8 + pcm_len * channels as u32;
-        let size_of_chunk: u32 = pcm_len * channels as u32;
-
-        BE::write_u32(&mut header[dword!(0x0000)], RIFF);
-        LE::write_u32(&mut header[dword!(0x0004)], file_size);
-        BE::write_u32(&mut header[dword!(0x0008)], WAVE);
-        BE::write_u32(&mut header[dword!(0x000C)], FMT_);
-        LE::write_u32(&mut header[dword!(0x0010)], wav_scs);
-        LE::write_u16(&mut header[word!(0x0014)], wav_type);
-        LE::write_u16(&mut header[word!(0x0016)], channels);
-        LE::write_u32(&mut header[dword!(0x0018)], sample_frequency);
-        LE::write_u32(&mut header[dword!(0x001C)], bytes_sec);
-        LE::write_u16(&mut header[word!(0x0020)], block_align);
-        LE::write_u16(&mut header[word!(0x0022)], bits_sample);
-        BE::write_u32(&mut header[dword!(0x0024)], DATA);
-        LE::write_u32(&mut header[dword!(0x0028)], size_of_chunk);
-
+        let channels: u16 = (stereo as u16 + 1); // 0x01 = mono, 0x02 = stereo
+        let block_align: u16 = (channels * (smp_bits / 8) as u16);
         Self {
             smp_rate,
             smp_bits,
             pcm_len,
             stereo,
-            header_data: header,
             is_interleaved,
+            header: WavHeader {
+                file_size: (HEADER_SIZE - 8 + pcm_len * channels as u32).to_le_bytes(),
+                wav_scs: 16_u32.to_le_bytes(),
+                wav_type: 1_u16.to_le_bytes(),
+                channels: (stereo as u16 + 1).to_le_bytes(),
+                sample_frequency: smp_rate.to_le_bytes(),
+                bytes_sec: (smp_rate * block_align as u32).to_le_bytes(), 
+                block_align: block_align.to_le_bytes(), 
+                bits_sample: (smp_bits as u16).to_le_bytes(), 
+                size_of_chunk: (pcm_len * channels as u32).to_le_bytes()
+            },
         }
     }
 
@@ -67,7 +66,15 @@ impl Wav {
 
     pub fn write_ref<P: AsRef<Path>>(&self, path: P, pcm: &[u8]) -> Result<(), Error> {
         let mut file: File = File::create(path)?;
-        file.write_all(&self.header_data)?;
+        let hdr = &self.header;
+        let header: [&[u8]; 13] = [
+            &RIFF, &hdr.file_size, &WAVE, &FMT_, &hdr.wav_scs, &hdr.wav_type, 
+            &hdr.channels, &hdr.sample_frequency,&hdr.bytes_sec, 
+            &hdr.block_align, &hdr.bits_sample, &DATA, &hdr.size_of_chunk
+        ];
+        for i in header {
+            file.write_all(i)?;
+        }
 
         match (self.stereo, self.is_interleaved) {
             (true, false) => write_interleaved(file, pcm, self.smp_bits),

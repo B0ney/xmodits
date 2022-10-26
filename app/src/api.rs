@@ -51,7 +51,7 @@ pub fn info(cli: Cli) {
                 m.module_name(),
                 m.format(),
                 m.number_of_samples(),
-                m.list_sample_data().iter().map(|m| m.len).sum::<usize>() / 1024,
+                m.list_sample_data().iter().map(|m| m.len).sum::<usize>() / 1000,
             )
         }
         Err(e) => println!("Error {} <-- {}", e, file_name(module)),
@@ -67,7 +67,7 @@ pub fn rip(cli: Cli, destination: PathBuf) {
         return println!("{}", "There's nothing to rip!");
     }
 
-    let total_size = app::total_size_MB(&cli.trackers);
+    let total_size = app::total_size_MiB(&cli.trackers);
 
     if total_size > 512.0 {
         println!(
@@ -103,7 +103,7 @@ pub fn rip_parallel(cli: Cli, destination: PathBuf) {
         return println!("{}", "There's nothing to rip!");
     }
 
-    let total_size = app::total_size_MB(&cli.trackers);
+    let total_size = app::total_size_MiB(&cli.trackers);
 
     if total_size > 512.0 {
         println!(

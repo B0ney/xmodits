@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use xmodits_lib::{SampleNamerFunc, XmoditsError};
 
-pub fn total_size_MB(paths: &[std::path::PathBuf]) -> f32 {
+pub fn total_size_MiB(paths: &[std::path::PathBuf]) -> f32 {
     paths
         .iter()
         .map(|e| {

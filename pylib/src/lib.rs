@@ -12,6 +12,8 @@ fn dump(
     index_padding: Option<usize>, // Set sample number padding
     index_only: Option<bool>,     // Only name sample by their number
     with_folder: Option<bool>,    // create new folder
+    upper: Option<bool>,
+    lower: Option<bool>,
 ) -> PyResult<()> {
     dump_multiple(
         vec![path],
@@ -20,6 +22,8 @@ fn dump(
         index_padding,
         index_only,
         with_folder,
+        upper,
+        lower, 
     )
 }
 
@@ -32,6 +36,8 @@ fn dump_multiple(
     index_padding: Option<usize>,
     index_only: Option<bool>,
     with_folder: Option<bool>,
+    upper: Option<bool>,
+    lower: Option<bool>,
 ) -> PyResult<()> {
     api::rip_multiple(
         path,
@@ -40,6 +46,8 @@ fn dump_multiple(
         index_padding,
         index_only,
         with_folder,
+        upper,
+        lower,
     )
     .map_err(|e| XmError(e).into())
 }

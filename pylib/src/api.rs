@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use xmodits_lib::*;
+use xmodits_lib::SampleNamer;
 
 pub fn rip_multiple(
     paths: Vec<String>,
@@ -10,9 +11,16 @@ pub fn rip_multiple(
     index_padding: Option<usize>,
     index_only: Option<bool>,
     with_folder: Option<bool>,
+    upper: Option<bool>,
+    lower: Option<bool>,
 ) -> Result<(), Error> {
-    let sample_namer_func: Box<SampleNamerFunc> =
-        SampleNamer::build_func(index_only, index_padding, index_raw);
+    let sample_namer_func: Box<SampleNamerFunc> = SampleNamer::build_func(
+        index_only.unwrap_or_default(),
+        index_padding,
+        index_raw.unwrap_or_default(),
+        lower.unwrap_or_default(),
+        upper.unwrap_or_default(),
+    );
     let create_if_absent: bool = with_folder.is_some();
 
     // Collect errors during dumping
@@ -57,57 +65,5 @@ fn folder(destination: &String, path: &String, with_folder: Option<bool>) -> Pat
             new_folder
         }
         _ => PathBuf::new().join(&destination),
-    }
-}
-
-#[derive(Default)]
-struct SampleNamer {
-    index_only: Option<bool>,
-    index_padding: Option<usize>,
-    index_raw: Option<bool>,
-}
-
-impl SampleNamer {
-    /// Dynamically build a function to format sample names given its internal parameters
-    fn to_func(self) -> Box<SampleNamerFunc> {
-        const DEFAULT_PADDING: usize = 2;
-
-        Box::new(move |smp: &TrackerSample, idx: usize| -> String {
-            format!(
-                "{}{}.wav",
-                // Index component
-                {
-                    let index = match self.index_raw {
-                        Some(true) => smp.raw_index(),
-                        _ => idx + 1,
-                    };
-                    match self.index_padding {
-                        Some(padding) => format!("{:0padding$}", index),
-                        None => format!("{:0DEFAULT_PADDING$}", index),
-                    }
-                },
-                // Name component
-                match self.index_only {
-                    Some(true) => "".to_string(),
-                    _ => match smp.filename.trim() {
-                        name if name.is_empty() => "".to_string(),
-                        name => format!(" - {}", name.replace(".wav", "").replace(".", "_")),
-                    },
-                }
-            )
-        })
-    }
-
-    fn build_func(
-        index_only: Option<bool>,
-        index_padding: Option<usize>,
-        index_raw: Option<bool>,
-    ) -> Box<SampleNamerFunc> {
-        SampleNamer {
-            index_only,
-            index_padding,
-            index_raw,
-        }
-        .to_func()
     }
 }
