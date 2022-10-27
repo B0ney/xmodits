@@ -56,7 +56,7 @@ where
     P: AsRef<std::path::Path>
 {
     let ext = &ext.to_ascii_lowercase();
-    
+
     match LOADERS.get(ext) {
         Some(mod_loader) => match mod_loader(path.as_ref()) {
             Ok(tracker) => Ok(tracker),

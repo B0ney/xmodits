@@ -58,7 +58,7 @@ where
     }
 
     let mut tracker = match hint {
-        Some(hint) => {dbg!(hint);xmodits_lib::load_from_ext(mod_path, &hint)?},
+        Some(hint) => xmodits_lib::load_from_ext(mod_path, &hint)?,
         None => xmodits_lib::load_module(mod_path)?,
     };
 

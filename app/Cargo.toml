@@ -39,10 +39,10 @@ panic = 'abort'
 [profile.test]
 opt-level = 1
 
-[[bin]]
-required-features = ["win"]
-name = "xmodits_app"
-path = "src/app_win/win.rs"
+# [[bin]]
+# required-features = ["win"]
+# name = "xmodits_app"
+# path = "src/app_win/win.rs"
 
 [package.metadata.winres]
 FileDescription = "Rip samples from tracker music with speed!"

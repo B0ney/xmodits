@@ -71,15 +71,15 @@ impl TrackerDumper for MODFile {
 
         let smp_data: Vec<MODSample> = build_samples(smp_num, &buf, smp_index, alt_finetune)?;
 
-        let last = smp_data.last().unwrap();
-        let end = last.ptr + last.len;
-        
-        if end != buf.len() {
-            let v1 = buf.len() as f32;
-            let v2 = end as f32;
-            let percent_delta = ((v1 - v2).abs() / ((v1 + v2) / 2.0)) * 100.0;
-            println!("{}", percent_delta);
-        }
+        // let last = smp_data.last().unwrap();
+        // let end = last.ptr + last.len;
+
+        // if end != buf.len() {
+        //     let v1 = buf.len() as f32;
+        //     let v2 = end as f32;
+        //     let percent_delta = ((v1 - v2).abs() / ((v1 + v2) / 2.0)) * 100.0;
+        //     println!("{}", percent_delta);
+        // }
 
         Ok(Box::new(Self {
             title,

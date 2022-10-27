@@ -4,7 +4,7 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(author, version, about)]
 #[command(
-    long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M & MOD formats.\nhttps://github.com/B0ney/xmodits - GPLv3"
+    long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M, MOD and UMX formats.\nhttps://github.com/B0ney/xmodits - GPLv3"
 )]
 pub struct Cli {
     #[arg(help = "Modules to rip, the last element can be a folder to place your rips. E.g \"./music.s3m ./music.it ./dumps/\"")]
@@ -50,6 +50,7 @@ pub struct Cli {
 
     #[arg(help = "Hint XMODITS to load a particular format first. E.g --hint=( it | xm | s3m | mod | umx )")]
     #[arg(long)]
+    // #[arg(value_parser= |x: String| {["s3m","mod", "it", "xm", "umx", "S3M", "MOD", "IT", "UMX", "XM"].contains(*x)})]
     pub hint: Option<String>,
 
     #[cfg(feature = "advanced")]
