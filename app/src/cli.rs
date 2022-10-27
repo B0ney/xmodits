@@ -24,7 +24,7 @@ pub struct Cli {
     #[arg(short = 'r', long)]
     pub index_raw: bool,
 
-    #[arg(help = "Pad index with preceding 0s. e.g. 001, or 0001")]
+    #[arg(help = "Pad index with preceding 0s. E.g. 001, or 0001")]
     #[arg(default_value_t = 2, short='p', long="index-padding", value_parser=0..=5)]
     pub index_padding: i64,
 
@@ -47,6 +47,10 @@ pub struct Cli {
     #[arg(help = "Print information about tracker")]
     #[arg(long)]
     pub info: bool,
+
+    #[arg(help = "Hint XMODITS to load a particular format first. E.g --hint=( it | xm | s3m | mod | umx )")]
+    #[arg(long)]
+    pub hint: Option<String>,
 
     #[cfg(feature = "advanced")]
     #[arg(help = "Rip samples in parallel")]

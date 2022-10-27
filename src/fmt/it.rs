@@ -8,7 +8,7 @@ const IT_HEADER_ID: &[u8] = b"IMPM";
 const ZIRCON: &[u8] = b"ziRCON"; // mmcmp compression
 const IT_HEADER_LEN: usize = 192;
 const MASK_SMP_BITS: u8 = 0b0000_0010; // 16/8bit samples
-const MASK_SMP_STEREO: u8 = 0b0000_0100; // 0 = mono, 1 = stereo
+// const MASK_SMP_STEREO: u8 = 0b0000_0100; // 0 = mono, 1 = stereo
 const MASK_SMP_COMP: u8 = 0b0000_1000; // Does sample use compression?
 const IT215: u16 = 0x0215; // IT215 compression
 

@@ -1,5 +1,4 @@
 use crate::{dword, word, Error};
-// use byteorder::{ByteOrder, BE, LE};
 use std::path::Path;
 use std::{fs::File, io::Write};
 
@@ -77,7 +76,7 @@ impl Wav {
         }
 
         match (self.stereo, self.is_interleaved) {
-            (true, false) => write_interleaved(file, pcm, self.smp_bits),
+            // (true, false) => write_interleaved(file, pcm, self.smp_bits),
             (_, _) => file.write_all(pcm).map_err(|e| e.into()),
         }
     }

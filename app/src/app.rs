@@ -44,6 +44,7 @@ pub fn dump_samples_advanced<T, U>(
     dest_dir: U,
     sample_namer: &Box<SampleNamerFunc>,
     with_folder: bool,
+    hint: &Option<String>,
 ) -> Result<(), XmoditsError>
 where
     T: AsRef<Path>,
@@ -56,5 +57,10 @@ where
         )));
     }
 
-    xmodits_lib::load_module(mod_path)?.dump_advanced(&dest_dir, sample_namer, with_folder)
+    let mut tracker = match hint {
+        Some(hint) => {dbg!(hint);xmodits_lib::load_from_ext(mod_path, &hint)?},
+        None => xmodits_lib::load_module(mod_path)?,
+    };
+
+    tracker.dump_advanced(&dest_dir, sample_namer, with_folder)
 }

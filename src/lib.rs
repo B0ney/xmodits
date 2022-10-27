@@ -43,20 +43,29 @@ pub static LOADERS: phf::Map<&str, ModLoaderFunc> = phf_map! {
 /// If it fails, loop through other module loaders, return if one succeeds.
 pub fn load_module<P>(path: P) -> Result<TrackerModule, XmoditsError>
 where
-    P: AsRef<std::path::Path>,
+    P: AsRef<std::path::Path>
 {
     let ext = file_extension(&path).to_lowercase();
     let path = path.as_ref();
+    
+    load_from_ext(path, &ext)
+}
 
-    match LOADERS.get(ext.as_str()) {
-        Some(mod_loader) => match mod_loader(path) {
+pub fn load_from_ext<P>(path: P, ext: &str) -> Result<TrackerModule, XmoditsError>
+where
+    P: AsRef<std::path::Path>
+{
+    let ext = &ext.to_ascii_lowercase();
+    
+    match LOADERS.get(ext) {
+        Some(mod_loader) => match mod_loader(path.as_ref()) {
             Ok(tracker) => Ok(tracker),
             Err(original_err) => {
                 for (_, backup_loader) in LOADERS
                     .entries()
-                    .filter(|k| k.0 != &ext.as_str() && k.0 != &"mod")
+                    .filter(|k| k.0 != &ext && k.0 != &"mod")
                 {
-                    if let Ok(tracker) = backup_loader(path) {
+                    if let Ok(tracker) = backup_loader(path.as_ref()) {
                         return Ok(tracker);
                     }
                 }

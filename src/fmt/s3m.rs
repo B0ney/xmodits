@@ -6,7 +6,7 @@ use crate::{
 
 const S3M_HEADER_ID: &[u8] = b"SCRM";
 const S3M_MAGIC_NUMBER: u8 = 0x10;
-const SMP_MASK_STEREO: u8 = 0b0000_0010;
+// const SMP_MASK_STEREO: u8 = 0b0000_0010;
 const SMP_MASK_BITS: u8 = 0b0000_0100;
 const INS_HEAD_LENGTH: usize = 13;
 
@@ -101,7 +101,8 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
         let lo_ptr: u16 = read_u16_le(buf, 0x0001 + offset);
         let ptr: u32 = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
         let flags: u8 = buf[0x0012 + offset];
-        let is_stereo: bool = (flags & SMP_MASK_STEREO) >> 1 == 1;
+        // let is_stereo: bool = (flags & SMP_MASK_STEREO) >> 1 == 1;
+        let is_stereo: bool = false;
         let bits: u8 = if (flags & SMP_MASK_BITS) >> 2 == 1 {
             16
         } else {
@@ -124,8 +125,8 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
             ptr: ptr as usize,
             bits,
             rate,
-            is_stereo,
-            is_interleaved: true,
+            // is_stereo: false,
+            // is_interleaved: false,
             ..Default::default()
         })
     }
