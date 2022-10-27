@@ -27,7 +27,7 @@ pub struct SampleNamer {
 
 impl SampleNamer {
     /// Dynamically build a function to format sample names given its internal parameters
-    fn to_func(self) -> Box<SampleNamerFunc> {
+    pub fn to_func(self) -> Box<SampleNamerFunc> {
         const DEFAULT_PADDING: usize = 2;
 
         Box::new(move |smp: &TrackerSample, idx: usize| -> String {

@@ -46,8 +46,6 @@ where
     P: AsRef<std::path::Path>
 {
     let ext = file_extension(&path).to_lowercase();
-    let path = path.as_ref();
-    
     load_from_ext(path, &ext)
 }
 
@@ -56,16 +54,17 @@ where
     P: AsRef<std::path::Path>
 {
     let ext = &ext.to_ascii_lowercase();
+    let path = path.as_ref();
 
     match LOADERS.get(ext) {
-        Some(mod_loader) => match mod_loader(path.as_ref()) {
+        Some(mod_loader) => match mod_loader(path) {
             Ok(tracker) => Ok(tracker),
             Err(original_err) => {
                 for (_, backup_loader) in LOADERS
                     .entries()
-                    .filter(|k| k.0 != &ext && k.0 != &"mod")
+                    .filter(|(k, _)| !["mod", ext].contains(k))
                 {
-                    if let Ok(tracker) = backup_loader(path.as_ref()) {
+                    if let Ok(tracker) = backup_loader(path) {
                         return Ok(tracker);
                     }
                 }

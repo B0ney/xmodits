@@ -52,6 +52,7 @@ pub mod prelude {
     pub use super::wav::Wav;
 
     pub use super::name::name_sample;
+    pub use super::name::SampleNamer;
     pub use super::reader::read_slice;
     pub use super::reader::read_string;
     pub use super::reader::read_u16_le;
