@@ -1,8 +1,27 @@
 [package]
-name = "xmodits_gui"
+name = "xmodits-gui"
+authors = ["B0ney <https://github.com/B0ney>"]
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+xmodits-lib = { path = "../../" }
+iced = { version = "0.4.2", features = ["glow", "svg", "canvas"] }
+# iced_audio = "0.8.0"
+rodio = "0.16.0"
+crossbeam-channel = "0.5.6"
+dirs = "4.0.0"
+reqwest = { version = "0.11", features = ["blocking", "json"], optional=true } 
+
+[features]
+updater = [
+    "reqwest"
+]
+
+# # Separate binary to update xmodits
+# [[bin]]
+# features = ["updater"]
+# name = "xmodits_updater"
+# path = ""
