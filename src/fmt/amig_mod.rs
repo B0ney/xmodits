@@ -160,6 +160,7 @@ fn build_samples(
     Ok(smp_data)
 }
 
+// TOOD: remove/replace
 fn alt_frequency(finetune: i8) -> u16 {
     (363.0 * 2.0_f32.powf(-finetune.wrapping_shl(3) as f32 / 1536.0)) as u16
 }
