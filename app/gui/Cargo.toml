@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 xmodits-lib = { path = "../../" }
 native-dialog = { version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
-iced = { version = "0.4.2", features = ["glow", "svg", "canvas"] }
+iced = { version = "0.4.2", features = ["glow", "svg", "canvas", "image"] }
 # iced_audio = "0.8.0"
 rodio = "0.16.0"
 crossbeam-channel = "0.5.6"
@@ -19,6 +19,9 @@ serde = {version="1.0.147", features = ["derive"] }
 toml = "0.5.9"
 anyhow = "1.0.66"
 log = "0.4.17"
+image = {version= "0.24.4", default-features = false, features = ["ico"]}
+
+
 
 [features]
 updater = [

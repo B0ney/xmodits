@@ -18,15 +18,15 @@ pub struct Wav {
 }
 
 pub struct WavHeader {
-    file_size: [u8;4],
-    wav_scs: [u8;4],
-    wav_type: [u8;2],
-    channels: [u8;2],
-    sample_frequency: [u8;4],
-    bytes_sec: [u8;4],
-    block_align: [u8;2],
-    bits_sample: [u8;2],
-    size_of_chunk: [u8;4],
+    file_size: [u8; 4],
+    wav_scs: [u8; 4],
+    wav_type: [u8; 2],
+    channels: [u8; 2],
+    sample_frequency: [u8; 4],
+    bytes_sec: [u8; 4],
+    block_align: [u8; 2],
+    bits_sample: [u8; 2],
+    size_of_chunk: [u8; 4],
 }
 
 impl Wav {
@@ -51,10 +51,10 @@ impl Wav {
                 wav_type: 1_u16.to_le_bytes(),
                 channels: (stereo as u16 + 1).to_le_bytes(),
                 sample_frequency: smp_rate.to_le_bytes(),
-                bytes_sec: (smp_rate * block_align as u32).to_le_bytes(), 
-                block_align: block_align.to_le_bytes(), 
-                bits_sample: (smp_bits as u16).to_le_bytes(), 
-                size_of_chunk: (pcm_len * channels as u32).to_le_bytes()
+                bytes_sec: (smp_rate * block_align as u32).to_le_bytes(),
+                block_align: block_align.to_le_bytes(),
+                bits_sample: (smp_bits as u16).to_le_bytes(),
+                size_of_chunk: (pcm_len * channels as u32).to_le_bytes(),
             },
         }
     }
@@ -67,9 +67,19 @@ impl Wav {
         let mut file: File = File::create(path)?;
         let hdr = &self.header;
         let header: [&[u8]; 13] = [
-            &RIFF, &hdr.file_size, &WAVE, &FMT_, &hdr.wav_scs, &hdr.wav_type, 
-            &hdr.channels, &hdr.sample_frequency,&hdr.bytes_sec, 
-            &hdr.block_align, &hdr.bits_sample, &DATA, &hdr.size_of_chunk
+            &RIFF,
+            &hdr.file_size,
+            &WAVE,
+            &FMT_,
+            &hdr.wav_scs,
+            &hdr.wav_type,
+            &hdr.channels,
+            &hdr.sample_frequency,
+            &hdr.bytes_sec,
+            &hdr.block_align,
+            &hdr.bits_sample,
+            &DATA,
+            &hdr.size_of_chunk,
         ];
         for i in header {
             file.write_all(i)?;

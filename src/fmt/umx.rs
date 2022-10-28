@@ -15,7 +15,7 @@ static VALIDATE_LOADER: Lazy<[(ModValidatorFunc, ModLoaderFunc); 4]> = Lazy::new
         (|p| XMFile::validate(p), XMFile::load_from_buf),
         (|p| S3MFile::validate(p), S3MFile::load_from_buf),
         // Make sure MODFile is placed last since it has the least amount of checks.
-        (|p| MODFile::validate(p), MODFile::load_from_buf) 
+        (|p| MODFile::validate(p), MODFile::load_from_buf),
     ]
 });
 
@@ -41,7 +41,7 @@ impl TrackerDumper for UMXFile {
         }
         // // Is this check even useful?
         // let export_count = read_u32_le(buf, 0x0014);
-        // 
+        //
         // if export_count > 1 {
         //     return Err(XmoditsError::unsupported(
         //         "Unreal package contains more than 1 entry.",
@@ -54,20 +54,20 @@ impl TrackerDumper for UMXFile {
         let mut name_table: Vec<String> = Vec::with_capacity(name_count);
 
         let mut offset = name_offset;
-        
+
         for _ in 0..name_count {
             let mut name = String::new();
 
             if version < 64 {
                 // versions below 64 rely on null terminated strings
-                while buf[offset] != 0 { 
+                while buf[offset] != 0 {
                     name.push(buf[offset] as char);
                     offset += 1;
                 }
             } else {
                 let length: usize = buf[offset] as usize;
-                name = read_string(buf, offset, length);              
-                offset += length; 
+                name = read_string(buf, offset, length);
+                offset += length;
             }
             name_table.push(name);
 
@@ -117,10 +117,10 @@ impl TrackerDumper for UMXFile {
         }
 
         offset += read_compact_index(&buf, offset).1; // skip obj_size field
-        let (size, inc) = read_compact_index(&buf, offset); 
+        let (size, inc) = read_compact_index(&buf, offset);
         offset += inc; // skip size of object data
 
-        _ = buf.drain(..offset);        // Strip UMX header
+        _ = buf.drain(..offset); // Strip UMX header
         _ = buf.drain(size as usize..); // Strip UMX tables
 
         // The first item in the name table can be used as a "hint", but this is unreliable.

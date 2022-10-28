@@ -1,7 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use xmodits_lib::*;
+
 use xmodits_lib::SampleNamer;
+use xmodits_lib::*;
 
 pub fn rip_multiple(
     paths: Vec<String>,

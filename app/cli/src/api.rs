@@ -44,7 +44,7 @@ pub fn info(cli: Cli) {
     }
 
     let module = &cli.trackers[0];
-    
+
     let tracker = match &cli.hint {
         Some(hint) => xmodits_lib::load_from_ext(module, hint),
         None => xmodits_lib::load_module(module),
@@ -90,7 +90,7 @@ pub fn rip(cli: Cli, destination: PathBuf) {
             &folder(&destination, &mod_path, !cli.no_folder),
             &sample_namer_func,
             !cli.no_folder,
-            &cli.hint
+            &cli.hint,
         ) {
             eprintln!("Error {} <-- \"{}\"", error, file_name(&mod_path))
         }

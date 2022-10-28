@@ -1,9 +1,9 @@
 use std::{fs, path::PathBuf};
 
-use serde::{Serialize, Deserialize};
-use toml;
 use anyhow::Result;
 use dirs;
+use serde::{Deserialize, Serialize};
+use toml;
 
 const APP_NAME: &str = "xmodits";
 
@@ -16,17 +16,14 @@ pub struct Config {
     upper: bool,
     lower: bool,
     no_folder: bool,
-    default_destination: Option<String> 
+    default_destination: Option<String>,
 }
 
 pub fn config_dir() -> PathBuf {
-    let config_dir = dirs::config_dir()
-        .unwrap()
-        .join(APP_NAME);
-        
+    let config_dir = dirs::config_dir().unwrap().join(APP_NAME);
+
     if !config_dir.exists() {
-        fs::create_dir(&config_dir)
-            .unwrap()
+        fs::create_dir(&config_dir).unwrap()
     }
 
     config_dir
@@ -40,7 +37,7 @@ impl Config {
                 Err(_) => Self::default(),
             },
             Err(_) => Self::default(),
-        }        
+        }
     }
 
     pub fn path() -> PathBuf {

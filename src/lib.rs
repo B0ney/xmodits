@@ -43,7 +43,7 @@ pub static LOADERS: phf::Map<&str, ModLoaderFunc> = phf_map! {
 /// If it fails, loop through other module loaders, return if one succeeds.
 pub fn load_module<P>(path: P) -> Result<TrackerModule, XmoditsError>
 where
-    P: AsRef<std::path::Path>
+    P: AsRef<std::path::Path>,
 {
     let ext = file_extension(&path).to_lowercase();
     load_from_ext(path, &ext)
@@ -51,7 +51,7 @@ where
 
 pub fn load_from_ext<P>(path: P, ext: &str) -> Result<TrackerModule, XmoditsError>
 where
-    P: AsRef<std::path::Path>
+    P: AsRef<std::path::Path>,
 {
     let ext = &ext.to_ascii_lowercase();
     let path = path.as_ref();
@@ -60,9 +60,8 @@ where
         Some(mod_loader) => match mod_loader(path) {
             Ok(tracker) => Ok(tracker),
             Err(original_err) => {
-                for (_, backup_loader) in LOADERS
-                    .entries()
-                    .filter(|(k, _)| !["mod", ext].contains(k))
+                for (_, backup_loader) in
+                    LOADERS.entries().filter(|(k, _)| !["mod", ext].contains(k))
                 {
                     if let Ok(tracker) = backup_loader(path) {
                         return Ok(tracker);
@@ -82,7 +81,7 @@ where
 fn file_extension<P: AsRef<std::path::Path>>(p: P) -> String {
     (match p.as_ref().extension() {
         None => "",
-        Some(ext) => ext.to_str().unwrap_or("")
+        Some(ext) => ext.to_str().unwrap_or(""),
     })
     .to_string()
 }

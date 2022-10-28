@@ -23,7 +23,7 @@ fn dump(
         index_only,
         with_folder,
         upper,
-        lower, 
+        lower,
     )
 }
 

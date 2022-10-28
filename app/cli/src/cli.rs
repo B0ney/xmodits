@@ -7,13 +7,15 @@ use std::path::PathBuf;
     long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M, MOD and UMX formats.\nhttps://github.com/B0ney/xmodits - GPLv3"
 )]
 pub struct Cli {
-    #[arg(help = "Modules to rip, the last element can be a folder to place your rips. E.g \"./music.s3m ./music.it ./dumps/\"")]
+    #[arg(
+        help = "Modules to rip, the last element can be a folder to place your rips. E.g \"./music.s3m ./music.it ./dumps/\""
+    )]
     #[arg(required = true)]
     pub trackers: Vec<PathBuf>,
 
     #[arg(help = "Only name samples with an index. E.g. 01.wav")]
     #[arg(conflicts_with = "upper_case", conflicts_with = "lower_case")]
-    #[arg(short = 'i',long)]
+    #[arg(short = 'i', long)]
     pub index_only: bool,
 
     #[arg(help = "Preserve sample indexing")]
@@ -27,7 +29,6 @@ pub struct Cli {
     // #[arg(help="Include embedded text from tracker (if it exists)")]
     // #[arg(short='c', long)]
     // with_comment: bool,
-
     #[arg(help = "Don't create a new folder for samples. This can overwrite data, BE CAREFUL!")]
     #[arg(short, long)]
     pub no_folder: bool,
