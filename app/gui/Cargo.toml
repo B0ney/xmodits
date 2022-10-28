@@ -8,6 +8,7 @@ edition = "2021"
 
 [dependencies]
 xmodits-lib = { path = "../../" }
+native-dialog = { version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
 iced = { version = "0.4.2", features = ["glow", "svg", "canvas"] }
 # iced_audio = "0.8.0"
 rodio = "0.16.0"
