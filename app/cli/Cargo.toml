@@ -7,7 +7,7 @@ build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-xmodits-lib = { path = "../" } #, features=["thread"]
+xmodits-lib = { path = "../../" } #, features=["thread"]
 clap = { version ="4.0.10", features = ["derive", "cargo", "wrap_help"] }
 rayon = { version = "1.5.3", optional=true }
 

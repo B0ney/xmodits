@@ -113,3 +113,8 @@ windows
 cargo build --release -p xmodits --bin xmodits
 
 ```
+
+## Licenses
+* [XMODITS](app/README.md) (Application) -> GPLv3
+<!-- * XMODITS-LIB -> MPL2 
+* [XMODITS-PY](pylib/README.md) -> MPL2 -->
