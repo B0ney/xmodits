@@ -2,12 +2,11 @@
 
 pub mod macros;
 pub mod signed;
-// pub mod array;
 pub mod ascii;
 pub mod name;
 pub mod reader;
 pub mod wav;
-
+// pub mod interleave;
 pub type Error = crate::XmoditsError;
 
 /*

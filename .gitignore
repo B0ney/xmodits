@@ -2,16 +2,15 @@
 /target/
 /test/
 /.vscode/
-/app_cli/res/
 /build/
 /extras/aseprite/
 /extras/old/
 *.wav
-*.umx 
+*.umx
+!/app/gui/res/**/*.wav
 /pylib/.github/
 /pylib/dev/
 Cargo.lock
-/app/gui/res/sfx/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
