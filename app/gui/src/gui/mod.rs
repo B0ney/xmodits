@@ -2,9 +2,9 @@ mod style;
 // mod theme;
 
 use std::path::PathBuf;
-
+use crate::core;
 use iced::Theme;
-use iced::widget::{column, Container, Column, checkbox,Checkbox, pick_list, Row, Text};
+use iced::widget::{column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button};
 use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
 use image::{self, GenericImageView};
@@ -13,7 +13,8 @@ use image::{self, GenericImageView};
 pub enum Msg {
     Rip,
     check(bool),
-    SetCfg(CfgMsg)
+    SetCfg(CfgMsg),
+    Beep(String)
 }
 
 #[derive(Debug, Clone)]
@@ -52,11 +53,12 @@ impl SampleConfig{
     } 
 }
 
-#[derive(Default, Clone)]
+#[derive(Default)]
 pub struct XmoditsGui {
     cfg: SampleConfig,
     paths: Vec<String>,
     toggls: bool,
+    audio: core::sfx::Audio,
 }
 
 impl Application for XmoditsGui {
@@ -84,6 +86,7 @@ impl Application for XmoditsGui {
             Msg::Rip => todo!(),
             Msg::check(g) => self.toggls = g,
             Msg::SetCfg(cfg) => self.cfg.set(cfg),
+            Msg::Beep(sfx) => self.audio.play(&sfx),
         }
         Command::none()
     }
@@ -113,7 +116,13 @@ impl Application for XmoditsGui {
                     .push(
                         pick_list(vec![1,2,3], Some(self.cfg.index_padding), |b| Msg::SetCfg(IndexPadding(b)))
                     )
-                );
+                )
+            .push(
+                Row::new().spacing(5)
+                    .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
+                    .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())))
+            );
+
                 
             // .push(checkbox("des", self.sample_config.index_only, |b| Message::SetSampleConfig(IndexOnly(b))))
             
