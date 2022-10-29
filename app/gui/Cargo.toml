@@ -8,17 +8,17 @@ edition = "2021"
 
 [dependencies]
 xmodits-lib = { path = "../../" }
-native-dialog = { version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
+# native-dialog = { version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
 iced = { git = "https://github.com/iced-rs/iced", features = ["glow", "svg", "canvas", "image"] }
-# iced_audio = "0.8.0"
-rodio = "0.16.0"
-crossbeam-channel = "0.5.6"
+# # iced_audio = "0.8.0"
+rodio = { version = "0.16.0", default-features = false, features = ["symphonia-wav"] }
+# crossbeam-channel = "0.5.6"
 dirs = "4.0.0"
-# reqwest = { version = "0.11", features = ["blocking", "json"], optional=true } 
-serde = {version="1.0.147", features = ["derive"] }
+# # reqwest = { version = "0.11", features = ["blocking", "json"], optional=true } 
+serde = { version="1.0.147", features = ["derive"] }
 toml = "0.5.9"
 anyhow = "1.0.66"
-log = "0.4.17"
+# log = "0.4.17"
 image = {version= "0.24.4", default-features = false, features = ["ico"]}
 static_init = "1.0.3"
 # ureq = ""
