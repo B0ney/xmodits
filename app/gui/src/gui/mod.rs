@@ -1,10 +1,10 @@
 mod style;
 // mod theme;
-
 use std::path::PathBuf;
 use crate::core;
+use crate::core::font::JETBRAINS_MONO;
 use iced::{Theme, Alignment};
-use iced::widget::{column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input};
+use iced::widget::{column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
 use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
 use image::{self, GenericImageView};
@@ -131,7 +131,7 @@ impl Application for XmoditsGui {
             .iter()
             .fold(
                 Column::new().spacing(10),
-                |s,gs| { s.push(Text::new(gs)) }
+                |s,gs| { s.push(Text::new(gs).font(JETBRAINS_MONO)) }
             ).width(Length::FillPortion(1));
 
         let scrollable = scrollable(trackers);
@@ -148,7 +148,7 @@ impl Application for XmoditsGui {
             .width(Length::FillPortion(1))
             .push(checkbox("No Folder", self.cfg.no_folder, |b| Msg::SetCfg(NoFolder(b))))
             .push(checkbox("Index Only", self.cfg.index_only, |b| Msg::SetCfg(IndexOnly(b))))
-            .push(checkbox("Index Raw", self.cfg.index_raw, |b| Msg::SetCfg(IndexRaw(b))))
+            .push(checkbox("Preserve Index", self.cfg.index_raw, |b| Msg::SetCfg(IndexRaw(b))))
             .push(checkbox("Upper Case", self.cfg.upper_case, |b| Msg::SetCfg(UpperCase(b))))
             .push(checkbox("Lower Case", self.cfg.lower_case, |b| Msg::SetCfg(LowerCase(b))))
             .push(
@@ -168,8 +168,8 @@ impl Application for XmoditsGui {
                         .spacing(10)
                         .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
                         .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())))
-                        .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
-                        .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())))
+                        // .push(Button::new(text("boned").font(JETBRAINS_MONO)).on_press(Msg::Beep("sfx_3".into())))
+                        // .push(Button::new("aauugghh").on_press(Msg::Beep("sfx_4".into())))
                 )
             )
             .push(input);
