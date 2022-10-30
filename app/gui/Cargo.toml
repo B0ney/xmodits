@@ -14,6 +14,7 @@ iced = { git = "https://github.com/iced-rs/iced", features = ["glow", "image"] }
 rodio = { version = "0.16.0", default-features = false, features = ["symphonia-wav"] }
 # crossbeam-channel = "0.5.6"
 dirs = "4.0.0"
+rfd = { version = "0.10.0", default-features = false, features = ["xdg-portal"]}
 # # reqwest = { version = "0.11", features = ["blocking", "json"], optional=true } 
 serde = { version="1.0.147", features = ["derive"] }
 toml = "0.5.9"

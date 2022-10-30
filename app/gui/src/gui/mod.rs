@@ -1,13 +1,16 @@
 mod style;
 // mod theme;
 use std::path::PathBuf;
+use std::time::Duration;
 use crate::core;
 use crate::core::font::JETBRAINS_MONO;
-use iced::{Theme, Alignment};
+use iced::{Theme, Alignment, Subscription, time};
 use iced::widget::{column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
 use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
 use image::{self, GenericImageView};
+
+use rfd::AsyncFileDialog;
 
 #[derive(Debug, Clone)]
 pub enum Msg {
@@ -15,7 +18,9 @@ pub enum Msg {
     check(bool),
     SetCfg(CfgMsg),
     Beep(String),
-    StartRip
+    StartRip,
+    OpenFileDialoge,
+    AddFile(Option<PathBuf>),
 }
 
 #[derive(Debug, Clone)]
@@ -41,7 +46,7 @@ pub struct SampleConfig {
 }
 
 impl SampleConfig{
-    fn set(&mut self, msg: CfgMsg) {
+    fn set(&mut self, msg: CfgMsg) -> bool {
         match msg {
             CfgMsg::NoFolder(b) => self.no_folder = b,
             CfgMsg::IndexOnly(b) => {
@@ -58,7 +63,8 @@ impl SampleConfig{
                 }
                 if !self.index_only {
                     self.upper_case = b;
-                    // Command::none()
+                } else {
+                    return true;
                 }
             },
             CfgMsg::LowerCase(b) => {
@@ -67,12 +73,15 @@ impl SampleConfig{
                 }
                 if !self.index_only {
                     self.lower_case = b;
+                } else {
+                    return true;
                 }
             },
 
             CfgMsg::IndexPadding(padding) => self.index_padding = padding,
             CfgMsg::DestinationFolder(destination) => self.destination_folder = destination,
         }
+        false
         // Command::none()
     } 
 }
@@ -84,6 +93,7 @@ pub struct XmoditsGui {
     toggls: bool,
     audio: core::sfx::Audio,
     ripper: core::xmodits::Ripper,
+    // ripper: TestOne
 }
 
 impl Application for XmoditsGui {
@@ -94,7 +104,7 @@ impl Application for XmoditsGui {
 
     fn new(_flags: ()) -> (Self, Command<Msg>) {
         let c = ["it", "xm", "s3m", "mod", "umx"];
-        let a = (1000..1200).into_iter().map(|d| format!("{}.{}",d.to_string(), c[d % c.len()])).collect();
+        let a = (1..12).into_iter().map(|d| format!("{}.{}",d.to_string(), c[d % c.len()])).collect();
         // println!("{:?}",&a);
         (
             Self{
@@ -113,15 +123,34 @@ impl Application for XmoditsGui {
         match message {
             Msg::Rip => todo!(),
             Msg::check(g) => self.toggls = g,
-            Msg::SetCfg(cfg) => self.cfg.set(cfg),
-            Msg::Beep(sfx) => self.audio.play(&sfx),
+            Msg::SetCfg(cfg) => {
+                if self.cfg.set(cfg) {
+                    self.audio.play("sfx_2")
+                }
+            },
+            Msg::Beep(sfx) =>  self.audio.play(&sfx) ,
             Msg::StartRip => return Command::perform(
                 async {
                         std::thread::sleep(std::time::Duration::from_secs(5));
                         String::from("sfx_1")
-                    // &self.ripper.rip(&self.cfg)
                 },Msg::Beep
             ),
+            Msg::OpenFileDialoge => return Command::perform(
+                async {
+                    match AsyncFileDialog::new()
+                        .pick_file()
+                        .await {
+                            Some(handle) => Some(handle.path().to_owned()),
+                            None => None
+                        }
+                }, Msg::AddFile
+            ),
+            Msg::AddFile(path) => {
+                if let Some(path) = path {
+                    self.paths.push(format!("{}", path.display()));
+                    self.audio.play("sfx_1");
+                }
+            }
         }
         Command::none()
     }
@@ -182,7 +211,7 @@ impl Application for XmoditsGui {
                         .spacing(10)
                         .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
                         .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())))
-                        .push(Button::new("rip").on_press(Msg::StartRip))
+                        .push(Button::new("Open").on_press(Msg::OpenFileDialoge))
                         // .push(Button::new(text("boned").font(JETBRAINS_MONO)).on_press(Msg::Beep("sfx_3".into())))
                         // .push(Button::new("aauugghh").on_press(Msg::Beep("sfx_4".into())))
                 )
@@ -217,6 +246,9 @@ impl Application for XmoditsGui {
             // .center_y()
             .into()
     }
+    // fn subscription(&self) -> Subscription<Msg> {
+    //     time::Duration::from_secs(1).map(Msg::Beep)
+    // }
 
 }
 
@@ -243,3 +275,40 @@ fn icon() -> Icon {
     let (w, h) = image.dimensions();
     Icon::from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
 }
+
+// #[derive(Default)]
+// struct TestOne;
+
+// impl TestOne {
+//     // pub fn rip
+//     pub fn subscription(&self) -> Subscription<Msg> {
+
+//     }
+// }
+
+// async fn rips(
+//     state: RipState
+// ) -> (Option<(RipProgress)>, RipState){
+//     match state {
+//         RipState::start(time) => {
+//             async {
+//                 std::thread::sleep(Duration::from_secs(1));
+//                 (Some(RipProgress::Advanced(1)), RipState::Ripping)
+//             }
+//         },
+//         RipState::Finished => todo!(),
+//     }
+// }
+
+// #[derive(Debug, Clone)]
+// pub enum RipProgress {
+//     Failed(usize),
+//     Advanced(usize),
+//     Finished,
+// }
+
+// enum RipState {
+//     start(usize),
+//     Ripping,
+//     Finished,
+// }
