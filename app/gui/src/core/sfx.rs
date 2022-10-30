@@ -12,14 +12,14 @@ const SFX_2: &[u8] = include_bytes!("../../res/sfx/sfx_2.wav");
 // const SFX_4: &[u8] = include_bytes!("../../res/sfx/aauugghh.wav");
 
 pub static SFX: Lazy<HashMap<&'static str, SoundBuffer>> = Lazy::new(|| {
-    let c: &[(&str, &[u8])] = &[
+    let sfx: &[(&str, &[u8])] = &[
         ("sfx_1", SFX_1),
         ("sfx_2", SFX_2),
         // ("sfx_3", SFX_3),
         // ("sfx_4", SFX_4),
     ];
 
-    c
+    sfx
         .into_iter()
         .map(|(x,y)| (*x, Decoder::new(Cursor::new(*y)).unwrap().buffered()))
         .collect()

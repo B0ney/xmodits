@@ -10,20 +10,23 @@ const APP_NAME: &str = "xmodits";
 // User editable configuration
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Config {
-    index_raw: bool,
-    index_only: bool,
-    index_padding: usize,
-    upper: bool,
-    lower: bool,
-    no_folder: bool,
-    default_destination: Option<String>,
+    pub index_raw: bool,
+    pub index_only: bool,
+    pub index_padding: usize,
+    pub upper: bool,
+    pub lower: bool,
+    pub no_folder: bool,
+    pub destination: String,
 }
 
 pub fn config_dir() -> PathBuf {
-    let config_dir = dirs::config_dir().unwrap().join(APP_NAME);
+    let config_dir = dirs::config_dir()
+        .expect("There should be a config directory")
+        .join(APP_NAME);
 
     if !config_dir.exists() {
-        fs::create_dir(&config_dir).unwrap()
+        fs::create_dir(&config_dir)
+            .expect("Couldn't create a config folder for xmodits") // TODO: replace with log warn
     }
 
     config_dir
@@ -31,12 +34,18 @@ pub fn config_dir() -> PathBuf {
 
 impl Config {
     pub fn load() -> Self {
+        let default_and_save = || {
+            let a = Self::default();
+            let _ = a.save();
+            a
+        };
+
         match fs::read_to_string(Config::path()) {
             Ok(j) => match toml::from_str::<Self>(&j) {
                 Ok(s) => s,
-                Err(_) => Self::default(),
+                Err(_) => default_and_save(),
             },
-            Err(_) => Self::default(),
+            Err(_) => default_and_save(),
         }
     }
 
@@ -50,8 +59,6 @@ impl Config {
 
     pub fn save(&self) -> Result<()> {
         use std::io::prelude::*;
-
-        // println!("{}",);
         let mut a = fs::File::create(Config::path())?;
         a.write_all(&toml::to_vec(&self)?)?;
         Ok(())

@@ -3,6 +3,7 @@ mod style;
 use std::path::PathBuf;
 use std::time::Duration;
 use crate::core;
+use crate::core::cfg::Config;
 use crate::core::font::JETBRAINS_MONO;
 use iced::{Theme, Alignment, Subscription, time};
 use iced::widget::{column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
@@ -40,61 +41,59 @@ enum CfgMsg {
     DestinationFolder(String),
 }
 
-#[derive(Default, Clone)]
-pub struct SampleConfig {
-    pub no_folder: bool,
-    pub index_only: bool,
-    pub index_raw: bool,
-    pub upper_case: bool,
-    pub lower_case: bool,
-    pub index_padding: usize,
-    pub destination_folder: String,
-}
+// #[derive(Default, Clone)]
+// pub struct SampleConfig {
+//     pub no_folder: bool,
+//     pub index_only: bool,
+//     pub index_raw: bool,
+//     pub upper_case: bool,
+//     pub lower_case: bool,
+//     pub index_padding: usize,
+//     pub destination_folder: String,
+// }
 
-impl SampleConfig{
-    fn set(&mut self, msg: CfgMsg) -> bool {
-        match msg {
-            CfgMsg::NoFolder(b) => self.no_folder = b,
-            CfgMsg::IndexOnly(b) => {
-                if b {
-                    self.upper_case = false;
-                    self.lower_case = false;
-                }
-                self.index_only = b;
-            },
-            CfgMsg::IndexRaw(b) => self.index_raw = b,
-            CfgMsg::UpperCase(b) => {
-                if self.lower_case && b {
-                    self.lower_case = false
-                }
-                if !self.index_only {
-                    self.upper_case = b;
-                } else {
-                    return true;
-                }
-            },
-            CfgMsg::LowerCase(b) => {
-                if self.upper_case && b {
-                    self.upper_case = false
-                }
-                if !self.index_only {
-                    self.lower_case = b;
-                } else {
-                    return true;
-                }
-            },
+fn set_cfg(cfg: &mut core::cfg::Config, msg: CfgMsg) -> bool {
+    match msg {
+        CfgMsg::NoFolder(b) => cfg.no_folder = b,
+        CfgMsg::IndexOnly(b) => {
+            if b {
+                cfg.upper = false;
+                cfg.lower = false;
+            }
+            cfg.index_only = b;
+        },
+        CfgMsg::IndexRaw(b) => cfg.index_raw = b,
+        CfgMsg::UpperCase(b) => {
+            if cfg.lower && b {
+                cfg.lower = false
+            }
+            if !cfg.index_only {
+                cfg.upper = b;
+            } else {
+                return true;
+            }
+        },
+        CfgMsg::LowerCase(b) => {
+            if cfg.upper && b {
+                cfg.upper = false
+            }
+            if !cfg.index_only {
+                cfg.lower = b;
+            } else {
+                return true;
+            }
+        },
 
-            CfgMsg::IndexPadding(padding) => self.index_padding = padding,
-            CfgMsg::DestinationFolder(destination) => self.destination_folder = destination,
-        }
-        false
-        // Command::none()
-    } 
-}
+        CfgMsg::IndexPadding(padding) => cfg.index_padding = padding,
+        CfgMsg::DestinationFolder(destination) => cfg.destination = destination,
+    }
+    false
+    // Command::none()
+} 
 
 #[derive(Default)]
 pub struct XmoditsGui {
-    cfg: SampleConfig,
+    cfg: core::cfg::Config,
     paths: Vec<String>,
     toggls: bool,
     audio: core::sfx::Audio,
@@ -115,6 +114,7 @@ impl Application for XmoditsGui {
         (
             Self{
                 paths: a,
+                cfg: Config::load(),
                 ..Default::default()
             },
             Command::none(),
@@ -130,7 +130,7 @@ impl Application for XmoditsGui {
             Msg::Rip => todo!(),
             Msg::check(g) => self.toggls = g,
             Msg::SetCfg(cfg) => {
-                if self.cfg.set(cfg) {
+                if set_cfg(&mut self.cfg, cfg) {
                     self.audio.play("sfx_2")
                 }
             },
@@ -187,7 +187,7 @@ impl Application for XmoditsGui {
 
         use CfgMsg::*;
         let input: _ = text_input(
-            "Destination", &self.cfg.destination_folder, |s| Msg::SetCfg(DestinationFolder(s))
+            "Destination", &self.cfg.destination, |s| Msg::SetCfg(DestinationFolder(s))
         ).padding(10).on_submit(Msg::Beep("sfx_1".into()));
 
         
@@ -198,8 +198,8 @@ impl Application for XmoditsGui {
             .push(checkbox("No Folder", self.cfg.no_folder, |b| Msg::SetCfg(NoFolder(b))))
             .push(checkbox("Index Only", self.cfg.index_only, |b| Msg::SetCfg(IndexOnly(b))))
             .push(checkbox("Preserve Index", self.cfg.index_raw, |b| Msg::SetCfg(IndexRaw(b))))
-            .push(checkbox("Upper Case", self.cfg.upper_case, |b| Msg::SetCfg(UpperCase(b))))
-            .push(checkbox("Lower Case", self.cfg.lower_case, |b| Msg::SetCfg(LowerCase(b))))
+            .push(checkbox("Upper Case", self.cfg.upper, |b| Msg::SetCfg(UpperCase(b))))
+            .push(checkbox("Lower Case", self.cfg.lower, |b| Msg::SetCfg(LowerCase(b))))
             .push(
                 Row::new()
                     .spacing(5)

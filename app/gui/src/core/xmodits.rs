@@ -4,6 +4,8 @@ use std::time::Duration;
 use xmodits_lib::{TrackerModule, Error};
 use xmodits_lib::wav::Wav;
 use xmodits_lib::load_module;
+
+use super::cfg::Config;
 // use iced::futures::io::
 /*
 An asynchronous version
@@ -22,7 +24,7 @@ impl Ripper {
         Ok(())
     }
 
-    pub fn rip(&mut self, cfg: &crate::gui::SampleConfig) {
+    pub fn rip(&mut self, cfg: Config) {
         std::thread::sleep(Duration::from_secs(5));
 
     }
