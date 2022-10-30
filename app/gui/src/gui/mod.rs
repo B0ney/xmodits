@@ -14,7 +14,8 @@ pub enum Msg {
     Rip,
     check(bool),
     SetCfg(CfgMsg),
-    Beep(String)
+    Beep(String),
+    StartRip
 }
 
 #[derive(Debug, Clone)]
@@ -82,6 +83,7 @@ pub struct XmoditsGui {
     paths: Vec<String>,
     toggls: bool,
     audio: core::sfx::Audio,
+    ripper: core::xmodits::Ripper,
 }
 
 impl Application for XmoditsGui {
@@ -113,6 +115,13 @@ impl Application for XmoditsGui {
             Msg::check(g) => self.toggls = g,
             Msg::SetCfg(cfg) => self.cfg.set(cfg),
             Msg::Beep(sfx) => self.audio.play(&sfx),
+            Msg::StartRip => return Command::perform(
+                async {
+                        std::thread::sleep(std::time::Duration::from_secs(5));
+                        String::from("sfx_1")
+                    // &self.ripper.rip(&self.cfg)
+                },Msg::Beep
+            ),
         }
         Command::none()
     }
@@ -126,6 +135,7 @@ impl Application for XmoditsGui {
         //             column.push(checkbox(path, true, |b| { dbg!(b); Message::check(b)}))
         //         }
         //     );
+        let title: _ =  Text::new(format!("Modules: {}", self.paths.len()));
         let trackers: _ = self
             .paths
             .iter()
@@ -134,7 +144,11 @@ impl Application for XmoditsGui {
                 |s,gs| { s.push(Text::new(gs).font(JETBRAINS_MONO)) }
             ).width(Length::FillPortion(1));
 
-        let scrollable = scrollable(trackers);
+        let scrollable = Column::new()
+            .width(Length::FillPortion(1))
+            .spacing(5)
+            .push(title)    
+            .push(scrollable(trackers));
 
         use CfgMsg::*;
         let input: _ = text_input(
@@ -168,6 +182,7 @@ impl Application for XmoditsGui {
                         .spacing(10)
                         .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
                         .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())))
+                        .push(Button::new("rip").on_press(Msg::StartRip))
                         // .push(Button::new(text("boned").font(JETBRAINS_MONO)).on_press(Msg::Beep("sfx_3".into())))
                         // .push(Button::new("aauugghh").on_press(Msg::Beep("sfx_4".into())))
                 )
