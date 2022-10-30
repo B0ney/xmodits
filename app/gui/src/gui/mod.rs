@@ -3,8 +3,8 @@ mod style;
 
 use std::path::PathBuf;
 use crate::core;
-use iced::Theme;
-use iced::widget::{column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button};
+use iced::{Theme, Alignment};
+use iced::widget::{column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input};
 use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
 use image::{self, GenericImageView};
@@ -36,20 +36,43 @@ pub struct SampleConfig {
     pub upper_case: bool,
     pub lower_case: bool,
     pub index_padding: usize,
-    pub destination_folder: PathBuf,
+    pub destination_folder: String,
 }
 
 impl SampleConfig{
     fn set(&mut self, msg: CfgMsg) {
         match msg {
             CfgMsg::NoFolder(b) => self.no_folder = b,
-            CfgMsg::IndexOnly(b) => self.index_only = b,
+            CfgMsg::IndexOnly(b) => {
+                if b {
+                    self.upper_case = false;
+                    self.lower_case = false;
+                }
+                self.index_only = b;
+            },
             CfgMsg::IndexRaw(b) => self.index_raw = b,
-            CfgMsg::UpperCase(b) => self.upper_case = b,
-            CfgMsg::LowerCase(b) => self.lower_case = b,
+            CfgMsg::UpperCase(b) => {
+                if self.lower_case && b {
+                    self.lower_case = false
+                }
+                if !self.index_only {
+                    self.upper_case = b;
+                    // Command::none()
+                }
+            },
+            CfgMsg::LowerCase(b) => {
+                if self.upper_case && b {
+                    self.upper_case = false
+                }
+                if !self.index_only {
+                    self.lower_case = b;
+                }
+            },
+
             CfgMsg::IndexPadding(padding) => self.index_padding = padding,
-            CfgMsg::DestinationFolder(destination) => self.destination_folder = PathBuf::from(destination),
+            CfgMsg::DestinationFolder(destination) => self.destination_folder = destination,
         }
+        // Command::none()
     } 
 }
 
@@ -68,9 +91,12 @@ impl Application for XmoditsGui {
     type Theme = Theme;
 
     fn new(_flags: ()) -> (Self, Command<Msg>) {
+        let c = ["it", "xm", "s3m", "mod", "umx"];
+        let a = (1000..1200).into_iter().map(|d| format!("{}.{}",d.to_string(), c[d % c.len()])).collect();
+        // println!("{:?}",&a);
         (
             Self{
-                paths: vec!["dklsjaf;", "djlkajfd;la", "djslfjda"].into_iter().map(|d| d.to_string()).collect(),
+                paths: a,
                 ..Default::default()
             },
             Command::none(),
@@ -100,10 +126,26 @@ impl Application for XmoditsGui {
         //             column.push(checkbox(path, true, |b| { dbg!(b); Message::check(b)}))
         //         }
         //     );
+        let trackers: _ = self
+            .paths
+            .iter()
+            .fold(
+                Column::new().spacing(10),
+                |s,gs| { s.push(Text::new(gs)) }
+            ).width(Length::FillPortion(1));
+
+        let scrollable = scrollable(trackers);
+
         use CfgMsg::*;
-        let content = Column::new()
-            .spacing(10)
+        let input: _ = text_input(
+            "Destination", &self.cfg.destination_folder, |s| Msg::SetCfg(DestinationFolder(s))
+        ).padding(10).on_submit(Msg::Beep("sfx_1".into()));
+
+        
+        let settings = Column::new()
+            .spacing(5)
             // .max_width(max_width)
+            .width(Length::FillPortion(1))
             .push(checkbox("No Folder", self.cfg.no_folder, |b| Msg::SetCfg(NoFolder(b))))
             .push(checkbox("Index Only", self.cfg.index_only, |b| Msg::SetCfg(IndexOnly(b))))
             .push(checkbox("Index Raw", self.cfg.index_raw, |b| Msg::SetCfg(IndexRaw(b))))
@@ -118,12 +160,36 @@ impl Application for XmoditsGui {
                     )
                 )
             .push(
-                Row::new().spacing(5)
-                    .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
-                    .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())))
-            );
+                Column::new()
+                .align_items(Alignment::Center)
+                .push(
+                    Row::new()
+                        // .align_items(Alignment::End)
+                        .spacing(10)
+                        .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
+                        .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())))
+                        .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
+                        .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())))
+                )
+            )
+            .push(input);
 
-                
+        let content = Row::new()
+            .spacing(20)
+            .height(Length::Fill)
+            .push(scrollable)
+            .push(settings);
+        
+        // let bar = Column::new()
+        //     .push(
+        //         Row::new()
+        //             .spacing(10)
+        //             .push(Button::new("A").on_press(Msg::Beep("sfx_1".into())))
+        //             .push(Button::new("B").on_press(Msg::Beep("sfx_2".into())))
+        //             .push(Button::new("C").on_press(Msg::Beep("sfx_1".into())))
+        //             .push(Button::new("D").on_press(Msg::Beep("sfx_2".into())))
+        //     )
+        //     .push(content);
             // .push(checkbox("des", self.sample_config.index_only, |b| Message::SetSampleConfig(IndexOnly(b))))
             
             // .push(col);
@@ -132,8 +198,8 @@ impl Application for XmoditsGui {
             .width(Length::Fill)
             .height(Length::Fill)
             .padding(20)
-            .center_x()
-            .center_y()
+            // .center_x()
+            // .center_y()
             .into()
     }
 
@@ -143,7 +209,7 @@ impl XmoditsGui {
     pub fn start() {
         let settings: Settings<()> = Settings {
             window: Window {
-                size: (400, 600),
+                size: (650, 450),
                 resizable: true,
                 decorations: true,
                 icon: Some(icon()),
