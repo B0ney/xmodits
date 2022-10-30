@@ -1,7 +1,6 @@
 mod error;
 mod fmt;
 mod interface;
-#[allow(unused, dead_code)]
 mod utils;
 
 pub use error::XmoditsError;
@@ -28,7 +27,7 @@ pub mod tracker_formats {
 type ModLoaderFunc = fn(&Path) -> Result<TrackerModule, XmoditsError>;
 
 use phf::phf_map;
-pub static LOADERS: phf::Map<&str, ModLoaderFunc> = phf_map! {
+static LOADERS: phf::Map<&str, ModLoaderFunc> = phf_map! {
     "it" => |p| ITFile::load_module(&p),
     "xm" => |p| XMFile::load_module(&p),
     "s3m" => |p| S3MFile::load_module(&p),

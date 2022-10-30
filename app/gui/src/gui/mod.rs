@@ -12,6 +12,12 @@ use image::{self, GenericImageView};
 
 use rfd::AsyncFileDialog;
 
+fn icon() -> Icon {
+    let image = image::load_from_memory(include_bytes!("../../../../extras/logos/png/icon3.png")).unwrap();
+    let (w, h) = image.dimensions();
+    Icon::from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
+}
+
 #[derive(Debug, Clone)]
 pub enum Msg {
     Rip,
@@ -131,8 +137,8 @@ impl Application for XmoditsGui {
             Msg::Beep(sfx) =>  self.audio.play(&sfx) ,
             Msg::StartRip => return Command::perform(
                 async {
-                        std::thread::sleep(std::time::Duration::from_secs(5));
-                        String::from("sfx_1")
+                    std::thread::sleep(std::time::Duration::from_secs(5));
+                    String::from("sfx_1")
                 },Msg::Beep
             ),
             Msg::OpenFileDialoge => return Command::perform(
@@ -270,11 +276,6 @@ impl XmoditsGui {
     }
 }
 
-fn icon() -> Icon {
-    let image = image::load_from_memory(include_bytes!("../../../../extras/logos/png/icon3.png")).unwrap();
-    let (w, h) = image.dimensions();
-    Icon::from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
-}
 
 // #[derive(Default)]
 // struct TestOne;

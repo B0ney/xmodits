@@ -9,9 +9,9 @@ const DATA: [u8; 4] = [0x64, 0x61, 0x74, 0x61]; // data
 const HEADER_SIZE: u32 = 44;
 
 pub struct Wav {
-    smp_rate: u32, // sample rate
-    smp_bits: u8,  // bits per sample
-    pcm_len: u32,  // length of byte array
+    // smp_rate: u32, // sample rate
+    // smp_bits: u8,  // bits per sample
+    // pcm_len: u32,  // length of byte array
     stereo: bool,  // is pcm stereo)
     is_interleaved: bool,
     header: WavHeader,
@@ -37,12 +37,12 @@ impl Wav {
         stereo: bool,  // is pcm stereo)#
         is_interleaved: bool,
     ) -> Self {
-        let channels: u16 = (stereo as u16 + 1); // 0x01 = mono, 0x02 = stereo
-        let block_align: u16 = (channels * (smp_bits / 8) as u16);
+        let channels: u16 = stereo as u16 + 1; // 0x01 = mono, 0x02 = stereo
+        let block_align: u16 = channels * (smp_bits / 8) as u16;
         Self {
-            smp_rate,
-            smp_bits,
-            pcm_len,
+            // smp_rate,
+            // smp_bits,
+            // pcm_len,
             stereo,
             is_interleaved,
             header: WavHeader {
@@ -92,9 +92,7 @@ impl Wav {
     }
 }
 
-/// Is there a way to do this without making the program x100 slower?
-///
-/// s3m already interleaves stereo data, right?
-fn write_interleaved(mut _file: File, _pcm: &[u8], _smp_bits: u8) -> Result<(), Error> {
-    _file.write_all(_pcm).map_err(|e| e.into())
-}
+// Is there a way to do this without making the program x100 slower?
+// fn write_interleaved(mut _file: File, _pcm: &[u8], _smp_bits: u8) -> Result<(), Error> {
+//     _file.write_all(_pcm).map_err(|e| e.into())
+// }

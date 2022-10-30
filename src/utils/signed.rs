@@ -2,7 +2,7 @@ use crate::TrackerSample;
 
 #[inline]
 pub fn make_signed_u8_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) -> &'a [u8] {
-    let mut is_signed = &mut smp.is_readable;
+    let is_signed = &mut smp.is_readable;
 
     if *is_signed {
         &buf[smp.ptr_range()]
@@ -14,7 +14,7 @@ pub fn make_signed_u8_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) ->
 
 #[inline]
 pub fn make_signed_u16_checked<'a>(buf: &'a mut [u8], smp: &mut TrackerSample) -> &'a [u8] {
-    let mut is_signed = &mut smp.is_readable;
+    let is_signed = &mut smp.is_readable;
 
     if *is_signed {
         &buf[smp.ptr_range()]
@@ -36,7 +36,7 @@ pub fn make_signed_u8(buf: &mut [u8]) -> &[u8] {
 #[inline]
 pub fn make_signed_u16(buf: &mut [u8]) -> &[u8] {
     use crate::word;
-    use byteorder::{ByteOrder, BE, LE};
+    use byteorder::{ByteOrder, LE};
 
     for i in 0..(buf.len() / 2) {
         let idx: usize = i * 2;
