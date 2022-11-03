@@ -1,23 +1,10 @@
 use crate::tracker_formats::*;
 use crate::utils::prelude::*;
 use crate::XmoditsError;
-use once_cell::sync::Lazy;
+use crate::LOADERS;
 
 const UPKG_MAGIC: u32 = 0x9E2A83C1;
 const UPKG_HEADER_SIZE: usize = 64;
-
-type ModValidatorFunc = fn(&[u8]) -> Result<(), XmoditsError>;
-type ModLoaderFunc = fn(Vec<u8>) -> Result<TrackerModule, XmoditsError>;
-
-static VALIDATE_LOADER: Lazy<[(ModValidatorFunc, ModLoaderFunc); 4]> = Lazy::new(|| {
-    [
-        (|p| ITFile::validate(p), ITFile::load_from_buf),
-        (|p| XMFile::validate(p), XMFile::load_from_buf),
-        (|p| S3MFile::validate(p), S3MFile::load_from_buf),
-        // Make sure MODFile is placed last since it has the least amount of checks.
-        (|p| MODFile::validate(p), MODFile::load_from_buf),
-    ]
-});
 
 struct DontUseMe;
 
@@ -84,9 +71,7 @@ impl TrackerDumper for UMXFile {
         Ok(())
     }
 
-    fn load_from_buf(mut buf: Vec<u8>) -> Result<TrackerModule, Error> {
-        Self::validate(&buf)?;
-
+    fn load_from_buf_unchecked(mut buf: Vec<u8>) -> Result<TrackerModule, Error> {
         let version = read_u32_le(&buf, 0x0004);
         let export_offset: usize = read_u32_le(&buf, 0x0018) as usize;
         let mut offset: usize = export_offset;
@@ -126,8 +111,9 @@ impl TrackerDumper for UMXFile {
         // The first item in the name table can be used as a "hint", but this is unreliable.
         // This approach iterates through an array of tuples containing two functions:
         // one validates the buffer, the other loads it.
-        // Technically validates the buffer twice... but who cares
-        for (validator, loader) in VALIDATE_LOADER.iter() {
+        for (_, (validator, loader)) in 
+            LOADERS.entries().filter(|(ext, _)| *ext != &"umx") 
+        {
             if validator(&buf).is_ok() {
                 return loader(buf);
             }

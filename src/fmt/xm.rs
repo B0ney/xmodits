@@ -44,9 +44,7 @@ impl TrackerDumper for XMFile {
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> {
-        Self::validate(&buf)?;
-
+    fn load_from_buf_unchecked(buf: Vec<u8>) -> Result<TrackerModule, Error> {
         let module_name: String = read_string(&buf, 0x0011, 20);
         let header_size: u32 = read_u32_le(&buf, 0x003c);
         let patnum: u16 = read_u16_le(&buf, 0x0046);

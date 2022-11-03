@@ -143,10 +143,9 @@ impl Application for XmoditsGui {
             ),
             Msg::OpenFileDialoge => return Command::perform(
                 async {
-                    match AsyncFileDialog::new()
-                        .pick_file()
-                        .await {
-                            Some(handle) => Some(handle.path().to_owned()),
+                    match rfd::FileDialog::new()
+                        .pick_file(){
+                            Some(handle) => Some(handle),
                             None => None
                         }
                 }, Msg::AddFile

@@ -54,11 +54,22 @@ const MAX_FILESIZE_MB: u64 = 1024 * 1024 * 64;
 
 pub trait TrackerDumper {
     /// Load tracker module from memory
+    /// Validates headers.
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
+    where Self: Sized 
+        {
+            Self::validate(&buf)?;
+            Self::load_from_buf_unchecked(buf)
+        }
+
+    /// Load tracker module from memory.
+    /// 
+    /// Can panic if used without any form of external validation
+    fn load_from_buf_unchecked(buf: Vec<u8>) -> Result<TrackerModule, Error>
     where
         Self: Sized;
 
-    /// Check if tracker module is valid
+    /// Check if a tracker module is valid
     fn validate(buf: &[u8]) -> Result<(), Error>
     where
         Self: Sized;
@@ -75,7 +86,9 @@ pub trait TrackerDumper {
         name_sample: &SampleNamerFunc,
     ) -> Result<(), Error> {
         let sample: &TrackerSample = &self.list_sample_data()[index];
-        let file: PathBuf = PathBuf::new().join(folder).join(name_sample(sample, index));
+        let file: PathBuf = PathBuf::new()
+            .join(folder)
+            .join(name_sample(sample, index));
 
         self.write_wav(&file, index)
     }

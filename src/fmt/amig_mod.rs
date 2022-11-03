@@ -35,9 +35,7 @@ impl TrackerDumper for MODFile {
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> {
-        Self::validate(&buf)?;
-
+    fn load_from_buf_unchecked(buf: Vec<u8>) -> Result<TrackerModule, Error> {
         let title: String = read_string(&buf, 0x0000, 20);
         let alt_finetune: bool = ALT_FINETUNE.contains(&&buf[dword!(0x0438)]);
 

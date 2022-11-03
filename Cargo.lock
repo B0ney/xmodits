@@ -4255,7 +4255,6 @@ name = "xmodits-lib"
 version = "0.2.0"
 dependencies = [
  "byteorder",
- "once_cell",
  "phf",
  "rand",
  "sha2",

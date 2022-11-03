@@ -31,9 +31,7 @@ impl TrackerDumper for S3MFile {
         Ok(())
     }
 
-    fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error> {
-        Self::validate(&buf)?;
-
+    fn load_from_buf_unchecked(buf: Vec<u8>) -> Result<TrackerModule, Error> {
         let title: String = read_string(&buf, 0x0000, 28);
         let ord_count: u16 = read_u16_le(&buf, 0x0020);
         let ins_count: u16 = read_u16_le(&buf, 0x0022);
