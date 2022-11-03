@@ -1,8 +1,8 @@
-mod checkbox;
-mod text;
-mod text_input;
-mod scrollable;
-mod button; 
+pub mod checkbox;
+pub mod text;
+pub mod text_input;
+pub mod scrollable;
+pub mod button; 
 mod radio;
 use iced::overlay::menu;
 use iced::widget::{

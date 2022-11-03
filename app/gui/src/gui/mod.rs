@@ -6,7 +6,7 @@ use crate::core;
 use crate::core::cfg::Config;
 use crate::core::font::JETBRAINS_MONO;
 use iced::{Alignment, Subscription, time};
-use iced::widget::{column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
+use iced::widget::{Space,column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
 use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
 use image::{self, GenericImageView};
@@ -99,7 +99,7 @@ impl Application for XmoditsGui {
 
     fn new(_flags: ()) -> (Self, Command<Msg>) {
         let c = ["it", "xm", "s3m", "mod", "umx"];
-        let a = (1..12).into_iter().map(|d| format!("{}.{}",d.to_string(), c[d % c.len()])).collect();
+        let a = (1000..1200).into_iter().map(|d| format!("{}.{}",d.to_string(), c[d % c.len()])).collect();
         // println!("{:?}",&a);
         (
             Self{
@@ -160,65 +160,129 @@ impl Application for XmoditsGui {
         //             column.push(checkbox(path, true, |b| { dbg!(b); Message::check(b)}))
         //         }
         //     );
-        let title: _ =  Text::new(format!("Modules: {}", self.paths.len()));
+        let total_modules: _ =  text(format!("Total Modules: {}", self.paths.len()));
         let trackers: _ = self
             .paths
             .iter()
             .fold(
-                Column::new().spacing(10),
-                |s,gs| { s.push(Text::new(gs).font(JETBRAINS_MONO)) }
-            ).width(Length::FillPortion(1));
+                Column::new().spacing(10).padding(5),
+                |s, gs| s.push(row![
+                    button(text(&gs))
+                        .style(style::button::Button::NormalPackage)
+                        .on_press(Msg::Beep("sfx_1".into()))
+                        .width(Length::Fill),
+                    Space::with_width(Length::Units(15))
+                ])
+            );
 
-        let scrollable = Column::new()
-            .width(Length::FillPortion(1))
-            .spacing(5)
-            .push(title)    
-            .push(scrollable(trackers));
+        let buttonx = row![
+            button("Add Module").padding(10).on_press(Msg::OpenFileDialoge),
+            Space::with_width(Length::Fill),
+            
+            button("Start Ripping").padding(10).on_press(Msg::Beep("sfx_1".into())),
+        ].spacing(10);
+
+        let scrollable = column![
+            total_modules,
+            scrollable(trackers).height(Length::Fill),
+            buttonx
+        ]
+        .width(Length::FillPortion(1))
+        .spacing(10)
+        .align_items(Alignment::Center);
 
         use CfgMsg::*;
+
         let input: _ = text_input(
             "Destination", &self.cfg.destination, |s| Msg::SetCfg(DestinationFolder(s))
         ).padding(10).on_submit(Msg::Beep("sfx_1".into()));
 
-        
-        let settings = Column::new()
-            .spacing(5)
-            // .max_width(max_width)
-            .width(Length::FillPortion(1))
-            .push(checkbox("No Folder", self.cfg.no_folder, |b| Msg::SetCfg(NoFolder(b))))
-            .push(checkbox("Index Only", self.cfg.index_only, |b| Msg::SetCfg(IndexOnly(b))))
-            .push(checkbox("Preserve Index", self.cfg.index_raw, |b| Msg::SetCfg(IndexRaw(b))))
-            .push(checkbox("Upper Case", self.cfg.upper, |b| Msg::SetCfg(UpperCase(b))))
-            .push(checkbox("Lower Case", self.cfg.lower, |b| Msg::SetCfg(LowerCase(b))))
-            .push(
-                Row::new()
-                    .spacing(5)
-                    .push(Text::new("Index Padding"))
-                    .push(
-                        pick_list(vec![1,2,3], Some(self.cfg.index_padding), |b| Msg::SetCfg(IndexPadding(b)))
-                    )
-                )
-            .push(
-                Column::new()
-                .align_items(Alignment::Center)
-                .push(
-                    Row::new()
-                        // .align_items(Alignment::End)
-                        .spacing(10)
-                        .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
-                        .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())))
-                        .push(Button::new("Open").on_press(Msg::OpenFileDialoge))
-                        // .push(Button::new(text("boned").font(JETBRAINS_MONO)).on_press(Msg::Beep("sfx_3".into())))
-                        // .push(Button::new("aauugghh").on_press(Msg::Beep("sfx_4".into())))
-                )
-            )
-            .push(input);
+        let set_destination: _ = row![
+            input,
+            // Space::with_width(Length::Units(5)),
+            button("Open")
+                .on_press(Msg::Beep("sfx_1".into()))
+                .padding(10),
+                // .style(style::button::Button::Refresh)
+            button("Settings")
+                .on_press(Msg::Beep("sfx_1".into()))
+                .padding(10),
+        ]
+        .spacing(5)
+        .width(Length::Fill);
 
-        let content = Row::new()
-            .spacing(20)
+        // let top_buttons = Row::new()
+        //     .spacing(5)
+        //     .padding(1)
+        //     .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
+        //     .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())));
+        
+        let settings = column![
+            row![
+                column![
+                    checkbox("No Folder", self.cfg.no_folder, |b| Msg::SetCfg(NoFolder(b))),
+                    checkbox("Index Only", self.cfg.index_only, |b| Msg::SetCfg(IndexOnly(b))),
+                    checkbox("Preserve Index", self.cfg.index_raw, |b| Msg::SetCfg(IndexRaw(b))),
+                ].spacing(2),
+                column![
+                    checkbox("Upper Case", self.cfg.upper, |b| Msg::SetCfg(UpperCase(b))),
+                    checkbox("Lower Case", self.cfg.lower, |b| Msg::SetCfg(LowerCase(b))),
+                    
+                ].spacing(2)
+            ].spacing(8),
+            
+            row![
+                text("Padding"),  
+                pick_list(vec![1,2,3], Some(self.cfg.index_padding), |b| Msg::SetCfg(IndexPadding(b))),
+                    // .width(Length::Shrink)
+            ].spacing(5),
+            // .max_width(max_width)
+            // .width(Length::FillPortion(1))
+            
+            // row![
+            //     button("beep").on_press(Msg::Beep("sfx_1".into())),
+            //     button("boop").on_press(Msg::Beep("sfx_2".into())),
+            //     button("Open").on_press(Msg::OpenFileDialoge)
+            // ].align_items(Alignment::Center)
+        ]
+        .spacing(5);
+
+
+        let top_panel: _ = row![
+            // title,
+            set_destination,
+        ]
+        .width(Length::FillPortion(1))
+        .align_items(Alignment::Center);
+        
+        let stats: _ = column![
+            text("Module Name: NYC Streets"),
+            text("Format: Impulse Tracker"),
+            text("Samples: 26"),
+            text("Approx Total Sample Size (KiB): 1532"),
+        ]
+        .spacing(5);
+        
+        let main: _ = row![
+            
+            scrollable,
+            column![
+                text("Configure Riping:").font(JETBRAINS_MONO),
+                // top_buttons,
+                settings,
+                text("Current Tracker Infomation:").font(JETBRAINS_MONO),
+                stats,
+            ]
+            .width(Length::FillPortion(1))
+            .spacing(10)
+
+        ].spacing(10);
+
+        let content = Column::new()
+            .spacing(15)
             .height(Length::Fill)
-            .push(scrollable)
-            .push(settings);
+            .push(top_panel)
+            .push(main);
         
         // let bar = Column::new()
         //     .push(
@@ -237,7 +301,7 @@ impl Application for XmoditsGui {
         Container::new(content)
             .width(Length::Fill)
             .height(Length::Fill)
-            .padding(20)
+            .padding(15)
             // .center_x()
             // .center_y()
             .into()

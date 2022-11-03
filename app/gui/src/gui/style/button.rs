@@ -24,7 +24,7 @@ impl button::StyleSheet for Theme {
 
         let appearance = button::Appearance {
             border_width: 1.0,
-            border_radius: 2.0,
+            border_radius: 8.0,
             ..button::Appearance::default()
         };
 
@@ -70,6 +70,7 @@ impl button::StyleSheet for Theme {
 
         let hover_appearance = |bg, tc: Option<Color>| button::Appearance {
             background: Some(Background::Color(Color { a: 0.25, ..bg })),
+            
             text_color: tc.unwrap_or(bg),
             ..active
         };

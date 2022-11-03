@@ -25,11 +25,11 @@ impl scrollable::StyleSheet for Theme {
                 border_color: Color::TRANSPARENT,
             },
         };
-
-        match style {
-            Scrollable::Description => from_appearance(self.palette().base.foreground),
-            Scrollable::Packages => from_appearance(self.palette().base.background),
-        }
+        from_appearance(self.palette().base.background)
+        // match style {
+        //     Scrollable::Description => ,
+        //     Scrollable::Packages => from_appearance(self.palette().base.background),
+        // }
     }
 
     fn hovered(&self, style: Self::Style) -> scrollable::Scrollbar {

@@ -116,7 +116,7 @@ impl TrackerDumper for UMXFile {
         // This approach iterates through an array of tuples containing two functions:
         // one validates the buffer, the other loads it.
         for (_, (validator, loader)) in 
-            LOADERS.entries().filter(|(ext, _)| *ext != &"umx") 
+            LOADERS.entries().filter(|(ext, _)| **ext != "umx") 
         {
             if validator(&buf).is_ok() {
                 return loader(buf);

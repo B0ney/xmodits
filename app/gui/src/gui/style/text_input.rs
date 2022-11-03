@@ -15,7 +15,7 @@ impl text_input::StyleSheet for Theme {
     fn active(&self, _style: Self::Style) -> text_input::Appearance {
         text_input::Appearance {
             background: Background::Color(self.palette().base.foreground),
-            border_radius: 5.0,
+            border_radius: 8.0,
             border_width: 0.0,
             border_color: self.palette().base.foreground,
         }
@@ -24,8 +24,8 @@ impl text_input::StyleSheet for Theme {
     fn focused(&self, _style: Self::Style) -> text_input::Appearance {
         text_input::Appearance {
             background: Background::Color(self.palette().base.foreground),
-            border_radius: 2.0,
-            border_width: 1.0,
+            border_radius: 8.0,
+            border_width: 2.0,
             border_color: Color {
                 a: 0.5,
                 ..self.palette().normal.primary
