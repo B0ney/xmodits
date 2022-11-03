@@ -1,16 +1,18 @@
-mod style;
-// mod theme;
+pub mod style;
+
 use std::path::PathBuf;
 use std::time::Duration;
 use crate::core;
 use crate::core::cfg::Config;
 use crate::core::font::JETBRAINS_MONO;
-use iced::{Theme, Alignment, Subscription, time};
+use iced::{Alignment, Subscription, time};
 use iced::widget::{column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
 use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
 use image::{self, GenericImageView};
 use rfd::AsyncFileDialog;
+
+use style::Theme;
 
 fn icon() -> Icon {
     let image = image::load_from_memory(include_bytes!("../../../../extras/logos/png/icon3.png")).unwrap();
@@ -39,17 +41,6 @@ enum CfgMsg {
     IndexPadding(usize),
     DestinationFolder(String),
 }
-
-// #[derive(Default, Clone)]
-// pub struct SampleConfig {
-//     pub no_folder: bool,
-//     pub index_only: bool,
-//     pub index_raw: bool,
-//     pub upper_case: bool,
-//     pub lower_case: bool,
-//     pub index_padding: usize,
-//     pub destination_folder: String,
-// }
 
 fn set_cfg(cfg: &mut core::cfg::Config, msg: CfgMsg) -> bool {
     match msg {
@@ -160,7 +151,7 @@ impl Application for XmoditsGui {
         Command::none()
     }
 
-    fn view(&self) -> Element<Self::Message> {
+    fn view(&self) -> Element<Msg, Renderer<Self::Theme>> {
         // let col = self.paths
         //     .iter()
         //     .enumerate()
