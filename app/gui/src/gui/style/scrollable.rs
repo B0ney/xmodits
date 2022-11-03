@@ -6,30 +6,31 @@ use super::Theme;
 pub enum Scrollable {
     #[default]
     Description,
-    Packages,
+    Dark,
 }
 
 impl scrollable::StyleSheet for Theme {
     type Style = Scrollable;
 
     fn active(&self, style: Self::Style) -> scrollable::Scrollbar {
-        let from_appearance = |c: Color| scrollable::Scrollbar {
+        let from_appearance = |c: Color, d: Color| scrollable::Scrollbar {
             background: Some(Background::Color(c)),
             border_radius: 5.0,
             border_width: 0.0,
             border_color: Color::TRANSPARENT,
             scroller: scrollable::Scroller {
-                color: self.palette().base.foreground,
+                color: d,
                 border_radius: 0.0,
                 border_width: 0.0,
                 border_color: Color::TRANSPARENT,
             },
         };
-        from_appearance(self.palette().base.background)
-        // match style {
-        //     Scrollable::Description => ,
-        //     Scrollable::Packages => from_appearance(self.palette().base.background),
-        // }
+        // 
+        let color = (self.palette().base.background,self.palette().base.foreground);
+        match style {
+            Scrollable::Description => from_appearance(color.0, color.1),
+            Scrollable::Dark => from_appearance(color.1, color.0),
+        }
     }
 
     fn hovered(&self, style: Self::Style) -> scrollable::Scrollbar {

@@ -6,13 +6,15 @@ use crate::core;
 use crate::core::cfg::Config;
 use crate::core::font::JETBRAINS_MONO;
 use iced::{Alignment, Subscription, time};
-use iced::widget::{Space,column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
+use iced::widget::{container,Space,column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
 use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
 use image::{self, GenericImageView};
 use rfd::AsyncFileDialog;
 
 use style::Theme;
+const copypasta: &str = r#"Is your son obsessed with "Lunix"? BSD, Lunix, Debian and Mandrake are all versions of an illegal hacker operation system, invented by a Soviet computer hacker named Linyos Torovoltos, before the Russians lost the Cold War. It is based on a program called " xenix", which was written by Microsoft for the US government. These programs are used by hackers to break into other people's computer systems to steal credit card numbers. They may also be used to break into people's stereos to steal their music, using the "mp3" program. Torovoltos is a notorious hacker, responsible for writing many hacker programs, such as "telnet", which is used by hackers to connect to machines on the internet without using a telephone. Your son may try to install " lunix" on your hard drive. If he is careful, you may not notice its presence, however, lunix is a capricious beast, and if handled incorrectly, your son may damage your computer, and even break it completely by deleting Windows, at which point you will have to have your computer repaired by a professional."#;
+
 
 fn icon() -> Icon {
     let image = image::load_from_memory(include_bytes!("../../../../extras/logos/png/icon3.png")).unwrap();
@@ -182,7 +184,7 @@ impl Application for XmoditsGui {
             button("Start Ripping").padding(10).on_press(Msg::Beep("sfx_1".into())),
         ].spacing(10);
 
-        let scrollable = column![
+        let trackers = column![
             total_modules,
             scrollable(trackers).height(Length::Fill),
             buttonx
@@ -217,7 +219,7 @@ impl Application for XmoditsGui {
         //     .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
         //     .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())));
         
-        let settings = column![
+        let settings = container(column![
             row![
                 column![
                     checkbox("No Folder", self.cfg.no_folder, |b| Msg::SetCfg(NoFolder(b))),
@@ -245,7 +247,11 @@ impl Application for XmoditsGui {
             //     button("Open").on_press(Msg::OpenFileDialoge)
             // ].align_items(Alignment::Center)
         ]
-        .spacing(5);
+        .spacing(5)
+        )
+            .style(style::Container::Frame)
+            .padding(8)
+            .width(Length::Fill);
 
 
         let top_panel: _ = row![
@@ -255,23 +261,40 @@ impl Application for XmoditsGui {
         .width(Length::FillPortion(1))
         .align_items(Alignment::Center);
         
-        let stats: _ = column![
-            text("Module Name: NYC Streets"),
-            text("Format: Impulse Tracker"),
-            text("Samples: 26"),
-            text("Approx Total Sample Size (KiB): 1532"),
-        ]
-        .spacing(5);
+        let stats: _ = scrollable(
+            column![text("Module Name: NYC Streets"),
+                text("Format: Impulse Tracker"),
+                text("Samples: 26"),
+                text("Approx Total Sample Size (KiB): 1532"),
+                text("Comments: \n"),
+                text(copypasta),
+            ]
+            .align_items(Alignment::Center)
+            .spacing(5)
+        )
+        .height(Length::Fill)
+        .style(style::scrollable::Scrollable::Dark);
         
         let main: _ = row![
             
-            scrollable,
+            trackers,
             column![
-                text("Configure Riping:").font(JETBRAINS_MONO),
+                text("Configure Ripping:").font(JETBRAINS_MONO),
                 // top_buttons,
                 settings,
                 text("Current Tracker Infomation:").font(JETBRAINS_MONO),
-                stats,
+                container(
+                    // column![
+                        
+                        stats,
+                    // ]
+                )
+                .style(style::Container::Frame)
+                .center_x()
+                .padding(8)
+                .width(Length::Fill)
+                .height(Length::Fill)
+                
             ]
             .width(Length::FillPortion(1))
             .spacing(10)
