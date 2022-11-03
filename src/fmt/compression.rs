@@ -1,14 +1,14 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /// Impulse Tracker sample decompression
-/// References:
-/// https://github.com/nicolasgramlich/AndEngineMODPlayerExtension/blob/master/jni/loaders/itsex.c
-/// https://github.com/Konstanty/libmodplug/blob/master/src/load_it.cpp#L1183
-/// https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
-/// https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
-///
-use crate::{
-    utils::{reader::read_u16_le, signed::make_signed_u8, Error},
-    XmoditsError,
-};
+use crate::XmoditsError;
+use crate::utils::Error;
+use crate::utils::signed::make_signed_u8;
+use crate::utils::reader::read_u16_le;
 use byteorder::{ByteOrder, LE};
 
 #[inline(always)]

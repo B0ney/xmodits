@@ -1,12 +1,17 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 use crate::tracker_formats::*;
 use crate::TrackerDumper;
 use crate::XmoditsError;
 use crate::TrackerModule;
+use phf::phf_map;
 
 type ModLoaderFunc = fn(Vec<u8>) -> Result<TrackerModule, XmoditsError>;
 type ModValidatorFunc = fn(&[u8]) -> Result<(), XmoditsError>;
-
-use phf::phf_map;
 
 const MAX_FILESIZE_MB: u64 = 1024 * 1024 * 64;
 

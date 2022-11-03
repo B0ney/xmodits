@@ -1,6 +1,14 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 use super::compression::decompress_sample;
 use crate::utils::signed::make_signed_u8_checked;
-use crate::{dword, utils::prelude::*, TrackerDumper, TrackerModule, TrackerSample, XmoditsError};
+use crate::{TrackerDumper, TrackerModule, TrackerSample, XmoditsError};
+use crate::utils::prelude::*;
+use crate::dword;
 
 type ITSample = TrackerSample;
 

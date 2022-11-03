@@ -44,6 +44,6 @@ opt-level = 1
 # name = "xmodits_app"
 # path = "src/app_win/win.rs"
 
-[package.metadata.winres]
-FileDescription = "Rip samples from tracker music with speed!"
-Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
+# [package.metadata.winres]
+# FileDescription = "Rip samples from tracker music with speed!"
+# Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"

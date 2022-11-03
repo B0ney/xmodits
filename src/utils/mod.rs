@@ -1,4 +1,8 @@
-/* Did you mean amig_mod.rs? */
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
 pub mod macros;
 pub mod signed;
@@ -9,36 +13,6 @@ pub mod wav;
 // pub mod interleave;
 pub type Error = crate::XmoditsError;
 
-/*
-/ Import useful helper functions & macros
-/ and common imports
-/
-/ **Common Imports:**
-/
-/ ```rust
-/ std::fs::{self, File};
-/ std::io::Write;
-/ std::path::Path;
-/ std::path::PathBuf;
-/ ```
-/
-/ **Helper funcion modules**:
-/
-/ ```rust
-/ crate::utils::Error;
-/ crate::utils::wav;
-/ crate::utils::signed::SignedByte;
-/ crate::utils::array::load_to_array;
-/ ```
-/
-/ **Macros:**
-/
-/ ```rust
-/ crate::offset_u16;
-/ crate::offset_u32;
-/ crate::offset_chars;
-/ ```
-*/
 #[allow(unused)]
 pub mod prelude {
     // Bulk common imports

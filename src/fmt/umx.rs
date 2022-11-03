@@ -1,4 +1,10 @@
-use crate::tracker_formats::*;
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+use crate::interface::{TrackerDumper, TrackerModule};
 use crate::utils::prelude::*;
 use crate::XmoditsError;
 use crate::LOADERS;
@@ -10,8 +16,6 @@ struct DontUseMe;
 
 /// "Abandon all hope ye who try to parse this file format." - Tim Sweeney, Unreal Packages
 pub struct UMXFile(DontUseMe);
-
-use crate::interface::{TrackerDumper, TrackerModule};
 
 impl TrackerDumper for UMXFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {

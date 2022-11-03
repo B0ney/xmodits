@@ -1,6 +1,12 @@
-/*  XM samples are encoded in delta values
-    https://github.com/milkytracker/MilkyTracker/blob/master/resources/reference/xm-form.txt#L303=
-*/
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+// XM samples are encoded in delta values
+// https://github.com/milkytracker/MilkyTracker/blob/master/resources/reference/xm-form.txt#L303=
+
 use crate::{word, TrackerSample};
 use byteorder::{ByteOrder, LE};
 
