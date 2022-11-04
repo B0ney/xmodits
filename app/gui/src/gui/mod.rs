@@ -1,4 +1,6 @@
 pub mod style;
+pub mod widgets;
+pub mod views;
 
 use std::path::PathBuf;
 use std::time::Duration;
@@ -12,8 +14,13 @@ use iced::{window::Settings as Window, Application, Command, Element, Length, Re
 use image::{self, GenericImageView};
 use rfd::AsyncFileDialog;
 
+use views::configure::{Message as ConfigMessage, ConfigView};
+use views::settings::{Message as SettingsMessage, SettingsView};
+use self::views::about::AboutView;    
 use style::Theme;
-const copypasta: &str = r#"Is your son obsessed with "Lunix"? BSD, Lunix, Debian and Mandrake are all versions of an illegal hacker operation system, invented by a Soviet computer hacker named Linyos Torovoltos, before the Russians lost the Cold War. It is based on a program called " xenix", which was written by Microsoft for the US government. These programs are used by hackers to break into other people's computer systems to steal credit card numbers. They may also be used to break into people's stereos to steal their music, using the "mp3" program. Torovoltos is a notorious hacker, responsible for writing many hacker programs, such as "telnet", which is used by hackers to connect to machines on the internet without using a telephone. Your son may try to install " lunix" on your hard drive. If he is careful, you may not notice its presence, however, lunix is a capricious beast, and if handled incorrectly, your son may damage your computer, and even break it completely by deleting Windows, at which point you will have to have your computer repaired by a professional."#;
+
+
+// const copypasta: &str = r#"Is your son obsessed with "Lunix"? BSD, Lunix, Debian and Mandrake are all versions of an illegal hacker operation system, invented by a Soviet computer hacker named Linyos Torovoltos, before the Russians lost the Cold War. It is based on a program called " xenix", which was written by Microsoft for the US government. These programs are used by hackers to break into other people's computer systems to steal credit card numbers. They may also be used to break into people's stereos to steal their music, using the "mp3" program. Torovoltos is a notorious hacker, responsible for writing many hacker programs, such as "telnet", which is used by hackers to connect to machines on the internet without using a telephone. Your son may try to install " lunix" on your hard drive. If he is careful, you may not notice its presence, however, lunix is a capricious beast, and if handled incorrectly, your son may damage your computer, and even break it completely by deleting Windows, at which point you will have to have your computer repaired by a professional."#;
 
 
 fn icon() -> Icon {
@@ -22,70 +29,40 @@ fn icon() -> Icon {
     Icon::from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
 }
 
+#[derive(Default, Debug, Clone)]
+pub enum View {
+    #[default]
+    Configure,
+    Settings,
+    About,
+    Help,
+    Ripping,
+}
+
 #[derive(Debug, Clone)]
-pub enum Msg {
+pub enum Message {
+    ConfigurePressed,
+    SettingsPressed,
+    AboutPressed,
+    HelpPressed,
     Rip,
     check(bool),
-    SetCfg(CfgMsg),
+    SetCfg(ConfigMessage),
+    ChangeSetting(SettingsMessage),
     Beep(String),
     StartRip,
     OpenFileDialoge,
     AddFile(Option<PathBuf>),
+    _None,
 }
-
-#[derive(Debug, Clone)]
-enum CfgMsg {
-    NoFolder(bool),
-    IndexOnly(bool),
-    IndexRaw(bool),
-    UpperCase(bool),
-    LowerCase(bool),
-    IndexPadding(usize),
-    DestinationFolder(String),
-}
-
-fn set_cfg(cfg: &mut core::cfg::Config, msg: CfgMsg) -> bool {
-    match msg {
-        CfgMsg::NoFolder(b) => cfg.no_folder = b,
-        CfgMsg::IndexOnly(b) => {
-            if b {
-                cfg.upper = false;
-                cfg.lower = false;
-            }
-            cfg.index_only = b;
-        },
-        CfgMsg::IndexRaw(b) => cfg.index_raw = b,
-        CfgMsg::UpperCase(b) => {
-            if cfg.lower && b {
-                cfg.lower = false
-            }
-            if !cfg.index_only {
-                cfg.upper = b;
-            } else {
-                return true;
-            }
-        },
-        CfgMsg::LowerCase(b) => {
-            if cfg.upper && b {
-                cfg.upper = false
-            }
-            if !cfg.index_only {
-                cfg.lower = b;
-            } else {
-                return true;
-            }
-        },
-
-        CfgMsg::IndexPadding(padding) => cfg.index_padding = padding,
-        CfgMsg::DestinationFolder(destination) => cfg.destination = destination,
-    }
-    false
-    // Command::none()
-} 
 
 #[derive(Default)]
 pub struct XmoditsGui {
-    cfg: core::cfg::Config,
+    view: View,
+    // cfg: core::cfg::Config,
+    cfg: ConfigView,
+    settings: SettingsView,
+    about: AboutView,
     paths: Vec<String>,
     toggls: bool,
     audio: core::sfx::Audio,
@@ -94,19 +71,19 @@ pub struct XmoditsGui {
 }
 
 impl Application for XmoditsGui {
-    type Message = Msg;
+    type Message = Message;
     type Executor = iced::executor::Default;
     type Flags = ();
     type Theme = Theme;
 
-    fn new(_flags: ()) -> (Self, Command<Msg>) {
+    fn new(_flags: ()) -> (Self, Command<Message>) {
         let c = ["it", "xm", "s3m", "mod", "umx"];
         let a = (1000..1200).into_iter().map(|d| format!("{}.{}",d.to_string(), c[d % c.len()])).collect();
         // println!("{:?}",&a);
         (
             Self{
                 paths: a,
-                cfg: Config::load(),
+                // cfg: Config::load(),
                 ..Default::default()
             },
             Command::none(),
@@ -117,23 +94,23 @@ impl Application for XmoditsGui {
         String::from("XMODITS")
     }
 
-    fn update(&mut self, message: Msg) -> Command<Msg> {
+    fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Msg::Rip => todo!(),
-            Msg::check(g) => self.toggls = g,
-            Msg::SetCfg(cfg) => {
-                if set_cfg(&mut self.cfg, cfg) {
+            Message::Rip => todo!(),
+            Message::check(g) => self.toggls = g,
+            Message::SetCfg(cfg) => {
+                if self.cfg.update(cfg) {
                     self.audio.play("sfx_2")
                 }
             },
-            Msg::Beep(sfx) =>  self.audio.play(&sfx) ,
-            Msg::StartRip => return Command::perform(
+            Message::Beep(sfx) =>  self.audio.play(&sfx) ,
+            Message::StartRip => return Command::perform(
                 async {
                     std::thread::sleep(std::time::Duration::from_secs(5));
                     String::from("sfx_1")
-                },Msg::Beep
+                },Message::Beep
             ),
-            Msg::OpenFileDialoge => return Command::perform(
+            Message::OpenFileDialoge => return Command::perform(
                 async {
                     // tokio::
                     match rfd::FileDialog::new()
@@ -141,27 +118,25 @@ impl Application for XmoditsGui {
                             Some(handle) => Some(handle),
                             None => None
                         }
-                }, Msg::AddFile
+                }, Message::AddFile
             ),
-            Msg::AddFile(path) => {
+            Message::AddFile(path) => {
                 if let Some(path) = path {
                     self.paths.push(format!("{}", path.display()));
                     self.audio.play("sfx_1");
                 }
             }
+            Message::ConfigurePressed => self.view = View::Configure,
+            Message::SettingsPressed => self.view = View::Settings,
+            Message::AboutPressed => self.view = View::About,
+            Message::HelpPressed => self.view = View::Help,
+            Message::ChangeSetting(msg) => self.settings.update(msg),
+            Message::_None => (),
         }
         Command::none()
     }
 
-    fn view(&self) -> Element<Msg, Renderer<Self::Theme>> {
-        // let col = self.paths
-        //     .iter()
-        //     .enumerate()
-        //     .fold(
-        //         Column::new().spacing(10), |column, (index, path)| {
-        //             column.push(checkbox(path, true, |b| { dbg!(b); Message::check(b)}))
-        //         }
-        //     );
+    fn view(&self) -> Element<Message, Renderer<Self::Theme>> {
         let total_modules: _ =  text(format!("Total Modules: {}", self.paths.len()));
         let trackers: _ = self
             .paths
@@ -171,17 +146,17 @@ impl Application for XmoditsGui {
                 |s, gs| s.push(row![
                     button(text(&gs))
                         .style(style::button::Button::NormalPackage)
-                        .on_press(Msg::Beep("sfx_1".into()))
+                        .on_press(Message::Beep("sfx_1".into()))
                         .width(Length::Fill),
                     Space::with_width(Length::Units(15))
                 ])
             );
 
         let buttonx = row![
-            button("Add Module").padding(10).on_press(Msg::OpenFileDialoge),
+            button("Add Module").padding(10).on_press(Message::OpenFileDialoge),
             Space::with_width(Length::Fill),
             
-            button("Start Ripping").padding(10).on_press(Msg::Beep("sfx_1".into())),
+            button("Start Ripping").padding(10).on_press(Message::Beep("sfx_1".into())),
         ].spacing(10);
 
         let trackers = column![
@@ -193,108 +168,105 @@ impl Application for XmoditsGui {
         .spacing(10)
         .align_items(Alignment::Center);
 
-        use CfgMsg::*;
+        use ConfigMessage::*;
 
         let input: _ = text_input(
-            "Destination", &self.cfg.destination, |s| Msg::SetCfg(DestinationFolder(s))
-        ).padding(10).on_submit(Msg::Beep("sfx_1".into()));
+            "Destination", &self.cfg.cfg.destination, |s| Message::SetCfg(DestinationFolder(s))
+        ).padding(10).on_submit(Message::Beep("sfx_1".into()));
 
         let set_destination: _ = row![
-            input,
             // Space::with_width(Length::Units(5)),
             button("Open")
-                .on_press(Msg::Beep("sfx_1".into()))
+                .on_press(Message::Beep("sfx_1".into()))
                 .padding(10),
+            input,
+            Space::with_width(Length::Units(15)),
                 // .style(style::button::Button::Refresh)
-            button("Settings")
-                .on_press(Msg::Beep("sfx_1".into()))
+            
+        ]
+        .spacing(5)
+        .width(Length::FillPortion(1));
+        let logo:_ = text("0.0.7-Alpha").font(JETBRAINS_MONO);
+
+        let menu: _ = row![
+            logo,
+            Space::with_width(Length::Fill),
+            button("Configure")
+                .on_press(Message::ConfigurePressed)
                 .padding(10),
+            button("Settings")
+                .on_press(Message::SettingsPressed)
+                .padding(10),
+            button("About")
+                .on_press(Message::AboutPressed)
+                .padding(10),
+            button("Help")
+                .on_press(Message::HelpPressed)
+                .padding(10),            
         ]
         .spacing(5)
-        .width(Length::Fill);
-
-        // let top_buttons = Row::new()
-        //     .spacing(5)
-        //     .padding(1)
-        //     .push(Button::new("beep").on_press(Msg::Beep("sfx_1".into())))
-        //     .push(Button::new("boop").on_press(Msg::Beep("sfx_2".into())));
-        
-        let settings = container(column![
-            row![
-                column![
-                    checkbox("No Folder", self.cfg.no_folder, |b| Msg::SetCfg(NoFolder(b))),
-                    checkbox("Index Only", self.cfg.index_only, |b| Msg::SetCfg(IndexOnly(b))),
-                    checkbox("Preserve Index", self.cfg.index_raw, |b| Msg::SetCfg(IndexRaw(b))),
-                ].spacing(2),
-                column![
-                    checkbox("Upper Case", self.cfg.upper, |b| Msg::SetCfg(UpperCase(b))),
-                    checkbox("Lower Case", self.cfg.lower, |b| Msg::SetCfg(LowerCase(b))),
-                    
-                ].spacing(2)
-            ].spacing(8),
-            
-            row![
-                text("Padding"),  
-                pick_list(vec![1,2,3], Some(self.cfg.index_padding), |b| Msg::SetCfg(IndexPadding(b))),
-                    // .width(Length::Shrink)
-            ].spacing(5),
-            // .max_width(max_width)
-            // .width(Length::FillPortion(1))
-            
-            // row![
-            //     button("beep").on_press(Msg::Beep("sfx_1".into())),
-            //     button("boop").on_press(Msg::Beep("sfx_2".into())),
-            //     button("Open").on_press(Msg::OpenFileDialoge)
-            // ].align_items(Alignment::Center)
-        ]
-        .spacing(5)
-        )
-            .style(style::Container::Frame)
-            .padding(8)
-            .width(Length::Fill);
-
+        .width(Length::FillPortion(1)).align_items(Alignment::Center);
 
         let top_panel: _ = row![
             // title,
             set_destination,
+            menu
         ]
-        .width(Length::FillPortion(1))
-        .align_items(Alignment::Center);
+        .width(Length::Fill)
+        .spacing(5);
         
-        let stats: _ = scrollable(
-            column![text("Module Name: NYC Streets"),
-                text("Format: Impulse Tracker"),
-                text("Samples: 26"),
-                text("Approx Total Sample Size (KiB): 1532"),
-                text("Comments: \n"),
-                text(copypasta),
-            ]
-            .align_items(Alignment::Center)
-            .spacing(5)
-        )
-        .height(Length::Fill)
-        .style(style::scrollable::Scrollable::Dark);
-        
+        let stats: _ =  column![
+            text("Current Tracker Infomation:").font(JETBRAINS_MONO),
+            container(
+                scrollable(
+                    column![text("Module Name: NYC Streets"),
+                        text("Format: Impulse Tracker"),
+                        text("Samples: 26"),
+                        text("Approx Total Sample Size (KiB): 1532"),
+                        text("Comments: \n"),
+                    ]
+                    .spacing(5)
+                )
+                .height(Length::Fill)
+                .style(style::scrollable::Scrollable::Dark)
+            )
+            .style(style::Container::Frame)
+            .padding(8)
+            .width(Length::Fill)
+            .height(Length::Fill)
+        ]
+        .spacing(5);
+
+        let g = match self.view {
+            View::Configure => {
+                container(
+                    column![
+                        self.cfg.view().map(Message::SetCfg),
+                        stats
+                    ].spacing(8)
+                    
+                ).into()
+            },
+            View::Settings => {
+                self.settings.view().map(Message::ChangeSetting)
+            },
+            View::About => {
+                self.about.view().map(|_| Message::_None)
+            }
+            _ => container(stats).into(),
+            // View::Settings => todo!(),
+            // View::About => todo!(),
+            // View::Help => todo!(),
+            // View::Ripping => todo!(),
+        };
+
         let main: _ = row![
             
             trackers,
             column![
-                text("Configure Ripping:").font(JETBRAINS_MONO),
                 // top_buttons,
-                settings,
-                text("Current Tracker Infomation:").font(JETBRAINS_MONO),
-                container(
-                    // column![
-                        
-                        stats,
-                    // ]
-                )
-                .style(style::Container::Frame)
-                .center_x()
-                .padding(8)
-                .width(Length::Fill)
-                .height(Length::Fill)
-                
+                g,
+                 
             ]
             .width(Length::FillPortion(1))
             .spacing(10)
@@ -307,20 +279,6 @@ impl Application for XmoditsGui {
             .push(top_panel)
             .push(main);
         
-        // let bar = Column::new()
-        //     .push(
-        //         Row::new()
-        //             .spacing(10)
-        //             .push(Button::new("A").on_press(Msg::Beep("sfx_1".into())))
-        //             .push(Button::new("B").on_press(Msg::Beep("sfx_2".into())))
-        //             .push(Button::new("C").on_press(Msg::Beep("sfx_1".into())))
-        //             .push(Button::new("D").on_press(Msg::Beep("sfx_2".into())))
-        //     )
-        //     .push(content);
-            // .push(checkbox("des", self.sample_config.index_only, |b| Message::SetSampleConfig(IndexOnly(b))))
-            
-            // .push(col);
-
         Container::new(content)
             .width(Length::Fill)
             .height(Length::Fill)
@@ -339,7 +297,7 @@ impl XmoditsGui {
     pub fn start() {
         let settings: Settings<()> = Settings {
             window: Window {
-                size: (650, 450),
+                size: (900, 600),
                 resizable: true,
                 decorations: true,
                 icon: Some(icon()),

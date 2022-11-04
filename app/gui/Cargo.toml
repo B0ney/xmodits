@@ -29,7 +29,7 @@ git = "https://github.com/iced-rs/iced"
 features = [
     "glow", 
     "image", 
-    "tokio", 
+    # "tokio", 
     "glow_default_system_font"
 ]
 

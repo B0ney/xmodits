@@ -1592,7 +1592,6 @@ source = "git+https://github.com/iced-rs/iced#ac6a3cf8eb77df69cbb6538900786faca7
 dependencies = [
  "futures",
  "log",
- "tokio",
  "wasm-bindgen-futures",
  "wasm-timer",
 ]
@@ -3546,7 +3545,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a9e03c497dc955702ba729190dc4aac6f2a0ce97f913e5b1b5912fc5039d9099"
 dependencies = [
  "autocfg",
- "num_cpus",
  "pin-project-lite",
 ]
 

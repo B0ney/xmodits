@@ -8,7 +8,7 @@ use toml;
 const APP_NAME: &str = "xmodits";
 
 // User editable configuration
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Config {
     pub index_raw: bool,
     pub index_only: bool,
