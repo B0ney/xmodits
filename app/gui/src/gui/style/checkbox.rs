@@ -1,5 +1,5 @@
 use iced::widget::checkbox;
-use iced::{Background, Color};
+use iced::{Background, Color, color};
 use super::Theme;
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -19,8 +19,8 @@ impl checkbox::StyleSheet for Theme {
                 background: Background::Color(self.palette().base.background),
                 checkmark_color: self.palette().bright.primary,
                 border_radius: 5.0,
-                border_width: 1.0,
-                border_color: self.palette().base.background,
+                border_width: 1.2,
+                border_color: color!(0x474747),
                 text_color: Some(self.palette().bright.surface),
             }
         // match style {

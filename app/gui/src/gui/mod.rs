@@ -134,7 +134,10 @@ impl Application for XmoditsGui {
             Message::SettingsPressed => self.view = View::Settings,
             Message::AboutPressed => self.view = View::About,
             Message::HelpPressed => self.view = View::Help,
-            Message::ChangeSetting(msg) => self.settings.update(msg),
+            Message::ChangeSetting(msg) => match msg {
+                SettingsMessage::SFX(sfx) => self.audio.play(&sfx),
+                _ => self.settings.update(msg),
+            },
             Message::_None => (),
             Message::WindowEvent(e) => match e {
                 Event::Window(f) => match f {
@@ -152,7 +155,7 @@ impl Application for XmoditsGui {
     }
 
     fn view(&self) -> Element<Message, Renderer<Self::Theme>> {
-        let total_modules: _ =  text(format!("Total Modules: {}", self.paths.len()));
+        let total_modules: _ =  text(format!("Total Modules: {}", self.paths.len())).font(JETBRAINS_MONO);
         let trackers: _ = self
             .paths
             .iter()
@@ -174,7 +177,7 @@ impl Application for XmoditsGui {
             Space::with_width(Length::Fill),
             
             button("Start Ripping").padding(10).on_press(Message::Beep("sfx_1".into())),
-        ].spacing(10);
+        ].spacing(10).align_items(Alignment::Center);
 
         let trackers = column![
             total_modules,
@@ -184,6 +187,7 @@ impl Application for XmoditsGui {
             .width(Length::Fill)
             .height(Length::Fill)
             .style(style::Container::Black),
+            Space::with_width(Length::Units(5)),
             buttonx
         ]
         .width(Length::FillPortion(1))
@@ -197,17 +201,14 @@ impl Application for XmoditsGui {
         ).padding(10).on_submit(Message::Beep("sfx_1".into()));
 
         let set_destination: _ = row![
-            // Space::with_width(Length::Units(5)),
             button("Open")
                 .on_press(Message::Beep("sfx_1".into()))
                 .padding(10),
-            input,
-            // Space::with_width(Length::Units(15)),
-                // .style(style::button::Button::Refresh)
-            
+            input,            
         ]
         .spacing(5)
         .width(Length::FillPortion(1));
+
         let logo:_ = text("0.0.7-Alpha").font(JETBRAINS_MONO);
 
         let menu: _ = row![
@@ -229,14 +230,6 @@ impl Application for XmoditsGui {
         .spacing(5)
         .width(Length::FillPortion(1)).align_items(Alignment::Center);
 
-        // let top_panel: _ = row![
-        //     // title,
-        //     set_destination,
-        //     // menu
-        // ]
-        // .width(Length::Fill)
-        // .spacing(5);
-        
         let stats: _ =  column![
             text("Current Tracker Infomation:").font(JETBRAINS_MONO),
             container(
@@ -277,10 +270,6 @@ impl Application for XmoditsGui {
                 self.about.view().map(|_| Message::_None)
             }
             _ => container(stats).into(),
-            // View::Settings => todo!(),
-            // View::About => todo!(),
-            // View::Help => todo!(),
-            // View::Ripping => todo!(),
         };
 
         let main: _ = row![
@@ -288,38 +277,29 @@ impl Application for XmoditsGui {
                 set_destination,
                 trackers
             ]
-            .width(Length::FillPortion(5))
+            .width(Length::FillPortion(6))
             .spacing(10),
             column![
                 menu,
-                // top_buttons,
                 g,
-                 
             ]
-            .width(Length::FillPortion(6))
             .spacing(10)
-            // .width(Length::FillPortion(1))
-            // .spacing(10)
-
+            .width(Length::FillPortion(8))
         ].spacing(10);
 
 
         let content = Column::new()
             .spacing(15)
             .height(Length::Fill)
-            // .push(top_panel)
             .push(main);
         
         Container::new(content)
             .width(Length::Fill)
             .height(Length::Fill)
             .padding(15)
-            // .center_x()
-            // .center_y()
             .into()
     }
     fn subscription(&self) -> Subscription<Message> {
-        // time::Duration::from_secs(1).map(Msg::Beep)
         iced::subscription::events().map(Message::WindowEvent)
     }
 
@@ -329,7 +309,7 @@ impl XmoditsGui {
     pub fn start() {
         let settings: Settings<()> = Settings {
             window: Window {
-                size: (900, 600),
+                size: (840, 600),
                 resizable: true,
                 decorations: true,
                 icon: Some(icon()),

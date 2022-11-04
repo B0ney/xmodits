@@ -36,17 +36,18 @@ impl Config {
     pub fn load() -> Self {
         let default_and_save = || {
             let a = Self::default();
-            let _ = a.save();
+            // let _ = a.save();
             a
         };
+        default_and_save()
 
-        match fs::read_to_string(Config::path()) {
-            Ok(j) => match toml::from_str::<Self>(&j) {
-                Ok(s) => s,
-                Err(_) => default_and_save(),
-            },
-            Err(_) => default_and_save(),
-        }
+        // match fs::read_to_string(Config::path()) {
+        //     Ok(j) => match toml::from_str::<Self>(&j) {
+        //         Ok(s) => s,
+        //         Err(_) => default_and_save(),
+        //     },
+        //     Err(_) => default_and_save(),
+        // }
     }
 
     pub fn path() -> PathBuf {

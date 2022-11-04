@@ -1,5 +1,5 @@
 use iced::widget::button;
-use iced::{Background, Color};
+use iced::{Background, Color, color};
 
 use super::Theme;
 
@@ -46,8 +46,8 @@ impl button::StyleSheet for Theme {
                 background: Some(Background::Color(p.base.foreground)),
                 text_color: p.bright.surface,
                 border_radius: 5.0,
-                border_width: 0.0,
-                border_color: p.base.background,
+                border_width: 1.0,
+                border_color: color!(0x474747),
                 ..appearance
             },
             Button::SelectedPackage => button::Appearance {
@@ -57,8 +57,10 @@ impl button::StyleSheet for Theme {
                 })),
                 text_color: p.bright.primary,
                 border_radius: 5.0,
-                border_width: 0.0,
-                border_color: p.normal.primary,
+                border_width: 1.0,
+                border_color: color!(0x474747),
+
+                // border_color: p.normal.primary,
                 ..appearance
             },
         }

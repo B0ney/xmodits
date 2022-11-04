@@ -48,15 +48,19 @@ impl container::StyleSheet for Theme {
             Container::Frame => container::Appearance {
                 background: Some(Background::Color(self.palette().base.foreground)),
                 text_color: Some(self.palette().bright.surface),
+                border_color: color!(0x474747),
                 border_radius: 5.0,
+                border_width: 1.2,
                 ..container::Appearance::default()
             },
             Container::Black => container::Appearance {
                 background: Some(Background::Color(color!(0x151515))),
                 text_color: Some(self.palette().bright.surface),
                 border_radius: 5.0,
-                border_width: 1.0,
-                ..container::Appearance::default()
+                border_width: 1.2,
+                border_color: color!(0x474747),
+
+                // ..container::Appearance::default()
                 
                 // border_color: self.palette().normal.error,
             },

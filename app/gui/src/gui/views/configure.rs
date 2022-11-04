@@ -92,7 +92,7 @@ impl ConfigView {
 
         container(
             column![
-                text("Advanced Ripping Configuration").font(JETBRAINS_MONO),
+                text("Ripping Configuration").font(JETBRAINS_MONO),
                 settings
             ]
             .spacing(5)

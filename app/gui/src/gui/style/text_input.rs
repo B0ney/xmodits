@@ -1,5 +1,5 @@
 use iced::widget::text_input;
-use iced::{Background, Color};
+use iced::{Background, Color, color};
 use super::Theme;
 
 
@@ -16,8 +16,8 @@ impl text_input::StyleSheet for Theme {
         text_input::Appearance {
             background: Background::Color(self.palette().base.foreground),
             border_radius: 8.0,
-            border_width: 0.0,
-            border_color: self.palette().base.foreground,
+            border_width: 1.2,
+            border_color: color!(0x474747),
         }
     }
 
@@ -25,11 +25,8 @@ impl text_input::StyleSheet for Theme {
         text_input::Appearance {
             background: Background::Color(self.palette().base.foreground),
             border_radius: 8.0,
-            border_width: 2.0,
-            border_color: Color {
-                a: 0.5,
-                ..self.palette().normal.primary
-            },
+            border_width: 1.2,
+            border_color: self.palette().normal.primary,
         }
     }
 
