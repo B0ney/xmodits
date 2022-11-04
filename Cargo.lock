@@ -4326,6 +4326,7 @@ dependencies = [
  "anyhow",
  "dirs",
  "iced",
+ "iced_native",
  "image 0.24.4",
  "once_cell",
  "rfd",

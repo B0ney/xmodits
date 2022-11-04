@@ -16,9 +16,14 @@ pub enum Message {
     DestinationFolder(String),
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct ConfigView {
     pub cfg: Config
+}
+impl Default for ConfigView {
+    fn default() -> Self {
+        Self { cfg: Config::load() }
+    }
 }
 
 impl ConfigView {

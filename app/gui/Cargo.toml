@@ -17,7 +17,7 @@ tokio = "1.21.2"
 rodio = { version = "0.16.0", default-features = false, features = ["symphonia-wav"] }
 image = { version= "0.24.4", default-features = false, features = ["ico"] }
 rfd = { version = "0.10.0", default-features = false, features = ["xdg-portal"] }
-
+iced_native = {git = "https://github.com/iced-rs/iced"}
 # native-dialog = { version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
 # crossbeam-channel = "0.5.6"
 # # reqwest = { version = "0.11", features = ["blocking", "json"], optional=true } 

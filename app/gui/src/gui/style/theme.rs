@@ -61,7 +61,9 @@ impl Theme {
             Self::Dark => ColorPalette {
                 base: BaseColors {
                     background: color!(0x272727),
-                    foreground: color!(0x323232),
+                    // foreground: color!(0x323232),
+                    foreground: color!(0x353535),
+
                 },
                 normal: NormalColors {
                     primary: color!(0x5E4266),

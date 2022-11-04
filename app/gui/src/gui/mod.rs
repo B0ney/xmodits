@@ -7,11 +7,13 @@ use std::time::Duration;
 use crate::core;
 use crate::core::cfg::Config;
 use crate::core::font::JETBRAINS_MONO;
-use iced::{Alignment, Subscription, time};
+use iced::{Alignment, Subscription, time, Event};
 use iced::widget::{container,Space,column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
 use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
 use image::{self, GenericImageView};
+use iced_native::window::Event as WindowEvent;
+
 use rfd::AsyncFileDialog;
 
 use views::configure::{Message as ConfigMessage, ConfigView};
@@ -53,6 +55,8 @@ pub enum Message {
     StartRip,
     OpenFileDialoge,
     AddFile(Option<PathBuf>),
+    WindowEvent(Event),
+    ClearTrackers,
     _None,
 }
 
@@ -77,12 +81,12 @@ impl Application for XmoditsGui {
     type Theme = Theme;
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
-        let c = ["it", "xm", "s3m", "mod", "umx"];
-        let a = (1000..1200).into_iter().map(|d| format!("{}.{}",d.to_string(), c[d % c.len()])).collect();
+        // let c = ["it", "xm", "s3m", "mod", "umx"];
+        // let a = (1000..1200).into_iter().map(|d| format!("{}.{}",d.to_string(), c[d % c.len()])).collect();
         // println!("{:?}",&a);
         (
             Self{
-                paths: a,
+                // paths: a,
                 // cfg: Config::load(),
                 ..Default::default()
             },
@@ -132,6 +136,17 @@ impl Application for XmoditsGui {
             Message::HelpPressed => self.view = View::Help,
             Message::ChangeSetting(msg) => self.settings.update(msg),
             Message::_None => (),
+            Message::WindowEvent(e) => match e {
+                Event::Window(f) => match f {
+                    WindowEvent::FileDropped(path) => {
+                        self.paths.push(format!("{}", path.display()));
+                        // self.audio.play("sfx_1");
+                    },
+                    _ => ()
+                },
+                _ => ()
+            },
+            Message::ClearTrackers => self.paths.clear(),
         }
         Command::none()
     }
@@ -155,17 +170,24 @@ impl Application for XmoditsGui {
         let buttonx = row![
             button("Add Module").padding(10).on_press(Message::OpenFileDialoge),
             Space::with_width(Length::Fill),
+            button("Clear All").padding(10).on_press(Message::ClearTrackers),
+            Space::with_width(Length::Fill),
             
             button("Start Ripping").padding(10).on_press(Message::Beep("sfx_1".into())),
         ].spacing(10);
 
         let trackers = column![
             total_modules,
-            scrollable(trackers).height(Length::Fill),
+            container(
+                scrollable(trackers).height(Length::Fill)
+            ).padding(5)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .style(style::Container::Black),
             buttonx
         ]
         .width(Length::FillPortion(1))
-        .spacing(10)
+        .spacing(5)
         .align_items(Alignment::Center);
 
         use ConfigMessage::*;
@@ -180,7 +202,7 @@ impl Application for XmoditsGui {
                 .on_press(Message::Beep("sfx_1".into()))
                 .padding(10),
             input,
-            Space::with_width(Length::Units(15)),
+            // Space::with_width(Length::Units(15)),
                 // .style(style::button::Button::Refresh)
             
         ]
@@ -207,13 +229,13 @@ impl Application for XmoditsGui {
         .spacing(5)
         .width(Length::FillPortion(1)).align_items(Alignment::Center);
 
-        let top_panel: _ = row![
-            // title,
-            set_destination,
-            menu
-        ]
-        .width(Length::Fill)
-        .spacing(5);
+        // let top_panel: _ = row![
+        //     // title,
+        //     set_destination,
+        //     // menu
+        // ]
+        // .width(Length::Fill)
+        // .spacing(5);
         
         let stats: _ =  column![
             text("Current Tracker Infomation:").font(JETBRAINS_MONO),
@@ -226,6 +248,7 @@ impl Application for XmoditsGui {
                         text("Comments: \n"),
                     ]
                     .spacing(5)
+                    .width(Length::Fill)
                 )
                 .height(Length::Fill)
                 .style(style::scrollable::Scrollable::Dark)
@@ -261,22 +284,30 @@ impl Application for XmoditsGui {
         };
 
         let main: _ = row![
-            
-            trackers,
             column![
+                set_destination,
+                trackers
+            ]
+            .width(Length::FillPortion(5))
+            .spacing(10),
+            column![
+                menu,
                 // top_buttons,
                 g,
                  
             ]
-            .width(Length::FillPortion(1))
+            .width(Length::FillPortion(6))
             .spacing(10)
+            // .width(Length::FillPortion(1))
+            // .spacing(10)
 
         ].spacing(10);
+
 
         let content = Column::new()
             .spacing(15)
             .height(Length::Fill)
-            .push(top_panel)
+            // .push(top_panel)
             .push(main);
         
         Container::new(content)
@@ -287,9 +318,10 @@ impl Application for XmoditsGui {
             // .center_y()
             .into()
     }
-    // fn subscription(&self) -> Subscription<Msg> {
-    //     time::Duration::from_secs(1).map(Msg::Beep)
-    // }
+    fn subscription(&self) -> Subscription<Message> {
+        // time::Duration::from_secs(1).map(Msg::Beep)
+        iced::subscription::events().map(Message::WindowEvent)
+    }
 
 }
 

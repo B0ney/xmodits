@@ -9,7 +9,7 @@ use iced::widget::{
     container, pick_list, rule
 };
 
-use iced::{application, Background, Color};
+use iced::{application, Background, Color, color};
 mod theme;
 pub use theme::Theme;
 
@@ -36,7 +36,7 @@ pub enum Container {
     #[default]
     Invisible,
     Frame,
-    BorderedFrame,
+    Black,
 }
 
 impl container::StyleSheet for Theme {
@@ -51,12 +51,14 @@ impl container::StyleSheet for Theme {
                 border_radius: 5.0,
                 ..container::Appearance::default()
             },
-            Container::BorderedFrame => container::Appearance {
-                background: Some(Background::Color(self.palette().base.foreground)),
+            Container::Black => container::Appearance {
+                background: Some(Background::Color(color!(0x151515))),
                 text_color: Some(self.palette().bright.surface),
                 border_radius: 5.0,
                 border_width: 1.0,
-                border_color: self.palette().normal.error,
+                ..container::Appearance::default()
+                
+                // border_color: self.palette().normal.error,
             },
         }
     }
