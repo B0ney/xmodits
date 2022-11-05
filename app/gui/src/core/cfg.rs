@@ -51,7 +51,7 @@ impl Config {
             )
         };
 
-        load_config().unwrap_or(default_and_save())
+        load_config().unwrap_or_else(|_| default_and_save())
     }
 
     pub fn path() -> PathBuf {
@@ -69,9 +69,4 @@ impl Config {
         info!("Saved config file");
         Ok(())
     }
-}
-
-#[test]
-fn s() {
-    let _ = Config::load().save();
 }

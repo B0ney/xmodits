@@ -28,8 +28,6 @@ tracing-subscriber = "0.2.0"
 # crossbeam-channel = "0.5.6"
 # rand = { version = "0.8.5" }
 # # reqwest = { version = "0.11", features = ["blocking", "json"], optional=true } 
-# log = "0.4.17"
-# static_init = "1.0.3"
 # ureq = ""
 
 [dependencies.iced_native]

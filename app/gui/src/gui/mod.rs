@@ -156,19 +156,32 @@ impl Application for XmoditsGui {
 
     fn view(&self) -> Element<Message, Renderer<Self::Theme>> {
         let total_modules: _ =  text(format!("Total Modules: {}", self.paths.len())).font(JETBRAINS_MONO);
-        let trackers: _ = self
-            .paths
-            .iter()
-            .fold(
-                Column::new().spacing(10).padding(5),
-                |s, gs| s.push(row![
-                    button(text(&gs))
-                        .style(style::button::Button::NormalPackage)
-                        .on_press(Message::Beep("sfx_1".into()))
-                        .width(Length::Fill),
-                    Space::with_width(Length::Units(15))
-                ])
-            );
+        //  TODO: move to views module
+        let trackers: _ = if self.paths.len() == 0 {
+            container(text("Drag and drop").font(JETBRAINS_MONO))
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .center_x()
+                .center_y()
+        } else {
+            container(scrollable(
+                self
+                .paths
+                .iter()
+                .fold(
+                    Column::new().spacing(10).padding(5),
+                    |s, gs| s.push(row![
+                        button(text(&gs))
+                            .style(style::button::Button::NormalPackage)
+                            .width(Length::Fill)
+                            .on_press(Message::Beep("sfx_1".into())),
+
+                        Space::with_width(Length::Units(15))
+                    ])
+                ))
+            ).height(Length::Fill)
+                
+        };
 
         let buttonx = row![
             button("Add").padding(10).on_press(Message::OpenFileDialoge),
@@ -182,7 +195,8 @@ impl Application for XmoditsGui {
             total_modules,
 
             container(
-                scrollable(trackers).height(Length::Fill)
+                trackers
+                
             ).padding(5)
             .width(Length::Fill)
             .height(Length::Fill)
@@ -230,6 +244,7 @@ impl Application for XmoditsGui {
         .width(Length::FillPortion(1))
         .align_items(Alignment::Center);
 
+        //  TODO: move to views module
         let stats: _ =  column![
             text("Current Tracker Infomation:").font(JETBRAINS_MONO),
             container(
