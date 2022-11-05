@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-use crate::{dword, word, Error};
+use crate::Error;
 use std::path::Path;
 use std::{fs::File, io::Write};
 
@@ -15,9 +15,6 @@ const DATA: [u8; 4] = [0x64, 0x61, 0x74, 0x61]; // data
 const HEADER_SIZE: u32 = 44;
 
 pub struct Wav {
-    // smp_rate: u32, // sample rate
-    // smp_bits: u8,  // bits per sample
-    // pcm_len: u32,  // length of byte array
     stereo: bool,  // is pcm stereo)
     is_interleaved: bool,
     header: WavHeader,
@@ -46,9 +43,6 @@ impl Wav {
         let channels: u16 = stereo as u16 + 1; // 0x01 = mono, 0x02 = stereo
         let block_align: u16 = channels * (smp_bits / 8) as u16;
         Self {
-            // smp_rate,
-            // smp_bits,
-            // pcm_len,
             stereo,
             is_interleaved,
             header: WavHeader {

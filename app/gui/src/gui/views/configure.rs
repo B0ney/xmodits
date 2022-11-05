@@ -1,7 +1,7 @@
 
 use iced::{Element, Renderer, widget::container, Length};
 use iced::widget::{text, pick_list,checkbox,column, row};
-
+use iced::widget::Space;
 use crate::{gui::style::{self, Theme}, core::cfg::Config};
 use crate::gui::JETBRAINS_MONO;
 
@@ -66,7 +66,8 @@ impl ConfigView {
     }
 
     pub fn view(&self) -> Element<Message, Renderer<Theme>> {
-        let settings: _ = container(column![
+        let settings: _ = container(
+            // column![
             row![
                 column![
                     checkbox("No Folder", self.cfg.no_folder, |b| Message::NoFolder(b)),
@@ -77,15 +78,16 @@ impl ConfigView {
                 column![
                     checkbox("Upper Case", self.cfg.upper, |b| Message::UpperCase(b)),
                     checkbox("Lower Case", self.cfg.lower, |b| Message::LowerCase(b)),
-                    row![
-                        pick_list(vec![1,2,3], Some(self.cfg.index_padding), |b| Message::IndexPadding(b)),
-                        text("Padding"),  
-                    ].spacing(5),
+                    // row![
+                    //     pick_list(vec![1,2,3], Some(self.cfg.index_padding), |b| Message::IndexPadding(b)),
+                    //     text("Padding"),
+                    // ].spacing(5).width(Length::Shrink),
                 ]
                 .spacing(8)
             ].spacing(8),
             
-        ].spacing(8))
+        // ].spacing(8)
+        )
         .style(style::Container::Frame)
         .padding(8)
         .width(Length::Fill);

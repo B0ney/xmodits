@@ -13,7 +13,7 @@ use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
 use image::{self, GenericImageView};
 use iced_native::window::Event as WindowEvent;
-
+use iced_native::keyboard::Event as KeyboardEvent;
 use rfd::AsyncFileDialog;
 
 use views::configure::{Message as ConfigMessage, ConfigView};
@@ -171,16 +171,16 @@ impl Application for XmoditsGui {
             );
 
         let buttonx = row![
-            button("Add Module").padding(10).on_press(Message::OpenFileDialoge),
+            button("Add").padding(10).on_press(Message::OpenFileDialoge),
             Space::with_width(Length::Fill),
-            button("Clear All").padding(10).on_press(Message::ClearTrackers),
+            button("Clear").padding(10).on_press(Message::ClearTrackers),
             Space::with_width(Length::Fill),
-            
-            button("Start Ripping").padding(10).on_press(Message::Beep("sfx_1".into())),
+            button("Start").padding(10).on_press(Message::Beep("sfx_1".into())),
         ].spacing(10).align_items(Alignment::Center);
 
         let trackers = column![
             total_modules,
+
             container(
                 scrollable(trackers).height(Length::Fill)
             ).padding(5)
@@ -209,11 +209,8 @@ impl Application for XmoditsGui {
         .spacing(5)
         .width(Length::FillPortion(1));
 
-        let logo:_ = text("0.0.7-Alpha").font(JETBRAINS_MONO);
-
         let menu: _ = row![
-            logo,
-            Space::with_width(Length::Fill),
+            // Space::with_width(Length::Fill),
             button("Configure")
                 .on_press(Message::ConfigurePressed)
                 .padding(10),
@@ -225,10 +222,13 @@ impl Application for XmoditsGui {
                 .padding(10),
             button("Help")
                 .on_press(Message::HelpPressed)
-                .padding(10),            
+                .padding(10), 
+            // Space::with_width(Length::Fill),
+                       
         ]
         .spacing(5)
-        .width(Length::FillPortion(1)).align_items(Alignment::Center);
+        .width(Length::FillPortion(1))
+        .align_items(Alignment::Center);
 
         let stats: _ =  column![
             text("Current Tracker Infomation:").font(JETBRAINS_MONO),
@@ -309,7 +309,7 @@ impl XmoditsGui {
     pub fn start() {
         let settings: Settings<()> = Settings {
             window: Window {
-                size: (840, 600),
+                size: (700, 450),
                 resizable: true,
                 decorations: true,
                 icon: Some(icon()),

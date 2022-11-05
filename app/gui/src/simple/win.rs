@@ -1,4 +1,3 @@
-#![windows_subsystem = "windows"]
 use std::io::Write;
 use std::thread;
 use std::sync::Arc;
@@ -7,8 +6,8 @@ use std::path::PathBuf;
 use std::env;
 use rand::Rng;
 use xmodits_lib::Error;
-use xmodits::app;
-use xmodits::app_win::dialoge;
+// use xmodits::app;
+// use xmodits::app_win::dialoge;
 
 enum Msg {
     Success,

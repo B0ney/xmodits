@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::path::PathBuf;
 
-use xmodits::{api, Cli};
+pub use xmodits::{api, Cli};
 
 fn main() {
     let mut cli = Cli::parse();
@@ -28,10 +28,10 @@ fn main() {
         return api::info(cli);
     }
 
-    #[cfg(feature = "advanced")]
-    if cli.parallel {
-        return api::rip_parallel(cli, destination);
-    }
+    // #[cfg(feature = "advanced")]
+    // if cli.parallel {
+    //     return api::rip_parallel(cli, destination);
+    // }
 
     api::rip(cli, destination);
 

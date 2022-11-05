@@ -1,5 +1,5 @@
 use std::{fs, path::PathBuf};
-
+use tracing::{info, Level, warn};
 use anyhow::Result;
 use dirs;
 use serde::{Deserialize, Serialize};
@@ -25,8 +25,11 @@ pub fn config_dir() -> PathBuf {
         .join(APP_NAME);
 
     if !config_dir.exists() {
-        fs::create_dir(&config_dir)
-            .expect("Couldn't create a config folder for xmodits") // TODO: replace with log warn
+        if let(Err(err)) = fs::create_dir(&config_dir) {
+            warn!("{}", format!("Failed to create a config directory: {:?}", err));
+        } else {
+            info!("Created config directory");
+        }
     }
 
     config_dir
@@ -35,19 +38,20 @@ pub fn config_dir() -> PathBuf {
 impl Config {
     pub fn load() -> Self {
         let default_and_save = || {
-            let a = Self::default();
-            // let _ = a.save();
-            a
+            let config = Self::default();
+            let _ = config.save();
+            config
         };
-        default_and_save()
+    
+        let load_config = || {
+            Ok::<Config, anyhow::Error>(
+                toml::from_str::<Self>(
+                    &fs::read_to_string(Config::path())?
+                )?
+            )
+        };
 
-        // match fs::read_to_string(Config::path()) {
-        //     Ok(j) => match toml::from_str::<Self>(&j) {
-        //         Ok(s) => s,
-        //         Err(_) => default_and_save(),
-        //     },
-        //     Err(_) => default_and_save(),
-        // }
+        load_config().unwrap_or(default_and_save())
     }
 
     pub fn path() -> PathBuf {
@@ -62,6 +66,7 @@ impl Config {
         use std::io::prelude::*;
         let mut a = fs::File::create(Config::path())?;
         a.write_all(&toml::to_vec(&self)?)?;
+        info!("Saved config file");
         Ok(())
     }
 }

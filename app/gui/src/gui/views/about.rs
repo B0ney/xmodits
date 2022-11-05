@@ -12,8 +12,10 @@ pub enum Message{}
 
 impl AboutView {
     pub fn view(&self) -> Element<Message, Renderer<Theme>> {
-        let about: _ = container(row![
-            text("Xmodits - by B0ney")
+        let logo:_ = text("0.0.7-Alpha").font(JETBRAINS_MONO);
+        let about: _ = container(column![
+            text("Xmodits - by B0ney"),
+            logo,
         ])
         .style(style::Container::Frame)
         .padding(8)

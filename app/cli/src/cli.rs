@@ -29,6 +29,7 @@ pub struct Cli {
     // #[arg(help="Include embedded text from tracker (if it exists)")]
     // #[arg(short='c', long)]
     // with_comment: bool,
+
     #[arg(help = "Don't create a new folder for samples. This can overwrite data, BE CAREFUL!")]
     #[arg(short, long)]
     pub no_folder: bool,
@@ -50,8 +51,8 @@ pub struct Cli {
     #[arg(long)]
     pub hint: Option<String>,
 
-    #[cfg(feature = "advanced")]
-    #[arg(help = "Rip samples in parallel")]
-    #[arg(short = 'k', long)]
-    pub parallel: bool,
+    // #[cfg(feature = "advanced")]
+    // #[arg(help = "Rip samples in parallel")]
+    // #[arg(short = 'k', long)]
+    // pub parallel: bool,
 }

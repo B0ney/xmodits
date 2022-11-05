@@ -3,8 +3,12 @@ name = "xmodits-gui"
 authors = ["B0ney <https://github.com/B0ney>"]
 version = "0.1.0"
 edition = "2021"
+# build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+# [build-dependencies]
+# winres = "0.1.12"
 
 [dependencies]
 xmodits-lib = { path = "../../" }
@@ -17,20 +21,27 @@ tokio = "1.21.2"
 rodio = { version = "0.16.0", default-features = false, features = ["symphonia-wav"] }
 image = { version= "0.24.4", default-features = false, features = ["ico"] }
 rfd = { version = "0.10.0", default-features = false, features = ["xdg-portal"] }
-iced_native = {git = "https://github.com/iced-rs/iced"}
-# native-dialog = { version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
+native-dialog = { version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
+tracing = "0.1.37"
+tracing-subscriber = "0.2.0"
+
 # crossbeam-channel = "0.5.6"
+# rand = { version = "0.8.5" }
 # # reqwest = { version = "0.11", features = ["blocking", "json"], optional=true } 
 # log = "0.4.17"
 # static_init = "1.0.3"
 # ureq = ""
+
+[dependencies.iced_native]
+git = "https://github.com/iced-rs/iced"
+
 [dependencies.iced]
 git = "https://github.com/iced-rs/iced"
 features = [
     "glow", 
     "image", 
-    # "tokio", 
-    "glow_default_system_font"
+    "glow_default_system_font",
+     # "tokio",
 ]
 
 # [features]
@@ -49,3 +60,7 @@ opt-level = 3       # We want to make it fast
 lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 # panic = 'abort' 
+
+# [package.metadata.winres]
+# FileDescription = "Rip samples from tracker music with speed!"
+# Comments = "This software is licensed under AGPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"

@@ -1,7 +1,5 @@
 use crate::{app, Cli};
-
 use std::path::PathBuf;
-
 use xmodits_lib::{SampleNamer, SampleNamerFunc};
 
 pub fn build_namer(cli: &Cli) -> Box<SampleNamerFunc> {
@@ -73,7 +71,7 @@ pub fn rip(cli: Cli, destination: PathBuf) {
         return println!("{}", "There's nothing to rip!");
     }
 
-    let total_size = app::total_size_MiB(&cli.trackers);
+    let total_size = app::total_size_megabytes(&cli.trackers);
 
     if total_size > 512.0 {
         println!(
@@ -98,44 +96,44 @@ pub fn rip(cli: Cli, destination: PathBuf) {
     println!("Done!");
 }
 
-#[cfg(feature = "advanced")]
-pub fn rip_parallel(cli: Cli, destination: PathBuf) {
-    use rayon::prelude::*;
+// #[cfg(feature = "advanced")]
+// pub fn rip_parallel(cli: Cli, destination: PathBuf) {
+//     use rayon::prelude::*;
 
-    let sample_namer_func: Box<SampleNamerFunc> = build_namer(&cli);
+//     let sample_namer_func: Box<SampleNamerFunc> = build_namer(&cli);
 
-    let items = cli.trackers.iter().filter(|f| f.is_file()).count();
+//     let items = cli.trackers.iter().filter(|f| f.is_file()).count();
 
-    if items == 0 {
-        return println!("{}", "There's nothing to rip!");
-    }
+//     if items == 0 {
+//         return println!("{}", "There's nothing to rip!");
+//     }
 
-    let total_size = app::total_size_MiB(&cli.trackers);
+//     let total_size = app::total_size_MiB(&cli.trackers);
 
-    if total_size > 512.0 {
-        println!(
-            "Ripping {:.2} MiB worth of trackers in parallel. Please wait...",
-            total_size
-        );
-    } else {
-        println!(
-            "Ripping {:.2} MiB worth of trackers in parallel is no faster when done serially.",
-            total_size
-        );
-    }
+//     if total_size > 512.0 {
+//         println!(
+//             "Ripping {:.2} MiB worth of trackers in parallel. Please wait...",
+//             total_size
+//         );
+//     } else {
+//         println!(
+//             "Ripping {:.2} MiB worth of trackers in parallel is no faster when done serially.",
+//             total_size
+//         );
+//     }
 
-    cli.trackers
-        .into_par_iter()
-        .filter(|f| f.is_file())
-        .for_each(|mod_path| {
-            if let Err(error) = app::dump_samples_advanced(
-                &mod_path,
-                &folder(&destination, &mod_path, !cli.no_folder),
-                &sample_namer_func,
-                !cli.no_folder,
-            ) {
-                eprintln!("{} <-- \"{}\"", error, file_name(&mod_path));
-            }
-        });
-    println!("Done!");
-}
+//     cli.trackers
+//         .into_par_iter()
+//         .filter(|f| f.is_file())
+//         .for_each(|mod_path| {
+//             if let Err(error) = app::dump_samples_advanced(
+//                 &mod_path,
+//                 &folder(&destination, &mod_path, !cli.no_folder),
+//                 &sample_namer_func,
+//                 !cli.no_folder,
+//             ) {
+//                 eprintln!("{} <-- \"{}\"", error, file_name(&mod_path));
+//             }
+//         });
+//     println!("Done!");
+// }
