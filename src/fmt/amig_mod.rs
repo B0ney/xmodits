@@ -1,3 +1,9 @@
+/*
+TODO
+https://github.com/OpenMPT/openmpt/blob/master/soundlib/Load_mod.cpp
+
+*/
+
 use crate::tables::FINETUNE_TABLE;
 use crate::utils::signed::make_signed_u8_checked;
 use crate::{
@@ -78,6 +84,12 @@ impl TrackerDumper for MODFile {
         //     let percent_delta = ((v1 - v2).abs() / ((v1 + v2) / 2.0)) * 100.0;
         //     println!("{}", percent_delta);
         // }
+
+        // ^ 
+        // This approach is kinda simiar to openmpt's method of detecting invalid mod files
+        // by calculating a threshold.
+        // However this must be rewritten
+        // https://github.com/OpenMPT/openmpt/blob/master/soundlib/Load_mod.cpp#L313
 
         Ok(Box::new(Self {
             title,

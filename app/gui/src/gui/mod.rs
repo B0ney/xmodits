@@ -15,13 +15,11 @@ use image::{self, GenericImageView};
 use iced_native::window::Event as WindowEvent;
 use iced_native::keyboard::Event as KeyboardEvent;
 use rfd::AsyncFileDialog;
-
 use views::configure::{Message as ConfigMessage, ConfigView};
 use views::settings::{Message as SettingsMessage, SettingsView};
 use self::views::about::AboutView;    
 use views::trackers::{Message as TrackerMessage, Xmodits};
 use style::Theme;
-
 
 fn icon() -> Icon {
     let image = image::load_from_memory(include_bytes!("../../../../extras/logos/png/icon3.png")).unwrap();
@@ -61,7 +59,6 @@ pub enum Message {
 #[derive(Default)]
 pub struct XmoditsGui {
     view: View,
-    // cfg: core::cfg::Config,
     cfg: ConfigView,
     settings: SettingsView,
     about: AboutView,
@@ -79,17 +76,7 @@ impl Application for XmoditsGui {
     type Theme = Theme;
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
-        // let c = ["it", "xm", "s3m", "mod", "umx"];
-        // let a = (1000..1200).into_iter().map(|d| format!("{}.{}",d.to_string(), c[d % c.len()])).collect();
-        // println!("{:?}",&a);
-        (
-            Self{
-                // paths: a,
-                // cfg: Config::load(),
-                ..Default::default()
-            },
-            Command::none(),
-        )
+        (Self::default(),Command::none())
     }
 
     fn title(&self) -> String {
@@ -123,7 +110,7 @@ impl Application for XmoditsGui {
             ),
             Message::AddFile(path) => {
                 if let Some(path) = path {
-                    self.paths.push(format!("{}", path.display()));
+                    self.tracker.update(TrackerMessage::Add(path));
                     self.audio.play("sfx_1");
                 }
             }
@@ -154,7 +141,8 @@ impl Application for XmoditsGui {
     }
 
     fn view(&self) -> Element<Message, Renderer<Self::Theme>> {
-        let total_modules: _ =  text(format!("Total Modules: {}", self.tracker.total_modules())).font(JETBRAINS_MONO);
+        // let total_modules: _ =  text(format!("Total Modules: {}", self.tracker.total_modules())).font(JETBRAINS_MONO);
+
         let trackers: _ = self.tracker.view_trackers().map(Message::Tracker);
 
         let buttonx = row![
@@ -166,15 +154,17 @@ impl Application for XmoditsGui {
         ].spacing(10).align_items(Alignment::Center);
 
         let trackers = column![
-            total_modules,
 
-            container(
-                trackers
+            trackers,
+            // total_modules,
+
+            // container(
                 
-            ).padding(5)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .style(style::Container::Black),
+                
+            // ).padding(5)
+            // .width(Length::Fill)
+            // .height(Length::Fill)
+            // .style(style::Container::Black),
             Space::with_width(Length::Units(5)),
             buttonx
         ]
@@ -198,7 +188,6 @@ impl Application for XmoditsGui {
         .width(Length::FillPortion(1));
 
         let menu: _ = row![
-            // Space::with_width(Length::Fill),
             button("Configure")
                 .on_press(Message::ConfigurePressed)
                 .padding(10),
@@ -210,9 +199,7 @@ impl Application for XmoditsGui {
                 .padding(10),
             button("Help")
                 .on_press(Message::HelpPressed)
-                .padding(10), 
-            // Space::with_width(Length::Fill),
-                       
+                .padding(10),                       
         ]
         .spacing(5)
         .width(Length::FillPortion(1))

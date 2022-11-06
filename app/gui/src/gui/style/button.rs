@@ -31,6 +31,8 @@ impl button::StyleSheet for Theme {
         let active_appearance = |bg: Option<Color>, mc| button::Appearance {
             background: Some(Background::Color(bg.unwrap_or(p.base.foreground))),
             border_color: Color { a: 0.5, ..mc },
+            // border_radius: 0.0,
+
             text_color: mc,
             ..appearance
         };

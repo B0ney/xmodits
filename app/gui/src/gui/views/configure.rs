@@ -20,6 +20,7 @@ pub enum Message {
 pub struct ConfigView {
     pub cfg: Config
 }
+
 impl Default for ConfigView {
     fn default() -> Self {
         Self { cfg: Config::load() }
