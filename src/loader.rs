@@ -65,10 +65,15 @@ where
 
 }
 
-fn load_to_buf<P>(path: P) -> Result<Vec<u8>, XmoditsError> 
+pub fn load_to_buf<P>(path: P) -> Result<Vec<u8>, XmoditsError> 
 where
     P: AsRef<std::path::Path>,
 {
+    /*
+        Tracker modules are frickin' tiny.
+        We can get away with loading it to memory directly
+        rather than using Seek.
+    */
     if std::fs::metadata(&path)?.len() > MAX_FILESIZE_MB {
         return Err(XmoditsError::file(
             "File provided is larger than 64MB. No tracker module should ever be close to that",

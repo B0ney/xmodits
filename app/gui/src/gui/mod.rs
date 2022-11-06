@@ -19,10 +19,8 @@ use rfd::AsyncFileDialog;
 use views::configure::{Message as ConfigMessage, ConfigView};
 use views::settings::{Message as SettingsMessage, SettingsView};
 use self::views::about::AboutView;    
+use views::trackers::{Message as TrackerMessage, Xmodits};
 use style::Theme;
-
-
-// const copypasta: &str = r#"Is your son obsessed with "Lunix"? BSD, Lunix, Debian and Mandrake are all versions of an illegal hacker operation system, invented by a Soviet computer hacker named Linyos Torovoltos, before the Russians lost the Cold War. It is based on a program called " xenix", which was written by Microsoft for the US government. These programs are used by hackers to break into other people's computer systems to steal credit card numbers. They may also be used to break into people's stereos to steal their music, using the "mp3" program. Torovoltos is a notorious hacker, responsible for writing many hacker programs, such as "telnet", which is used by hackers to connect to machines on the internet without using a telephone. Your son may try to install " lunix" on your hard drive. If he is careful, you may not notice its presence, however, lunix is a capricious beast, and if handled incorrectly, your son may damage your computer, and even break it completely by deleting Windows, at which point you will have to have your computer repaired by a professional."#;
 
 
 fn icon() -> Icon {
@@ -48,7 +46,7 @@ pub enum Message {
     AboutPressed,
     HelpPressed,
     Rip,
-    check(bool),
+    Tracker(TrackerMessage),
     SetCfg(ConfigMessage),
     ChangeSetting(SettingsMessage),
     Beep(String),
@@ -68,9 +66,9 @@ pub struct XmoditsGui {
     settings: SettingsView,
     about: AboutView,
     paths: Vec<String>,
-    toggls: bool,
     audio: core::sfx::Audio,
     ripper: core::xmodits::Ripper,
+    tracker: Xmodits,
     // ripper: TestOne
 }
 
@@ -101,7 +99,6 @@ impl Application for XmoditsGui {
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::Rip => todo!(),
-            Message::check(g) => self.toggls = g,
             Message::SetCfg(cfg) => {
                 if self.cfg.update(cfg) {
                     self.audio.play("sfx_2")
@@ -142,46 +139,23 @@ impl Application for XmoditsGui {
             Message::WindowEvent(e) => match e {
                 Event::Window(f) => match f {
                     WindowEvent::FileDropped(path) => {
-                        self.paths.push(format!("{}", path.display()));
+                        self.tracker.update(TrackerMessage::Add(path));
+                        // self.paths.push(format!("{}", path.display()));
                         // self.audio.play("sfx_1");
                     },
                     _ => ()
                 },
                 _ => ()
             },
-            Message::ClearTrackers => self.paths.clear(),
+            Message::ClearTrackers => self.tracker.update(TrackerMessage::Clear),
+            Message::Tracker(msg) => self.tracker.update(msg),
         }
         Command::none()
     }
 
     fn view(&self) -> Element<Message, Renderer<Self::Theme>> {
-        let total_modules: _ =  text(format!("Total Modules: {}", self.paths.len())).font(JETBRAINS_MONO);
-        //  TODO: move to views module
-        let trackers: _ = if self.paths.len() == 0 {
-            container(text("Drag and drop").font(JETBRAINS_MONO))
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .center_x()
-                .center_y()
-        } else {
-            container(scrollable(
-                self
-                .paths
-                .iter()
-                .fold(
-                    Column::new().spacing(10).padding(5),
-                    |s, gs| s.push(row![
-                        button(text(&gs))
-                            .style(style::button::Button::NormalPackage)
-                            .width(Length::Fill)
-                            .on_press(Message::Beep("sfx_1".into())),
-
-                        Space::with_width(Length::Units(15))
-                    ])
-                ))
-            ).height(Length::Fill)
-                
-        };
+        let total_modules: _ =  text(format!("Total Modules: {}", self.tracker.total_modules())).font(JETBRAINS_MONO);
+        let trackers: _ = self.tracker.view_trackers().map(Message::Tracker);
 
         let buttonx = row![
             button("Add").padding(10).on_press(Message::OpenFileDialoge),
@@ -244,36 +218,12 @@ impl Application for XmoditsGui {
         .width(Length::FillPortion(1))
         .align_items(Alignment::Center);
 
-        //  TODO: move to views module
-        let stats: _ =  column![
-            text("Current Tracker Infomation:").font(JETBRAINS_MONO),
-            container(
-                scrollable(
-                    column![text("Module Name: NYC Streets"),
-                        text("Format: Impulse Tracker"),
-                        text("Samples: 26"),
-                        text("Approx Total Sample Size (KiB): 1532"),
-                        text("Comments: \n"),
-                    ]
-                    .spacing(5)
-                    .width(Length::Fill)
-                )
-                .height(Length::Fill)
-                .style(style::scrollable::Scrollable::Dark)
-            )
-            .style(style::Container::Frame)
-            .padding(8)
-            .width(Length::Fill)
-            .height(Length::Fill)
-        ]
-        .spacing(5);
-
         let g = match self.view {
             View::Configure => {
                 container(
                     column![
                         self.cfg.view().map(Message::SetCfg),
-                        stats
+                        self.tracker.view_current_tracker().map(|_| Message::_None)
                     ].spacing(8)
                     
                 ).into()
@@ -284,7 +234,7 @@ impl Application for XmoditsGui {
             View::About => {
                 self.about.view().map(|_| Message::_None)
             }
-            _ => container(stats).into(),
+            _ => container(text(":(")).into(),
         };
 
         let main: _ = row![

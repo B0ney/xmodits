@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-
+use crate::loader::load_to_buf;
 use crate::utils::prelude::Wav;
 use crate::utils::Error;
 use crate::XmoditsError;
@@ -56,17 +56,16 @@ impl TrackerSample {
     }
 }
 
-const MAX_FILESIZE_MB: u64 = 1024 * 1024 * 64;
-
 pub trait TrackerDumper {
     /// Load tracker module from memory
     /// Validates headers.
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
-    where Self: Sized 
-        {
-            Self::validate(&buf)?;
-            Self::load_from_buf_unchecked(buf)
-        }
+    where 
+        Self: Sized 
+    {
+        Self::validate(&buf)?;
+        Self::load_from_buf_unchecked(buf)
+    }
 
     /// Load tracker module from memory.
     /// 
@@ -133,32 +132,7 @@ pub trait TrackerDumper {
         Self: Sized,
         P: AsRef<Path>,
     {
-        /*
-            Tracker modules are frickin' tiny.
-            We can get away with loading it to memory directly
-            rather than using Seek.
-
-            This allows us to access specific locations with offsets,
-            which makes everything easier to read and debug (hopefully).
-
-            At any point should we consider optimizing the code,
-            using Seek *may* help performance...(At the cost of readability)
-
-            But this performance increase would mostly take effect with large files.
-
-            The largest tracker module iirc is ~21MB.
-            The average tracker module (IT, XM, S3M) is < 2MB.
-
-            For large scale dumping in parallel, using Seek will be considered.
-        */
-        if std::fs::metadata(&path)?.len() > MAX_FILESIZE_MB {
-            return Err(XmoditsError::file(
-                "File provided is larger than 64MB. No tracker module should ever be close to that",
-            ));
-        }
-
-        let buf: Vec<u8> = fs::read(&path)?;
-        Self::load_from_buf(buf)
+        Self::load_from_buf(load_to_buf(path)?)
     }
 
     /// Dump all samples to a folder
