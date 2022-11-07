@@ -1,5 +1,5 @@
 
-use iced::{Element, Renderer, widget::container, Length};
+use iced::{Alignment, Element, Renderer, widget::container, Length};
 use iced::widget::{text, pick_list,checkbox,column, row};
 use iced::widget::Space;
 use crate::{gui::style::{self, Theme}, core::cfg::Config};
@@ -70,18 +70,24 @@ impl ConfigView {
         let settings: _ = container(
             row![
                 column![
-                    checkbox("No Folder", self.cfg.no_folder, |b| Message::NoFolder(b)),
-                    checkbox("Index Only", self.cfg.index_only, |b| Message::IndexOnly(b)),
-                    checkbox("Preserve Index", self.cfg.index_raw, |b| Message::IndexRaw(b)),
+                    checkbox("No Folder", self.cfg.no_folder, Message::NoFolder),
+                    checkbox("Index Only", self.cfg.index_only, Message::IndexOnly),
+                    checkbox("Preserve Index", self.cfg.index_raw, Message::IndexRaw),
+                    
                 ]
                 .spacing(8),
                 column![
-                    checkbox("Upper Case", self.cfg.upper, |b| Message::UpperCase(b)),
-                    checkbox("Lower Case", self.cfg.lower, |b| Message::LowerCase(b)),
+                    checkbox("Upper Case", self.cfg.upper, Message::UpperCase),
+                    checkbox("Lower Case", self.cfg.lower, Message::LowerCase), 
                     row![
-                        pick_list(vec![1,2,3], Some(self.cfg.index_padding), |b| Message::IndexPadding(b)),
+                        
+                        pick_list(vec![1,2,3], Some(self.cfg.index_padding), Message::IndexPadding)
+                            .width(Length::Units(50)),
+                        // Space::with_width(Length::FillPortion(4)),
                         text("Padding"),
-                    ].spacing(5).width(Length::Shrink),
+                        
+                    ].spacing(5).align_items(Alignment::Center),
+                    
                 ]
                 .spacing(8)
             ].spacing(8),

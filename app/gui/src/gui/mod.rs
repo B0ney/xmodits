@@ -8,18 +8,19 @@ use crate::core;
 use crate::core::cfg::Config;
 use crate::core::font::JETBRAINS_MONO;
 use iced::{Alignment, Subscription, time, Event};
-use iced::widget::{container,Space,column, Container, Column, checkbox,Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
+use iced::widget::{container,Space,column, Container, Column, checkbox, Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
 use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
-use image::{self, GenericImageView};
 use iced_native::window::Event as WindowEvent;
-use iced_native::keyboard::Event as KeyboardEvent;
+use iced_native::keyboard::{Event as KeyboardEvent, KeyCode};
+use image::{self, GenericImageView};
 use rfd::AsyncFileDialog;
 use views::configure::{Message as ConfigMessage, ConfigView};
 use views::settings::{Message as SettingsMessage, SettingsView};
-use self::views::about::AboutView;    
+use views::about::AboutView;    
 use views::trackers::{Message as TrackerMessage, Xmodits};
 use style::Theme;
+
 
 fn icon() -> Icon {
     let image = image::load_from_memory(include_bytes!("../../../../extras/logos/png/icon3.png")).unwrap();
@@ -53,6 +54,7 @@ pub enum Message {
     AddFile(Option<PathBuf>),
     WindowEvent(Event),
     ClearTrackers,
+    DeleteSelected,
     _None,
 }
 
@@ -62,11 +64,9 @@ pub struct XmoditsGui {
     cfg: ConfigView,
     settings: SettingsView,
     about: AboutView,
-    paths: Vec<String>,
     audio: core::sfx::Audio,
     ripper: core::xmodits::Ripper,
     tracker: Xmodits,
-    // ripper: TestOne
 }
 
 impl Application for XmoditsGui {
@@ -124,65 +124,61 @@ impl Application for XmoditsGui {
             },
             Message::_None => (),
             Message::WindowEvent(e) => match e {
+                Event::Keyboard(k) => match k {
+                    KeyboardEvent::KeyPressed { key_code,.. } if key_code == KeyCode::Delete => {
+                        self.tracker.update(TrackerMessage::DeleteSelected)
+                    },
+                    _ => (),
+                },
                 Event::Window(f) => match f {
                     WindowEvent::FileDropped(path) => {
                         self.tracker.update(TrackerMessage::Add(path));
-                        // self.paths.push(format!("{}", path.display()));
-                        // self.audio.play("sfx_1");
                     },
+                    
                     _ => ()
                 },
                 _ => ()
             },
             Message::ClearTrackers => self.tracker.update(TrackerMessage::Clear),
             Message::Tracker(msg) => self.tracker.update(msg),
+            Message::DeleteSelected => self.tracker.update(TrackerMessage::DeleteSelected),
         }
         Command::none()
     }
 
     fn view(&self) -> Element<Message, Renderer<Self::Theme>> {
-        // let total_modules: _ =  text(format!("Total Modules: {}", self.tracker.total_modules())).font(JETBRAINS_MONO);
-
-        let trackers: _ = self.tracker.view_trackers().map(Message::Tracker);
+        let trackers: _ = self.tracker.view_trackers().map(Message::Tracker); 
 
         let buttonx = row![
             button("Add").padding(10).on_press(Message::OpenFileDialoge),
+            button("Add Folder").padding(10).on_press(Message::OpenFileDialoge),
             Space::with_width(Length::Fill),
+            button("Delete Selected").padding(10).on_press(Message::DeleteSelected),
             button("Clear").padding(10).on_press(Message::ClearTrackers),
-            Space::with_width(Length::Fill),
-            button("Start").padding(10).on_press(Message::Beep("sfx_1".into())),
-        ].spacing(10).align_items(Alignment::Center);
-
+            // button("Clear").padding(10).on_press(Message::ClearTrackers),
+            // Space::with_width(Length::Fill),
+        ].spacing(10);
+        
         let trackers = column![
-
             trackers,
-            // total_modules,
-
-            // container(
-                
-                
-            // ).padding(5)
-            // .width(Length::Fill)
-            // .height(Length::Fill)
-            // .style(style::Container::Black),
             Space::with_width(Length::Units(5)),
             buttonx
         ]
         .width(Length::FillPortion(1))
-        .spacing(5)
-        .align_items(Alignment::Center);
+        .spacing(5);
 
         use ConfigMessage::*;
 
         let input: _ = text_input(
-            "Destination", &self.cfg.cfg.destination, |s| Message::SetCfg(DestinationFolder(s))
+            "Ouput Directory", &self.cfg.cfg.destination, |s| Message::SetCfg(DestinationFolder(s))
         ).padding(10).on_submit(Message::Beep("sfx_1".into()));
 
         let set_destination: _ = row![
-            button("Open")
+            input,  
+            button("Select")
                 .on_press(Message::Beep("sfx_1".into()))
                 .padding(10),
-            input,            
+                      
         ]
         .spacing(5)
         .width(Length::FillPortion(1));
@@ -210,7 +206,11 @@ impl Application for XmoditsGui {
                 container(
                     column![
                         self.cfg.view().map(Message::SetCfg),
-                        self.tracker.view_current_tracker().map(|_| Message::_None)
+                        self.tracker.view_current_tracker().map(|_| Message::_None),
+                        button("Start")
+                            .padding(10)
+                            .on_press(Message::Beep("sfx_1".into()))
+                            .width(Length::Fill),
                     ].spacing(8)
                     
                 ).into()
@@ -226,17 +226,20 @@ impl Application for XmoditsGui {
 
         let main: _ = row![
             column![
-                set_destination,
-                trackers
-            ]
-            .width(Length::FillPortion(6))
-            .spacing(10),
-            column![
+                
                 menu,
                 g,
             ]
             .spacing(10)
-            .width(Length::FillPortion(8))
+            .width(Length::FillPortion(4)), // 8
+            column![
+                set_destination,
+                trackers
+            ]
+            .width(Length::FillPortion(5)) //6
+            .spacing(10),
+
+            
         ].spacing(10);
 
 

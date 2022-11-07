@@ -3,7 +3,7 @@ use iced::{Element, Renderer, widget::container, Length};
 use iced::widget::{text, pick_list,checkbox,column, row, scrollable, button};
 use iced::widget::Space;
 use iced_native::Widget;
-use tracing::info;
+use tracing::{info, warn};
 use crate::{gui::style::{self, Theme}, core::cfg::Config};
 use crate::gui::JETBRAINS_MONO;
 use std::path::{PathBuf, Path};
@@ -17,11 +17,12 @@ pub enum Message {
     Beep(String),
     Clear,
     Select((usize, bool)),
+    SelectAll(bool),
+    DeleteSelected,
 }
 
 #[derive(Default)]
 pub struct Info {
-    // id: usize,
     module_name: String,
     format: String,
     samples: usize,
@@ -62,6 +63,7 @@ impl File {
 pub struct Xmodits {
     paths: Vec<File>,
     current: Option<Info>,
+    all_selected: bool,
 }
 
 impl Xmodits {
@@ -85,14 +87,10 @@ impl Xmodits {
             },
             Message::Probe(idx) => {
                 let path = &self.paths[idx].path;
-
-                match &self.current {
-                    Some(d) if d.path == *path => (), // ignore if Info has the same path
-                    _ => {
-                        if let Ok(tracker) = load_module(path) {
-                            self.current = Some(Info::read(tracker, path.to_owned()));
-                        }
-                    },
+                if !self.current_exists(path) {
+                    if let Ok(tracker) = load_module(path) {
+                        self.current = Some(Info::read(tracker, path.to_owned()));
+                    }
                 }
             },
             Message::Beep(_) => (),
@@ -101,13 +99,49 @@ impl Xmodits {
                 self.current = None;
             },
             Message::Select((idx, toggle)) => {
-                self.paths[idx].selected = toggle
+                self.paths[idx].selected = toggle;
+                if !toggle {
+                    self.all_selected = toggle
+                }
+
+            },
+            Message::SelectAll(b) => {
+                self.all_selected = b;
+                self.paths
+                    .iter_mut()
+                    .for_each(|f| f.selected = b)
+            },
+            Message::DeleteSelected => { 
+                // deletes files that are selected without re-allocating
+                // removing elements will copy everything
+                let mut i: usize = 0;
+                self.all_selected = false;
+
+                loop {
+                    if i == self.paths.len() {
+                        break
+                    }
+                    let file = &self.paths[i];
+                    if file.selected {
+                        if self.current_exists(&file.path) { self.current = None }
+                        self.paths.remove(i);
+                    } else {
+                        i+=1;
+                    }
+                }
             },
         }
     }
 
     pub fn total_modules(&self) -> usize {
         self.paths.len()
+    }
+
+    pub fn current_exists(&self,path:&Path)-> bool {
+        match &self.current {
+            Some(d) if d.path == path => true,
+            _ => false,
+        }
     }
 
     pub fn total_selected(&self) -> usize {
@@ -141,35 +175,40 @@ impl Xmodits {
                             row![
                                 checkbox("", gs.selected, move |b| Message::Select((idx, b))),
                                 text(&gs.filename),
-                                ].spacing(1).align_items(Alignment::Center)
+                                ].spacing(1)
                             )
-                            .style(style::button::Button::NormalPackage)
                             .width(Length::Fill)
                             .on_press(Message::Probe(idx))
-                            .padding(4),
+                            .padding(4)
+                            .style(style::button::Button::NormalPackage),
 
                         Space::with_width(Length::Units(15))
                     ])
-                ))
-            )
+                )
+            ))
+            // .spacing(5)
+            .height(Length::Fill)
         };
         container(
             column![
             row![
-                total_modules, total_selected,
+                total_modules, total_selected, 
                 Space::with_width(Length::Fill),
-            ].spacing(15),
+                checkbox("Select all", self.all_selected, Message::SelectAll)
+                    .style(style::checkbox::CheckBox::PackageDisabled),
+            ].spacing(15).align_items(Alignment::Center),
             tracker_list
                 .padding(5)
                 .style(style::Container::Black)
-                .width(Length::Fill)
+                .width(Length::Fill),
+            // set,    
         ].spacing(5))
         .height(Length::Fill)
         .into()       
     }
 
     pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> {
-        let title: _ = text("Current Tracker Infomation:").font(JETBRAINS_MONO);
+        let title: _ = text("Current Tracker Infomation").font(JETBRAINS_MONO);
         let title_2: _ = text("None selected").font(JETBRAINS_MONO);
 
         let content: _ = match &self.current {
