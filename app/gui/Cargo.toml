@@ -38,7 +38,8 @@ git = "https://github.com/iced-rs/iced"
 features = [
     "glow", 
     "image", 
-    "glow_default_system_font",
+    "default_system_font",
+    "svg"
      # "tokio",
 ]
 
@@ -54,7 +55,7 @@ features = [
 # path = ""
 [profile.release]
 strip = true
-opt-level = 3       # We want to make it fast
+opt-level = "z"       # We want to make it smaller
 lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 # panic = 'abort' 

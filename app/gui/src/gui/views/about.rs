@@ -1,6 +1,6 @@
 use iced::{Element, Renderer, widget::container, Length};
 use iced::widget::{text, pick_list,checkbox,column, row, button};
-
+use iced::widget::svg;
 use crate::gui::icons::{github_icon};
 use crate::{gui::style::{self, Theme}, core::cfg::Config};
 use crate::gui::JETBRAINS_MONO;
@@ -21,6 +21,7 @@ impl AboutView {
             text("Xmodits - by B0ney"),
             logo,
             gh,
+            // svg::Svg::load(include_bytes!("../../res/img/agpl3_logo.svg"))
         ])
         .style(style::Container::Frame)
         .padding(8)
@@ -36,6 +37,5 @@ impl AboutView {
         )
         .width(Length::Fill)
         .into()
-        // todo!()
     }
 }

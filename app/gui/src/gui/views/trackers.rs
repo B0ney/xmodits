@@ -111,7 +111,12 @@ impl Xmodits {
                     .iter_mut()
                     .for_each(|f| f.selected = b)
             },
-            Message::DeleteSelected => { 
+            Message::DeleteSelected => {
+                if self.paths.len() == self.total_selected() {
+                    self.paths.clear();
+                    self.current = None;
+                    return;
+                }
                 let mut i = 0;
                 while i < self.paths.len() {
                     let path = &self.paths[i];
