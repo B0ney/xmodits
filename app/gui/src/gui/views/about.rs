@@ -1,6 +1,7 @@
 use iced::{Element, Renderer, widget::container, Length};
-use iced::widget::{text, pick_list,checkbox,column, row};
+use iced::widget::{text, pick_list,checkbox,column, row, button};
 
+use crate::gui::icons::{github_icon};
 use crate::{gui::style::{self, Theme}, core::cfg::Config};
 use crate::gui::JETBRAINS_MONO;
 
@@ -8,14 +9,18 @@ use crate::gui::JETBRAINS_MONO;
 pub struct AboutView;
 
 #[derive(Debug, Clone)]
-pub enum Message{}
+pub enum Message{
+    GH
+}
 
 impl AboutView {
     pub fn view(&self) -> Element<Message, Renderer<Theme>> {
         let logo:_ = text("0.0.7-Alpha").font(JETBRAINS_MONO);
+        let gh: _ = button(github_icon().size(20)).on_press(Message::GH);
         let about: _ = container(column![
             text("Xmodits - by B0ney"),
             logo,
+            gh,
         ])
         .style(style::Container::Frame)
         .padding(8)

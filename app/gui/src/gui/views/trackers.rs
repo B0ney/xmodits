@@ -112,23 +112,21 @@ impl Xmodits {
                     .for_each(|f| f.selected = b)
             },
             Message::DeleteSelected => { 
-                // deletes files that are selected without re-allocating
-                // removing elements will copy everything
-                let mut i: usize = 0;
-                self.all_selected = false;
-
-                loop {
-                    if i == self.paths.len() {
-                        break
-                    }
-                    let file = &self.paths[i];
-                    if file.selected {
-                        if self.current_exists(&file.path) { self.current = None }
-                        self.paths.remove(i);
+                let mut i = 0;
+                while i < self.paths.len() {
+                    let path = &self.paths[i];
+                    if path.selected {
+                        if self.current_exists(&path.path) {
+                            self.current = None;
+                        }
+                        let val = self.paths.remove(i);
                     } else {
-                        i+=1;
+                        i += 1;
                     }
                 }
+                let mut i: usize = 0;
+
+                self.all_selected = false;
             },
         }
     }
@@ -170,7 +168,6 @@ impl Xmodits {
                 .fold(
                     column![].spacing(10).padding(5),
                     |s, (idx, gs)| s.push(row![
-                        
                         button(
                             row![
                                 checkbox("", gs.selected, move |b| Message::Select((idx, b))),

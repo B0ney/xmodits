@@ -1,6 +1,7 @@
 pub mod style;
 pub mod widgets;
 pub mod views;
+pub mod icons;
 
 use std::path::PathBuf;
 use std::time::Duration;
@@ -153,7 +154,8 @@ impl Application for XmoditsGui {
             button("Add").padding(10).on_press(Message::OpenFileDialoge),
             button("Add Folder").padding(10).on_press(Message::OpenFileDialoge),
             Space::with_width(Length::Fill),
-            button("Delete Selected").padding(10).on_press(Message::DeleteSelected),
+            
+            button(row![icons::delete_icon(),"Delete Selected"]).padding(10).on_press(Message::DeleteSelected),
             button("Clear").padding(10).on_press(Message::ClearTrackers),
             // button("Clear").padding(10).on_press(Message::ClearTrackers),
             // Space::with_width(Length::Fill),
