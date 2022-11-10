@@ -19,7 +19,7 @@ pub enum Button {
 impl button::StyleSheet for Theme {
     type Style = Button;
 
-    fn active(&self, style: Self::Style) -> button::Appearance {
+    fn active(&self, style: &Self::Style) -> button::Appearance {
         let p = self.palette();
 
         let appearance = button::Appearance {
@@ -68,7 +68,7 @@ impl button::StyleSheet for Theme {
         }
     }
 
-    fn hovered(&self, style: Self::Style) -> button::Appearance {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
         let active = self.active(style);
         let p = self.palette();
 
@@ -91,7 +91,7 @@ impl button::StyleSheet for Theme {
         }
     }
 
-    fn disabled(&self, style: Self::Style) -> button::Appearance {
+    fn disabled(&self, style: &Self::Style) -> button::Appearance {
         let active = self.active(style);
         let p = self.palette();
 
@@ -111,7 +111,7 @@ impl button::StyleSheet for Theme {
         }
     }
 
-    fn pressed(&self, style: Self::Style) -> button::Appearance {
+    fn pressed(&self, style: &Self::Style) -> button::Appearance {
         button::Appearance {
             ..self.active(style)
         }

@@ -12,7 +12,7 @@ pub enum TextInput {
 impl text_input::StyleSheet for Theme {
     type Style = TextInput;
 
-    fn active(&self, _style: Self::Style) -> text_input::Appearance {
+    fn active(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
             background: Background::Color(self.palette().base.foreground),
             border_radius: 8.0,
@@ -21,7 +21,7 @@ impl text_input::StyleSheet for Theme {
         }
     }
 
-    fn focused(&self, _style: Self::Style) -> text_input::Appearance {
+    fn focused(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
             background: Background::Color(self.palette().base.foreground),
             border_radius: 8.0,
@@ -30,20 +30,20 @@ impl text_input::StyleSheet for Theme {
         }
     }
 
-    fn placeholder_color(&self, _style: Self::Style) -> Color {
+    fn placeholder_color(&self, _style: &Self::Style) -> Color {
         self.palette().normal.surface
     }
 
-    fn value_color(&self, _style: Self::Style) -> Color {
+    fn value_color(&self, _style: &Self::Style) -> Color {
         self.palette().bright.primary
     }
 
-    fn selection_color(&self, _style: Self::Style) -> Color {
+    fn selection_color(&self, _style: &Self::Style) -> Color {
         self.palette().normal.primary
     }
 
     /// Produces the style of an hovered text input.
-    fn hovered(&self, style: Self::Style) -> text_input::Appearance {
+    fn hovered(&self, style: &Self::Style) -> text_input::Appearance {
         self.focused(style)
     }
 }

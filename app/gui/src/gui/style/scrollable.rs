@@ -12,7 +12,7 @@ pub enum Scrollable {
 impl scrollable::StyleSheet for Theme {
     type Style = Scrollable;
 
-    fn active(&self, style: Self::Style) -> scrollable::Scrollbar {
+    fn active(&self, style: &Self::Style) -> scrollable::Scrollbar {
         let from_appearance = |c: Color, d: Color| scrollable::Scrollbar {
             background: Some(Background::Color(c)),
             border_radius: 5.0,
@@ -33,7 +33,7 @@ impl scrollable::StyleSheet for Theme {
         }
     }
 
-    fn hovered(&self, style: Self::Style) -> scrollable::Scrollbar {
+    fn hovered(&self, style: &Self::Style) -> scrollable::Scrollbar {
         scrollable::Scrollbar {
             scroller: scrollable::Scroller {
                 ..self.active(style).scroller
@@ -42,7 +42,7 @@ impl scrollable::StyleSheet for Theme {
         }
     }
 
-    fn dragging(&self, style: Self::Style) -> scrollable::Scrollbar {
+    fn dragging(&self, style: &Self::Style) -> scrollable::Scrollbar {
         let hovered = self.hovered(style);
         scrollable::Scrollbar {
             scroller: scrollable::Scroller { ..hovered.scroller },

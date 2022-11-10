@@ -12,7 +12,7 @@ pub enum CheckBox {
 impl checkbox::StyleSheet for Theme {
     type Style = CheckBox;
 
-    fn active(&self, style: Self::Style, _is_checked: bool) -> checkbox::Appearance {
+    fn active(&self, style: &Self::Style, _is_checked: bool) -> checkbox::Appearance {
         let default = checkbox::Appearance {
                 background: Background::Color(self.palette().base.background),
                 checkmark_color: self.palette().bright.primary,
@@ -68,7 +68,7 @@ impl checkbox::StyleSheet for Theme {
         // }
     }
 
-    fn hovered(&self, style: Self::Style, is_checked: bool) -> checkbox::Appearance {
+    fn hovered(&self, style: &Self::Style, is_checked: bool) -> checkbox::Appearance {
         let from_appearance = || checkbox::Appearance {
             background: Background::Color(self.palette().base.background),
             checkmark_color: self.palette().bright.primary,

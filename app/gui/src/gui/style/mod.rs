@@ -22,7 +22,7 @@ pub enum Application {
 impl application::StyleSheet for Theme {
     type Style = Application;
 
-    fn appearance(&self, style: Self::Style) -> application::Appearance {
+    fn appearance(&self, style: &Self::Style) -> application::Appearance {
         application::Appearance {
             background_color: self.palette().base.background,
             text_color: self.palette().bright.surface,
@@ -42,7 +42,7 @@ pub enum Container {
 impl container::StyleSheet for Theme {
     type Style = Container;
 
-    fn appearance(&self, style: Self::Style) -> container::Appearance {
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
         match style {
             Container::Invisible => container::Appearance::default(),
             Container::Frame => container::Appearance {
@@ -77,7 +77,7 @@ pub enum PickList {
 impl menu::StyleSheet for Theme {
     type Style = ();
 
-    fn appearance(&self, _style: Self::Style) -> menu::Appearance {
+    fn appearance(&self, _style: &Self::Style) -> menu::Appearance {
         let p = self.palette();
 
         menu::Appearance {
@@ -95,7 +95,7 @@ impl menu::StyleSheet for Theme {
 impl pick_list::StyleSheet for Theme {
     type Style = ();
 
-    fn active(&self, _style: ()) -> pick_list::Appearance {
+    fn active(&self, _style: &()) -> pick_list::Appearance {
         pick_list::Appearance {
             text_color: self.palette().bright.surface,
             background: self.palette().base.background.into(),
@@ -110,7 +110,7 @@ impl pick_list::StyleSheet for Theme {
         }
     }
 
-    fn hovered(&self, style: ()) -> pick_list::Appearance {
+    fn hovered(&self, style: &()) -> pick_list::Appearance {
         let active = self.active(style);
         pick_list::Appearance {
             border_color: self.palette().normal.primary,
@@ -129,8 +129,8 @@ pub enum Rule {
 
 impl rule::StyleSheet for Theme {
     type Style = Rule;
-
-    fn style(&self, style: Self::Style) -> rule::Appearance {
+    
+    fn appearance(&self, style: &Self::Style) -> rule::Appearance {
         match style {
             Rule::Default => rule::Appearance {
                 color: self.palette().bright.surface,

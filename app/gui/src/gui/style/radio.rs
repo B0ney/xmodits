@@ -6,7 +6,7 @@ use super::Theme;
 impl radio::StyleSheet for Theme {
     type Style = ();
 
-    fn active(&self, _style: Self::Style, _is_selected: bool) -> radio::Appearance {
+    fn active(&self, _style: &Self::Style, _is_selected: bool) -> radio::Appearance {
         radio::Appearance {
             background: Color::TRANSPARENT.into(),
             dot_color: self.palette().bright.primary,
@@ -16,7 +16,7 @@ impl radio::StyleSheet for Theme {
         }
     }
 
-    fn hovered(&self, style: Self::Style, _is_selected: bool) -> radio::Appearance {
+    fn hovered(&self, style: &Self::Style, _is_selected: bool) -> radio::Appearance {
         let active = self.active(style, true);
 
         radio::Appearance {
