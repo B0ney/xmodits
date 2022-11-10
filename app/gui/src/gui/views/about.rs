@@ -14,6 +14,15 @@ pub enum Message{
 }
 
 impl AboutView {
+    pub fn update(&self, msg: Message) {
+        match msg {
+            Message::GH => {
+                if open::that("https://github.com/B0ney/xmodits").is_err() {
+                    
+                };
+            },
+        }
+    }
     pub fn view(&self) -> Element<Message, Renderer<Theme>> {
         let logo:_ = text("0.0.7-Alpha").font(JETBRAINS_MONO);
         let gh: _ = button(github_icon().size(20)).on_press(Message::GH);

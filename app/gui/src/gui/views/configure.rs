@@ -101,7 +101,7 @@ impl ConfigView {
                 text("Ripping Configuration").font(JETBRAINS_MONO),
                 settings
             ]
-            .spacing(5)
+            .spacing(10)
         )
         .width(Length::Fill)
         .into()

@@ -9,6 +9,7 @@ pub enum Message {
     ToggleSFX,
     // None,
     SFX(String)
+    
 }
 
 #[derive(Default, Debug, Clone)]

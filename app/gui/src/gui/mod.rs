@@ -18,7 +18,7 @@ use image::{self, GenericImageView};
 use rfd::AsyncFileDialog;
 use views::configure::{Message as ConfigMessage, ConfigView};
 use views::settings::{Message as SettingsMessage, SettingsView};
-use views::about::AboutView;    
+use views::about::{Message as AboutMessage, AboutView};    
 use views::trackers::{Message as TrackerMessage, Xmodits};
 use style::Theme;
 
@@ -49,6 +49,7 @@ pub enum Message {
     Tracker(TrackerMessage),
     SetCfg(ConfigMessage),
     ChangeSetting(SettingsMessage),
+    About(AboutMessage),
     Beep(String),
     StartRip,
     OpenFileDialoge,
@@ -143,6 +144,7 @@ impl Application for XmoditsGui {
             Message::ClearTrackers => self.tracker.update(TrackerMessage::Clear),
             Message::Tracker(msg) => self.tracker.update(msg),
             Message::DeleteSelected => self.tracker.update(TrackerMessage::DeleteSelected),
+            Message::About(msg) => self.about.update(msg),
         }
         Command::none()
     }
@@ -213,16 +215,12 @@ impl Application for XmoditsGui {
                             .padding(10)
                             .on_press(Message::Beep("sfx_1".into()))
                             .width(Length::Fill),
-                    ].spacing(8)
+                    ].spacing(10)
                     
                 ).into()
             },
-            View::Settings => {
-                self.settings.view().map(Message::ChangeSetting)
-            },
-            View::About => {
-                self.about.view().map(|_| Message::_None)
-            }
+            View::Settings => self.settings.view().map(Message::ChangeSetting),
+            View::About => self.about.view().map(Message::About),
             _ => container(text(":(")).into(),
         };
 

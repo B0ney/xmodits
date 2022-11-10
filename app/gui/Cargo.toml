@@ -24,6 +24,7 @@ rfd = { version = "0.10.0", default-features = false, features = ["xdg-portal"] 
 native-dialog = { version="0.6.3", features= ["windows_dpi_awareness", "windows_visual_styles"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.2.0"
+open = "3.0.3"
 
 # crossbeam-channel = "0.5.6"
 # rand = { version = "0.8.5" }
