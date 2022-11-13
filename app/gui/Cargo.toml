@@ -32,11 +32,9 @@ open = "3.0.3"
 # ureq = ""
 
 [dependencies.iced_native]
-# git = "https://github.com/iced-rs/iced"
 version ="0.5"
 
 [dependencies.iced]
-# git = "https://github.com/iced-rs/iced"
 version = "0.5"
 features = [
     "glow", 

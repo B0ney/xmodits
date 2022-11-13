@@ -8,7 +8,7 @@ edition = "2021"
 
 [dependencies]
 xmodits-lib = { path = "../../" } #, features=["thread"]
-clap = { version = "4.0.10", features = ["derive", "cargo", "wrap_help"] }
+clap = { version = "4.0.23", features = ["derive", "cargo", "wrap_help"] }
 # rayon = { version = "1.5.3", optional=true }
 
 # [features]

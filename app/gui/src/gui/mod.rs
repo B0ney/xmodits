@@ -192,7 +192,7 @@ impl Application for XmoditsGui {
         use ConfigMessage::*;
 
         let input: _ = text_input(
-            "Ouput Directory", &self.cfg.cfg.destination, |s| Message::SetCfg(DestinationFolder(s))
+            "Output Directory", &self.cfg.cfg.destination, |s| Message::SetCfg(DestinationFolder(s))
         ).padding(10).on_submit(Message::Beep("sfx_1".into()));
 
         let set_destination: _ = row![
@@ -292,6 +292,7 @@ impl XmoditsGui {
                 icon: Some(icon()),
                 ..iced::window::Settings::default()
             },
+            // try_opengles_first: true,
             default_text_size: 17,
             ..iced::Settings::default()
         };

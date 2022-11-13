@@ -10,17 +10,25 @@ use crate::XmoditsError;
 use crate::TrackerModule;
 use phf::phf_map;
 
+const MAX_FILESIZE_MB: u64 = 1024 * 1024 * 64;
+
 type ModLoaderFunc = fn(Vec<u8>) -> Result<TrackerModule, XmoditsError>;
 type ModValidatorFunc = fn(&[u8]) -> Result<(), XmoditsError>;
 
-const MAX_FILESIZE_MB: u64 = 1024 * 1024 * 64;
+fn validate<T: TrackerDumper>(buf: &[u8]) -> Result<(), XmoditsError> {
+    T::validate(buf)
+}
+
+fn load<T: TrackerDumper>(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError> {
+    T::load_from_buf_unchecked(buf)
+}
 
 pub static LOADERS: phf::Map<&str, (ModValidatorFunc, ModLoaderFunc)> = phf_map! {
-    "it" => (|p| ITFile::validate(p), ITFile::load_from_buf_unchecked),
-    "xm" => (|p| XMFile::validate(p), XMFile::load_from_buf_unchecked),
-    "s3m" => (|p| S3MFile::validate(p), S3MFile::load_from_buf_unchecked),
-    "umx" => (|p| UMXFile::validate(p), UMXFile::load_from_buf_unchecked),
-    "mod" => (|p| MODFile::validate(p), MODFile::load_from_buf_unchecked),
+    "it" => (validate::<ITFile>, load::<ITFile>),
+    "xm" => (validate::<XMFile>, load::<XMFile>),
+    "s3m" => (validate::<S3MFile>, load::<S3MFile>),
+    "umx" => (validate::<UMXFile>, load::<UMXFile>),
+    "mod" => (validate::<MODFile>, load::<MODFile>),
 };
 
 /// A more robust method to load a module gven a path.
@@ -58,22 +66,15 @@ where
             }
         },
         None => Err(XmoditsError::UnsupportedFormat(format!(
-            "'{}' is not a supported format.",
-            ext
+            "'{}' is not a supported format.", ext
         ))),
     }
-
 }
 
 pub fn load_to_buf<P>(path: P) -> Result<Vec<u8>, XmoditsError> 
 where
     P: AsRef<std::path::Path>,
 {
-    /*
-        Tracker modules are frickin' tiny.
-        We can get away with loading it to memory directly
-        rather than using Seek.
-    */
     if std::fs::metadata(&path)?.len() > MAX_FILESIZE_MB {
         return Err(XmoditsError::file(
             "File provided is larger than 64MB. No tracker module should ever be close to that",
@@ -83,11 +84,11 @@ where
     Ok(std::fs::read(&path)?)
 }
 
-// Function to get file extension from path.
+/// Function to get file extension from path.
 fn file_extension<P: AsRef<std::path::Path>>(p: P) -> String {
-    (match p.as_ref().extension() {
-        None => "",
-        Some(ext) => ext.to_str().unwrap_or(""),
-    })
-    .to_string()
+    p.as_ref()
+        .extension()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string()
 }
