@@ -54,7 +54,7 @@ impl SettingsView {
                 text("Settings").font(JETBRAINS_MONO),
                 settings
             ]
-            .spacing(5)
+            .spacing(10)
         )
         .width(Length::Fill)
         .into()

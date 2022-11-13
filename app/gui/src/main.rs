@@ -1,6 +1,9 @@
 #![windows_subsystem = "windows"] // Will this make logging impossible?
+#[allow(unused)]
 mod simple;
+#[allow(unused)]
 mod core;
+#[allow(unused)]
 mod gui;
 use std::env;
 use tracing::{info, Level};

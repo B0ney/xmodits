@@ -24,13 +24,13 @@ pub fn config_dir() -> PathBuf {
         .expect("There should be a config directory")
         .join(APP_NAME);
 
-    if !config_dir.exists() {
-        if let(Err(err)) = fs::create_dir(&config_dir) {
-            warn!("{}", format!("Failed to create a config directory: {:?}", err));
-        } else {
-            info!("Created config directory");
-        }
-    }
+    // if !config_dir.exists() {
+    //     if let(Err(err)) = fs::create_dir(&config_dir) {
+    //         warn!("{}", format!("Failed to create a config directory: {:?}", err));
+    //     } else {
+    //         info!("Created config directory");
+    //     }
+    // }
 
     config_dir
 }
@@ -39,7 +39,7 @@ impl Config {
     pub fn load() -> Self {
         let default_and_save = || {
             let config = Self::default();
-            let _ = config.save();
+            // let _ = config.save();
             config
         };
     

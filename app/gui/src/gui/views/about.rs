@@ -42,7 +42,7 @@ impl AboutView {
                 text("About").font(JETBRAINS_MONO),
                 about
             ]
-            .spacing(5)
+            .spacing(10)
         )
         .width(Length::Fill)
         .into()

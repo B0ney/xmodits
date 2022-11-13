@@ -5,10 +5,10 @@ pub mod icons;
 
 use std::path::PathBuf;
 use std::time::Duration;
-use crate::core;
+use crate::core::{self, xmodits::{self}};
 use crate::core::cfg::Config;
 use crate::core::font::JETBRAINS_MONO;
-use iced::{Alignment, Subscription, time, Event};
+use iced::{Alignment, Subscription, time, Event, };
 use iced::widget::{container,Space,column, Container, Column, checkbox, Checkbox, pick_list, Row, Text, button, Button, row, scrollable, text_input, text};
 use iced::window::Icon;
 use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
@@ -21,8 +21,10 @@ use views::settings::{Message as SettingsMessage, SettingsView};
 use views::about::{Message as AboutMessage, AboutView};    
 use views::trackers::{Message as TrackerMessage, Xmodits};
 use style::Theme;
+use tracing::info;
+use tokio::sync::mpsc::{self, Receiver, Sender};
 
-
+use crate::core::xmodits::build_subscription;
 fn icon() -> Icon {
     let image = image::load_from_memory(include_bytes!("../../../../extras/logos/png/icon3.png")).unwrap();
     let (w, h) = image.dimensions();
@@ -58,6 +60,7 @@ pub enum Message {
     ClearTrackers,
     DeleteSelected,
     _None,
+    Progress(xmodits::DownloadMessage)
 }
 
 #[derive(Default)]
@@ -67,8 +70,9 @@ pub struct XmoditsGui {
     settings: SettingsView,
     about: AboutView,
     audio: core::sfx::Audio,
-    ripper: core::xmodits::Ripper,
+    // ripper: core::xmodits::Ripper,
     tracker: Xmodits,
+    sender: Option<Sender<xmodits::DownloadMessage>>
 }
 
 impl Application for XmoditsGui {
@@ -94,12 +98,20 @@ impl Application for XmoditsGui {
                 }
             },
             Message::Beep(sfx) =>  self.audio.play(&sfx) ,
-            Message::StartRip => return Command::perform(
-                async {
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    String::from("sfx_1")
-                },Message::Beep
-            ),
+            Message::StartRip => match self.sender {
+                Some(ref mut tx) => {
+                    tx.try_send(xmodits::DownloadMessage::Download);
+                    // let tx = sender.clone();
+                },
+                _ => (),
+            }
+                
+                // return Command::perform(
+                // async {
+                //     std::thread::sleep(std::time::Duration::from_secs(5));
+                //     String::from("sfx_1")
+                // },Message::Beep
+            // ),
             Message::OpenFileDialoge => return Command::perform(
                 async {
                     // tokio::
@@ -145,6 +157,12 @@ impl Application for XmoditsGui {
             Message::Tracker(msg) => self.tracker.update(msg),
             Message::DeleteSelected => self.tracker.update(TrackerMessage::DeleteSelected),
             Message::About(msg) => self.about.update(msg),
+            Message::Progress(msg) => match msg {
+                xmodits::DownloadMessage::Sender(tx) => self.sender = Some(tx),
+                xmodits::DownloadMessage::Download => (),
+                xmodits::DownloadMessage::Cancel => (),
+                xmodits::DownloadMessage::Done => self.audio.play("sfx_1"),
+            },
         }
         Command::none()
     }
@@ -213,7 +231,7 @@ impl Application for XmoditsGui {
                         self.tracker.view_current_tracker().map(|_| Message::_None),
                         button("Start")
                             .padding(10)
-                            .on_press(Message::Beep("sfx_1".into()))
+                            .on_press(Message::StartRip)
                             .width(Length::Fill),
                     ].spacing(10)
                     
@@ -255,7 +273,11 @@ impl Application for XmoditsGui {
             .into()
     }
     fn subscription(&self) -> Subscription<Message> {
-        iced::subscription::events().map(Message::WindowEvent)
+        iced::Subscription::batch([
+            iced::subscription::events().map(Message::WindowEvent),
+            // build_subscription().map(Message::Progress)
+        ])
+        
     }
 
 }
