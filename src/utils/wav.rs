@@ -15,7 +15,7 @@ const DATA: [u8; 4] = [0x64, 0x61, 0x74, 0x61]; // data
 const HEADER_SIZE: u32 = 44;
 
 pub struct Wav {
-    stereo: bool,  // is pcm stereo)
+    stereo: bool, // is pcm stereo)
     is_interleaved: bool,
     header: WavHeader,
 }

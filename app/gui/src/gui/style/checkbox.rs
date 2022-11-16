@@ -1,6 +1,6 @@
-use iced::widget::checkbox;
-use iced::{Background, Color, color};
 use super::Theme;
+use iced::widget::checkbox;
+use iced::{color, Background, Color};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub enum CheckBox {
@@ -14,16 +14,16 @@ impl checkbox::StyleSheet for Theme {
 
     fn active(&self, style: &Self::Style, _is_checked: bool) -> checkbox::Appearance {
         let default = checkbox::Appearance {
-                background: Background::Color(self.palette().base.background),
-                checkmark_color: self.palette().bright.primary,
-                border_radius: 5.0,
-                border_width: 1.2,
-                border_color: color!(0x474747),
-                text_color: Some(self.palette().bright.surface),
-            };
+            background: Background::Color(self.palette().base.background),
+            checkmark_color: self.palette().bright.primary,
+            border_radius: 5.0,
+            border_width: 1.2,
+            border_color: color!(0x474747),
+            text_color: Some(self.palette().bright.surface),
+        };
         match style {
             CheckBox::PackageEnabled => default,
-            CheckBox::PackageDisabled => checkbox::Appearance { 
+            CheckBox::PackageDisabled => checkbox::Appearance {
                 background: Background::Color(self.palette().base.foreground),
                 ..default
             },
@@ -77,7 +77,7 @@ impl checkbox::StyleSheet for Theme {
             border_color: self.palette().bright.primary,
             text_color: Some(self.palette().bright.surface),
         };
-        
+
         match style {
             CheckBox::PackageEnabled => from_appearance(),
             // CheckBox::SettingsEnabled => from_appearance(),

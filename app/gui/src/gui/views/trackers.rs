@@ -1,12 +1,15 @@
-use iced::Alignment;
-use iced::{Element, Renderer, widget::container, Length};
-use iced::widget::{text, pick_list,checkbox,column, row, scrollable, button};
-use iced::widget::Space;
-use iced_native::Widget;
-use tracing::{info, warn};
-use crate::{gui::style::{self, Theme}, core::cfg::Config};
 use crate::gui::JETBRAINS_MONO;
-use std::path::{PathBuf, Path};
+use crate::{
+    core::cfg::Config,
+    gui::style::{self, Theme},
+};
+use iced::widget::Space;
+use iced::widget::{button, checkbox, column, pick_list, row, scrollable, text};
+use iced::Alignment;
+use iced::{widget::container, Element, Length, Renderer};
+use iced_native::Widget;
+use std::path::{Path, PathBuf};
+use tracing::{info, warn};
 use xmodits_lib::{load_module, TrackerModule};
 
 #[derive(Debug, Clone)]
@@ -41,7 +44,6 @@ impl Info {
             // comments: todo!(),
         }
     }
-
 }
 struct File {
     path: PathBuf,
@@ -70,21 +72,22 @@ impl Xmodits {
     pub fn update(&mut self, msg: Message) {
         match msg {
             Message::Add(path) => {
-                if !self.paths
+                if !self
+                    .paths
                     .iter()
                     .map(|e| &e.path)
                     .collect::<Vec<&PathBuf>>()
-                    .contains(&&path) 
+                    .contains(&&path)
                 {
                     self.paths.push(File::new(path));
                 }
-            },
+            }
             Message::Remove(idx) => {
                 if idx < self.paths.len() {
                     // self.paths.swap_remove(idx); // faster but not user friendly
                     self.paths.remove(idx);
                 }
-            },
+            }
             Message::Probe(idx) => {
                 let path = &self.paths[idx].path;
                 if !self.current_exists(path) {
@@ -92,25 +95,22 @@ impl Xmodits {
                         self.current = Some(Info::read(tracker, path.to_owned()));
                     }
                 }
-            },
+            }
             Message::Beep(_) => (),
             Message::Clear => {
                 self.paths.clear();
                 self.current = None;
-            },
+            }
             Message::Select((idx, toggle)) => {
                 self.paths[idx].selected = toggle;
                 if !toggle {
                     self.all_selected = toggle
                 }
-
-            },
+            }
             Message::SelectAll(b) => {
                 self.all_selected = b;
-                self.paths
-                    .iter_mut()
-                    .for_each(|f| f.selected = b)
-            },
+                self.paths.iter_mut().for_each(|f| f.selected = b)
+            }
             Message::DeleteSelected => {
                 if self.paths.len() == self.total_selected() {
                     self.paths.clear();
@@ -132,7 +132,7 @@ impl Xmodits {
                 let mut i: usize = 0;
 
                 self.all_selected = false;
-            },
+            }
         }
     }
 
@@ -140,7 +140,7 @@ impl Xmodits {
         self.paths.len()
     }
 
-    pub fn current_exists(&self,path:&Path)-> bool {
+    pub fn current_exists(&self, path: &Path) -> bool {
         match &self.current {
             Some(d) if d.path == path => true,
             _ => false,
@@ -148,15 +148,14 @@ impl Xmodits {
     }
 
     pub fn total_selected(&self) -> usize {
-        self.paths
-            .iter()
-            .filter(|f| f.selected == true)
-            .count()
+        self.paths.iter().filter(|f| f.selected == true).count()
     }
 
     pub fn view_trackers(&self) -> Element<Message, Renderer<Theme>> {
-        let total_modules: _ =  text(format!("Modules: {}", self.total_modules())).font(JETBRAINS_MONO);
-        let total_selected: _ = text(format!("Selected: {}", self.total_selected())).font(JETBRAINS_MONO);
+        let total_modules: _ =
+            text(format!("Modules: {}", self.total_modules())).font(JETBRAINS_MONO);
+        let total_selected: _ =
+            text(format!("Selected: {}", self.total_selected())).font(JETBRAINS_MONO);
 
         let tracker_list: _ = if self.paths.is_empty() {
             container(text("Drag and drop").font(JETBRAINS_MONO))
@@ -165,48 +164,49 @@ impl Xmodits {
                 .center_x()
                 .center_y()
         } else {
-            container(scrollable(
-                self
-                .paths
-                .iter()
-                .enumerate()
-                .fold(
-                    column![].spacing(10).padding(5),
-                    |s, (idx, gs)| s.push(row![
+            container(scrollable(self.paths.iter().enumerate().fold(
+                column![].spacing(10).padding(5),
+                |s, (idx, gs)| {
+                    s.push(row![
                         button(
                             row![
                                 checkbox("", gs.selected, move |b| Message::Select((idx, b))),
                                 text(&gs.filename),
-                                ].spacing(1)
-                            )
-                            .width(Length::Fill)
-                            .on_press(Message::Probe(idx))
-                            .padding(4)
-                            .style(style::button::Button::NormalPackage),
-
+                            ]
+                            .spacing(1)
+                        )
+                        .width(Length::Fill)
+                        .on_press(Message::Probe(idx))
+                        .padding(4)
+                        .style(style::button::Button::NormalPackage),
                         Space::with_width(Length::Units(15))
                     ])
-                )
-            ))
+                },
+            )))
             // .spacing(5)
             .height(Length::Fill)
         };
         container(
             column![
-            row![
-                total_modules, total_selected, 
-                Space::with_width(Length::Fill),
-                checkbox("Select all", self.all_selected, Message::SelectAll)
-                    .style(style::checkbox::CheckBox::PackageDisabled),
-            ].spacing(15).align_items(Alignment::Center),
-            tracker_list
-                .padding(5)
-                .style(style::Container::Black)
-                .width(Length::Fill),
-            // set,    
-        ].spacing(5))
+                row![
+                    total_modules,
+                    total_selected,
+                    Space::with_width(Length::Fill),
+                    checkbox("Select all", self.all_selected, Message::SelectAll)
+                        .style(style::checkbox::CheckBox::PackageDisabled),
+                ]
+                .spacing(15)
+                .align_items(Alignment::Center),
+                tracker_list
+                    .padding(5)
+                    .style(style::Container::Black)
+                    .width(Length::Fill),
+                // set,
+            ]
+            .spacing(5),
+        )
         .height(Length::Fill)
-        .into()       
+        .into()
     }
 
     pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> {
@@ -221,20 +221,19 @@ impl Xmodits {
                 // let total = &info.total_sample_size;
 
                 container(
-                scrollable(
-                    column![
-                        text(format!("Module Name: {}", name)),
-                        text(format!("Format: {}", format)),
-                        text(format!("Samples: {}", samples)),
-                        // text("Approx Total Sample Size (KiB): 1532"),
-                        // text("Comments: \n"),
-                    ]
-                    .spacing(5)
-                    
+                    scrollable(
+                        column![
+                            text(format!("Module Name: {}", name)),
+                            text(format!("Format: {}", format)),
+                            text(format!("Samples: {}", samples)),
+                            // text("Approx Total Sample Size (KiB): 1532"),
+                            // text("Comments: \n"),
+                        ]
+                        .spacing(5),
+                    )
+                    .style(style::scrollable::Scrollable::Dark),
                 )
-                .style(style::scrollable::Scrollable::Dark)
-            )
-            },
+            }
             None => container(title_2),
         };
         container(
@@ -245,8 +244,8 @@ impl Xmodits {
                     .width(Length::Fill)
                     .height(Length::Fill)
                     .padding(8)
-
-            ].spacing(5)
+            ]
+            .spacing(5),
         )
         .width(Length::Fill)
         .height(Length::Fill)

@@ -1,5 +1,5 @@
 use std::path::{Path, PathBuf};
-use xmodits_lib::{tracker_formats::*, TrackerDumper, XmoditsError};
+use xmodits_lib::{tracker_formats::*, TrackerDumper, XmoditsError, load_module};
 mod utils;
 use utils::{clean_test_export, compare_files, verify_sample_num};
 
@@ -40,14 +40,14 @@ use utils::{clean_test_export, compare_files, verify_sample_num};
 #[test]
 fn xm_test_mod_plugin_packed() {
     assert!(Path::new("tests/mods/xm/vagyakozas.xm").exists());
-    assert!(XMFile::load_module("tests/mods/xm/vagyakozas.xm").is_err());
+    assert!(load_module("tests/mods/xm/vagyakozas.xm").is_err());
 }
 
 /* ####################################################################### */
 
 #[test]
 fn xm_no_samples2() {
-    let mut a = XMFile::load_module("tests/mods/xm/no_samples.xm").unwrap();
+    let mut a = load_module("tests/mods/xm/no_samples.xm").unwrap();
     let folder = "test/exports/";
     let name = "XM-please-delete";
     let export_path = Path::new(folder).join(name);
@@ -122,7 +122,7 @@ fn xm_test_exported() {
     let test_export_path: PathBuf = PathBuf::new()
         .join(root)
         .join(format!("test_export_{}/", test_no));
-    let mut mod1 = XMFile::load_module("tests/mods/xm/lovetrp.xm").unwrap();
+    let mut mod1 = load_module("tests/mods/xm/lovetrp.xm").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 
@@ -156,7 +156,7 @@ fn xm_test_exported_amiga() {
     let test_export_path: PathBuf = PathBuf::new()
         .join(root)
         .join(format!("test_export_{}/", test_no));
-    let mut mod1 = XMFile::load_module("tests/mods/xm/240-185_-_la_grenade_80s.xm").unwrap();
+    let mut mod1 = load_module("tests/mods/xm/240-185_-_la_grenade_80s.xm").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 

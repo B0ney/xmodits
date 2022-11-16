@@ -7,20 +7,20 @@
 mod error;
 mod fmt;
 mod interface;
-mod utils;
 mod loader;
+mod utils;
 
 pub use error::XmoditsError;
 pub use interface::SampleNamerFunc;
 pub use interface::TrackerDumper;
 pub use interface::TrackerModule;
 pub use interface::TrackerSample;
-pub use utils::name::SampleNamer;
-pub use utils::wav;
-pub use utils::Error;
 pub use loader::load_from_ext;
 pub use loader::load_module;
 pub use loader::LOADERS;
+pub use utils::name::SampleNamer;
+pub use utils::wav;
+pub use utils::Error;
 
 use fmt::*;
 pub mod tracker_formats {

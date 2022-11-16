@@ -1,15 +1,15 @@
-use anyhow::Result;
-use tracing::info;
-use std::path::{PathBuf, Path};
-use std::time::Duration;
-use xmodits_lib::{TrackerModule, Error};
-use xmodits_lib::wav::Wav;
-use xmodits_lib::load_module;
 use super::cfg::Config;
+use anyhow::Result;
+use std::path::{Path, PathBuf};
+use std::time::Duration;
+use tracing::info;
+use xmodits_lib::load_module;
+use xmodits_lib::wav::Wav;
+use xmodits_lib::{Error, TrackerModule};
 // use iced::futures::channel::mpsc::{channel, Sender, Receiver, self};
 use iced::{subscription, Subscription};
-use tokio::task::spawn_blocking;
 use tokio::sync::mpsc::{self, Receiver, Sender};
+use tokio::task::spawn_blocking;
 
 #[derive(Clone, Debug)]
 pub enum DownloadMessage {
@@ -49,10 +49,10 @@ pub fn build_subscription() -> Subscription<DownloadMessage> {
                         DownloadState::Idle { receiver },
                     )
                 }
-                DownloadState::Idle { mut receiver} => {
+                DownloadState::Idle { mut receiver } => {
                     let message = receiver.recv().await;
                     let (tx, rx) = mpsc::channel(1);
-                    
+
                     std::thread::spawn(move || {
                         for _ in 0..20 {
                             std::thread::sleep(Duration::from_millis(1000));

@@ -1,7 +1,6 @@
-use iced::widget::text_input;
-use iced::{Background, Color, color};
 use super::Theme;
-
+use iced::widget::text_input;
+use iced::{color, Background, Color};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub enum TextInput {

@@ -5,10 +5,10 @@
  */
 
 use super::compression::decompress_sample;
+use crate::dword;
+use crate::utils::prelude::*;
 use crate::utils::signed::make_signed_u8_checked;
 use crate::{TrackerDumper, TrackerModule, TrackerSample, XmoditsError};
-use crate::utils::prelude::*;
-use crate::dword;
 
 type ITSample = TrackerSample;
 

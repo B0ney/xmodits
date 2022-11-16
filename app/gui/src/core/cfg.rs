@@ -1,9 +1,9 @@
-use std::{fs, path::PathBuf};
-use tracing::{info, Level, warn};
 use anyhow::Result;
 use dirs;
 use serde::{Deserialize, Serialize};
+use std::{fs, path::PathBuf};
 use toml;
+use tracing::{info, warn, Level};
 
 const APP_NAME: &str = "xmodits";
 
@@ -42,13 +42,11 @@ impl Config {
             // let _ = config.save();
             config
         };
-    
+
         let load_config = || {
-            Ok::<Config, anyhow::Error>(
-                toml::from_str::<Self>(
-                    &fs::read_to_string(Config::path())?
-                )?
-            )
+            Ok::<Config, anyhow::Error>(toml::from_str::<Self>(&fs::read_to_string(
+                Config::path(),
+            )?)?)
         };
 
         load_config().unwrap_or_else(|_| default_and_save())

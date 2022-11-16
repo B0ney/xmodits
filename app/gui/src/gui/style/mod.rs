@@ -1,15 +1,13 @@
+pub mod button;
 pub mod checkbox;
+mod radio;
+pub mod scrollable;
 pub mod text;
 pub mod text_input;
-pub mod scrollable;
-pub mod button; 
-mod radio;
 use iced::overlay::menu;
-use iced::widget::{
-    container, pick_list, rule
-};
+use iced::widget::{container, pick_list, rule};
 
-use iced::{application, Background, Color, color};
+use iced::{application, color, Background, Color};
 mod theme;
 pub use theme::Theme;
 
@@ -29,7 +27,6 @@ impl application::StyleSheet for Theme {
         }
     }
 }
-
 
 #[derive(Default, Debug, Clone, Copy)]
 pub enum Container {
@@ -59,9 +56,8 @@ impl container::StyleSheet for Theme {
                 border_radius: 5.0,
                 border_width: 1.2,
                 border_color: color!(0x474747),
-
                 // ..container::Appearance::default()
-                
+
                 // border_color: self.palette().normal.error,
             },
         }
@@ -119,8 +115,6 @@ impl pick_list::StyleSheet for Theme {
     }
 }
 
-
-
 #[derive(Default, Clone, Copy)]
 pub enum Rule {
     #[default]
@@ -129,7 +123,7 @@ pub enum Rule {
 
 impl rule::StyleSheet for Theme {
     type Style = Rule;
-    
+
     fn appearance(&self, style: &Self::Style) -> rule::Appearance {
         match style {
             Rule::Default => rule::Appearance {

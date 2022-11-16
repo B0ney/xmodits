@@ -4,11 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-pub mod macros;
-pub mod signed;
 pub mod ascii;
+pub mod macros;
 pub mod name;
 pub mod reader;
+pub mod signed;
 pub mod wav;
 // pub mod interleave;
 pub type Error = crate::XmoditsError;

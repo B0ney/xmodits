@@ -1,6 +1,5 @@
 use iced::{color, Color};
 
-
 // #[derive(Default, Debug, PartialEq, Eq, Copy, Clone)]
 // pub enum Theme {
 //     #[default]
@@ -63,7 +62,6 @@ impl Theme {
                     background: color!(0x272727),
                     // foreground: color!(0x323232),
                     foreground: color!(0x353535),
-
                 },
                 normal: NormalColors {
                     primary: color!(0x5E4266),

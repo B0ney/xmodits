@@ -1,7 +1,7 @@
+use once_cell::sync::Lazy;
+use rodio::{source::Buffered, Decoder, Source};
 use std::collections::HashMap;
 use std::io::Cursor;
-use rodio::{source::Buffered, Decoder, Source};
-use once_cell::sync::Lazy;
 
 type SoundBuffer = Buffered<Decoder<Cursor<&'static [u8]>>>;
 
@@ -18,16 +18,15 @@ pub static SFX: Lazy<HashMap<&'static str, SoundBuffer>> = Lazy::new(|| {
         ("sfx_4", SFX_4),
     ];
 
-    sfx
-        .into_iter()
-        .map(|(x,y)| (*x, Decoder::new(Cursor::new(*y)).unwrap().buffered()))
+    sfx.into_iter()
+        .map(|(x, y)| (*x, Decoder::new(Cursor::new(*y)).unwrap().buffered()))
         .collect()
 });
 
 pub struct Audio {
     _stream: rodio::OutputStream,
     handle: rodio::OutputStreamHandle,
-    sink: Option<rodio::Sink>
+    sink: Option<rodio::Sink>,
 }
 
 impl Default for Audio {
@@ -40,7 +39,9 @@ impl Audio {
     pub fn init() -> Self {
         let (_stream, handle) = rodio::OutputStream::try_default().unwrap();
         let mut a = Self {
-            _stream, handle, sink: None
+            _stream,
+            handle,
+            sink: None,
         };
         a.sink = Some(rodio::Sink::try_new(&a.handle).unwrap());
         a

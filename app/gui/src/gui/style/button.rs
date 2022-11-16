@@ -1,5 +1,5 @@
 use iced::widget::button;
-use iced::{Background, Color, color};
+use iced::{color, Background, Color};
 
 use super::Theme;
 
@@ -32,7 +32,6 @@ impl button::StyleSheet for Theme {
             background: Some(Background::Color(bg.unwrap_or(p.base.foreground))),
             border_color: Color { a: 0.5, ..mc },
             // border_radius: 0.0,
-
             text_color: mc,
             ..appearance
         };
@@ -74,7 +73,7 @@ impl button::StyleSheet for Theme {
 
         let hover_appearance = |bg, tc: Option<Color>| button::Appearance {
             background: Some(Background::Color(Color { a: 0.25, ..bg })),
-            
+
             text_color: tc.unwrap_or(bg),
             ..active
         };

@@ -51,6 +51,7 @@ impl TrackerDumper for UMXFile {
 
             if version < 64 {
                 // versions below 64 rely on null terminated strings
+                // FIXME: can cause an out of bounds panic
                 while buf[offset] != 0 {
                     name.push(buf[offset] as char);
                     offset += 1;
@@ -115,9 +116,7 @@ impl TrackerDumper for UMXFile {
         // The first item in the name table can be used as a "hint", but this is unreliable.
         // This approach iterates through an array of tuples containing two functions:
         // one validates the buffer, the other loads it.
-        for (_, (validator, loader)) in 
-            LOADERS.entries().filter(|(ext, _)| **ext != "umx") 
-        {
+        for (_, (validator, loader)) in LOADERS.entries().filter(|(ext, _)| **ext != "umx") {
             if validator(&buf).is_ok() {
                 return loader(buf);
             }
@@ -199,7 +198,7 @@ fn test1() {
     // dbg!(b.0);
     // let a: _ = UMXFile::load_module("./test/umx/UNATCO_Music.umx");
     // let a: _ = UMXFile::load_module("./test/umx/desu/MJ12_Music.umx");
-    let a: _ = UMXFile::load_module("./test/umx/ut_prob/Mech8.umx");
+    let a: _ = crate::loader::load_module("./test/umx/ut_prob/Mech8.umx");
 
     dbg!(a.unwrap().module_name());
 }

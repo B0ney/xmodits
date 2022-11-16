@@ -1,17 +1,17 @@
 use std::path::{Path, PathBuf};
-use xmodits_lib::{tracker_formats::*, TrackerDumper};
+use xmodits_lib::{tracker_formats::*, TrackerDumper, load_module};
 mod utils;
 use utils::{clean_test_export, compare_files, verify_sample_num};
 
 #[test]
 fn s3m_invalid_1() {
     assert!(Path::new("tests/mods/s3m/invalid.s3m").exists());
-    assert!(S3MFile::load_module("tests/mods/s3m/invalid.s3m").is_err());
+    assert!(load_module("tests/mods/s3m/invalid.s3m").is_err());
 }
 
 #[test]
 fn s3m_no_samples() {
-    let mut a = S3MFile::load_module("tests/mods/s3m/no_samples.s3m").unwrap();
+    let mut a = load_module("tests/mods/s3m/no_samples.s3m").unwrap();
     let folder = "tests/exports/";
     let name = "S3M-please-delete";
     let dest = Path::new(folder).join(name);
@@ -67,7 +67,7 @@ fn s3m_test_exported() {
     let test_export_path: PathBuf = PathBuf::new()
         .join(root)
         .join(format!("test_export_{}/", test_no));
-    let mut mod1 = S3MFile::load_module("tests/mods/s3m/hip_-_640k_of_space.s3m").unwrap();
+    let mut mod1 = load_module("tests/mods/s3m/hip_-_640k_of_space.s3m").unwrap();
     dbg!(&test_export_path);
     clean_test_export(root, test_no).unwrap();
 

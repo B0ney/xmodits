@@ -85,7 +85,7 @@ impl TrackerDumper for MODFile {
         //     println!("{}", percent_delta);
         // }
 
-        // ^ 
+        // ^
         // This approach is kinda simiar to openmpt's method of detecting invalid mod files
         // by calculating a threshold.
         // However this must be rewritten

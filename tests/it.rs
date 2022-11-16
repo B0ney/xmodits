@@ -2,24 +2,24 @@ use std::path::{Path, PathBuf};
 mod utils;
 use utils::{clean_test_export, compare_files, verify_sample_num};
 
-use xmodits_lib::{tracker_formats::*, TrackerDumper};
+use xmodits_lib::{tracker_formats::*, TrackerDumper, load_module};
 
 #[test]
 fn it_empty() {
     assert!(Path::new("tests/mods/it/empty.it").exists());
-    assert!(ITFile::load_module("tests/mods/it/empty.it").is_err());
+    assert!(load_module("tests/mods/it/empty.it").is_err());
 }
 
 #[test]
 fn it_test_mmcmp() {
     assert!(Path::new("tests/mods/it/creagaia.it").exists());
-    assert!(ITFile::load_module("tests/mods/it/creagaia.it").is_err());
+    assert!(load_module("tests/mods/it/creagaia.it").is_err());
 }
 
 // We don't want xmodits to create an empty folder when attempting to dump an empty module
 #[test]
 fn it_no_samples() {
-    let mut a = ITFile::load_module("tests/mods/it/no_samples.it").unwrap();
+    let mut a = load_module("tests/mods/it/no_samples.it").unwrap();
     let folder = "tests/exports/";
     let name = "IT-please-delete";
     let export_path = Path::new(folder).join(name);
@@ -69,7 +69,7 @@ fn it_test_exported() {
     let test_export_path: PathBuf = PathBuf::new()
         .join(root)
         .join(format!("test_export_{}/", test_no));
-    let mut mod1 = ITFile::load_module("tests/mods/it/songofthesky.it").unwrap();
+    let mut mod1 = load_module("tests/mods/it/songofthesky.it").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 
@@ -100,7 +100,7 @@ fn it_test_exported_compression() {
     let test_export_path: PathBuf = PathBuf::new()
         .join(root)
         .join(format!("test_export_{}/", test_no));
-    let mut mod1 = ITFile::load_module("tests/mods/it/before_the_explozion.it").unwrap();
+    let mut mod1 = load_module("tests/mods/it/before_the_explozion.it").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 

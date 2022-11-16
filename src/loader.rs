@@ -6,8 +6,8 @@
 
 use crate::tracker_formats::*;
 use crate::TrackerDumper;
-use crate::XmoditsError;
 use crate::TrackerModule;
+use crate::XmoditsError;
 use phf::phf_map;
 
 const MAX_FILESIZE_MB: u64 = 1024 * 1024 * 64;
@@ -49,7 +49,7 @@ where
     P: AsRef<std::path::Path>,
 {
     let buf: Vec<u8> = load_to_buf(path)?;
-    
+
     match LOADERS.get(ext) {
         Some((validator, loader)) => {
             if let Err(original_err) = validator(&buf) {
@@ -64,14 +64,15 @@ where
             } else {
                 loader(buf)
             }
-        },
+        }
         None => Err(XmoditsError::UnsupportedFormat(format!(
-            "'{}' is not a supported format.", ext
+            "'{}' is not a supported format.",
+            ext
         ))),
     }
 }
 
-pub fn load_to_buf<P>(path: P) -> Result<Vec<u8>, XmoditsError> 
+pub fn load_to_buf<P>(path: P) -> Result<Vec<u8>, XmoditsError>
 where
     P: AsRef<std::path::Path>,
 {

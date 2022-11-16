@@ -1,8 +1,8 @@
 use std::path::{Path, PathBuf};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncRead, AsyncWrite};
 
-use tokio::fs::{File, self};
-use futures_util::future::join_all;
+use tokio::fs::{File, self, };
+// use futures_util::future::join_all;
 
 use xmodits_lib::wav::Wav;
 use xmodits_lib::{load_module, TrackerModule, Error, SampleNamerFunc, XmoditsError};
@@ -29,14 +29,16 @@ pub async fn run(
     sample_namer: &SampleNamerFunc,
     create_dir_if_absent: bool,
 ) {
-    let joined_futures = join_all(
+    let joined_futures = 
         paths
             .iter()
             .filter(|f| f.is_file())
             .map(|path| rip(path, &destination, sample_namer, create_dir_if_absent))
-    );
+    ;
 
-    joined_futures.await;
+    for task in joined_futures {
+        task.await;
+    };
 }
 
 async fn rip(

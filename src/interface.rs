@@ -60,15 +60,15 @@ pub trait TrackerDumper {
     /// Load tracker module from memory
     /// Validates headers.
     fn load_from_buf(buf: Vec<u8>) -> Result<TrackerModule, Error>
-    where 
-        Self: Sized 
+    where
+        Self: Sized,
     {
         Self::validate(&buf)?;
         Self::load_from_buf_unchecked(buf)
     }
 
     /// Load tracker module from memory.
-    /// 
+    ///
     /// Can panic if used without any form of external validation
     fn load_from_buf_unchecked(buf: Vec<u8>) -> Result<TrackerModule, Error>
     where
@@ -91,9 +91,7 @@ pub trait TrackerDumper {
         name_sample: &SampleNamerFunc,
     ) -> Result<(), Error> {
         let sample: &TrackerSample = &self.list_sample_data()[index];
-        let file: PathBuf = PathBuf::new()
-            .join(folder)
-            .join(name_sample(sample, index));
+        let file: PathBuf = PathBuf::new().join(folder).join(name_sample(sample, index));
 
         self.write_wav(&file, index)
     }
@@ -126,7 +124,7 @@ pub trait TrackerDumper {
     /// return reference to readable pcm data
     fn pcm(&mut self, index: usize) -> Result<&[u8], Error>;
 
-    /// Load tracker module from given path
+    // Load tracker module from given path
     fn load_module<P>(path: P) -> Result<TrackerModule, Error>
     where
         Self: Sized,

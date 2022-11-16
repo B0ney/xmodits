@@ -4,11 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+use crate::utils::reader::read_u16_le;
+use crate::utils::signed::make_signed_u8;
+use crate::utils::Error;
 /// Impulse Tracker sample decompression
 use crate::XmoditsError;
-use crate::utils::Error;
-use crate::utils::signed::make_signed_u8;
-use crate::utils::reader::read_u16_le;
 use byteorder::{ByteOrder, LE};
 
 #[inline(always)]
@@ -28,11 +28,11 @@ pub fn decompress_sample(
 }
 
 struct BitReader<'a> {
-    block_offset: usize,    // Location of next block
-    bitnum: u8,             // Bits left. When it hits 0, it resets to 8 & "blk_index" increments by 1.
-    bitbuf: u32,            // Internal buffer for storing read bits
-    buf: &'a [u8],          // IT Module buffer (read-only because reading data shouldn't modify anything)
-    blk_index: usize,       // Used to index blk_data.
+    block_offset: usize, // Location of next block
+    bitnum: u8,          // Bits left. When it hits 0, it resets to 8 & "blk_index" increments by 1.
+    bitbuf: u32,         // Internal buffer for storing read bits
+    buf: &'a [u8], // IT Module buffer (read-only because reading data shouldn't modify anything)
+    blk_index: usize, // Used to index blk_data.
 }
 
 impl<'a> BitReader<'a> {

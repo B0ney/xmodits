@@ -4,8 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-use crate::{TrackerDumper, TrackerModule, TrackerSample, XmoditsError};
 use crate::utils::prelude::*;
+use crate::{TrackerDumper, TrackerModule, TrackerSample, XmoditsError};
 
 use super::deltadecode::{delta_decode_u16_checked, delta_decode_u8_checked};
 

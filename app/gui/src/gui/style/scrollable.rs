@@ -1,6 +1,6 @@
+use super::Theme;
 use iced::widget::scrollable;
 use iced::{Background, Color};
-use super::Theme;
 
 #[derive(Default, Debug, Clone, Copy)]
 pub enum Scrollable {
@@ -25,8 +25,11 @@ impl scrollable::StyleSheet for Theme {
                 border_color: Color::TRANSPARENT,
             },
         };
-        // 
-        let color = (self.palette().base.background,self.palette().base.foreground);
+        //
+        let color = (
+            self.palette().base.background,
+            self.palette().base.foreground,
+        );
         match style {
             Scrollable::Description => from_appearance(color.0, color.1),
             Scrollable::Dark => from_appearance(color.1, color.0),

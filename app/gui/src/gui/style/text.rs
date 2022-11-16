@@ -1,6 +1,6 @@
+use super::Theme;
 use iced::widget::text;
 use iced::Color;
-use super::Theme;
 
 #[derive(Default, Clone, Copy)]
 pub enum Text {
