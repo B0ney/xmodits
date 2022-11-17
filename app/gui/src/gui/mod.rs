@@ -149,7 +149,7 @@ impl Application for XmoditsGui {
             Message::WindowEvent(e) => match e {
                 Event::Keyboard(k) => match k {
                     KeyboardEvent::KeyPressed { key_code, .. } if key_code == KeyCode::Delete => {
-                        self.tracker.update(TrackerMessage::DeleteSelected)
+                        self.tracker.update(TrackerMessage::DeleteSelected);
                     }
                     _ => (),
                 },
@@ -162,9 +162,9 @@ impl Application for XmoditsGui {
                 },
                 _ => (),
             },
-            Message::ClearTrackers => self.tracker.update(TrackerMessage::Clear),
-            Message::Tracker(msg) => self.tracker.update(msg),
-            Message::DeleteSelected => self.tracker.update(TrackerMessage::DeleteSelected),
+            Message::ClearTrackers => return self.tracker.update(TrackerMessage::Clear).map(Message::Tracker),
+            Message::Tracker(msg) => return self.tracker.update(msg).map(Message::Tracker),
+            Message::DeleteSelected => return self.tracker.update(TrackerMessage::DeleteSelected).map(Message::Tracker),
             Message::About(msg) => self.about.update(msg),
             Message::Progress(msg) => match msg {
                 xmodits::DownloadMessage::Sender(tx) => self.sender = Some(tx),

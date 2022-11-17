@@ -5,12 +5,13 @@ use crate::{
 };
 use iced::widget::Space;
 use iced::widget::{button, checkbox, column, pick_list, row, scrollable, text};
-use iced::Alignment;
+use iced::{Alignment, Command};
 use iced::{widget::container, Element, Length, Renderer};
 use iced_native::Widget;
 use std::path::{Path, PathBuf};
 use tracing::{info, warn};
-use xmodits_lib::{load_module, TrackerModule};
+// use xmodits_lib::{load_module, TrackerModule};
+use crate::core::async_xmodits::{load_module, TrackerModule};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -22,9 +23,10 @@ pub enum Message {
     Select((usize, bool)),
     SelectAll(bool),
     DeleteSelected,
+    TrackerInfo(Option<Info>)
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct Info {
     module_name: String,
     format: String,
@@ -33,6 +35,7 @@ pub struct Info {
     // total_sample_size: usize,
     // comments: Option<String>,
 }
+
 impl Info {
     fn read(tracker: TrackerModule, path: PathBuf) -> Self {
         Self {
@@ -69,7 +72,7 @@ pub struct Xmodits {
 }
 
 impl Xmodits {
-    pub fn update(&mut self, msg: Message) {
+    pub fn update(&mut self, msg: Message) -> Command<Message>{
         match msg {
             Message::Add(path) => {
                 if !self
@@ -91,9 +94,7 @@ impl Xmodits {
             Message::Probe(idx) => {
                 let path = &self.paths[idx].path;
                 if !self.current_exists(path) {
-                    if let Ok(tracker) = load_module(path) {
-                        self.current = Some(Info::read(tracker, path.to_owned()));
-                    }
+                    return Command::perform(tracker_info(path.to_owned()), Message::TrackerInfo);   
                 }
             }
             Message::Beep(_) => (),
@@ -115,7 +116,7 @@ impl Xmodits {
                 if self.paths.len() == self.total_selected() {
                     self.paths.clear();
                     self.current = None;
-                    return;
+                    return Command::none();
                 }
                 let mut i = 0;
                 while i < self.paths.len() {
@@ -133,7 +134,13 @@ impl Xmodits {
 
                 self.all_selected = false;
             }
+            Message::TrackerInfo(module) => {
+                if module.is_some() {
+                    self.current = module;
+                }
+            },
         }
+        Command::none()
     }
 
     pub fn total_modules(&self) -> usize {
@@ -251,4 +258,10 @@ impl Xmodits {
         .height(Length::Fill)
         .into()
     }
+}
+
+
+async fn tracker_info(path: PathBuf) -> Option<Info> {
+    let tracker = load_module(&path).await.ok()?;
+    Some(Info::read(tracker, path))
 }
