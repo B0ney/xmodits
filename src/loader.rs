@@ -50,26 +50,26 @@ where
 {
     let buf: Vec<u8> = load_to_buf(path)?;
 
-    match LOADERS.get(ext) {
-        Some((validator, loader)) => {
-            if let Err(original_err) = validator(&buf) {
-                for (_, (validator_bak, loader_bak)) in
-                    LOADERS.entries().filter(|(k, _)| !["mod", ext].contains(k))
-                {
-                    if validator_bak(&buf).is_ok() {
-                        return loader_bak(buf);
-                    }
-                }
-                Err(original_err)
-            } else {
-                loader(buf)
-            }
-        }
-        None => Err(XmoditsError::UnsupportedFormat(format!(
+    let Some((validator, loader)) = LOADERS.get(ext) else {
+        return Err(XmoditsError::UnsupportedFormat(format!(
             "'{}' is not a supported format.",
             ext
-        ))),
+        )))
+    };
+
+    let Err(original_err) = validator(&buf) else {
+        return loader(buf)
+    };
+
+    for (_, (validator_bak, loader_bak)) in
+        LOADERS.entries().filter(|(k, _)| !["mod", ext].contains(k))
+    {
+        if validator_bak(&buf).is_ok() {
+            return loader_bak(buf);
+        }
     }
+
+    Err(original_err)
 }
 
 pub fn load_to_buf<P>(path: P) -> Result<Vec<u8>, XmoditsError>

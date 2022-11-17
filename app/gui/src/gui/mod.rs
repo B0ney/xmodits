@@ -2,7 +2,7 @@ pub mod icons;
 pub mod style;
 pub mod views;
 pub mod widgets;
-
+use crate::core::async_xmodits;
 use crate::core::cfg::Config;
 use crate::core::font::JETBRAINS_MONO;
 use crate::core::{
@@ -266,7 +266,7 @@ impl Application for XmoditsGui {
     fn subscription(&self) -> Subscription<Message> {
         iced::Subscription::batch([
             iced::subscription::events().map(Message::WindowEvent),
-            // build_subscription().map(Message::Progress)
+            build_subscription().map(Message::Progress)
         ])
     }
 }

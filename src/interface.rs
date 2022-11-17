@@ -9,6 +9,11 @@ use crate::utils::Error;
 use crate::XmoditsError;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+
+#[cfg(feature = "thread")]
+pub type TrackerModule = Box<dyn TrackerDumper + Sync + Send>;
+#[cfg(not(feature = "thread"))]
 pub type TrackerModule = Box<dyn TrackerDumper>;
 
 /// Function type signature to flexibly format sample names.

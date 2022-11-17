@@ -43,7 +43,7 @@ pub fn build_subscription() -> Subscription<DownloadMessage> {
                 //? Create and pass sender to application
                 DownloadState::Starting => {
                     let (sender, receiver) = mpsc::channel(1);
-
+                    
                     (
                         Some(DownloadMessage::Sender(sender.clone())),
                         DownloadState::Idle { receiver },
@@ -51,27 +51,32 @@ pub fn build_subscription() -> Subscription<DownloadMessage> {
                 }
                 DownloadState::Idle { mut receiver } => {
                     let message = receiver.recv().await;
-                    let (tx, rx) = mpsc::channel(1);
-
-                    std::thread::spawn(move || {
-                        for _ in 0..20 {
-                            std::thread::sleep(Duration::from_millis(1000));
-                            tx.blocking_send(DownloadMessage::Download);
-                        }
-                        tx.blocking_send(DownloadMessage::Done);
-                    });
-
+                    let (tx, rx) = mpsc::channel(60);
+                    
+                    
                     info!("Received Message {message:?}");
 
                     match message {
-                        Some(DownloadMessage::Download) => (
-                            None,
-                            DownloadState::Downloading {
-                                receiver,
-                                // query,
-                                // downloader,
-                            },
-                        ),
+                        Some(DownloadMessage::Download) => {
+                            // Spawn blocking task, xmodits' ripping routine will start here
+                            // TODO: have receiver for cancellation message
+                            tokio::task::spawn_blocking(move || {
+                                for _ in 0..10 {
+                                    std::thread::sleep(Duration::from_millis(500));
+                                    tx.blocking_send(DownloadMessage::Download).unwrap();
+                                }
+                                tx.blocking_send(DownloadMessage::Done).unwrap();
+                            });
+
+                            (
+                                None,
+                                DownloadState::Downloading {
+                                    receiver: rx,
+                                    // query,
+                                    // downloader,
+                                },
+                            )
+                        },
 
                         _ => (None, DownloadState::Idle { receiver }),
                     }
@@ -83,16 +88,12 @@ pub fn build_subscription() -> Subscription<DownloadMessage> {
                     // downloader,
                 } => {
                     info!("Test");
-                    let message = receiver.recv().await;
+                    let message = receiver.recv();
 
-                    match message {
+                    match message.await {
                         Some(DownloadMessage::Done) => (
                             Some(DownloadMessage::Done),
-                            DownloadState::Idle {
-                                receiver,
-                                // query,
-                                // downloader,
-                            },
+                            DownloadState::Starting,
                         ),
                         _ => (
                             Some(DownloadMessage::Done),
