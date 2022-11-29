@@ -86,7 +86,6 @@ impl TrackerDumper for ITFile {
                 smp.len as u32,
                 smp.bits,
                 self.compat_ver == IT215,
-                smp.is_stereo,
             )?;
         };
 

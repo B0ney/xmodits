@@ -232,8 +232,8 @@ impl Application for XmoditsGui {
         let g = match self.view {
             View::Configure => container(
                 column![
-                    self.cfg.view().map(Message::SetCfg),
                     self.tracker.view_current_tracker().map(|_| Message::_None),
+                    self.cfg.view().map(Message::SetCfg),
                     button("Start")
                         .padding(10)
                         .on_press(Message::StartRip)

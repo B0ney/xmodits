@@ -3,11 +3,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-
+/// Impulse Tracker sample decompression
 use crate::utils::reader::read_u16_le;
 use crate::utils::signed::make_signed_u8;
 use crate::utils::Error;
-/// Impulse Tracker sample decompression
 use crate::XmoditsError;
 use byteorder::{ByteOrder, LE};
 
@@ -17,10 +16,7 @@ pub fn decompress_sample(
     len: u32,
     smp_bits: u8,
     it215: bool,
-    stereo: bool,
 ) -> Result<Vec<u8>, Error> {
-    let _channels: u32 = stereo as u32 + 1;
-
     match smp_bits {
         16 => decompress_16bit(buf, len, it215),
         _ => decompress_8bit(buf, len, it215),

@@ -1,7 +1,7 @@
 /*
 TODO
 https://github.com/OpenMPT/openmpt/blob/master/soundlib/Load_mod.cpp
-
+https://github.com/milkytracker/MilkyTracker/blob/master/src/milkyplay/LoaderMOD.cpp // milkyplay is BSD licensed
 */
 
 use crate::tables::FINETUNE_TABLE;

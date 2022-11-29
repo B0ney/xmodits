@@ -8,10 +8,12 @@ use iced::widget::{button, checkbox, column, pick_list, row, scrollable, text};
 use iced::{Alignment, Command};
 use iced::{widget::container, Element, Length, Renderer};
 use iced_native::Widget;
+use xmodits_lib::TrackerDumper;
 use std::path::{Path, PathBuf};
 use tracing::{info, warn};
 // use xmodits_lib::{load_module, TrackerModule};
 use crate::core::async_xmodits::{load_module, TrackerModule};
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -23,7 +25,7 @@ pub enum Message {
     Select((usize, bool)),
     SelectAll(bool),
     DeleteSelected,
-    TrackerInfo(Option<Info>)
+    TrackerInfo(Option<Info>),
 }
 
 #[derive(Default, Debug, Clone)]
