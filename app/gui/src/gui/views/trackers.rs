@@ -192,7 +192,6 @@ impl Xmodits {
                     ])
                 },
             )))
-            // .spacing(5)
             .height(Length::Fill)
         };
         container(
@@ -254,7 +253,7 @@ impl Xmodits {
                     .height(Length::Fill)
                     .padding(8)
             ]
-            .spacing(5),
+            .spacing(10),
         )
         .width(Length::Fill)
         .height(Length::Fill)

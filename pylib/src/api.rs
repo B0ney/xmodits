@@ -6,13 +6,13 @@ use xmodits_lib::*;
 pub fn rip_multiple(
     paths: Vec<String>,
     destination: String,
-
     index_raw: Option<bool>,
     index_padding: Option<usize>,
     index_only: Option<bool>,
     with_folder: Option<bool>,
     upper: Option<bool>,
     lower: Option<bool>,
+    hint: Option<String>
 ) -> Result<(), Error> {
     let sample_namer_func: Box<SampleNamerFunc> = SampleNamer::build_func(
         index_only.unwrap_or_default(),
@@ -27,13 +27,16 @@ pub fn rip_multiple(
     let mut errors: Vec<XmoditsError> = paths
         .into_iter()
         .filter(|path| Path::new(path).is_file())
-        .map(|path| {
-            xmodits_lib::load_module(&path)?.dump_advanced(
+        .map(|path|(
+            match &hint {
+                Some(ext) => xmodits_lib::load_from_ext(&path, ext)?,
+                None => xmodits_lib::load_module(&path)?,
+            }).dump_advanced(
                 &folder(&destination, &path, with_folder),
                 &sample_namer_func,
                 create_if_absent,
             )
-        })
+        )
         .filter_map(|result| result.err())
         .collect();
 
