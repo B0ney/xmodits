@@ -9,7 +9,7 @@ Create a python virtual environment in this directory:
 
 activate virtual environment:
 
-```source <venv>/bin/activate```
+```source ./dev/bin/activate```
 
 install [maturin (crates.io)](https://crates.io/crates/maturin) or from [pipi](https://pypi.org/project/maturin/)
 

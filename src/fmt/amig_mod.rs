@@ -1,10 +1,15 @@
 /*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+/*
 TODO
 https://github.com/OpenMPT/openmpt/blob/master/soundlib/Load_mod.cpp
 https://github.com/milkytracker/MilkyTracker/blob/master/src/milkyplay/LoaderMOD.cpp // milkyplay is BSD licensed
 */
 
-use crate::tables::FINETUNE_TABLE;
 use crate::utils::signed::make_signed_u8_checked;
 use crate::{
     dword, utils::prelude::*, word, TrackerDumper, TrackerModule, TrackerSample, XmoditsError,
@@ -145,13 +150,16 @@ fn build_samples(
             break;
         }
 
-        let finetune: u8 = buf[0x0018 + offset];
+        // let finetune: u8 = buf[0x0018 + offset];
 
-        let freq: u16 = match alt_finetune {
-            true => alt_frequency(finetune as i8),
-            false => FINETUNE_TABLE[((finetune & 0xf) ^ 8) as usize],
-        };
         let name = read_string(buf, offset, 22);
+        let loop_start: u32 = read_u16_le(buf, 0x001A + offset) as u32;
+        // loop length in words, 1 word = 2 bytes
+        // if 1, looping is disabled
+        let loop_end: u32 = match read_u16_le(buf, 0x001C + offset) {
+            1 => 0, // TODO
+            length => loop_start + (length * 16 ) as u32
+        };
 
         smp_data.push(MODSample {
             // filename: name.clone(),
@@ -160,7 +168,9 @@ fn build_samples(
             len: len as usize,
             ptr: smp_pcm_stream_index,
             bits: 8,
-            rate: freq as u32,
+            rate: 8363,
+            loop_start,
+            loop_end,
             ..Default::default()
         });
 
@@ -168,9 +178,4 @@ fn build_samples(
     }
 
     Ok(smp_data)
-}
-
-// TOOD: remove/replace
-fn alt_frequency(finetune: i8) -> u16 {
-    (363.0 * 2.0_f32.powf(-finetune.wrapping_shl(3) as f32 / 1536.0)) as u16
 }

@@ -120,6 +120,8 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
 
         let name: String = read_string(buf, 0x0023 + offset, 28);
         let rate: u32 = read_u32_le(buf, 0x0013 + offset);
+        let loop_start: u32 = read_u32_le(buf, 0x0007 + offset);
+        let loop_end: u32 = read_u32_le(buf, 0x000b + offset);
 
         samples.push(S3MSample {
             filename: name.clone(),
@@ -129,6 +131,8 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
             ptr: ptr as usize,
             bits,
             rate,
+            loop_start,
+            loop_end,
             // is_stereo: false,
             // is_interleaved: false,
             ..Default::default()

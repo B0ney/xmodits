@@ -166,7 +166,9 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
 
             let period: f32 = 7680.0 - ((48.0 + notenum as f32) * 64.0) - (finetune as f32 / 2.0);
             let rate: u32 = (8363.0 * 2.0_f32.powf((4608.0 - period) / 768.0)) as u32;
-
+            let loop_start: u32 = read_u32_le(buf, 0x0004 + offset);
+            let loop_end: u32 = loop_start + read_u32_le(buf, 0x0008 + offset);
+    
             samples.push(XMSample {
                 filename: name.clone(),
                 name,
@@ -176,6 +178,8 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
                 flags,
                 bits,
                 rate,
+                loop_start,
+                loop_end,
                 ..Default::default()
             });
             smp_len_cumulative += len;

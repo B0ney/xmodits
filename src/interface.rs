@@ -40,6 +40,10 @@ pub struct TrackerSample {
     pub bits: u8,
     /// Sample rate
     pub rate: u32,
+    /// sample loop start
+    pub loop_start: u32,
+    /// sample loop end
+    pub loop_end: u32,
     /// Is sample stereo?
     pub is_stereo: bool,
     /// Is sample compressed?

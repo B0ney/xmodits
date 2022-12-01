@@ -120,6 +120,6 @@ The xmodits project has multiple programs. Each with their own licenses.
 |Program| License|
 |--|--|
 |[XMODITS-GUI](app/gui/) (App) | AGPLv3|
-|[XMODITS-CLI](app/cli/) (App) | LGPLv3? |
-|[XMODITS-PY](pylib/) (basically xmodits-cli)| LGPLv3? |
-|XMODITS-LIB | MPL2? (Remove/replace *potential* use of gpl2 code in amig_mod.rs & tables.rs ) |
+|[XMODITS-CLI](app/cli/) (App) | LGPLv3 |
+|[XMODITS-PY](pylib/) (basically xmodits-cli)| LGPLv3 |
+|XMODITS-LIB | MPLv2 |

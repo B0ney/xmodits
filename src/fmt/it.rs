@@ -145,6 +145,8 @@ fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
         let filename: String = read_string(buf, 0x0004 + offset, 12);
         let name: String = read_string(buf, 0x0014 + offset, 26);
         let rate: u32 = read_u32_le(buf, 0x003C + offset);
+        let loop_start: u32 = read_u32_le(buf, 0x0034 + offset);
+        let loop_end: u32 = read_u32_le(buf, 0x0038 + offset);
 
         sample_data.push(ITSample {
             name,
@@ -157,6 +159,8 @@ fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
             is_stereo,
             is_compressed,
             bits,
+            loop_start,
+            loop_end,
             ..Default::default()
         })
     }
