@@ -6,6 +6,7 @@
 
 /*
 TODO
+https://github.com/a740g/QB64-MOD-Player/blob/main/docs/MOD.txt
 https://github.com/OpenMPT/openmpt/blob/master/soundlib/Load_mod.cpp
 https://github.com/milkytracker/MilkyTracker/blob/master/src/milkyplay/LoaderMOD.cpp // milkyplay is BSD licensed
 */
@@ -153,12 +154,12 @@ fn build_samples(
         // let finetune: u8 = buf[0x0018 + offset];
 
         let name = read_string(buf, offset, 22);
-        let loop_start: u32 = read_u16_le(buf, 0x001A + offset) as u32;
+        let loop_start: u32 = read_u16_le(buf, 0x001A + offset) as u32 * 16;
         // loop length in words, 1 word = 2 bytes
         // if 1, looping is disabled
         let loop_end: u32 = match read_u16_le(buf, 0x001C + offset) {
             1 => 0, // TODO
-            length => loop_start + (length * 16 ) as u32
+            length => loop_start + (length as u32 * 16 ) as u32
         };
 
         smp_data.push(MODSample {

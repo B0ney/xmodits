@@ -92,6 +92,12 @@ impl Wav {
     }
 }
 
+pub enum LoopType {
+    Forward = 0,
+    PingPong = 1,
+    Reverse = 3
+}
+
 // Is there a way to do this without making the program x100 slower?
 // fn write_interleaved(mut _file: File, _pcm: &[u8], _smp_bits: u8) -> Result<(), Error> {
 //     _file.write_all(_pcm).map_err(|e| e.into())
