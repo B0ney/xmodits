@@ -1,13 +1,12 @@
 use std::path::{Path, PathBuf};
-use xmodits_lib::{TrackerDumper, tracker_formats::*, XmoditsError};
+use xmodits_lib::{tracker_formats::*, TrackerDumper, XmoditsError, load_module};
 mod utils;
 use utils::{clean_test_export, compare_files, verify_sample_num};
-
 
 // macro_rules! test_invalid {
 //     ($test_name:ident path: $path:expr, err: $with_err:path) => {
 //         #[test]
-//         fn $test_name() 
+//         fn $test_name()
 //         {
 //             assert!(Path::new($path).exists());
 //             assert!(
@@ -27,14 +26,12 @@ use utils::{clean_test_export, compare_files, verify_sample_num};
 //     err: XmoditsError::InvalidModule(e)
 // }
 
-
-
 // #[test]
 // fn xm_empty() {
 //     assert!(Path::new("tests/mods/xm/invalid.xm").exists());
 //     dbg!(xmodits_lib::load_module("tests/mods/xm/invalid.xm").map_err(|e| e.kind()));
 //     // if let Err(XmoditsError::EmptyModule) =  {
-        
+
 //     // } else {
 //     //     panic!()
 //     // };
@@ -43,19 +40,14 @@ use utils::{clean_test_export, compare_files, verify_sample_num};
 #[test]
 fn xm_test_mod_plugin_packed() {
     assert!(Path::new("tests/mods/xm/vagyakozas.xm").exists());
-    assert!(XMFile::load_module("tests/mods/xm/vagyakozas.xm").is_err());
+    assert!(load_module("tests/mods/xm/vagyakozas.xm").is_err());
 }
-
-
-
-
 
 /* ####################################################################### */
 
-
 #[test]
 fn xm_no_samples2() {
-    let mut a = XMFile::load_module("tests/mods/xm/no_samples.xm").unwrap();
+    let mut a = load_module("tests/mods/xm/no_samples.xm").unwrap();
     let folder = "test/exports/";
     let name = "XM-please-delete";
     let export_path = Path::new(folder).join(name);
@@ -113,10 +105,9 @@ check_sample_number!(
     with: 7
 );
 
-
 // pub fn verify_sample_num(expected: usize, given: usize, modname: &str) {
 //     assert_eq!(
-//         expected, given, 
+//         expected, given,
 //         "{}",format!("\n\nMODNAME: {}\n     EXPECTED: {} SAMPLES, GOT: {} INSTEAD\n\n",modname, expected, given)
 //     );
 // }
@@ -128,8 +119,10 @@ check_sample_number!(
 fn xm_test_exported() {
     let test_no: usize = 0;
     let root: &Path = Path::new("tests/export/xm/");
-    let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
-    let mut mod1 = XMFile::load_module("tests/mods/xm/lovetrp.xm").unwrap();
+    let test_export_path: PathBuf = PathBuf::new()
+        .join(root)
+        .join(format!("test_export_{}/", test_no));
+    let mut mod1 = load_module("tests/mods/xm/lovetrp.xm").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 
@@ -147,7 +140,7 @@ fn xm_test_exported() {
         ("01.wav", "smp_1_8bit"),
         ("02.wav", "smp_2_8bit"),
         ("18 - Ody-rng5.wav", "smp_1_16bit_18"),
-        ("27 - Ody-lde1.wav", "smp_2_16bit_27")
+        ("27 - Ody-lde1.wav", "smp_2_16bit_27"),
     ];
 
     compare_files(files, test_export_path, root);
@@ -160,8 +153,10 @@ fn xm_test_exported() {
 fn xm_test_exported_amiga() {
     let test_no: usize = 1;
     let root: &Path = Path::new("tests/export/xm/");
-    let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
-    let mut mod1 = XMFile::load_module("tests/mods/xm/240-185_-_la_grenade_80s.xm").unwrap();
+    let test_export_path: PathBuf = PathBuf::new()
+        .join(root)
+        .join(format!("test_export_{}/", test_no));
+    let mut mod1 = load_module("tests/mods/xm/240-185_-_la_grenade_80s.xm").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 
@@ -174,7 +169,7 @@ fn xm_test_exported_amiga() {
         ("01.wav", "smp_1_8bit_amig"),
         ("02.wav", "smp_2_8bit_amig"),
         ("20.wav", "smp_1_16bit_amig"),
-        ("21.wav", "smp_2_16bit_amig")
+        ("21.wav", "smp_2_16bit_amig"),
     ];
 
     compare_files(files, test_export_path, root);

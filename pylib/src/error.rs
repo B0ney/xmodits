@@ -1,12 +1,12 @@
-use xmodits_lib::XmoditsError as _XmoditsError;
-use pyo3::PyErr;
 use pyo3::exceptions::PyIOError;
+use pyo3::PyErr;
+use xmodits_lib::XmoditsError as _XmoditsError;
 
 macro_rules! batch_create_exceptions {
     ($($EXCEPTION:ident) *) => {
         $(
             pyo3::create_exception!(xmodits, $EXCEPTION, pyo3::exceptions::PyException);
-        )*  
+        )*
     };
 }
 
@@ -39,26 +39,18 @@ impl From<XmError> for PyErr {
         match e.0 {
             SampleExtractionFailure(e) => {
                 PyErr::new::<SampleExtractionError, _>(format!("Failed to rip sample: {}", e))
-            },
-            UnsupportedFormat(e) => {
-                PyErr::new::<UnsupportedFormatError, _>(e)
-            },
-            InvalidModule(e) => {
-                PyErr::new::<InvalidModuleError, _>(e)
-            },
+            }
+            UnsupportedFormat(e) => PyErr::new::<UnsupportedFormatError, _>(e),
+            InvalidModule(e) => PyErr::new::<InvalidModuleError, _>(e),
             IoError(e) => PyErr::new::<PyIOError, _>(format!("{}", e.to_string())),
             FileError(e) => PyErr::new::<PyIOError, _>(e),
 
-            EmptyModule => {
-                PyErr::new::<EmptyModuleError, _>("Module has no samples")
-            },
-            GenericError(e) => {
-                PyErr::new::<Generic, _>(e)
-            },
+            EmptyModule => PyErr::new::<EmptyModuleError, _>("Module has no samples"),
+            GenericError(e) => PyErr::new::<Generic, _>(e),
 
             MultipleErrors(errors) => {
                 PyErr::new::<Generic, _>(format!("multiple errors: {:#?}", errors))
-            },
+            }
         }
     }
 }

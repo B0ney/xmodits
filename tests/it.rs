@@ -2,24 +2,24 @@ use std::path::{Path, PathBuf};
 mod utils;
 use utils::{clean_test_export, compare_files, verify_sample_num};
 
-use xmodits_lib::{TrackerDumper, tracker_formats::*};
+use xmodits_lib::{tracker_formats::*, TrackerDumper, load_module};
 
 #[test]
 fn it_empty() {
     assert!(Path::new("tests/mods/it/empty.it").exists());
-    assert!(ITFile::load_module("tests/mods/it/empty.it").is_err());
+    assert!(load_module("tests/mods/it/empty.it").is_err());
 }
 
 #[test]
 fn it_test_mmcmp() {
     assert!(Path::new("tests/mods/it/creagaia.it").exists());
-    assert!(ITFile::load_module("tests/mods/it/creagaia.it").is_err());
+    assert!(load_module("tests/mods/it/creagaia.it").is_err());
 }
 
 // We don't want xmodits to create an empty folder when attempting to dump an empty module
 #[test]
 fn it_no_samples() {
-    let mut a = ITFile::load_module("tests/mods/it/no_samples.it").unwrap();
+    let mut a = load_module("tests/mods/it/no_samples.it").unwrap();
     let folder = "tests/exports/";
     let name = "IT-please-delete";
     let export_path = Path::new(folder).join(name);
@@ -66,8 +66,10 @@ check_sample_number!(
 fn it_test_exported() {
     let test_no: usize = 0;
     let root: &Path = Path::new("tests/export/it/");
-    let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
-    let mut mod1 = ITFile::load_module("tests/mods/it/songofthesky.it").unwrap();
+    let test_export_path: PathBuf = PathBuf::new()
+        .join(root)
+        .join(format!("test_export_{}/", test_no));
+    let mut mod1 = load_module("tests/mods/it/songofthesky.it").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 
@@ -82,10 +84,10 @@ fn it_test_exported() {
     mod1.export(&test_export_path, 8).unwrap();
 
     let files = vec![
-        ("01 - MEDP1_PAT.wav",      "smp_1_8bit"),
-        ("02 - Left strings.wav",   "smp_2_8bit"),
-        ("07 - Pad-st~1.wav",       "smp_1_16bit"),
-        ("09 - Timp.wav",           "smp_2_16bit")
+        ("01 - MEDP1_PAT.wav", "smp_1_8bit"),
+        ("02 - Left strings.wav", "smp_2_8bit"),
+        ("07 - Pad-st~1.wav", "smp_1_16bit"),
+        ("09 - Timp.wav", "smp_2_16bit"),
     ];
 
     compare_files(files, test_export_path, root);
@@ -95,8 +97,10 @@ fn it_test_exported() {
 fn it_test_exported_compression() {
     let test_no: usize = 1;
     let root: &Path = Path::new("tests/export/it/");
-    let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
-    let mut mod1 = ITFile::load_module("tests/mods/it/before_the_explozion.it").unwrap();
+    let test_export_path: PathBuf = PathBuf::new()
+        .join(root)
+        .join(format!("test_export_{}/", test_no));
+    let mut mod1 = load_module("tests/mods/it/before_the_explozion.it").unwrap();
 
     clean_test_export(root, test_no).unwrap();
 
@@ -109,7 +113,7 @@ fn it_test_exported_compression() {
         ("01 - STEPPZ_WAVV.wav", "smp_1_16bit_comp"),
         ("02 - COLONY56_IT.wav", "smp_2_16bit_comp"),
         ("03 - COLONY56_IT.wav", "smp_1_8bit_comp"),
-        ("05 - PUSHMIND_IT.wav", "smp_2_8bit_comp")
+        ("05 - PUSHMIND_IT.wav", "smp_2_8bit_comp"),
     ];
 
     compare_files(files, test_export_path, root);

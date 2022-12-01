@@ -1,38 +1,41 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 /// Impulse Tracker sample decompression
-/// References:
-/// https://github.com/nicolasgramlich/AndEngineMODPlayerExtension/blob/master/jni/loaders/itsex.c
-/// https://github.com/Konstanty/libmodplug/blob/master/src/load_it.cpp#L1183
-/// https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
-/// https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
-/// 
-
-
-use crate::{utils::{Error, reader::read_u16_le, signed::make_signed_u8}, XmoditsError};
+use crate::utils::reader::read_u16_le;
+use crate::utils::signed::make_signed_u8;
+use crate::utils::Error;
+use crate::XmoditsError;
 use byteorder::{ByteOrder, LE};
 
 #[inline(always)]
-pub fn decompress_sample(buf: &[u8], len: u32, smp_bits: u8, it215: bool, stereo: bool) -> Result<Vec<u8>, Error> {
-    let _channels: u32 = stereo as u32 + 1;
-
+pub fn decompress_sample(
+    buf: &[u8],
+    len: u32,
+    smp_bits: u8,
+    it215: bool,
+) -> Result<Vec<u8>, Error> {
     match smp_bits {
         16 => decompress_16bit(buf, len, it215),
-        _ => decompress_8bit(buf, len, it215), 
+        _ => decompress_8bit(buf, len, it215),
     }
 }
 
 struct BitReader<'a> {
-    block_offset: usize,    // Location of next block
-    bitnum: u8,             // Bits left. When it hits 0, it resets to 8 & "blk_index" increments by 1.  
-    bitbuf: u32,            // Internal buffer for storing read bits
-    buf: &'a [u8],          // IT Module buffer (read-only because reading data shouldn't modify anything)
-    blk_index: usize,       // Used to index blk_data.
+    block_offset: usize, // Location of next block
+    bitnum: u8,          // Bits left. When it hits 0, it resets to 8 & "blk_index" increments by 1.
+    bitbuf: u32,         // Internal buffer for storing read bits
+    buf: &'a [u8], // IT Module buffer (read-only because reading data shouldn't modify anything)
+    blk_index: usize, // Used to index blk_data.
 }
 
-impl <'a>BitReader<'a> { 
+impl<'a> BitReader<'a> {
     fn new(buf: &'a [u8]) -> Self {
-        Self { 
+        Self {
             bitnum: 0,
-            bitbuf:0,
+            bitbuf: 0,
             buf,
             blk_index: 0,
             block_offset: 0x0000,
@@ -40,25 +43,27 @@ impl <'a>BitReader<'a> {
     }
 
     fn read_next_block(&mut self) {
-        // First 2 bytes combined to u16 (LE). Tells us size of compressed block. 
+        // First 2 bytes combined to u16 (LE). Tells us size of compressed block.
         let block_size: u16 = read_u16_le(self.buf, self.block_offset);
-        
+
         // Set to 2 to skip length field
-        self.blk_index = 2 + self.block_offset; 
+        self.blk_index = 2 + self.block_offset;
 
         // Initialize bit buffers.
         // (Following the original by setting it to 0 caused a lot of headaches :D)
-        self.bitbuf = self.buf[self.blk_index] as u32; 
+        self.bitbuf = self.buf[self.blk_index] as u32;
         self.bitnum = 8;
-        self.block_offset += block_size as usize + 2;  
-    }   
+        self.block_offset += block_size as usize + 2;
+    }
 
-    fn read_bits_u16(&mut self, n: u8) -> u16 { 
+    fn read_bits_u16(&mut self, n: u8) -> u16 {
         self.read_bits_u32(n) as u16
     }
 
-    fn read_bits_u32(&mut self, n: u8) -> u32 { 
-        if n == 0 { return 0; }
+    fn read_bits_u32(&mut self, n: u8) -> u32 {
+        if n == 0 {
+            return 0;
+        }
         let mut value: u32 = 0;
 
         for _ in 0..n {
@@ -74,9 +79,8 @@ impl <'a>BitReader<'a> {
         }
 
         value >> (32 - n)
-    }   
+    }
 }
-
 
 /// Decompresses 8 bit sample from buffer.
 /// 
@@ -282,27 +286,29 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error>
 #[test]
 fn readbit() {
     let buf: Vec<u8> = vec![
-        0x1, 0x0, // block size header (LE) of 1 byte
-        0b1111_1110, 0b1111_1111,   // group 1
-
-        0b1010_1110,                // group 2
-        
-        0b1100_1100,0b1100_1111,    // group 3
-        
+        0x1,
+        0x0, // block size header (LE) of 1 byte
+        0b1111_1110,
+        0b1111_1111, // group 1
+        0b1010_1110, // group 2
+        0b1100_1100,
+        0b1100_1111, // group 3
         0b0011_1010,
-
-        0b1010_1010, 0b1100_1100,
-        0b1100_1100, 0b1010_1010,
-        0b1010_1010, 0b1100_1100,
+        0b1010_1010,
+        0b1100_1100,
+        0b1100_1100,
+        0b1010_1010,
+        0b1010_1010,
+        0b1100_1100,
     ];
     let mut b = BitReader::new(&buf);
-    b.read_next_block(); 
+    b.read_next_block();
     b.read_bits_u16(0);
 
     // test group 1
     assert_eq!(b.read_bits_u16(8), 0b_1111_1110);
     assert_eq!(b.read_bits_u16(8), 0b_1111_1111);
-    
+
     // test group 2
     assert_eq!(b.read_bits_u16(4), 0b_0000_1110);
     assert_eq!(b.read_bits_u16(4), 0b_0000_1010);

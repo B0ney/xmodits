@@ -1,18 +1,17 @@
 use std::path::{Path, PathBuf};
-use xmodits_lib::{TrackerDumper, tracker_formats::*};
+use xmodits_lib::{tracker_formats::*, TrackerDumper, load_module};
 mod utils;
 use utils::{clean_test_export, compare_files, verify_sample_num};
-
 
 #[test]
 fn s3m_invalid_1() {
     assert!(Path::new("tests/mods/s3m/invalid.s3m").exists());
-    assert!(S3MFile::load_module("tests/mods/s3m/invalid.s3m").is_err());
+    assert!(load_module("tests/mods/s3m/invalid.s3m").is_err());
 }
 
 #[test]
 fn s3m_no_samples() {
-    let mut a = S3MFile::load_module("tests/mods/s3m/no_samples.s3m").unwrap();
+    let mut a = load_module("tests/mods/s3m/no_samples.s3m").unwrap();
     let folder = "tests/exports/";
     let name = "S3M-please-delete";
     let dest = Path::new(folder).join(name);
@@ -65,8 +64,10 @@ check_sample_number!(
 fn s3m_test_exported() {
     let test_no: usize = 0;
     let root: &Path = Path::new("tests/export/s3m/");
-    let test_export_path: PathBuf = PathBuf::new().join(root).join(format!("test_export_{}/",test_no));
-    let mut mod1 = S3MFile::load_module("tests/mods/s3m/hip_-_640k_of_space.s3m").unwrap();
+    let test_export_path: PathBuf = PathBuf::new()
+        .join(root)
+        .join(format!("test_export_{}/", test_no));
+    let mut mod1 = load_module("tests/mods/s3m/hip_-_640k_of_space.s3m").unwrap();
     dbg!(&test_export_path);
     clean_test_export(root, test_no).unwrap();
 
@@ -78,10 +79,10 @@ fn s3m_test_exported() {
     mod1.export(&test_export_path, 6).unwrap();
 
     let files = vec![
-        ("01 - PAD853.wav",   "smp_1_16bit"),
-        ("02 - WIN3_1.wav",   "smp_2_16bit"),
-        ("06 - CHIP2.wav",    "smp_1_8bit"),
-        ("07 - CHIPB.wav",    "smp_2_8bit")
+        ("01 - PAD853.wav", "smp_1_16bit"),
+        ("02 - WIN3_1.wav", "smp_2_16bit"),
+        ("06 - CHIP2.wav", "smp_1_8bit"),
+        ("07 - CHIPB.wav", "smp_2_8bit"),
     ];
 
     compare_files(files, test_export_path, root);

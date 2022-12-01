@@ -105,3 +105,21 @@ The binary size should be acceptable (<1MB)
 ```
 cargo build -p xmodits --release
 ```
+
+windows
+
+```
+
+cargo build --release -p xmodits --bin xmodits
+
+```
+
+## Licenses (Upcoming)
+The xmodits project has multiple programs. Each with their own licenses.
+
+|Program| License|
+|--|--|
+|[XMODITS-GUI](app/gui/) (App) | AGPLv3|
+|[XMODITS-CLI](app/cli/) (App) | LGPLv3 |
+|[XMODITS-PY](pylib/) (basically xmodits-cli)| LGPLv3 |
+|XMODITS-LIB | MPLv2 |

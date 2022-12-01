@@ -2,8 +2,9 @@
 
 Sources: 
 * https://github.com/nicolasgramlich/AndEngineMODPlayerExtension/blob/master/jni/loaders/itsex.c
-* https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
+* https://github.com/Konstanty/libmodplug/blob/master/src/load_it.cpp#L1183
 * https://wiki.multimedia.cx/index.php/Impulse_Tracker#IT214_sample_compression
+* https://github.com/schismtracker/schismtracker/blob/master/fmt/compression.c
 
 
 Note:

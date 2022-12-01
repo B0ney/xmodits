@@ -1,9 +1,15 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 use crate::{SampleNamerFunc, TrackerSample};
 
 /// Format name of exported sample.
 ///
 /// If the sample name is empty it'll just be: $n.wav e.g 0.wav
-/// 
+///
 /// If the sample does have a name, it'll be "$n - $name.wav"
 pub fn name_sample(sample: &TrackerSample, idx: usize) -> String {
     format!(
@@ -11,10 +17,7 @@ pub fn name_sample(sample: &TrackerSample, idx: usize) -> String {
         idx + 1, // use human readable indexing.
         match &sample.filename.trim() {
             x if x.is_empty() => "".to_string(),
-            x => format!(
-                " - {}", 
-                x.replace(".wav", "").replace('.', "_")
-            ),
+            x => format!(" - {}", x.replace(".wav", "").replace('.', "_")),
         }
     )
 }
@@ -30,7 +33,7 @@ pub struct SampleNamer {
 
 impl SampleNamer {
     /// Dynamically build a function to format sample names given its internal parameters
-    fn to_func(self) -> Box<SampleNamerFunc> {
+    pub fn to_func(self) -> Box<SampleNamerFunc> {
         const DEFAULT_PADDING: usize = 2;
 
         Box::new(move |smp: &TrackerSample, idx: usize| -> String {
@@ -39,32 +42,29 @@ impl SampleNamer {
                 // Index component
                 {
                     let index = match self.index_raw {
-                        true  => smp.raw_index(),
-                        _           => idx + 1,
+                        true => smp.raw_index(),
+                        _ => idx + 1,
                     };
                     match self.index_padding {
-                        Some(padding)   => format!("{:0padding$}", index),
-                        None            => format!("{:0DEFAULT_PADDING$}", index),
+                        Some(padding) => format!("{:0padding$}", index),
+                        None => format!("{:0DEFAULT_PADDING$}", index),
                     }
                 },
                 // Name component
                 match self.index_only {
                     true => "".to_string(),
-                    _ => match smp.filename.trim() 
-                    {
+                    _ => match smp.filename.trim() {
                         name if name.is_empty() => "".to_string(),
-                        name => format!(
-                            " - {}", {
-                                let name = name.replace(".wav","").replace('.',"_");
+                        name => format!(" - {}", {
+                            let name = name.replace(".wav", "").replace('.', "_");
 
-                                match (self.upper, self.lower) {
-                                    (true, false)   => name.to_ascii_uppercase(),
-                                    (false, true)   => name.to_ascii_lowercase(),
-                                    _ => name
-                                }
-                            }                            
-                        ),
-                    }
+                            match (self.upper, self.lower) {
+                                (true, false) => name.to_ascii_uppercase(),
+                                (false, true) => name.to_ascii_lowercase(),
+                                _ => name,
+                            }
+                        }),
+                    },
                 }
             )
         })
@@ -77,12 +77,13 @@ impl SampleNamer {
         lower: bool,
         upper: bool,
     ) -> Box<SampleNamerFunc> {
-        SampleNamer{
+        SampleNamer {
             index_only,
             index_padding,
             index_raw,
             lower,
             upper,
-        }.to_func()
+        }
+        .to_func()
     }
 }

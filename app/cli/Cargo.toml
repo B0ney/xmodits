@@ -1,0 +1,27 @@
+[package]
+name = "xmodits"
+authors = ["B0ney - https://github.com/B0ney"]
+version = "0.9.7"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+xmodits-lib = { path = "../../" } #, features=["thread"]
+clap = { version = "4.0.23", features = ["derive", "cargo", "wrap_help"] }
+# rayon = { version = "1.5.3", optional=true }
+
+# [features]
+# advanced = [
+#     "rayon"
+# ]
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Reduce number of codegen units to increase optimizations.
+# panic = 'abort'  
+
+[profile.test]
+opt-level = 1

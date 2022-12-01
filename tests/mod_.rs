@@ -1,26 +1,20 @@
-use xmodits_lib::{TrackerDumper, tracker_formats::*};
+use xmodits_lib::{tracker_formats::*, TrackerDumper, load_module};
 mod utils;
 use crate::utils::verify_sample_num;
 
 #[test]
 fn mod_empty() {
-    assert!(
-        MODFile::load_module("tests/mods/mod/empty.mod").is_err()
-    );
+    assert!(load_module("tests/mods/mod/empty.mod").is_err());
 }
 
 #[test]
 fn xpk_mod_unsupported() {
-    assert!(
-        MODFile::load_module("tests/mods/mod/synthmat.mod").is_err()
-    );
+    assert!(load_module("tests/mods/mod/synthmat.mod").is_err());
 }
 
 #[test]
 fn mod_no_samples() {
-    assert!(
-        MODFile::load_module("tests/mods/mod/no_samples.mod").is_err()
-    );
+    assert!(load_module("tests/mods/mod/no_samples.mod").is_err());
 }
 
 check_sample_number!(
@@ -46,7 +40,6 @@ check_sample_number!(
     path: "tests/mods/mod/sleep.mod",
     with: 9
 );
-
 
 check_sample_number!(
     mod_test_5
