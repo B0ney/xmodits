@@ -1,6 +1,7 @@
-use crate::{app, Cli};
-use std::path::PathBuf;
+use crate::Cli;
+use std::path::{PathBuf, Path};
 use xmodits_lib::{SampleNamer, SampleNamerFunc};
+use xmodits_common::{folder, total_size_megabytes, dump_samples_advanced};
 
 pub fn build_namer(cli: &Cli) -> Box<SampleNamerFunc> {
     SampleNamer::build_func(
@@ -12,33 +13,18 @@ pub fn build_namer(cli: &Cli) -> Box<SampleNamerFunc> {
     )
 }
 
-fn file_name(path: &PathBuf) -> String {
-    path.file_name().unwrap().to_string_lossy().to_string()
-}
-
-fn folder(destination: &PathBuf, path: &PathBuf, with_folder: bool) -> PathBuf {
-    match with_folder {
-        true => {
-            let modname: String = path
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .replace(".", "_");
-
-            let new_folder: PathBuf = destination.join(modname);
-
-            new_folder
-        }
-        _ => destination.to_path_buf(),
-    }
+fn file_name(path: &Path) -> std::borrow::Cow<str> {
+    path
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy()
 }
 
 pub fn info(cli: Cli) {
     let items = cli.trackers.iter().filter(|f| f.is_file()).count();
 
     if items == 0 {
-        return println!("{}", "You need to provide a valid module!");
+        return eprintln!("You need to provide a valid module!");
     }
 
     let module = &cli.trackers[0];
@@ -58,7 +44,7 @@ pub fn info(cli: Cli) {
                 m.list_sample_data().iter().map(|m| m.len).sum::<usize>() / 1000,
             )
         }
-        Err(e) => println!("Error {} <-- {}", e, file_name(module)),
+        Err(e) => eprintln!("Error {} <-- {}", e, file_name(module)),
     }
 }
 
@@ -68,10 +54,10 @@ pub fn rip(cli: Cli, destination: PathBuf) {
     let items = cli.trackers.iter().filter(|f| f.is_file()).count();
 
     if items == 0 {
-        return println!("{}", "There's nothing to rip!");
+        return eprintln!("There's nothing to rip!");
     }
 
-    let total_size = app::total_size_megabytes(&cli.trackers);
+    let total_size = total_size_megabytes(&cli.trackers);
 
     if total_size > 512.0 {
         println!(
@@ -83,57 +69,15 @@ pub fn rip(cli: Cli, destination: PathBuf) {
     }
 
     for mod_path in cli.trackers.iter().filter(|f| f.is_file()) {
-        if let Err(error) = app::dump_samples_advanced(
-            &mod_path,
-            &folder(&destination, &mod_path, !cli.no_folder),
+        if let Err(error) = dump_samples_advanced(
+            mod_path,
+            &folder(&destination, mod_path, !cli.no_folder),
             &sample_namer_func,
             !cli.no_folder,
             &cli.hint,
         ) {
-            eprintln!("Error {} <-- \"{}\"", error, file_name(&mod_path))
+            eprintln!("Error {} <-- \"{}\"", error, file_name(mod_path))
         }
     }
     println!("Done!");
 }
-
-// #[cfg(feature = "advanced")]
-// pub fn rip_parallel(cli: Cli, destination: PathBuf) {
-//     use rayon::prelude::*;
-
-//     let sample_namer_func: Box<SampleNamerFunc> = build_namer(&cli);
-
-//     let items = cli.trackers.iter().filter(|f| f.is_file()).count();
-
-//     if items == 0 {
-//         return println!("{}", "There's nothing to rip!");
-//     }
-
-//     let total_size = app::total_size_MiB(&cli.trackers);
-
-//     if total_size > 512.0 {
-//         println!(
-//             "Ripping {:.2} MiB worth of trackers in parallel. Please wait...",
-//             total_size
-//         );
-//     } else {
-//         println!(
-//             "Ripping {:.2} MiB worth of trackers in parallel is no faster when done serially.",
-//             total_size
-//         );
-//     }
-
-//     cli.trackers
-//         .into_par_iter()
-//         .filter(|f| f.is_file())
-//         .for_each(|mod_path| {
-//             if let Err(error) = app::dump_samples_advanced(
-//                 &mod_path,
-//                 &folder(&destination, &mod_path, !cli.no_folder),
-//                 &sample_namer_func,
-//                 !cli.no_folder,
-//             ) {
-//                 eprintln!("{} <-- \"{}\"", error, file_name(&mod_path));
-//             }
-//         });
-//     println!("Done!");
-// }

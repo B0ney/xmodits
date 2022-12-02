@@ -8,13 +8,8 @@ edition = "2021"
 
 [dependencies]
 xmodits-lib = { path = "../../" } #, features=["thread"]
+xmodits-common = { path = "../xmodits_common/" }
 clap = { version = "4.0.23", features = ["derive", "cargo", "wrap_help"] }
-# rayon = { version = "1.5.3", optional=true }
-
-# [features]
-# advanced = [
-#     "rayon"
-# ]
 
 [profile.release]
 strip = true

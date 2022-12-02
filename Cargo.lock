@@ -4888,6 +4888,14 @@ name = "xmodits"
 version = "0.9.7"
 dependencies = [
  "clap",
+ "xmodits-common",
+ "xmodits-lib",
+]
+
+[[package]]
+name = "xmodits-common"
+version = "0.1.0"
+dependencies = [
  "xmodits-lib",
 ]
 
@@ -4910,6 +4918,7 @@ dependencies = [
  "toml",
  "tracing",
  "tracing-subscriber",
+ "xmodits-common",
  "xmodits-lib",
 ]
 

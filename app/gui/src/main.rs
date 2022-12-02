@@ -21,9 +21,9 @@ fn main() {
 
     let args: Vec<String> = env::args().skip(1).collect();
     // if args.is_empty() {
-    info!("Starting gui");
-    gui::XmoditsGui::start();
+        info!("Starting gui");
+        gui::XmoditsGui::start();
     // } else {
-    //     xmodits_api::rip_simple(args);
+    //     simple::rip(args);
     // }
 }

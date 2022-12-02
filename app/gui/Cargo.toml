@@ -12,6 +12,7 @@ edition = "2021"
 
 [dependencies]
 xmodits-lib = { path = "../../", features=["thread"] } #
+xmodits-common = { path = "../xmodits_common"}
 anyhow = "1.0.66"
 serde = { version="1.0.147", features = ["derive"] }
 toml = "0.5.9"

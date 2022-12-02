@@ -1,37 +1,22 @@
 use clap::Parser;
-use std::path::PathBuf;
-
-pub use xmodits::{api, Cli};
+use xmodits_common::destination_dir;
+mod api;
+mod cli;
+use cli::Cli;
 
 fn main() {
     let mut cli = Cli::parse();
 
-    let destination: PathBuf = match cli.trackers.last().unwrap() {
-        p if !p.is_file() && cli.trackers.len() > 1 => {
-            let folder = cli.trackers.pop().unwrap();
-
-            if !folder.is_dir() {
-                if let Err(e) = std::fs::create_dir(&folder) {
-                    return eprintln!(
-                        "Error: Could not create destination folder \"{}\": {}",
-                        folder.display(),
-                        e
-                    );
-                };
-            }
-
-            folder
+    let destination = match destination_dir(&mut cli.trackers) {
+        Ok(path) => path,
+        Err(e) => {
+            return eprintln!("{}", e);
         }
-        _ => std::env::current_dir().expect("I need a current working directory. (>_<)"),
     };
+
     if cli.info {
         return api::info(cli);
     }
-
-    // #[cfg(feature = "advanced")]
-    // if cli.parallel {
-    //     return api::rip_parallel(cli, destination);
-    // }
 
     api::rip(cli, destination);
 

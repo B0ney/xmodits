@@ -164,7 +164,7 @@ pub trait TrackerDumper {
 
         if !&folder.as_ref().is_dir() {
             if create_dir_if_absent {
-                fs::create_dir(&folder).map_err(|err| helpful_io_error(err, folder.as_ref()))?;
+                fs::create_dir(folder).map_err(|err| helpful_io_error(err, folder.as_ref()))?;
             } else {
                 return Err(XmoditsError::file(&format!(
                     "Destination '{}' either doesn't exist or is not a directory",

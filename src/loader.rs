@@ -48,14 +48,14 @@ pub fn load_from_ext<P>(path: P, ext: &str) -> Result<TrackerModule, XmoditsErro
 where
     P: AsRef<std::path::Path>,
 {
-    let buf: Vec<u8> = load_to_buf(path)?;
-
     let Some((validator, loader)) = LOADERS.get(ext) else {
         return Err(XmoditsError::UnsupportedFormat(format!(
             "'{}' is not a supported format.",
             ext
         )))
     };
+
+    let buf: Vec<u8> = load_to_buf(path)?;
 
     let Err(original_err) = validator(&buf) else {
         return loader(buf)
@@ -86,7 +86,7 @@ where
 }
 
 /// Function to get file extension from path.
-fn file_extension<P: AsRef<std::path::Path>>(p: P) -> String {
+pub fn file_extension<P: AsRef<std::path::Path>>(p: P) -> String {
     p.as_ref()
         .extension()
         .unwrap_or_default()
