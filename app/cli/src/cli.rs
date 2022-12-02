@@ -4,7 +4,7 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(author, version, about)]
 #[command(
-    long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M, MOD and UMX formats.\nhttps://github.com/B0ney/xmodits"
+    long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M, MOD and UMX formats.\nThis software is licensed under the LGPLv3, for more infomation please visit: https://github.com/B0ney/xmodits"
 )]
 pub struct Cli {
     #[arg(
