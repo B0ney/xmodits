@@ -4,8 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+use std::borrow::Cow;
 use crate::{dword, slice, word};
-
 use byteorder::{ByteOrder, LE};
 
 /*
@@ -40,4 +40,10 @@ pub fn read_slice(buf: &[u8], offset: usize, len: usize) -> &[u8] {
 pub fn read_string(buf: &[u8], offset: usize, len: usize) -> String {
     use super::ascii::string_from_buf;
     string_from_buf(read_slice(buf, offset, len))
+}
+
+#[inline]
+/// Helper function to obtain Cow String from ```&[u8]```
+pub fn read_str<'a>(buf: &'a [u8], offset: usize, len: usize) -> Cow<'a, str>{
+    String::from_utf8_lossy(read_slice(buf, offset, len))
 }
