@@ -11,6 +11,7 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.17.3", features = ["extension-module"] }
 xmodits-lib = { path = "../" }
+xmodits-common = { path = "../app/xmodits_common" }
 
 [profile.release]
 strip = true

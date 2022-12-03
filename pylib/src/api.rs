@@ -1,7 +1,6 @@
-use std::path::{Path, PathBuf};
-
-use xmodits_lib::SampleNamer;
-use xmodits_lib::*;
+use std::path::Path;
+use xmodits_lib::{SampleNamer, SampleNamerFunc, XmoditsError};
+use xmodits_common::{dump_samples_advanced, folder};
 
 pub fn rip_multiple(
     paths: Vec<String>,
@@ -13,7 +12,7 @@ pub fn rip_multiple(
     upper: Option<bool>,
     lower: Option<bool>,
     hint: Option<String>
-) -> Result<(), Error> {
+) -> Result<(), XmoditsError> {
     let sample_namer_func: Box<SampleNamerFunc> = SampleNamer::build_func(
         index_only.unwrap_or_default(),
         index_padding,
@@ -21,25 +20,23 @@ pub fn rip_multiple(
         lower.unwrap_or_default(),
         upper.unwrap_or_default(),
     );
-    let create_if_absent: bool = with_folder.is_some();
+    let create_if_absent: bool = with_folder == Some(true);
 
     // Collect errors during dumping
     let mut errors: Vec<XmoditsError> = paths
         .into_iter()
         .filter(|path| Path::new(path).is_file())
-        .map(|path|(
-            match &hint {
-                Some(ext) => xmodits_lib::load_from_ext(&path, ext)?,
-                None => xmodits_lib::load_module(&path)?,
-            }).dump_advanced(
-                &folder(&destination, &path, with_folder),
+        .map(|path|
+            dump_samples_advanced(
+                &path,
+                &folder(&destination, &path, create_if_absent),
                 &sample_namer_func,
                 create_if_absent,
+                &hint
             )
         )
         .filter_map(|result| result.err())
         .collect();
-
     use std::cmp::Ordering;
     // Compare size of errors
     // return Ok(()) if errors.len() = 0
@@ -50,23 +47,5 @@ pub fn rip_multiple(
         Ordering::Less => Ok(()),
         Ordering::Equal => Err(errors.pop().unwrap()),
         Ordering::Greater => Err(XmoditsError::MultipleErrors(errors)),
-    }
-}
-
-fn folder(destination: &String, path: &String, with_folder: Option<bool>) -> PathBuf {
-    match with_folder {
-        Some(true) => {
-            let modname: String = Path::new(&path)
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .replace(".", "_");
-
-            let new_folder: PathBuf = PathBuf::new().join(&destination).join(modname);
-
-            new_folder
-        }
-        _ => PathBuf::new().join(&destination),
     }
 }

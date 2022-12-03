@@ -4938,6 +4938,7 @@ name = "xmodits_py"
 version = "0.1.3"
 dependencies = [
  "pyo3",
+ "xmodits-common",
  "xmodits-lib",
 ]
 

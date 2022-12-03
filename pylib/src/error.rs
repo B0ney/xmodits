@@ -42,7 +42,7 @@ impl From<XmError> for PyErr {
             }
             UnsupportedFormat(e) => PyErr::new::<UnsupportedFormatError, _>(e),
             InvalidModule(e) => PyErr::new::<InvalidModuleError, _>(e),
-            IoError(e) => PyErr::new::<PyIOError, _>(format!("{}", e.to_string())),
+            IoError(e) => PyErr::new::<PyIOError, _>(e.to_string()),
             FileError(e) => PyErr::new::<PyIOError, _>(e),
 
             EmptyModule => PyErr::new::<EmptyModuleError, _>("Module has no samples"),

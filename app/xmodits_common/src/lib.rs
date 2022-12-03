@@ -51,15 +51,15 @@ pub fn mod_name<P: AsRef<Path>>(mod_path: P) -> String {
         .replace('.', "_")
 }
 
-pub fn folder(destination: &Path, path: &Path, with_folder: bool) -> PathBuf {
+pub fn folder<P: AsRef<Path>>(destination: P, path: P, with_folder: bool) -> PathBuf {
     match with_folder {
         true => {
             let modname: String = mod_name(path);
-            let new_folder: PathBuf = destination.join(modname);
+            let new_folder: PathBuf = destination.as_ref().join(modname);
 
             new_folder
         }
-        _ => destination.to_path_buf(),
+        _ => destination.as_ref().to_path_buf(),
     }
 }
 
