@@ -16,7 +16,7 @@ pub struct Config {
     pub upper: bool,
     pub lower: bool,
     pub no_folder: bool,
-    pub destination: String,
+    pub destination: PathBuf,
 }
 
 pub fn config_dir() -> PathBuf {
@@ -38,7 +38,8 @@ pub fn config_dir() -> PathBuf {
 impl Config {
     pub fn load() -> Self {
         let default_and_save = || {
-            let config = Self::default();
+            let mut config = Self::default();
+            config.destination = dirs::download_dir().expect("Expected Downloads folder");
             // let _ = config.save();
             config
         };

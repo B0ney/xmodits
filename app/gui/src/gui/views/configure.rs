@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::gui::JETBRAINS_MONO;
 use crate::{
     core::cfg::Config,
@@ -15,7 +17,7 @@ pub enum Message {
     UpperCase(bool),
     LowerCase(bool),
     IndexPadding(usize),
-    DestinationFolder(String),
+    DestinationFolder(PathBuf),
 }
 
 #[derive(Debug, Clone)]

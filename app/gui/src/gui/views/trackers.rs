@@ -11,8 +11,7 @@ use iced_native::Widget;
 use xmodits_lib::TrackerDumper;
 use std::path::{Path, PathBuf};
 use tracing::{info, warn};
-// use xmodits_lib::{load_module, TrackerModule};
-use crate::core::async_xmodits::{load_module, TrackerModule};
+use xmodits_lib::{load_module, TrackerModule};
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -149,6 +148,10 @@ impl Xmodits {
         self.paths.len()
     }
 
+    pub fn cloned_paths(&self) -> Vec<PathBuf> {
+        self.paths.iter().map(|f| f.path.to_owned()).collect()
+    }
+
     pub fn current_exists(&self, path: &Path) -> bool {
         match &self.current {
             Some(d) if d.path == path => true,
@@ -263,6 +266,9 @@ impl Xmodits {
 
 
 async fn tracker_info(path: PathBuf) -> Option<Info> {
-    let tracker = load_module(&path).await.ok()?;
+    let Some((Ok(tracker), path)) = tokio::task::spawn_blocking(move || (load_module(&path), path)).await.ok() else {
+        return None;
+    };
+    
     Some(Info::read(tracker, path))
 }

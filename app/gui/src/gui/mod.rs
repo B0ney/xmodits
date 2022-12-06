@@ -2,7 +2,7 @@ pub mod icons;
 pub mod style;
 pub mod views;
 pub mod widgets;
-use crate::core::async_xmodits;
+use crate::core::dialog;
 use crate::core::cfg::Config;
 use crate::core::font::JETBRAINS_MONO;
 use crate::core::{
@@ -107,18 +107,16 @@ impl Application for XmoditsGui {
             Message::Beep(sfx) => self.audio.play(&sfx),
             Message::StartRip => match self.sender {
                 Some(ref mut tx) => {
-                    tx.try_send(xmodits::DownloadMessage::Download);
-                    // let tx = sender.clone();
+                    tx.try_send(xmodits::DownloadMessage::Download(
+                        (
+                            self.tracker.cloned_paths(),
+                            self.cfg.cfg.destination.to_owned()
+                        )
+                    ));
                 }
                 _ => (),
             },
 
-            // return Command::perform(
-            // async {
-            //     std::thread::sleep(std::time::Duration::from_secs(5));
-            //     String::from("sfx_1")
-            // },Message::Beep
-            // ),
             Message::OpenFileDialoge => {
                 return Command::perform(
                     async {
@@ -168,9 +166,10 @@ impl Application for XmoditsGui {
             Message::About(msg) => self.about.update(msg),
             Message::Progress(msg) => match msg {
                 xmodits::DownloadMessage::Sender(tx) => self.sender = Some(tx),
-                xmodits::DownloadMessage::Download => (),
+                xmodits::DownloadMessage::Download(_) => (),
                 xmodits::DownloadMessage::Cancel => (),
                 xmodits::DownloadMessage::Done => self.audio.play("sfx_1"),
+                xmodits::DownloadMessage::Progress => self.audio.play("sfx_1"),
             },
         }
         Command::none()
@@ -199,9 +198,9 @@ impl Application for XmoditsGui {
             .spacing(5);
 
         use ConfigMessage::*;
-
-        let input: _ = text_input("Output Directory", &self.cfg.cfg.destination, |s| {
-            Message::SetCfg(DestinationFolder(s))
+        let destination = format!("{}",&self.cfg.cfg.destination.display());
+        let input: _ = text_input("Output Directory", &destination, |s| {
+            Message::SetCfg(DestinationFolder(PathBuf::new().join(s)))
         })
         .padding(10)
         .on_submit(Message::Beep("sfx_1".into()));
@@ -289,40 +288,3 @@ impl XmoditsGui {
         Self::run(settings).unwrap_err();
     }
 }
-
-// #[derive(Default)]
-// struct TestOne;
-
-// impl TestOne {
-//     // pub fn rip
-//     pub fn subscription(&self) -> Subscription<Msg> {
-
-//     }
-// }
-
-// async fn rips(
-//     state: RipState
-// ) -> (Option<(RipProgress)>, RipState){
-//     match state {
-//         RipState::start(time) => {
-//             async {
-//                 std::thread::sleep(Duration::from_secs(1));
-//                 (Some(RipProgress::Advanced(1)), RipState::Ripping)
-//             }
-//         },
-//         RipState::Finished => todo!(),
-//     }
-// }
-
-// #[derive(Debug, Clone)]
-// pub enum RipProgress {
-//     Failed(usize),
-//     Advanced(usize),
-//     Finished,
-// }
-
-// enum RipState {
-//     start(usize),
-//     Ripping,
-//     Finished,
-// }
