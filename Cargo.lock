@@ -4872,6 +4872,7 @@ dependencies = [
  "toml",
  "tracing",
  "tracing-subscriber",
+ "walkdir",
  "xmodits-common",
  "xmodits-lib",
 ]

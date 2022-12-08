@@ -61,8 +61,11 @@ pub enum Message {
     About(AboutMessage),
     Beep(String),
     StartRip,
-    OpenFileDialoge,
-    AddFile(Option<PathBuf>),
+    AddFileDialog,
+    AddFolderDialog,
+    SetDestinationDialog,
+    SetDestination(Option<PathBuf>),
+    AddPath(Option<Vec<PathBuf>>),
     WindowEvent(Event),
     ClearTrackers,
     DeleteSelected,
@@ -117,21 +120,23 @@ impl Application for XmoditsGui {
                 _ => (),
             },
 
-            Message::OpenFileDialoge => {
+            Message::AddFileDialog => {
                 return Command::perform(
                     async {
                         // tokio::
-                        match rfd::FileDialog::new().pick_file() {
+                        match rfd::FileDialog::new().pick_files() {
                             Some(handle) => Some(handle),
                             None => None,
                         }
                     },
-                    Message::AddFile,
+                    Message::AddPath,
                 )
             }
-            Message::AddFile(path) => {
+            Message::AddPath(path) => {
                 if let Some(path) = path {
-                    self.tracker.update(TrackerMessage::Add(path));
+                    path.into_iter().for_each(|path| {
+                        self.tracker.update(TrackerMessage::Add(path));
+                    });
                     self.audio.play("sfx_1");
                 }
             }
@@ -171,6 +176,37 @@ impl Application for XmoditsGui {
                 xmodits::DownloadMessage::Done => self.audio.play("sfx_1"),
                 xmodits::DownloadMessage::Progress => self.audio.play("sfx_1"),
             },
+            Message::SetDestinationDialog => {
+                return Command::perform(
+                    async {
+                        // tokio::
+                        match rfd::FileDialog::new().pick_folder() {
+                            Some(handle) => Some(handle),
+                            None => None,
+                        }
+                    },
+                    Message::SetDestination,
+                )
+            },
+            Message::SetDestination(path) => {
+                use ConfigMessage::*;
+                if let Some(destination) = path {
+                    // return Command::perform(Message::SetCfg((destination)));
+                    self.cfg.update(DestinationFolder(destination));
+                }
+            },
+            Message::AddFolderDialog => {
+                return Command::perform(
+                    async {
+                        // tokio::
+                        match rfd::FileDialog::new().pick_folders() {
+                            Some(handle) => Some(handle),
+                            None => None,
+                        }
+                    },
+                    Message::AddPath,
+                )
+            },
         }
         Command::none()
     }
@@ -179,10 +215,10 @@ impl Application for XmoditsGui {
         let trackers: _ = self.tracker.view_trackers().map(Message::Tracker);
 
         let buttonx = row![
-            button("Add").padding(10).on_press(Message::OpenFileDialoge),
+            button("Add").padding(10).on_press(Message::AddFileDialog),
             button("Add Folder")
                 .padding(10)
-                .on_press(Message::OpenFileDialoge),
+                .on_press(Message::AddFolderDialog),
             Space::with_width(Length::Fill),
             button(row![icons::delete_icon(), "Delete Selected"])
                 .padding(10)
@@ -208,7 +244,7 @@ impl Application for XmoditsGui {
         let set_destination: _ = row![
             input,
             button("Select")
-                .on_press(Message::Beep("sfx_1".into()))
+                .on_press(Message::SetDestinationDialog)
                 .padding(10),
         ]
         .spacing(5)

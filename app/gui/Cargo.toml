@@ -26,6 +26,7 @@ native-dialog = { version="0.6.3", features= ["windows_dpi_awareness", "windows_
 tracing = "0.1.37"
 tracing-subscriber = "0.2.0"
 open = "3.0.3"
+walkdir = "2.3.2"
 
 # crossbeam-channel = "0.5.6"
 # rand = { version = "0.8.5" }
@@ -34,7 +35,7 @@ open = "3.0.3"
 
 
 [dependencies.iced]
-version = "0.5"
+version = "0.5.2"
 features = [
     "glow", 
     "image", 
@@ -42,11 +43,6 @@ features = [
     "svg",
     "tokio",
 ]
-
-# [features]
-# updater = [
-#     "reqwest"
-# ]
 
 # # Separate binary to update xmodits
 # [[bin]]

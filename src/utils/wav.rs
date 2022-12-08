@@ -15,11 +15,12 @@ const FMT_: [u8; 4] = [0x66, 0x6D, 0x74, 0x20]; // "riff "
 const DATA: [u8; 4] = [0x64, 0x61, 0x74, 0x61]; // data
 const SMPL: [u8; 4] = [0x73, 0x6D, 0x70, 0x6C]; // smpl
 const HEADER_SIZE: u32 = 44;
+
 pub struct Wav {
     stereo: bool, // is pcm stereo)
     is_interleaved: bool,
     header: WavHeader,
-    // chunks: Vec
+    smpl_chunk: Option<SampleChunk>
 }
 
 pub struct WavHeader {
@@ -38,8 +39,12 @@ pub struct WavHeader {
 impl Wav {
     pub fn from_tracker_sample(smp: &TrackerSample) -> Self {
         Self::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo, false)
+            // .with_smpl_chunk(smp)
 
         // todo!()
+    }
+    pub fn with_smpl_chunk(mut self, smp: &TrackerSample) -> Self {
+        self
     }
 
     pub fn header(
@@ -65,6 +70,7 @@ impl Wav {
                 bits_sample: (smp_bits as u16).to_le_bytes(),
                 size_of_chunk: (pcm_len * channels as u32).to_le_bytes(),
             },
+            smpl_chunk: None
         }
     }
 
@@ -96,7 +102,7 @@ impl Wav {
         };
 
         if with_loop_points {
-            
+            // write smpl chunk
         };
 
         Ok(())
@@ -122,7 +128,11 @@ enum LoopType {
 }
 
 // https://www.recordingblogs.com/wiki/sample-chunk-of-a-wave-file
+// https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#smpl
 impl SampleChunk {
+    fn from_tracker_sample(smp: &TrackerSample) -> Self {
+        todo!()
+    }
     fn write(&self, wave: &mut File) {
         let mut data: Vec<u8> = Vec::new();
         
