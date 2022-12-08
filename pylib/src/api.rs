@@ -9,6 +9,7 @@ pub fn rip_multiple(
     index_padding: Option<usize>,
     index_only: Option<bool>,
     with_folder: Option<bool>,
+    with_loop_points: Option<bool>,
     upper: Option<bool>,
     lower: Option<bool>,
     hint: Option<String>
@@ -21,6 +22,7 @@ pub fn rip_multiple(
         upper.unwrap_or_default(),
     );
     let create_if_absent: bool = with_folder == Some(true);
+    let with_loop_points: bool = with_loop_points == Some(true);
 
     // Collect errors during dumping
     let mut errors: Vec<XmoditsError> = paths
@@ -32,7 +34,8 @@ pub fn rip_multiple(
                 &folder(&destination, &path, create_if_absent),
                 &sample_namer_func,
                 create_if_absent,
-                &hint
+                &hint,
+                with_loop_points,
             )
         )
         .filter_map(|result| result.err())

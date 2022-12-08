@@ -135,12 +135,8 @@ impl TrackerDumper for UMXFile {
             "UMX doesn't contain a supported format",
         ))
     }
-
     /*  You should not call these methods from UMX (should be impossible).
     But incase someone somehow manages to do so, panic :) */
-    fn export(&mut self, _: &dyn AsRef<Path>, _: usize) -> Result<(), Error> {
-        unimplemented!()
-    }
     fn number_of_samples(&self) -> usize {
         unimplemented!()
     }
@@ -148,9 +144,6 @@ impl TrackerDumper for UMXFile {
         unimplemented!()
     }
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
-        unimplemented!()
-    }
-    fn write_wav(&mut self, _: &Path, _: usize) -> Result<(), Error> {
         unimplemented!()
     }
     fn pcm(&mut self, _: usize) -> Result<&[u8], Error> {

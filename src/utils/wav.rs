@@ -4,20 +4,22 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-use crate::Error;
 use std::path::Path;
 use std::{fs::File, io::Write};
+
+use crate::TrackerSample;
 
 const RIFF: [u8; 4] = [0x52, 0x49, 0x46, 0x46]; // RIFF
 const WAVE: [u8; 4] = [0x57, 0x41, 0x56, 0x45]; // WAVE
 const FMT_: [u8; 4] = [0x66, 0x6D, 0x74, 0x20]; // "riff "
 const DATA: [u8; 4] = [0x64, 0x61, 0x74, 0x61]; // data
+const SMPL: [u8; 4] = [0x73, 0x6D, 0x70, 0x6C]; // smpl
 const HEADER_SIZE: u32 = 44;
-
 pub struct Wav {
     stereo: bool, // is pcm stereo)
     is_interleaved: bool,
     header: WavHeader,
+    // chunks: Vec
 }
 
 pub struct WavHeader {
@@ -30,9 +32,16 @@ pub struct WavHeader {
     block_align: [u8; 2],
     bits_sample: [u8; 2],
     size_of_chunk: [u8; 4],
+
 }
 
 impl Wav {
+    pub fn from_tracker_sample(smp: &TrackerSample) -> Self {
+        Self::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo, false)
+
+        // todo!()
+    }
+
     pub fn header(
         smp_rate: u32, // sample rate
         smp_bits: u8,  // bits per sample
@@ -59,11 +68,7 @@ impl Wav {
         }
     }
 
-    pub fn write<P: AsRef<Path>>(&self, path: P, pcm: Vec<u8>) -> Result<(), Error> {
-        self.write_ref(path, &pcm)
-    }
-
-    pub fn write_ref<P: AsRef<Path>>(&self, path: P, pcm: &[u8]) -> Result<(), Error> {
+    pub fn write_ref<P: AsRef<Path>>(&self, path: P, pcm: &[u8], with_loop_points: bool) -> std::io::Result<()> {
         let mut file: File = File::create(path)?;
         let hdr = &self.header;
         let header: [&[u8]; 13] = [
@@ -87,18 +92,47 @@ impl Wav {
 
         match (self.stereo, self.is_interleaved) {
             // (true, false) => write_interleaved(file, pcm, self.smp_bits),
-            (_, _) => file.write_all(pcm).map_err(|e| e.into()),
-        }
+            (_, _) => file.write_all(pcm)?,
+        };
+
+        if with_loop_points {
+            
+        };
+
+        Ok(())
     }
 }
 
-pub enum LoopType {
-    Forward = 0,
-    PingPong = 1,
-    Reverse = 3
+struct SampleChunk {
+    sample_loops: Vec<Loop>
 }
 
-// Is there a way to do this without making the program x100 slower?
-// fn write_interleaved(mut _file: File, _pcm: &[u8], _smp_bits: u8) -> Result<(), Error> {
-//     _file.write_all(_pcm).map_err(|e| e.into())
-// }
+struct Loop {
+    id: u32,
+    kind: LoopType,
+    start: u32,
+    end: u32,
+    fraction: u32,
+    repeats: u32,
+}
+enum LoopType {
+    Forward = 0,
+    PingPong = 1,
+    Reverse = 2,
+}
+
+// https://www.recordingblogs.com/wiki/sample-chunk-of-a-wave-file
+impl SampleChunk {
+    fn write(&self, wave: &mut File) {
+        let mut data: Vec<u8> = Vec::new();
+        
+        wave.write_all(&SMPL);
+        
+    }
+}
+
+#[test]
+fn a() {
+    let a = LoopType::Forward as u32;
+    dbg!(a);
+}

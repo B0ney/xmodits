@@ -52,6 +52,8 @@ pub struct TrackerSample {
     pub is_interleaved: bool,
     /// Can the sample data be read directly?
     pub is_readable: bool,
+    /// What type of looping does this sample use?
+    pub loop_type: LoopType
 }
 
 impl TrackerSample {
@@ -63,6 +65,15 @@ impl TrackerSample {
     pub fn raw_index(&self) -> usize {
         self.raw_index + 1
     }
+}
+
+#[derive(Default, Debug)]
+pub enum LoopType {
+    #[default]
+    Off = -1,
+    Forward = 0,
+    PingPong = 1,
+    Reverse = 3
 }
 
 pub trait TrackerDumper {
@@ -90,7 +101,7 @@ pub trait TrackerDumper {
 
     /// export sample given index
     fn export(&mut self, folder: &dyn AsRef<Path>, index: usize) -> Result<(), Error> {
-        self.export_advanced(folder, index, &crate::utils::prelude::name_sample)
+        self.export_advanced(folder, index, &crate::utils::prelude::name_sample, false)
     }
 
     fn export_advanced(
@@ -98,11 +109,12 @@ pub trait TrackerDumper {
         folder: &dyn AsRef<Path>,
         index: usize,
         name_sample: &SampleNamerFunc,
+        with_loop_points: bool
     ) -> Result<(), Error> {
         let sample: &TrackerSample = &self.list_sample_data()[index];
         let file: PathBuf = PathBuf::new().join(folder).join(name_sample(sample, index));
 
-        self.write_wav(&file, index)
+        self.write_wav(&file, index, with_loop_points)
     }
 
     /// Number of samples a tracker module contains
@@ -117,17 +129,12 @@ pub trait TrackerDumper {
     fn list_sample_data(&self) -> &[TrackerSample];
 
     /// Write sample data to PCM
-    fn write_wav(&mut self, file: &Path, index: usize) -> Result<(), Error> {
+    fn write_wav(&mut self, file: &Path, index: usize, with_loop_points: bool) -> Result<(), Error> {
         let smp = &self.list_sample_data()[index];
 
-        Wav::header(
-            smp.rate,
-            smp.bits,
-            smp.len as u32,
-            smp.is_stereo,
-            smp.is_interleaved,
+        Ok(Wav::from_tracker_sample(smp)
+            .write_ref(file, self.pcm(index)?, with_loop_points)?
         )
-        .write_ref(file, self.pcm(index)?)
     }
 
     /// return reference to readable pcm data
@@ -148,6 +155,7 @@ pub trait TrackerDumper {
             folder,
             &crate::utils::prelude::name_sample,
             create_dir_if_absent,
+            false
         )
     }
 
@@ -157,6 +165,7 @@ pub trait TrackerDumper {
         folder: &dyn AsRef<Path>,
         sample_namer_func: &SampleNamerFunc,
         create_dir_if_absent: bool,
+        with_loop_points: bool,
     ) -> Result<(), Error> {
         if self.number_of_samples() == 0 {
             return Err(XmoditsError::EmptyModule);
@@ -174,7 +183,7 @@ pub trait TrackerDumper {
         }
 
         for i in 0..self.number_of_samples() {
-            self.export_advanced(&folder, i, sample_namer_func)?;
+            self.export_advanced(&folder, i, sample_namer_func, with_loop_points)?;
         }
 
         Ok(())
