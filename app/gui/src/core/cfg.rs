@@ -1,6 +1,7 @@
 use anyhow::Result;
 use dirs;
 use serde::{Deserialize, Serialize};
+use xmodits_lib::{SampleNamer, SampleNamerFunc};
 use std::{fs, path::PathBuf};
 use toml;
 use tracing::{info, warn, Level};
@@ -67,5 +68,14 @@ impl Config {
         a.write_all(&toml::to_vec(&self)?)?;
         info!("Saved config file");
         Ok(())
+    }
+    pub fn build_func(&self) -> Box<SampleNamerFunc> {
+        SampleNamer::build_func(
+            self.index_only,
+            Some(self.index_padding),
+            self.index_raw,
+            self.lower,
+            self.upper
+        )
     }
 }

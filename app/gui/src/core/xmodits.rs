@@ -3,10 +3,10 @@ use anyhow::Result;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tracing::{info, warn};
-use xmodits_lib::load_module;
+use xmodits_lib::{load_module, SampleNamerFunc};
 use xmodits_lib::wav::Wav;
 use xmodits_lib::{XmoditsError, TrackerModule};
-use xmodits_common::dump_samples_advanced;
+use xmodits_common::{dump_samples_advanced, folder};
 // use iced::futures::channel::mpsc::{channel, Sender, Receiver, self};
 use iced::{subscription, Subscription};
 use tokio::sync::mpsc::{self, Receiver, Sender};
@@ -16,7 +16,7 @@ use tokio::task::spawn_blocking;
 pub enum DownloadMessage {
     Sender(Sender<DownloadMessage>),
     Done,
-    Download((Vec<PathBuf>, PathBuf)),
+    Download((Vec<PathBuf>, Config)),
     Progress,
     Cancel,
 }
@@ -59,7 +59,7 @@ pub fn build_subscription() -> Subscription<DownloadMessage> {
                     info!("Received Message {message:?}");
 
                     match message {
-                        Some(DownloadMessage::Download((paths, dest_dir))) => {
+                        Some(DownloadMessage::Download((paths, config))) => {
                             // Spawn blocking task, xmodits' ripping routine will start here
                             // TODO: have receiver for cancellation message
                             // spawn ordinary thread because it can easily be cancelled without stalling the async runtime
@@ -67,11 +67,21 @@ pub fn build_subscription() -> Subscription<DownloadMessage> {
                             // 
                             std::thread::spawn(move || {
                                 use std::cmp;
+                                let dest_dir = &config.destination;
+                                let namer = &config.build_func();
                                 let mut errors: Vec<XmoditsError> = Vec::new();
                                 info!("destination {}", &dest_dir.display());
+
                                 for path in paths {
-                                    if let Err(e) = xmodits_common::dump_samples(path, &dest_dir) {
-                                        warn!("{}", e);
+                                    if let Err(e) = xmodits_common::dump_samples_advanced(
+                                            &path,
+                                            &folder(dest_dir, &path, !config.no_folder),
+                                            namer,
+                                            !config.no_folder,
+                                            &None,
+                                            false
+                                        ) {
+                                            warn!("{}", e);
                                     };
                                     tx.blocking_send(DownloadMessage::Progress);
                                 }

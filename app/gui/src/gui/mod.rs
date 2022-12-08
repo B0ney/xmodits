@@ -110,7 +110,7 @@ impl Application for XmoditsGui {
                     tx.try_send(xmodits::DownloadMessage::Download(
                         (
                             self.tracker.cloned_paths(),
-                            self.cfg.cfg.destination.to_owned()
+                            self.cfg.cfg.to_owned()
                         )
                     ));
                 }
