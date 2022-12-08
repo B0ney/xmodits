@@ -7,12 +7,10 @@ use iced::widget::Space;
 use iced::widget::{button, checkbox, column, pick_list, row, scrollable, text};
 use iced::{Alignment, Command};
 use iced::{widget::container, Element, Length, Renderer};
-use iced_native::Widget;
 use xmodits_lib::TrackerDumper;
 use std::path::{Path, PathBuf};
 use tracing::{info, warn};
 use xmodits_lib::{load_module, TrackerModule};
-use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub enum Message {

@@ -99,6 +99,7 @@ pub fn dump_samples_advanced<T, U>(
     sample_namer: &SampleNamerFunc,
     with_folder: bool,
     hint: &Option<String>,
+    with_loop_points: bool,
 ) -> Result<(), XmoditsError>
 where
     T: AsRef<Path>,
@@ -116,5 +117,5 @@ where
         None => xmodits_lib::load_module(mod_path)?,
     };
 
-    tracker.dump_advanced(&dest_dir, sample_namer, with_folder)
+    tracker.dump_advanced(&dest_dir, sample_namer, with_folder, with_loop_points)
 }

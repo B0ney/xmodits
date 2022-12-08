@@ -32,8 +32,6 @@ open = "3.0.3"
 # # reqwest = { version = "0.11", features = ["blocking", "json"], optional=true } 
 # ureq = ""
 
-[dependencies.iced_native]
-version ="0.5"
 
 [dependencies.iced]
 version = "0.5"
