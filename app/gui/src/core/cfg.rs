@@ -31,12 +31,12 @@ pub struct Config {
 impl Config {
     pub fn load() -> Self {
         let Ok(toml) = fs::read_to_string(Self::path()) else {
-            warn!("cant load");
+            // warn!("cant load");
             return Self::default();
         };
 
         let Ok(config) = toml::from_str::<Self>(&toml) else {
-            warn!("cant convert");
+            // warn!("cant convert");
             return Self::default();
         };
 
@@ -52,6 +52,10 @@ impl Config {
         a.write_all(&toml::to_vec(&self)?)?;
         Ok(())
     }
+
+    // pub async fn async_save(&self) -> Result<()> {
+
+    // }
 
     pub fn filename() -> &'static str {
         CONFIG_NAME
@@ -78,7 +82,7 @@ impl Config {
 pub struct GeneralConfig {
     pub sfx: bool,
     pub folder_recursion_depth: u8,
-    pub logging_path: PathBuf,
+    pub logging_path: Option<PathBuf>,
     pub quiet_output: bool
 }
 
@@ -93,13 +97,16 @@ pub struct SampleRippingConfig {
 
 impl Default for SampleRippingConfig {
     fn default() -> Self {
+        let mut naming = SampleNameConfig::default();
+        naming.index_padding = 2;
+
         Self { 
             destination: dirs::download_dir()
                 .expect("Expected Downloads folder"),
             hint: None,
             no_folder: false,
             embed_loop_points: false,
-            naming: SampleNameConfig::default(),
+            naming,
         }
     }
 }

@@ -51,7 +51,11 @@ pub fn mod_name<P: AsRef<Path>>(mod_path: P) -> String {
         .replace('.', "_")
 }
 
-pub fn folder<P: AsRef<Path>>(destination: P, path: P, with_folder: bool) -> PathBuf {
+pub fn folder<P, Q>(destination: P, path: Q, with_folder: bool) -> PathBuf 
+where 
+    P: AsRef<Path>,
+    Q: AsRef<Path>
+{
     match with_folder {
         true => {
             let modname: String = mod_name(path);

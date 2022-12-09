@@ -13,7 +13,7 @@ use iced::{widget::container, Element, Length, Renderer};
 pub enum Message {
     ToggleSFX(bool),
     SetRecursionDepth(u8),
-    SetLogPath(PathBuf),
+    SetLogPath(Option<PathBuf>),
     ToggleQuietOutput(bool),
 }
 

@@ -4874,6 +4874,7 @@ dependencies = [
  "native-dialog",
  "once_cell",
  "open",
+ "rand",
  "rfd",
  "rodio",
  "serde",

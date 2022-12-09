@@ -1,9 +1,9 @@
 // #![windows_subsystem = "windows"] // Will this make logging impossible?
-#[allow(unused)]
+// #[allow(unused)]
 mod core;
-#[allow(unused)]
+// #[allow(unused)]
 mod gui;
-#[allow(unused)]
+// #[allow(unused)]
 mod simple;
 use std::env;
 use tracing::{info, Level};
@@ -20,10 +20,11 @@ fn main() {
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
     let args: Vec<String> = env::args().skip(1).collect();
-    // if args.is_empty() {
+    
+    if args.is_empty() {
         info!("Starting gui");
         gui::XmoditsGui::start();
-    // } else {
-    //     simple::rip(args);
-    // }
+    } else {
+        simple::rip(args);
+    }
 }

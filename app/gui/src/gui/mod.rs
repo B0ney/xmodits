@@ -52,42 +52,48 @@ pub enum Message {
     SettingsPressed,
     AboutPressed,
     HelpPressed,
-    Rip,
+
     Tracker(TrackerMessage),
     SetCfg(ConfigMessage),
     SetRipCfg(ConfigRippingMessage),
     ChangeSetting(SettingsMessage),
     About(AboutMessage),
-    Beep(String),
-    SaveConfig,
-    StartRip,
+
     AddFileDialog,
     AddFolderDialog,
     SetDestinationDialog,
-    SetDestination(Option<PathBuf>),
+
     AddPath(Option<Vec<PathBuf>>),
-    WindowEvent(Event),
+    SetDestination(Option<PathBuf>),
+
+    Beep(String),
+    SaveConfig,
+    StartRip,
+    
     ClearTrackers,
     DeleteSelected,
-    _None,
     Progress(xmodits::DownloadMessage),
+    WindowEvent(Event),
+
+    Ignore,
 }
 
 #[derive(Default)]
 pub struct XmoditsGui {
     view: View,
     config: Config,
-    paths: Vec<PathBuf>,
+
+    // paths: Vec<PathBuf>,
     audio: core::sfx::Audio,
     tracker: Xmodits,
     sender: Option<Sender<xmodits::DownloadMessage>>,
 }
 
 impl Application for XmoditsGui {
-    type Message = Message;
     type Executor = iced::executor::Default;
-    type Flags = ();
+    type Message = Message;
     type Theme = Theme;
+    type Flags = ();
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
         (Self {config: Config::load(),..Default::default()}, Command::none())
@@ -99,33 +105,58 @@ impl Application for XmoditsGui {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::Rip => todo!(),
+            Message::ConfigurePressed => self.view = View::Configure,
+            Message::SettingsPressed => self.view = View::Settings,
+            Message::AboutPressed => self.view = View::About,
+            Message::HelpPressed => self.view = View::Help,
+            Message::Tracker(msg) => return self.tracker.update(msg).map(Message::Tracker), //TODO
             Message::SetCfg(msg) => views::config_name::update(&mut self.config.name_cfg_mut(), msg),
-            Message::Beep(sfx) => self.audio.play(&sfx),
-            Message::StartRip => match self.sender {
-                Some(ref mut tx) => {
-                    // tx.try_send(xmodits::DownloadMessage::Download(
-                    //     (
-                    //         self.tracker.cloned_paths(),
-                    //         self.cfg.cfg.to_owned()
-                    //     )
-                    // ));
-                }
-                _ => (),
-            },
-
+            Message::SetRipCfg(msg) => views::config_ripping::update(&mut self.config.ripping, msg),
+            Message::ChangeSetting(msg) => views::settings::update(&mut self.config.general, msg),
+            Message::About(msg) => views::about::update(msg),
             Message::AddFileDialog => {
-                return Command::perform(
-                    async {
-                        // tokio::
-                        match rfd::FileDialog::new().pick_files() {
-                            Some(handle) => Some(handle),
-                            None => None,
-                        }
+                return Command::perform(async {
+                    rfd::AsyncFileDialog::new()
+                        .pick_files()
+                        .await
+                        .and_then(|filehandles| Some(
+                            filehandles
+                                .into_iter()
+                                .map(|d| d.path().to_owned())
+                                .collect()
+                            )
+                        )
                     },
                     Message::AddPath,
                 )
             }
+            Message::AddFolderDialog => {
+                return Command::perform(async {
+                    rfd::AsyncFileDialog::new()
+                        .pick_folders()
+                        .await
+                        .and_then(|filehandles| Some(
+                            filehandles
+                                .into_iter()
+                                .map(|d| d.path().to_owned())
+                                .collect()
+                            )
+                        )
+                    },
+                    Message::AddPath,
+                )
+            },
+            Message::SetDestinationDialog => {
+                return Command::perform(
+                    async {
+                        rfd::AsyncFileDialog::new()
+                            .pick_folder()
+                            .await
+                            .and_then(|f| Some(f.path().to_owned()))
+                    },
+                    Message::SetDestination,
+                )
+            },
             Message::AddPath(path) => {
                 if let Some(path) = path {
                     path.into_iter().for_each(|path| {
@@ -134,13 +165,36 @@ impl Application for XmoditsGui {
                     self.audio.play("sfx_1");
                 }
             }
-            Message::ConfigurePressed => self.view = View::Configure,
-            Message::SettingsPressed => self.view = View::Settings,
-            Message::AboutPressed => self.view = View::About,
-            Message::HelpPressed => self.view = View::Help,
-            Message::ChangeSetting(msg) => views::settings::update(&mut self.config.general, msg),
+            Message::SetDestination(path) => {
+                if let Some(destination) = path {
+                    self.config.ripping.destination = destination;
+                }
+            }
+            Message::Beep(sfx) => self.audio.play(&sfx),
+            Message::StartRip => match self.sender {
+                Some(ref mut tx) => {
+                    tx.try_send(xmodits::DownloadMessage::Download(
+                        (
+                            self.tracker.cloned_paths(),
+                            self.config.ripping.to_owned()
+                        )
+                    ));
+                }
+                _ => (),
+            },
+            
+            Message::ClearTrackers => return self.tracker.update(TrackerMessage::Clear).map(Message::Tracker),
+            Message::DeleteSelected => return self.tracker.update(TrackerMessage::DeleteSelected).map(Message::Tracker),
+            Message::Progress(msg) => match msg {
+                xmodits::DownloadMessage::Sender(tx) => self.sender = Some(tx),
+                xmodits::DownloadMessage::Download(_) => (),
+                xmodits::DownloadMessage::Cancel => (),
+                xmodits::DownloadMessage::Done => self.audio.play("sfx_1"),
+                xmodits::DownloadMessage::Progress => self.audio.play("sfx_1"),
+            },
+            
+            Message::SaveConfig => {self.config.save();},
 
-            Message::_None => (),
             Message::WindowEvent(e) => match e {
                 Event::Keyboard(k) => match k {
                     KeyboardEvent::KeyPressed { key_code, .. } if key_code == KeyCode::Delete => {
@@ -150,59 +204,15 @@ impl Application for XmoditsGui {
                 },
                 Event::Window(f) => match f {
                     WindowEvent::FileDropped(path) => {
-                        self.paths.push(path);
-                        // self.tracker.update(TrackerMessage::Add(path));
+                        // self.paths.push(path);
+                        self.tracker.update(TrackerMessage::Add(path));
                     }
 
                     _ => (),
                 },
                 _ => (),
             },
-            Message::ClearTrackers => return self.tracker.update(TrackerMessage::Clear).map(Message::Tracker),
-            Message::Tracker(msg) => return self.tracker.update(msg).map(Message::Tracker),
-            Message::DeleteSelected => return self.tracker.update(TrackerMessage::DeleteSelected).map(Message::Tracker),
-            Message::About(msg) => views::about::update(msg),
-            Message::Progress(msg) => match msg {
-                xmodits::DownloadMessage::Sender(tx) => self.sender = Some(tx),
-                xmodits::DownloadMessage::Download(_) => (),
-                xmodits::DownloadMessage::Cancel => (),
-                xmodits::DownloadMessage::Done => self.audio.play("sfx_1"),
-                xmodits::DownloadMessage::Progress => self.audio.play("sfx_1"),
-            },
-            Message::SetDestinationDialog => {
-                return Command::perform(
-                    async {
-                        // tokio::
-                        match rfd::FileDialog::new().pick_folder() {
-                            Some(handle) => Some(handle),
-                            None => None,
-                        }
-                    },
-                    Message::SetDestination,
-                )
-            },
-            Message::SetDestination(path) => {
-                // use ConfigMessage::*;
-                if let Some(destination) = path {
-                    self.config.ripping.destination = destination;
-                    // return Command::perform(Message::SetCfg((destination)));
-                    // self.cfg.update(DestinationFolder(destination));
-                }
-            },
-            Message::AddFolderDialog => {
-                return Command::perform(
-                    async {
-                        // tokio::
-                        match rfd::FileDialog::new().pick_folders() {
-                            Some(handle) => Some(handle),
-                            None => None,
-                        }
-                    },
-                    Message::AddPath,
-                )
-            },
-            Message::SetRipCfg(msg) => views::config_ripping::update(&mut self.config.ripping, msg),
-            Message::SaveConfig => {self.config.save();},
+            Message::Ignore => (),
         }
         Command::none()
     }
@@ -258,7 +268,7 @@ impl Application for XmoditsGui {
         let g = match self.view {
             View::Configure => container(
                 column![
-                    self.tracker.view_current_tracker().map(|_| Message::_None),
+                    self.tracker.view_current_tracker().map(|_| Message::Ignore),
                     // self.cfg.view(),
                     views::config_name::view(&self.config.name_cfg()).map(Message::SetCfg),
                     views::config_ripping::view(&self.config.ripping).map(Message::SetRipCfg),
