@@ -1,9 +1,8 @@
 pub mod icons;
 pub mod style;
 pub mod views;
-pub mod widgets;
 use crate::core::dialog;
-use crate::core::cfg::Config;
+use crate::core::cfg::{Config};
 use crate::core::font::JETBRAINS_MONO;
 use crate::core::{
     self,
@@ -25,18 +24,17 @@ use std::time::Duration;
 use style::Theme;
 use tokio::sync::mpsc::{self, Receiver, Sender};
 use tracing::info;
-use views::about::{AboutView, Message as AboutMessage};
-use views::configure::{ConfigView, Message as ConfigMessage};
-use views::settings::{Message as SettingsMessage, SettingsView};
-use views::trackers::{Message as TrackerMessage, Xmodits};
+
+use views::about::Message as AboutMessage;
+use views::config_name::Message as ConfigMessage;
+use views::config_ripping::Message as ConfigRippingMessage;
+
+use views::settings::Message as SettingsMessage;
+use views::trackers::Message as TrackerMessage;
+use views::trackers::Xmodits;
 
 use crate::core::xmodits::build_subscription;
-fn icon() -> Icon {
-    let image =
-        image::load_from_memory(include_bytes!("../../../../extras/logos/png/icon3.png")).unwrap();
-    let (w, h) = image.dimensions();
-    Icon::from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
-}
+
 
 #[derive(Default, Debug, Clone)]
 pub enum View {
@@ -57,9 +55,11 @@ pub enum Message {
     Rip,
     Tracker(TrackerMessage),
     SetCfg(ConfigMessage),
+    SetRipCfg(ConfigRippingMessage),
     ChangeSetting(SettingsMessage),
     About(AboutMessage),
     Beep(String),
+    SaveConfig,
     StartRip,
     AddFileDialog,
     AddFolderDialog,
@@ -76,11 +76,9 @@ pub enum Message {
 #[derive(Default)]
 pub struct XmoditsGui {
     view: View,
-    cfg: ConfigView,
-    settings: SettingsView,
-    about: AboutView,
+    config: Config,
+    paths: Vec<PathBuf>,
     audio: core::sfx::Audio,
-    // ripper: core::xmodits::Ripper,
     tracker: Xmodits,
     sender: Option<Sender<xmodits::DownloadMessage>>,
 }
@@ -92,7 +90,7 @@ impl Application for XmoditsGui {
     type Theme = Theme;
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
-        (Self::default(), Command::none())
+        (Self {config: Config::load(),..Default::default()}, Command::none())
     }
 
     fn title(&self) -> String {
@@ -102,20 +100,16 @@ impl Application for XmoditsGui {
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::Rip => todo!(),
-            Message::SetCfg(cfg) => {
-                if self.cfg.update(cfg) {
-                    self.audio.play("sfx_2")
-                }
-            }
+            Message::SetCfg(msg) => views::config_name::update(&mut self.config.name_cfg_mut(), msg),
             Message::Beep(sfx) => self.audio.play(&sfx),
             Message::StartRip => match self.sender {
                 Some(ref mut tx) => {
-                    tx.try_send(xmodits::DownloadMessage::Download(
-                        (
-                            self.tracker.cloned_paths(),
-                            self.cfg.cfg.to_owned()
-                        )
-                    ));
+                    // tx.try_send(xmodits::DownloadMessage::Download(
+                    //     (
+                    //         self.tracker.cloned_paths(),
+                    //         self.cfg.cfg.to_owned()
+                    //     )
+                    // ));
                 }
                 _ => (),
             },
@@ -144,10 +138,8 @@ impl Application for XmoditsGui {
             Message::SettingsPressed => self.view = View::Settings,
             Message::AboutPressed => self.view = View::About,
             Message::HelpPressed => self.view = View::Help,
-            Message::ChangeSetting(msg) => match msg {
-                SettingsMessage::SFX(sfx) => self.audio.play(&sfx),
-                _ => self.settings.update(msg),
-            },
+            Message::ChangeSetting(msg) => views::settings::update(&mut self.config.general, msg),
+
             Message::_None => (),
             Message::WindowEvent(e) => match e {
                 Event::Keyboard(k) => match k {
@@ -158,7 +150,8 @@ impl Application for XmoditsGui {
                 },
                 Event::Window(f) => match f {
                     WindowEvent::FileDropped(path) => {
-                        self.tracker.update(TrackerMessage::Add(path));
+                        self.paths.push(path);
+                        // self.tracker.update(TrackerMessage::Add(path));
                     }
 
                     _ => (),
@@ -168,7 +161,7 @@ impl Application for XmoditsGui {
             Message::ClearTrackers => return self.tracker.update(TrackerMessage::Clear).map(Message::Tracker),
             Message::Tracker(msg) => return self.tracker.update(msg).map(Message::Tracker),
             Message::DeleteSelected => return self.tracker.update(TrackerMessage::DeleteSelected).map(Message::Tracker),
-            Message::About(msg) => self.about.update(msg),
+            Message::About(msg) => views::about::update(msg),
             Message::Progress(msg) => match msg {
                 xmodits::DownloadMessage::Sender(tx) => self.sender = Some(tx),
                 xmodits::DownloadMessage::Download(_) => (),
@@ -189,10 +182,11 @@ impl Application for XmoditsGui {
                 )
             },
             Message::SetDestination(path) => {
-                use ConfigMessage::*;
+                // use ConfigMessage::*;
                 if let Some(destination) = path {
+                    self.config.ripping.destination = destination;
                     // return Command::perform(Message::SetCfg((destination)));
-                    self.cfg.update(DestinationFolder(destination));
+                    // self.cfg.update(DestinationFolder(destination));
                 }
             },
             Message::AddFolderDialog => {
@@ -207,6 +201,8 @@ impl Application for XmoditsGui {
                     Message::AddPath,
                 )
             },
+            Message::SetRipCfg(msg) => views::config_ripping::update(&mut self.config.ripping, msg),
+            Message::SaveConfig => {self.config.save();},
         }
         Command::none()
     }
@@ -233,13 +229,8 @@ impl Application for XmoditsGui {
             .width(Length::FillPortion(1))
             .spacing(5);
 
-        use ConfigMessage::*;
-        let destination = format!("{}",&self.cfg.cfg.destination.display());
-        let input: _ = text_input("Output Directory", &destination, |s| {
-            Message::SetCfg(DestinationFolder(PathBuf::new().join(s)))
-        })
-        .padding(10)
-        .on_submit(Message::Beep("sfx_1".into()));
+        let input = views::config_ripping::destination(&self.config.ripping)
+            .map(Message::SetRipCfg);
 
         let set_destination: _ = row![
             input,
@@ -268,7 +259,13 @@ impl Application for XmoditsGui {
             View::Configure => container(
                 column![
                     self.tracker.view_current_tracker().map(|_| Message::_None),
-                    self.cfg.view().map(Message::SetCfg),
+                    // self.cfg.view(),
+                    views::config_name::view(&self.config.name_cfg()).map(Message::SetCfg),
+                    views::config_ripping::view(&self.config.ripping).map(Message::SetRipCfg),
+                    button("Save Config")
+                        .padding(10)
+                        .on_press(Message::SaveConfig)
+                        .width(Length::Fill),
                     button("Start")
                         .padding(10)
                         .on_press(Message::StartRip)
@@ -277,8 +274,8 @@ impl Application for XmoditsGui {
                 .spacing(10),
             )
             .into(),
-            View::Settings => self.settings.view().map(Message::ChangeSetting),
-            View::About => self.about.view().map(Message::About),
+            View::Settings => views::settings::view(&self.config.general).map(Message::ChangeSetting),
+            View::About => views::about::view().map(Message::About),
             _ => container(text(":(")).into(),
         };
 
@@ -298,6 +295,7 @@ impl Application for XmoditsGui {
             .padding(15)
             .into()
     }
+
     fn subscription(&self) -> Subscription<Message> {
         iced::Subscription::batch([
             iced::subscription::events().map(Message::WindowEvent),
@@ -323,4 +321,11 @@ impl XmoditsGui {
 
         Self::run(settings).unwrap_err();
     }
+}
+
+fn icon() -> Icon {
+    let image =
+        image::load_from_memory(include_bytes!("../../../../extras/logos/png/icon3.png")).unwrap();
+    let (w, h) = image.dimensions();
+    Icon::from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
 }

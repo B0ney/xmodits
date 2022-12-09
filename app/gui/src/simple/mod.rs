@@ -1,4 +1,4 @@
-use crate::core;
+use crate::core::cfg::Config;
 
 pub fn rip() {
 

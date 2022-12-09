@@ -1,4 +1,5 @@
 pub mod about;
-pub mod configure;
+pub mod config_name;
+pub mod config_ripping;
 pub mod settings;
 pub mod trackers;

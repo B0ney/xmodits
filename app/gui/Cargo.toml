@@ -3,12 +3,12 @@ name = "xmodits-gui"
 authors = ["B0ney <https://github.com/B0ney>"]
 version = "0.1.0"
 edition = "2021"
-# build = "build.rs"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-# [build-dependencies]
-# winres = "0.1.12"
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
 
 [dependencies]
 xmodits-lib = { path = "../../", features=["thread"] } #
@@ -56,9 +56,10 @@ lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 # panic = 'abort' 
 
-# [package.metadata.winres]
-# FileDescription = "Rip samples from tracker music with speed!"
-# Comments = "This software is licensed under AGPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
+[package.metadata.winres]
+FileDescription = "Rip samples from tracker music with speed!"
+Comments = "This software is licensed under AGPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
+
 [profile.dev]
 split-debuginfo = "packed"
 codegen-units = 256

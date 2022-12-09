@@ -1,4 +1,3 @@
-use super::cfg::Config;
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -12,11 +11,13 @@ use iced::{subscription, Subscription};
 use tokio::sync::mpsc::{self, Receiver, Sender};
 use tokio::task::spawn_blocking;
 
+use super::cfg::{SampleRippingConfig};
+
 #[derive(Clone, Debug)]
 pub enum DownloadMessage {
     Sender(Sender<DownloadMessage>),
     Done,
-    Download((Vec<PathBuf>, Config)),
+    Download((Vec<PathBuf>, SampleRippingConfig)),
     Progress,
     Cancel,
 }
@@ -68,7 +69,7 @@ pub fn build_subscription() -> Subscription<DownloadMessage> {
                             std::thread::spawn(move || {
                                 use std::cmp;
                                 let dest_dir = &config.destination;
-                                let namer = &config.build_func();
+                                let namer = &config.naming.build_func();
                                 let mut errors: Vec<XmoditsError> = Vec::new();
                                 info!("destination {}", &dest_dir.display());
 

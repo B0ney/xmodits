@@ -1,6 +1,6 @@
 use crate::gui::JETBRAINS_MONO;
 use crate::{
-    core::cfg::Config,
+    // core::cfg::Config,
     gui::style::{self, Theme},
 };
 use iced::widget::Space;
