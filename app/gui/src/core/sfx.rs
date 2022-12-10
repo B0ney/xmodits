@@ -20,7 +20,7 @@ pub static SFX: Lazy<HashMap<&'static str, SoundBuffer>> = Lazy::new(|| {
         // ("sfx_4", SFX_4),
     ];
 
-    sfx.into_iter()
+    sfx.iter()
         .map(|(x, y)| (*x, Decoder::new(Cursor::new(*y)).unwrap().buffered()))
         .collect()
 });

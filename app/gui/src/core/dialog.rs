@@ -47,11 +47,7 @@ pub fn success_partial_no_log(error: &str) {
 }
 
 pub fn failed_single(error: &str) {
-    show_dialoge(
-        "Can't rip from this file",
-        &format!("{}", error),
-        MessageType::Warning,
-    )
+    show_dialoge("Can't rip from this file", &error, MessageType::Warning)
 }
 
 pub fn no_valid_modules() {

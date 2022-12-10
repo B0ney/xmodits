@@ -1,9 +1,6 @@
 use crate::gui::icons::github_icon;
+use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
-use crate::{
-    // core::cfg::Config,
-    gui::style::{self, Theme},
-};
 use iced::widget::svg;
 use iced::widget::{button, checkbox, column, pick_list, row, text};
 use iced::{widget::container, Element, Length, Renderer};

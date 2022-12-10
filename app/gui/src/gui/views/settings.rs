@@ -1,10 +1,8 @@
 use std::path::PathBuf;
 
 use crate::core::cfg::GeneralConfig;
+use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
-use crate::{
-    gui::style::{self, Theme},
-};
 use iced::widget::button;
 use iced::widget::{checkbox, column, pick_list, row, text};
 use iced::{widget::container, Element, Length, Renderer};
@@ -17,30 +15,34 @@ pub enum Message {
     ToggleQuietOutput(bool),
 }
 
-pub fn view(general: &GeneralConfig) -> Element<Message, Renderer<Theme>> {
-    let settings: _ = container(
-        column![
-            checkbox("SFX", general.sfx, Message::ToggleSFX),
-            checkbox("Quiet Output", general.quiet_output, Message::ToggleQuietOutput),
-
-
-        ]
-        .spacing(5),
-    )
-    .style(style::Container::Frame)
-    .padding(8)
-    .width(Length::Fill);
-
-    container(column![text("Settings").font(JETBRAINS_MONO), settings].spacing(10))
-        .width(Length::Fill)
-        .into()
-}
-
-pub fn update(general: &mut GeneralConfig, msg: Message) {
-    match msg {
-        Message::ToggleSFX(b) => general.sfx = b,
-        Message::SetRecursionDepth(depth) => general.folder_recursion_depth = depth,
-        Message::SetLogPath(path) => general.logging_path = path,
-        Message::ToggleQuietOutput(b) => general.quiet_output = b,
+impl GeneralConfig {
+    pub fn update(&mut self, msg: Message) {
+        match msg {
+            Message::ToggleSFX(b) => self.sfx = b,
+            Message::SetRecursionDepth(depth) => self.folder_recursion_depth = depth,
+            Message::SetLogPath(path) => self.logging_path = path,
+            Message::ToggleQuietOutput(b) => self.quiet_output = b,
+        }
     }
-}       
+
+    pub fn view(&self) -> Element<Message, Renderer<Theme>> {
+        let settings: _ = container(
+            column![
+                checkbox("SFX", self.sfx, Message::ToggleSFX),
+                checkbox(
+                    "Quiet Output",
+                    self.quiet_output,
+                    Message::ToggleQuietOutput
+                ),
+            ]
+            .spacing(5),
+        )
+        .style(style::Container::Frame)
+        .padding(8)
+        .width(Length::Fill);
+
+        container(column![text("Settings").font(JETBRAINS_MONO), settings].spacing(10))
+            .width(Length::Fill)
+            .into()
+    }
+}

@@ -4,9 +4,9 @@ extern crate winres;
 #[cfg(windows)]
 fn main() {
     // if std::env::var("CARGO_CFG_TARGET_OS").unwrap() == "windows" {
-        // use WindowsResource;
-   
-        // let mut ws = winres::WindowsResource::new();
+    // use WindowsResource;
+
+    // let mut ws = winres::WindowsResource::new();
     // ws.set_icon_with_id("./res/img/logo/icon.ico", "icon");
     // #[cfg(unix)]
     // ws.set_toolkit_path("/usr/bin")
@@ -17,6 +17,4 @@ fn main() {
 }
 
 #[cfg(unix)]
-fn main() {
-
-}
+fn main() {}

@@ -20,7 +20,7 @@ pub enum Application {
 impl application::StyleSheet for Theme {
     type Style = Application;
 
-    fn appearance(&self, style: &Self::Style) -> application::Appearance {
+    fn appearance(&self, _style: &Self::Style) -> application::Appearance {
         application::Appearance {
             background_color: self.palette().base.background,
             text_color: self.palette().bright.surface,
@@ -48,7 +48,7 @@ impl container::StyleSheet for Theme {
                 border_color: color!(0x474747),
                 border_radius: 5.0,
                 border_width: 1.2,
-                ..container::Appearance::default()
+                // ..container::Appearance::default()
             },
             Container::Black => container::Appearance {
                 background: Some(Background::Color(color!(0x151515))),

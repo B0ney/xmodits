@@ -1,27 +1,23 @@
 use anyhow::Result;
 use dirs;
 use serde::{Deserialize, Serialize};
-use xmodits_lib::{SampleNamer, SampleNamerFunc};
 use std::{fs, path::PathBuf};
 use toml;
-use tracing::{info, warn, Level};
+use xmodits_lib::{SampleNamer, SampleNamerFunc};
 
 const APP_NAME: &str = "xmodits";
 const CONFIG_NAME: &str = "config.toml";
 
 pub fn config_dir() -> PathBuf {
-    let config_dir = dirs::config_dir()
+    dirs::config_dir()
         .expect("There should be a config directory")
-        .join(APP_NAME);
-
-    config_dir
+        .join(APP_NAME)
 }
 
 pub fn create_config_dir() -> Result<()> {
     Ok(fs::create_dir(&config_dir())?)
 }
 
-// TODO: rename to config
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Config {
     pub general: GeneralConfig,
@@ -31,12 +27,10 @@ pub struct Config {
 impl Config {
     pub fn load() -> Self {
         let Ok(toml) = fs::read_to_string(Self::path()) else {
-            // warn!("cant load");
             return Self::default();
         };
 
         let Ok(config) = toml::from_str::<Self>(&toml) else {
-            // warn!("cant convert");
             return Self::default();
         };
 
@@ -53,10 +47,6 @@ impl Config {
         Ok(())
     }
 
-    // pub async fn async_save(&self) -> Result<()> {
-
-    // }
-
     pub fn filename() -> &'static str {
         CONFIG_NAME
     }
@@ -65,14 +55,14 @@ impl Config {
         config_dir().join(Self::filename())
     }
 
-    pub fn exists() -> bool {
-        Self::path().exists()
-    }
+    // pub fn exists() -> bool {
+    //     Self::path().exists()
+    // }
 
     pub fn name_cfg(&self) -> &SampleNameConfig {
         &self.ripping.naming
     }
-    
+
     pub fn name_cfg_mut(&mut self) -> &mut SampleNameConfig {
         &mut self.ripping.naming
     }
@@ -83,7 +73,7 @@ pub struct GeneralConfig {
     pub sfx: bool,
     pub folder_recursion_depth: u8,
     pub logging_path: Option<PathBuf>,
-    pub quiet_output: bool
+    pub quiet_output: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -97,12 +87,13 @@ pub struct SampleRippingConfig {
 
 impl Default for SampleRippingConfig {
     fn default() -> Self {
-        let mut naming = SampleNameConfig::default();
-        naming.index_padding = 2;
+        let naming = SampleNameConfig {
+            index_padding: 2,
+            ..Default::default()
+        };
 
-        Self { 
-            destination: dirs::download_dir()
-                .expect("Expected Downloads folder"),
+        Self {
+            destination: dirs::download_dir().expect("Expected Downloads folder"),
             hint: None,
             no_folder: false,
             embed_loop_points: false,
@@ -127,11 +118,9 @@ impl SampleNameConfig {
             Some(self.index_padding.into()),
             self.index_raw,
             self.lower,
-            self.upper
+            self.upper,
         )
     }
 
-    pub fn set_index_only(set: bool) {
-
-    }
+    // pub fn set_index_only(set: bool) {}
 }
