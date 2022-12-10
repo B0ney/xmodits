@@ -4,7 +4,7 @@ use crate::core::cfg::GeneralConfig;
 use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
 use iced::widget::button;
-use iced::widget::{checkbox, column, pick_list, row, text};
+use iced::widget::{checkbox, column, pick_list, row, text, text_input};
 use iced::{widget::container, Element, Length, Renderer};
 
 #[derive(Debug, Clone)]
@@ -34,12 +34,23 @@ impl GeneralConfig {
                     self.quiet_output,
                     Message::ToggleQuietOutput
                 ),
+                row![
+                    text("Folder Scan Depth "),
+                    pick_list(
+                        (0..3).collect::<Vec<u8>>(),
+                        Some(self.folder_recursion_depth),
+                        Message::SetRecursionDepth
+                    )
+                    .width(Length::Units(50))
+                ]
+                .spacing(5),
             ]
             .spacing(5),
         )
         .style(style::Container::Frame)
         .padding(8)
-        .width(Length::Fill);
+        .width(Length::Fill)
+        .height(Length::Fill);
 
         container(column![text("Settings").font(JETBRAINS_MONO), settings].spacing(10))
             .width(Length::Fill)

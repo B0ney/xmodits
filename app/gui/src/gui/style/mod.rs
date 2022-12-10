@@ -81,7 +81,7 @@ impl menu::StyleSheet for Theme {
             background: p.base.background.into(),
             border_width: 1.0,
             border_radius: 2.0,
-            border_color: p.base.background,
+            border_color: self.palette().normal.primary,
             selected_text_color: p.bright.surface,
             selected_background: p.normal.primary.into(),
         }
@@ -97,7 +97,7 @@ impl pick_list::StyleSheet for Theme {
             background: self.palette().base.background.into(),
             border_width: 1.0,
             border_color: Color {
-                a: 0.5,
+                // a: 0.5,
                 ..self.palette().normal.primary
             },
             border_radius: 2.0,

@@ -136,6 +136,7 @@ impl Application for XmoditsGui {
             Message::SaveConfig => {
                 // TODO: wrap config save in command, make a new async save method.
                 let _ = self.config.save();
+                self.audio.play("sfx_1");
             }
             Message::WindowEvent(e) => match e {
                 Event::Keyboard(KeyboardEvent::KeyPressed { key_code, .. })
@@ -190,10 +191,11 @@ impl Application for XmoditsGui {
                     self.tracker.view_current_tracker().map(|_| Message::Ignore),
                     self.config.name_cfg().view().map(Message::SetCfg),
                     self.config.ripping.view().map(Message::SetRipCfg),
-                    button("Save Config")
+                    row![button("Save Config")
                         .padding(10)
-                        .on_press(Message::SaveConfig)
-                        .width(Length::Fill),
+                        .on_press(Message::SaveConfig)]
+                    .width(Length::FillPortion(1))
+                    .align_items(Alignment::End),
                     button("Start")
                         .padding(10)
                         .on_press(Message::StartRip)
@@ -204,7 +206,9 @@ impl Application for XmoditsGui {
             .into(),
             View::Settings => self.config.general.view().map(Message::ChangeSetting),
             View::About => views::about::view().map(Message::About),
-            _ => container(text(":(")).into(),
+            View::Help => views::help::view().map(|_| Message::Ignore),
+            View::Ripping => todo!(),
+            // _ => container(text(":(")).into(),
         };
 
         let main: _ = row![

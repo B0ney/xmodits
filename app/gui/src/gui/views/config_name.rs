@@ -52,24 +52,12 @@ impl SampleNameConfig {
             row![
                 column![
                     checkbox("Index Only", self.index_only, Message::IndexOnly),
-                    checkbox("Preserve Index", self.index_raw, Message::IndexRaw),
+                    checkbox("Preserve Index", self.index_raw, Message::IndexRaw)
                 ]
                 .spacing(8),
                 column![
                     checkbox("Upper Case", self.upper, Message::UpperCase),
-                    checkbox("Lower Case", self.lower, Message::LowerCase),
-                    // row![
-                    //     pick_list(
-                    //         vec![1, 2, 3],
-                    //         Some(name_cfg.index_padding),
-                    //         Message::IndexPadding
-                    //     )
-                    //     .width(Length::Units(50)),
-                    //     // Space::with_width(Length::FillPortion(4)),
-                    //     text("Padding"),
-                    // ]
-                    // .spacing(5)
-                    // .align_items(Alignment::Center),
+                    checkbox("Lower Case", self.lower, Message::LowerCase)
                 ]
                 .spacing(8)
             ]

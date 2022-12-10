@@ -147,7 +147,7 @@ impl Trackers {
                             })
                     },
                     Message::Add,
-                )
+                );
             }
             Message::AddFolderDialog => {
                 return Command::perform(
@@ -164,7 +164,7 @@ impl Trackers {
                             })
                     },
                     Message::Add,
-                )
+                );
             }
             Message::Add(path) => {
                 if let Some(paths) = path {
