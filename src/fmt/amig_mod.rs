@@ -159,7 +159,7 @@ fn build_samples(
         // if 1, looping is disabled
         let loop_end: u32 = match read_u16_le(buf, 0x001C + offset) {
             1 => 0, // TODO
-            length => loop_start + (length as u32 * 16 ) as u32
+            length => loop_start + (length as u32 * 16) as u32,
         };
 
         smp_data.push(MODSample {

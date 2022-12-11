@@ -4,18 +4,19 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 use xmodits_lib::{SampleNamerFunc, XmoditsError};
 
 /// Checks if the last element in paths is a folder that exists.
-/// 
+///
 /// If not, it will create that folder.
-/// 
+///
 /// If the last element is a file, the destination directory is the
 /// current working directory.
 pub fn destination_dir(paths: &mut Vec<PathBuf>) -> Result<PathBuf, String> {
-    let cwd = || Ok(std::env::current_dir().expect("xmodits needs a current working directory. (>_<)"));
-    
+    let cwd =
+        || Ok(std::env::current_dir().expect("xmodits needs a current working directory. (>_<)"));
+
     let Some(path) = paths.last() else {
         return cwd();
     };
@@ -40,7 +41,6 @@ pub fn destination_dir(paths: &mut Vec<PathBuf>) -> Result<PathBuf, String> {
     Ok(folder)
 }
 
-
 pub fn mod_name<P: AsRef<Path>>(mod_path: P) -> String {
     mod_path
         .as_ref()
@@ -51,10 +51,10 @@ pub fn mod_name<P: AsRef<Path>>(mod_path: P) -> String {
         .replace('.', "_")
 }
 
-pub fn folder<P, Q>(destination: P, path: Q, with_folder: bool) -> PathBuf 
-where 
+pub fn folder<P, Q>(destination: P, path: Q, with_folder: bool) -> PathBuf
+where
     P: AsRef<Path>,
-    Q: AsRef<Path>
+    Q: AsRef<Path>,
 {
     match with_folder {
         true => {
@@ -70,12 +70,10 @@ where
 pub fn total_size_megabytes(paths: &[PathBuf]) -> f64 {
     paths
         .iter()
-        .map(|e| 
-            match e.metadata() {
-                Ok(m) => m.len() as f64,
-                _ => 0.0
-            }
-        )
+        .map(|e| match e.metadata() {
+            Ok(m) => m.len() as f64,
+            _ => 0.0,
+        })
         .sum::<f64>()
         / (1024.0 * 1024.0)
 }

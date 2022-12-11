@@ -5,22 +5,25 @@ mod core;
 mod gui;
 #[allow(unused)]
 mod simple;
-use std::env;
+use std::{env, path::PathBuf};
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 fn main() {
-    // The user may want to just drag and drop a module
     let subscriber = FmtSubscriber::builder()
         // all spans/events with a level higher than TRACE (e.g, debug, info, warn, etc.)
         // will be written to stdout.
         .with_max_level(Level::TRACE)
-        // completes the builder.
-        .finish();
+        .finish();// completes the builder.
+
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    let args: Vec<String> = env::args().skip(1).collect();
+    let args: Vec<PathBuf> = env::args()
+        .skip(1)
+        .map(|arg| PathBuf::new().join(arg).to_owned())
+        .collect();
 
+    // The user may want to just drag and drop a module without any thought
     if args.is_empty() {
         info!("Starting gui");
         gui::XmoditsGui::start();

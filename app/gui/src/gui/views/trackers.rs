@@ -6,7 +6,7 @@ use iced::{widget::container, Element, Length, Renderer};
 use iced::{Alignment, Command};
 use std::path::{Path, PathBuf};
 use tracing::{info, warn};
-use xmodits_lib::{load_module, TrackerModule};
+use xmodits_lib::{load_module, TrackerModule, XmoditsError};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -22,18 +22,24 @@ pub enum Message {
     AddFolderDialog,
 }
 
-#[derive(Default, Debug, Clone)]
-pub struct Info {
-    module_name: String,
-    format: String,
-    samples: usize,
-    path: PathBuf,
-    total_sample_size: usize,
+#[derive(Debug, Clone)]
+pub enum Info {
+    Valid {
+        module_name: String,
+        format: String,
+        samples: usize,
+        path: PathBuf,
+        total_sample_size: usize,
+    },
+    Invalid {
+        error: String,
+        path: PathBuf,
+    },
 }
 
 impl Info {
-    pub fn read(tracker: TrackerModule, path: PathBuf) -> Self {
-        Self {
+    pub fn valid(tracker: TrackerModule, path: PathBuf) -> Self {
+        Self::Valid {
             module_name: tracker.module_name().to_owned(),
             format: tracker.format().to_owned(),
             samples: tracker.number_of_samples(),
@@ -46,7 +52,23 @@ impl Info {
                 / 1024,
         }
     }
+
+    pub fn invalid(error: String, path: PathBuf) -> Self {
+        Self::Invalid { error, path }
+    }
+
+    pub fn path(&self) -> &Path {
+        match self {
+            Info::Valid { path, .. } => path,
+            Info::Invalid { path, .. } => path,
+        }
+    }
+
+    pub fn filename(&self) -> String {
+        filename(self.path())
+    }
 }
+
 struct File {
     path: PathBuf,
     filename: String,
@@ -56,7 +78,7 @@ struct File {
 impl File {
     pub fn new(path: PathBuf) -> Self {
         Self {
-            filename: path.file_name().unwrap().to_string_lossy().to_string(),
+            filename: filename(&path),
             path,
             selected: false,
         }
@@ -187,7 +209,7 @@ impl Trackers {
     }
 
     pub fn current_exists(&self, path: &Path) -> bool {
-        matches!(&self.current, Some(d) if d.path == path)
+        matches!(&self.current, Some(info) if info.path() == path)
     }
 
     pub fn total_selected(&self) -> usize {
@@ -269,27 +291,35 @@ impl Trackers {
         let title_2: _ = text("None selected").font(JETBRAINS_MONO);
 
         let content: _ = match &self.current {
-            Some(info) => {
-                let name = &info.module_name;
-                let format = &info.format;
-                let samples = &info.samples;
-                let total = &info.total_sample_size;
-
-                container(
-                    scrollable(
-                        column![
-                            text(format!("Module Name: {}", name)),
-                            text(format!("Format: {}", format)),
-                            text(format!("Samples: {}", samples)),
-                            text(format!("Total Sample Size: {} KiB", total)),
-                        ]
-                        .spacing(5)
-                        .align_items(Alignment::Center)
-                        .width(Length::Fill),
-                    )
-                    .style(style::scrollable::Scrollable::Dark),
-                )
-            }
+            Some(info) => match info {
+                Info::Valid {
+                    module_name,
+                    format,
+                    samples,
+                    path,
+                    total_sample_size,
+                } => container(
+                    column![
+                        text(format!("Module Name: {}", module_name)),
+                        text(format!("Format: {}", format)),
+                        text(format!("Samples: {}", samples)),
+                        text(format!("Total Sample Size: {} KiB", total_sample_size)),
+                    ]
+                    .spacing(5)
+                    .align_items(Alignment::Center)
+                    .width(Length::Fill),
+                ),
+                Info::Invalid { error, .. } => container(
+                    column![
+                        text(format!("Failed to load \"{}\"", info.filename())),
+                            // .style(style::text::Text::Danger), 
+                        text(error)
+                    ]
+                    .spacing(5)
+                    .align_items(Alignment::Center)
+                    .width(Length::Fill),
+                ),
+            },
             None => container(title_2),
         };
         container(
@@ -311,10 +341,21 @@ impl Trackers {
     }
 }
 
+pub fn filename(path: &Path) -> String {
+    path
+        .file_name()
+        .and_then(|f| Some(f.to_string_lossy().to_string()))
+        .unwrap_or_default()
+}
+
 async fn tracker_info(path: PathBuf) -> Option<Info> {
-    let Some((Ok(tracker), path)) = tokio::task::spawn_blocking(move || (load_module(&path), path)).await.ok() else {
+    let Some((tracker_result, path)) = tokio::task::spawn_blocking(move || 
+        (load_module(&path), path)
+    ).await.ok() else {
         return None;
     };
-
-    Some(Info::read(tracker, path))
+    match tracker_result {
+        Ok(tracker) => Some(Info::valid(tracker, path)),
+        Err(error) => Some(Info::invalid(error.to_string(), path)),
+    }
 }

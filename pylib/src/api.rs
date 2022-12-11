@@ -1,6 +1,6 @@
 use std::path::Path;
-use xmodits_lib::{SampleNamer, SampleNamerFunc, XmoditsError};
 use xmodits_common::{dump_samples_advanced, folder};
+use xmodits_lib::{SampleNamer, SampleNamerFunc, XmoditsError};
 
 pub fn rip_multiple(
     paths: Vec<String>,
@@ -12,7 +12,7 @@ pub fn rip_multiple(
     with_loop_points: Option<bool>,
     upper: Option<bool>,
     lower: Option<bool>,
-    hint: Option<String>
+    hint: Option<String>,
 ) -> Result<(), XmoditsError> {
     let sample_namer_func: Box<SampleNamerFunc> = SampleNamer::build_func(
         index_only.unwrap_or_default(),
@@ -28,7 +28,7 @@ pub fn rip_multiple(
     let mut errors: Vec<XmoditsError> = paths
         .into_iter()
         .filter(|path| Path::new(path).is_file())
-        .map(|path|
+        .map(|path| {
             dump_samples_advanced(
                 &path,
                 &folder(&destination, &path, create_if_absent),
@@ -37,7 +37,7 @@ pub fn rip_multiple(
                 &hint,
                 with_loop_points,
             )
-        )
+        })
         .filter_map(|result| result.err())
         .collect();
     use std::cmp::Ordering;

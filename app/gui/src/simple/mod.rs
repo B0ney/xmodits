@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use xmodits_common::folder;
 use xmodits_lib::XmoditsError;
 
-pub fn rip(paths: Vec<String>) {
+pub fn rip(paths: Vec<PathBuf>) {
     let config = Config::load();
     let log_path = match &config.general.logging_path {
         Some(log) => log,

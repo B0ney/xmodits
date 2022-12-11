@@ -4882,7 +4882,6 @@ dependencies = [
  "toml",
  "tracing",
  "tracing-subscriber",
- "walkdir",
  "winres",
  "xmodits-common",
  "xmodits-lib",

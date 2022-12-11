@@ -1,5 +1,5 @@
 use std::path::{Path, PathBuf};
-use xmodits_lib::{tracker_formats::*, TrackerDumper, XmoditsError, load_module};
+use xmodits_lib::{load_module, tracker_formats::*, TrackerDumper, XmoditsError};
 mod utils;
 use utils::{clean_test_export, compare_files, verify_sample_num};
 

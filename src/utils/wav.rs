@@ -20,7 +20,7 @@ pub struct Wav {
     stereo: bool, // is pcm stereo)
     is_interleaved: bool,
     header: WavHeader,
-    smpl_chunk: Option<SampleChunk>
+    smpl_chunk: Option<SampleChunk>,
 }
 
 pub struct WavHeader {
@@ -33,13 +33,12 @@ pub struct WavHeader {
     block_align: [u8; 2],
     bits_sample: [u8; 2],
     size_of_chunk: [u8; 4],
-
 }
 
 impl Wav {
     pub fn from_tracker_sample(smp: &TrackerSample) -> Self {
         Self::header(smp.rate, smp.bits, smp.len as u32, smp.is_stereo, false)
-            // .with_smpl_chunk(smp)
+        // .with_smpl_chunk(smp)
 
         // todo!()
     }
@@ -70,11 +69,16 @@ impl Wav {
                 bits_sample: (smp_bits as u16).to_le_bytes(),
                 size_of_chunk: (pcm_len * channels as u32).to_le_bytes(),
             },
-            smpl_chunk: None
+            smpl_chunk: None,
         }
     }
 
-    pub fn write_ref<P: AsRef<Path>>(&self, path: P, pcm: &[u8], with_loop_points: bool) -> std::io::Result<()> {
+    pub fn write_ref<P: AsRef<Path>>(
+        &self,
+        path: P,
+        pcm: &[u8],
+        with_loop_points: bool,
+    ) -> std::io::Result<()> {
         let mut file: File = File::create(path)?;
         let hdr = &self.header;
         let header: [&[u8]; 13] = [
@@ -110,7 +114,7 @@ impl Wav {
 }
 
 struct SampleChunk {
-    sample_loops: Vec<Loop>
+    sample_loops: Vec<Loop>,
 }
 
 struct Loop {
@@ -135,9 +139,8 @@ impl SampleChunk {
     }
     fn write(&self, wave: &mut File) {
         let mut data: Vec<u8> = Vec::new();
-        
+
         wave.write_all(&SMPL);
-        
     }
 }
 

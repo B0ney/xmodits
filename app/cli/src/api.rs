@@ -1,7 +1,7 @@
 use crate::Cli;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
+use xmodits_common::{dump_samples_advanced, folder, total_size_megabytes};
 use xmodits_lib::{SampleNamer, SampleNamerFunc};
-use xmodits_common::{folder, total_size_megabytes, dump_samples_advanced};
 
 pub fn build_namer(cli: &Cli) -> Box<SampleNamerFunc> {
     SampleNamer::build_func(
@@ -14,10 +14,7 @@ pub fn build_namer(cli: &Cli) -> Box<SampleNamerFunc> {
 }
 
 fn file_name(path: &Path) -> std::borrow::Cow<str> {
-    path
-        .file_name()
-        .unwrap_or_default()
-        .to_string_lossy()
+    path.file_name().unwrap_or_default().to_string_lossy()
 }
 
 pub fn info(cli: Cli) {
@@ -75,7 +72,7 @@ pub fn rip(cli: Cli, destination: PathBuf) {
             &sample_namer_func,
             !cli.no_folder,
             &cli.hint,
-            cli.loop_points
+            cli.loop_points,
         ) {
             eprintln!("Error {} <-- \"{}\"", error, file_name(mod_path))
         }

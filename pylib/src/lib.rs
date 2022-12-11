@@ -6,8 +6,8 @@ use pyo3::prelude::*;
 /// Dump a single tracker
 #[pyfunction]
 fn dump(
-    path: String,        // Path to tracker module
-    destination: String, // folder to place dump
+    path: String,                 // Path to tracker module
+    destination: String,          // folder to place dump
     index_raw: Option<bool>,      // Preserve sample number
     index_padding: Option<usize>, // Set sample number padding
     index_only: Option<bool>,     // Only name sample by their number
@@ -15,7 +15,7 @@ fn dump(
     with_loop_points: Option<bool>,
     upper: Option<bool>,
     lower: Option<bool>,
-    hint: Option<String>
+    hint: Option<String>,
 ) -> PyResult<()> {
     dump_multiple(
         vec![path],
@@ -27,7 +27,7 @@ fn dump(
         with_loop_points,
         upper,
         lower,
-        hint
+        hint,
     )
 }
 
@@ -43,7 +43,7 @@ fn dump_multiple(
     with_loop_points: Option<bool>,
     upper: Option<bool>,
     lower: Option<bool>,
-    hint: Option<String>
+    hint: Option<String>,
 ) -> PyResult<()> {
     api::rip_multiple(
         path,

@@ -4,12 +4,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-use std::borrow::Cow;
 use crate::interface::{TrackerDumper, TrackerModule};
 use crate::utils::prelude::*;
+use crate::utils::reader::read_str;
 use crate::XmoditsError;
 use crate::LOADERS;
-use crate::utils::reader::read_str;
+use std::borrow::Cow;
 
 const UPKG_MAGIC: u32 = 0x9E2A83C1;
 const UPKG_HEADER_SIZE: usize = 64;
@@ -49,28 +49,24 @@ impl TrackerDumper for UMXFile {
         let mut offset = name_offset;
 
         for _ in 0..name_count {
-            name_table.push(
-                if version < 64 {
-                    let mut length: usize = 0;
+            name_table.push(if version < 64 {
+                let mut length: usize = 0;
 
-                    while buf[length + offset] != 0 
-                        && length + offset < buf.len() 
-                    {
-                        length += 1;
-                    }
-
-                    let name = read_str(buf, offset, length);
-                    offset += length;
-                    name
-                } else {
-                    let length: usize = buf[offset] as usize - 1; // length of string inc \0, -1 to remove null
-                    offset += 1; // skip size field
-
-                    let name = read_str(buf, offset, length);
-                    offset += length;
-                    name
+                while buf[length + offset] != 0 && length + offset < buf.len() {
+                    length += 1;
                 }
-            );
+
+                let name = read_str(buf, offset, length);
+                offset += length;
+                name
+            } else {
+                let length: usize = buf[offset] as usize - 1; // length of string inc \0, -1 to remove null
+                offset += 1; // skip size field
+
+                let name = read_str(buf, offset, length);
+                offset += length;
+                name
+            });
 
             offset += 1; // Add 1 to skip '\0'
             offset += 4;
@@ -201,7 +197,7 @@ fn test1() {
     // let a: _ = UMXFile::load_module("./test/umx/UNATCO_Music.umx");
     // let a: _ = UMXFile::load_module("./test/umx/desu/MJ12_Music.umx");
     let a: _ = crate::loader::load_module("./test/umx/ut/Mech8.umx");
-// 
+    //
     dbg!(a.unwrap().module_name());
 }
 

@@ -1,4 +1,4 @@
-use xmodits_lib::{tracker_formats::*, TrackerDumper, load_module};
+use xmodits_lib::{load_module, tracker_formats::*, TrackerDumper};
 mod utils;
 use crate::utils::verify_sample_num;
 

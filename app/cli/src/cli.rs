@@ -53,7 +53,6 @@ pub struct Cli {
     #[arg(value_parser=["it", "xm", "s3m", "mod", "umx"])]
     #[arg(long)]
     pub hint: Option<String>,
-
     // #[cfg(feature = "advanced")]
     // #[arg(help = "Rip samples in parallel")]
     // #[arg(short = 'k', long)]

@@ -10,7 +10,6 @@ use crate::XmoditsError;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-
 #[cfg(feature = "thread")]
 pub type TrackerModule = Box<dyn TrackerDumper + Sync + Send>;
 #[cfg(not(feature = "thread"))]
@@ -53,7 +52,7 @@ pub struct TrackerSample {
     /// Can the sample data be read directly?
     pub is_readable: bool,
     /// What type of looping does this sample use?
-    pub loop_type: LoopType
+    pub loop_type: LoopType,
 }
 
 impl TrackerSample {
@@ -73,7 +72,7 @@ pub enum LoopType {
     Off = -1,
     Forward = 0,
     PingPong = 1,
-    Reverse = 3
+    Reverse = 3,
 }
 
 pub trait TrackerDumper {
@@ -109,7 +108,7 @@ pub trait TrackerDumper {
         folder: &dyn AsRef<Path>,
         index: usize,
         name_sample: &SampleNamerFunc,
-        with_loop_points: bool
+        with_loop_points: bool,
     ) -> Result<(), Error> {
         let sample: &TrackerSample = &self.list_sample_data()[index];
         let file: PathBuf = PathBuf::new().join(folder).join(name_sample(sample, index));
@@ -129,12 +128,15 @@ pub trait TrackerDumper {
     fn list_sample_data(&self) -> &[TrackerSample];
 
     /// Write sample data to PCM
-    fn write_wav(&mut self, file: &Path, index: usize, with_loop_points: bool) -> Result<(), Error> {
+    fn write_wav(
+        &mut self,
+        file: &Path,
+        index: usize,
+        with_loop_points: bool,
+    ) -> Result<(), Error> {
         let smp = &self.list_sample_data()[index];
 
-        Ok(Wav::from_tracker_sample(smp)
-            .write_ref(file, self.pcm(index)?, with_loop_points)?
-        )
+        Ok(Wav::from_tracker_sample(smp).write_ref(file, self.pcm(index)?, with_loop_points)?)
     }
 
     /// return reference to readable pcm data
@@ -155,7 +157,7 @@ pub trait TrackerDumper {
             folder,
             &crate::utils::prelude::name_sample,
             create_dir_if_absent,
-            false
+            false,
         )
     }
 

@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 mod utils;
 use utils::{clean_test_export, compare_files, verify_sample_num};
 
-use xmodits_lib::{tracker_formats::*, TrackerDumper, load_module};
+use xmodits_lib::{load_module, tracker_formats::*, TrackerDumper};
 
 #[test]
 fn it_empty() {

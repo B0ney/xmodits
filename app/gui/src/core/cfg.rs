@@ -124,3 +124,14 @@ impl SampleNameConfig {
 
     // pub fn set_index_only(set: bool) {}
 }
+
+// #[test]
+// fn a() {
+//     use path_absolutize::*;
+
+//     let p =PathBuf::new().join("~\\Downloads");
+//     dbg!(p.is_relative());
+//     dbg!(p.is_absolute());
+//     dbg!(p.absolutize().unwrap());
+//     // let a = shellexpand::tilde();
+// }

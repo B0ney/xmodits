@@ -26,12 +26,8 @@ native-dialog = { version="0.6.3", features= ["windows_dpi_awareness", "windows_
 tracing = "0.1.37"
 tracing-subscriber = "0.2.0"
 open = "3.0.3"
-walkdir = "2.3.2"
+# walkdir = "2.3.2"
 rand = "0.8.5"
-# crossbeam-channel = "0.5.6"
-# rand = { version = "0.8.5" }
-# # reqwest = { version = "0.11", features = ["blocking", "json"], optional=true } 
-# ureq = ""
 
 
 [dependencies.iced]
@@ -44,21 +40,16 @@ features = [
     "tokio",
 ]
 
-# # Separate binary to update xmodits
-# [[bin]]
-# features = ["updater"]
-# name = "xmodits_updater"
-# path = ""
 [profile.release]
 strip = true
-opt-level = "z"       # We want to make it smaller
+opt-level = "z"     # We want to make it smaller
 lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.
-# panic = 'abort' 
+
 
 [package.metadata.winres]
 FileDescription = "Rip samples from tracker music with speed!"
-Comments = "This software is licensed under AGPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
+Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
 
 [profile.dev]
 split-debuginfo = "packed"

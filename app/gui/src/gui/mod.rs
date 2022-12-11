@@ -3,6 +3,7 @@ pub mod style;
 pub mod views;
 use crate::core;
 use crate::core::cfg::Config;
+use crate::core::dialog::success;
 use crate::core::font::JETBRAINS_MONO;
 use crate::core::xmodits::{self, xmodits_subscription};
 use iced::keyboard::{Event as KeyboardEvent, KeyCode};
@@ -124,13 +125,18 @@ impl Application for XmoditsGui {
             Message::Beep(sfx) => self.audio.play(&sfx),
             Message::StartRip => {
                 if let Some(ref mut tx) = self.sender {
-                    let _ =
-                        tx.try_send((self.tracker.move_paths(), self.config.ripping.to_owned()));
+                    if self.tracker.total_modules() > 0 {
+                        let _ = tx.try_send(
+                            (self.tracker.move_paths(), self.config.ripping.to_owned())
+                        );
+                        self.audio.play("sfx_1")
+                    }
                 }
             }
             Message::Progress(msg) => match msg {
                 DownloadMessage::Ready(tx) => self.sender = Some(tx),
                 DownloadMessage::Done => {
+                    // success();
                     info!("Done!"); // notify when finished ripping
                 }
                 DownloadMessage::Progress { progress, result } => {
@@ -138,7 +144,7 @@ impl Application for XmoditsGui {
 
                     if let Err((path, e)) = result {
                         warn!("{} <-- {}", &path.display(), e);
-                        self.audio.play("sfx_2")
+                        // self.audio.play("sfx_2")
                     }
                 } // useful for progress bars
             },
@@ -200,7 +206,7 @@ impl Application for XmoditsGui {
                     self.tracker.view_current_tracker().map(|_| Message::Ignore),
                     self.config.name_cfg().view().map(Message::SetCfg),
                     self.config.ripping.view().map(Message::SetRipCfg),
-                    row![button("Save Config")
+                    row![button("Save Configuration")
                         .padding(10)
                         .on_press(Message::SaveConfig)]
                     .width(Length::FillPortion(1))
@@ -248,7 +254,7 @@ impl XmoditsGui {
     pub fn start() {
         let settings: Settings<()> = Settings {
             window: Window {
-                size: (700, 450),
+                size: (780, 540),
                 resizable: true,
                 decorations: true,
                 icon: Some(icon()),

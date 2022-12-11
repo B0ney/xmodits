@@ -9,13 +9,13 @@ fn show_dialoge(title: &str, msg: &str, msg_type: MessageType) {
         .unwrap()
 }
 
-pub fn show_help_box() {
-    show_dialoge(
-        "No tracker modules",
-        "Please drag and drop a valid tracker module onto xmodits.\nSupported formats: IT, XM, S3M, MOD, UMX",
-        MessageType::Info
-    )
-}
+// pub fn show_help_box() {
+//     show_dialoge(
+//         "No tracker modules",
+//         "Please drag and drop a valid tracker module onto xmodits.\nSupported formats: IT, XM, S3M, MOD, UMX",
+//         MessageType::Info
+//     )
+// }
 
 pub fn success() {
     show_dialoge(
@@ -47,16 +47,16 @@ pub fn success_partial_no_log(error: &str) {
 }
 
 pub fn failed_single(error: &str) {
-    show_dialoge("Can't rip from this file", &error, MessageType::Warning)
+    show_dialoge("Cannot rip from this file", &error, MessageType::Warning)
 }
 
-pub fn no_valid_modules() {
-    show_dialoge(
-        "No files provided",
-        "You haven't provided any files.\nSupported formats: IT, XM, S3M, MOD, UMX",
-        MessageType::Error,
-    )
-}
+// pub fn no_valid_modules() {
+//     show_dialoge(
+//         "No files provided",
+//         "You haven't provided any files.\nSupported formats: IT, XM, S3M, MOD, UMX",
+//         MessageType::Error,
+//     )
+// }
 
 pub fn critical_error(error: &str, module: &std::ffi::OsStr) {
     show_dialoge(

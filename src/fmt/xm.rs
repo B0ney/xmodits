@@ -168,7 +168,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
             let rate: u32 = (8363.0 * 2.0_f32.powf((4608.0 - period) / 768.0)) as u32;
             let loop_start: u32 = read_u32_le(buf, 0x0004 + offset);
             let loop_end: u32 = loop_start + read_u32_le(buf, 0x0008 + offset);
-    
+
             samples.push(XMSample {
                 filename: name.clone(),
                 name,

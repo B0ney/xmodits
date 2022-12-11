@@ -28,5 +28,7 @@ pub fn string_from_buf(chars: &[u8]) -> String {
         .iter()
         .filter(|c| is_ascii(**c) && !invalid_chars.contains(&(**c as char)))
         .map(|c| *c as char)
-        .collect()
+        .collect::<String>()
+        .trim()
+        .to_owned()
 }
