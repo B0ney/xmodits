@@ -4,7 +4,7 @@ pub mod views;
 use crate::core;
 use crate::core::cfg::Config;
 use crate::core::font::JETBRAINS_MONO;
-use crate::core::xmodits;
+use crate::core::xmodits::{self, xmodits_subscription};
 use iced::keyboard::{Event as KeyboardEvent, KeyCode};
 use iced::widget::{
     button, checkbox, column, container, pick_list, row, scrollable, text, text_input, Button,
@@ -18,6 +18,7 @@ use image::{self, GenericImageView};
 use std::path::PathBuf;
 use style::Theme;
 use tokio::sync::mpsc::{self, Receiver, Sender};
+use tracing::{info, warn};
 
 use views::about::Message as AboutMessage;
 use views::config_name::Message as ConfigMessage;
@@ -26,7 +27,7 @@ use views::settings::Message as SettingsMessage;
 use views::trackers::Message as TrackerMessage;
 use views::trackers::Trackers;
 
-use xmodits::{xmodits_subscription, DownloadMessage};
+use xmodits::DownloadMessage;
 
 #[derive(Default, Debug, Clone)]
 pub enum View {
@@ -124,14 +125,22 @@ impl Application for XmoditsGui {
             Message::StartRip => {
                 if let Some(ref mut tx) = self.sender {
                     let _ =
-                        tx.try_send((self.tracker.cloned_paths(), self.config.ripping.to_owned()));
+                        tx.try_send((self.tracker.move_paths(), self.config.ripping.to_owned()));
                 }
             }
             Message::Progress(msg) => match msg {
-                DownloadMessage::Sender(tx) => self.sender = Some(tx),
-                DownloadMessage::Done => (), // notify when finished ripping
-                DownloadMessage::Progress => (), // useful for progress bars
-                DownloadMessage::Error(_) => self.audio.play("sfx_2"),
+                DownloadMessage::Ready(tx) => self.sender = Some(tx),
+                DownloadMessage::Done => {
+                    info!("Done!"); // notify when finished ripping
+                }
+                DownloadMessage::Progress { progress, result } => {
+                    info!("{}", progress);
+
+                    if let Err((path, e)) = result {
+                        warn!("{} <-- {}", &path.display(), e);
+                        self.audio.play("sfx_2")
+                    }
+                } // useful for progress bars
             },
             Message::SaveConfig => {
                 // TODO: wrap config save in command, make a new async save method.
@@ -208,7 +217,6 @@ impl Application for XmoditsGui {
             View::About => views::about::view().map(Message::About),
             View::Help => views::help::view().map(|_| Message::Ignore),
             View::Ripping => todo!(),
-            // _ => container(text(":(")).into(),
         };
 
         let main: _ = row![

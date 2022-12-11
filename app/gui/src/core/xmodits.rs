@@ -6,127 +6,137 @@ use xmodits_common::folder;
 
 use super::cfg::SampleRippingConfig;
 pub type gh = (Vec<PathBuf>, SampleRippingConfig);
+const ID: &str = "XMODITS_RIPPING";
+
+/// State of subscription
+#[derive(Default, Debug)]
+enum State {
+    #[default]
+    Init,
+    Idle {
+        start_msg: Receiver<gh>,
+    },
+    Start(gh),
+    Ripping {
+        ripping_msg: Receiver<ThreadMsg>,
+        total: usize,
+        progress: usize,
+    },
+    Done,
+}
 
 /// Messages emitted by subscription
 #[derive(Clone, Debug)]
 pub enum DownloadMessage {
-    Sender(Sender<gh>),
+    Ready(Sender<gh>),
     Done,
-    Progress,
-    Error((PathBuf, String)),
+    Progress {
+        progress: f32,
+        result: Result<(), (PathBuf, String)>,
+    },
     // Cancel,
 }
 
-/// Internal state of subscription
-enum DownloadState {
-    Starting,
-    Idle {
-        receiver: Receiver<gh>,
-    },
-    Downloading {
-        ripping_msg: Receiver<DownloadMessage>,
-    },
+/// Messages emitted by thread
+enum ThreadMsg {
+    Ok,
+    Failed((PathBuf, String)),
+    Done,
 }
 
-/// A subscription that allows the application to rip samples.
-///
 /// The subscription will emit messages when:
 /// * The sample extraction has completed
-/// * The module has been ripped (can be used to track progress)
-/// * The module cannot be ripped
-///
+/// * A module has been ripped (can be used to track progress)
+/// * A module cannot be ripped
 pub fn xmodits_subscription() -> Subscription<DownloadMessage> {
-    subscription::unfold("Download", DownloadState::Starting, |state| async move {
-        match state {
-            //? Create and pass sender to application
-            DownloadState::Starting => {
-                let (sender, receiver) = mpsc::channel::<gh>(1);
+    subscription::unfold(ID, State::Init, |state| rip(state))
+}
 
+async fn rip(state: State) -> (Option<DownloadMessage>, State) {
+    match state {
+        State::Init => {
+            let (sender, receiver) = mpsc::channel::<gh>(1);
+            (
+                Some(DownloadMessage::Ready(sender)),
+                State::Idle {
+                    start_msg: receiver,
+                },
+            )
+        }
+        State::Idle { mut start_msg } => match start_msg.recv().await {
+            Some(gh) => (None, State::Start(gh)),
+            None => (None, State::Idle { start_msg }),
+        },
+        State::Start(config) => {
+            let total = config.0.len();
+            let (tx, rx) = mpsc::channel(120);
+
+            spawn_thread(tx, config);
+            (
+                None,
+                State::Ripping {
+                    ripping_msg: rx,
+                    total,
+                    progress: 0,
+                },
+            )
+        }
+        State::Ripping {
+            mut ripping_msg,
+            total,
+            mut progress,
+        } => match ripping_msg.recv().await {
+            Some(result @ (ThreadMsg::Ok | ThreadMsg::Failed(_))) => {
+                progress += 1;
+                let percentage: f32 = (progress as f32 / total as f32) * 100.0;
+                let result = match result {
+                    ThreadMsg::Ok => Ok(()),
+                    ThreadMsg::Failed(err) => Err(err),
+                    _ => unreachable!(),
+                };
                 (
-                    Some(DownloadMessage::Sender(sender)),
-                    DownloadState::Idle { receiver },
+                    Some(DownloadMessage::Progress {
+                        progress: percentage,
+                        result,
+                    }),
+                    State::Ripping {
+                        ripping_msg,
+                        total,
+                        progress,
+                    },
                 )
             }
-            DownloadState::Idle {
-                receiver: mut start_signal,
-            } => {
-                let message = start_signal.recv().await;
+            _ => (Some(DownloadMessage::Done), State::Init),
+        },
 
-                info!("Received Message {message:?}");
+        _ => (Some(DownloadMessage::Done), State::Init),
+    }
+}
 
-                match message {
-                    Some((paths, config)) => {
-                        // The xmodits library is not async, so run it in a thread and have it communicate with the subscription.
-                        // We spawn an ordinary thread instead of using "tokio::task::spawn_blocking" because
-                        // it can be **easily** cancelled without stalling the async runtime.
-
-                        let (tx, rx) = mpsc::channel(120);
-
-                        std::thread::spawn(move || {
-                            let dest_dir = &config.destination;
-                            let namer = &config.naming.build_func();
-
-                            info!("destination {}", &dest_dir.display());
-
-                            for path in paths {
-                                match xmodits_common::dump_samples_advanced(
-                                    &path,
-                                    &folder(dest_dir, &path, !config.no_folder),
-                                    namer,
-                                    !config.no_folder,
-                                    &None,
-                                    false,
-                                ) {
-                                    Ok(_) => {
-                                        let _ = tx.blocking_send(DownloadMessage::Progress);
-                                    }
-                                    Err(e) => {
-                                        warn!("{} <-- {}", &path.display(), e);
-
-                                        let _ = tx.blocking_send(DownloadMessage::Error((
-                                            path,
-                                            e.to_string(),
-                                        )));
-                                    }
-                                };
-                            }
-
-                            tx.blocking_send(DownloadMessage::Done);
-                        });
-
-                        (None, DownloadState::Downloading { ripping_msg: rx })
-                    }
-
-                    _ => (
-                        None,
-                        DownloadState::Idle {
-                            receiver: start_signal,
-                        },
-                    ),
+fn spawn_thread(tx: Sender<ThreadMsg>, config: gh) {
+    std::thread::spawn(move || {
+        let (paths, config) = config;
+        let dest_dir = &config.destination;
+        let namer = &config.naming.build_func();
+        info!("{}", dest_dir.display());
+        for path in paths {
+            match xmodits_common::dump_samples_advanced(
+                &path,
+                &folder(dest_dir, &path, !config.no_folder),
+                namer,
+                !config.no_folder,
+                &None,
+                false,
+            ) {
+                Ok(_) => {
+                    let _ = tx.blocking_send(ThreadMsg::Ok);
                 }
-            }
-
-            DownloadState::Downloading {
-                ripping_msg: mut receiver,
-            } => {
-                let message = receiver.recv().await;
-
-                match message {
-                    done @ Some(DownloadMessage::Done) => (done, DownloadState::Starting),
-                    error @ Some(DownloadMessage::Error(_)) => (
-                        error,
-                        DownloadState::Downloading {
-                            ripping_msg: receiver,
-                        },
-                    ),
-                    _ => (
-                        Some(DownloadMessage::Done),
-                        DownloadState::Downloading {
-                            ripping_msg: receiver,
-                        },
-                    ),
+                Err(e) => {
+                    let _ = tx.blocking_send(ThreadMsg::Failed((path, e.to_string())));
                 }
-            }
+            };
         }
-    })
+
+        tx.blocking_send(ThreadMsg::Done);
+    });
 }

@@ -182,6 +182,9 @@ impl Trackers {
     pub fn cloned_paths(&self) -> Vec<PathBuf> {
         self.paths.iter().map(|f| f.path.to_owned()).collect()
     }
+    pub fn move_paths(&mut self) -> Vec<PathBuf> {
+        self.paths.drain(..).into_iter().map(|f| f.path).collect()
+    }
 
     pub fn current_exists(&self, path: &Path) -> bool {
         matches!(&self.current, Some(d) if d.path == path)
@@ -280,7 +283,9 @@ impl Trackers {
                             text(format!("Samples: {}", samples)),
                             text(format!("Total Sample Size: {} KiB", total)),
                         ]
-                        .spacing(5),
+                        .spacing(5)
+                        .align_items(Alignment::Center)
+                        .width(Length::Fill),
                     )
                     .style(style::scrollable::Scrollable::Dark),
                 )
@@ -292,9 +297,11 @@ impl Trackers {
                 title,
                 content
                     .style(style::Container::Frame)
-                    .width(Length::Fill)
                     .height(Length::Fill)
+                    .width(Length::Fill)
                     .padding(8)
+                    .center_x()
+                    .center_y()
             ]
             .spacing(10),
         )
