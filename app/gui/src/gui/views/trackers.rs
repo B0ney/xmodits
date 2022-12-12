@@ -4,6 +4,7 @@ use iced::widget::Space;
 use iced::widget::{button, checkbox, column, pick_list, row, scrollable, text};
 use iced::{widget::container, Element, Length, Renderer};
 use iced::{Alignment, Command};
+use walkdir::WalkDir;
 use std::path::{Path, PathBuf};
 use tracing::{info, warn};
 use xmodits_lib::{load_module, TrackerModule, XmoditsError};
@@ -59,7 +60,7 @@ impl Info {
 
     pub fn path(&self) -> &Path {
         match self {
-            Info::Valid { path, .. } => path,
+            Info::Valid { path, .. } |
             Info::Invalid { path, .. } => path,
         }
     }
@@ -69,13 +70,13 @@ impl Info {
     }
 }
 
-struct File {
+struct Entry {
     path: PathBuf,
     filename: String,
     selected: bool,
 }
 
-impl File {
+impl Entry {
     pub fn new(path: PathBuf) -> Self {
         Self {
             filename: filename(&path),
@@ -83,11 +84,14 @@ impl File {
             selected: false,
         }
     }
+    pub fn is_dir(&self) -> bool {
+        self.path.is_dir()
+    }
 }
 
 #[derive(Default)]
 pub struct Trackers {
-    paths: Vec<File>,
+    paths: Vec<Entry>,
     current: Option<Info>,
     all_selected: bool,
 }
@@ -95,7 +99,7 @@ pub struct Trackers {
 impl Trackers {
     pub fn add(&mut self, path: PathBuf) {
         if !self.paths.iter().map(|e| &e.path).any(|x| x == &path) {
-            self.paths.push(File::new(path));
+            self.paths.push(Entry::new(path));
         }
     }
     // TODO: explore draining iterator
@@ -130,7 +134,7 @@ impl Trackers {
             // }
             Message::Probe(idx) => {
                 let path = &self.paths[idx].path;
-                if !self.current_exists(path) {
+                if !self.current_exists(path) && path.is_file() {
                     return Command::perform(tracker_info(path.to_owned()), Message::TrackerInfo);
                 }
             }
@@ -233,12 +237,26 @@ impl Trackers {
                 column![].spacing(10).padding(5),
                 |s, (idx, gs)| {
                     s.push(row![
-                        button(
+                        button(if gs.is_dir() {
+                            row![
+                                checkbox("", gs.selected, move |b| Message::Select((idx, b))),
+                                text(&gs.filename), 
+                                Space::with_width(Length::Fill),
+
+                                icons::folder_icon()
+                            ]
+                            .spacing(1)
+                            .align_items(Alignment::Center)
+
+                        } else {
                             row![
                                 checkbox("", gs.selected, move |b| Message::Select((idx, b))),
                                 text(&gs.filename),
                             ]
                             .spacing(1)
+                            .align_items(Alignment::Center)
+                        }
+                            
                         )
                         .width(Length::Fill)
                         .on_press(Message::Probe(idx))
@@ -287,7 +305,7 @@ impl Trackers {
     }
 
     pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> {
-        let title: _ = text("Current Tracker Infomation").font(JETBRAINS_MONO);
+        let title: _ = text("Current Tracker Information").font(JETBRAINS_MONO);
         let title_2: _ = text("None selected").font(JETBRAINS_MONO);
 
         let content: _ = match &self.current {
@@ -319,6 +337,7 @@ impl Trackers {
                     .align_items(Alignment::Center)
                     .width(Length::Fill),
                 ),
+                
             },
             None => container(title_2),
         };

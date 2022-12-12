@@ -37,7 +37,7 @@ impl GeneralConfig {
                 row![
                     text("Folder Scan Depth "),
                     pick_list(
-                        (0..3).collect::<Vec<u8>>(),
+                        (1..=4).collect::<Vec<u8>>(),
                         Some(self.folder_recursion_depth),
                         Message::SetRecursionDepth
                     )

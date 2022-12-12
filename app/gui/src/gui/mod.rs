@@ -126,9 +126,11 @@ impl Application for XmoditsGui {
             Message::StartRip => {
                 if let Some(ref mut tx) = self.sender {
                     if self.tracker.total_modules() > 0 {
-                        let _ = tx.try_send(
-                            (self.tracker.move_paths(), self.config.ripping.to_owned())
-                        );
+                        let _ = tx.try_send((
+                            self.tracker.move_paths(),
+                            self.config.ripping.to_owned(),
+                            self.config.general.folder_recursion_depth
+                        ));
                         self.audio.play("sfx_1")
                     }
                 }

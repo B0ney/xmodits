@@ -12,6 +12,10 @@ pub fn github_icon() -> Text<'static, Renderer<Theme>> {
     icon('\u{f345}')
 }
 
+pub fn folder_icon() -> Text<'static, Renderer<Theme>> {
+    icon('\u{f228}')
+}
+
 fn icon(unicode: char) -> Text<'static, Renderer<Theme>> {
     text(unicode.to_string())
         .font(ICONS)

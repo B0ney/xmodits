@@ -1,11 +1,12 @@
 use iced::{subscription, Subscription};
+use walkdir::WalkDir;
 use std::path::PathBuf;
 use tokio::sync::mpsc::{self, Receiver, Sender};
 use tracing::{info, warn};
 use xmodits_common::folder;
 
 use super::cfg::SampleRippingConfig;
-pub type gh = (Vec<PathBuf>, SampleRippingConfig);
+pub type gh = (Vec<PathBuf>, SampleRippingConfig, u8);
 const ID: &str = "XMODITS_RIPPING";
 
 /// State of subscription
@@ -114,12 +115,42 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
 }
 
 fn spawn_thread(tx: Sender<ThreadMsg>, config: gh) {
+    let (paths, config, mut scan_depth) = config;
+    if scan_depth == 0 { scan_depth += 1 }
+
+    let mut files: Vec<PathBuf> = Vec::new();
+    let mut folders: Vec<PathBuf> = Vec::new();
+
+    for i in paths {
+        if i.is_file() {
+            files.push(i)
+        } else if i.is_dir() {
+            folders.push(i)
+        }
+    };
+
+    let expanded_folders = folders
+        .into_iter()
+        .map(move |f| WalkDir::new(f)
+            .max_depth(scan_depth as usize)
+            .into_iter()
+            .filter_map(|f| f.ok())
+            .map(|f|f.into_path())
+            .filter(|f| f.is_file())
+        )
+        .flatten();
+    
+    let expanded_paths = files
+        .into_iter()
+        .chain(expanded_folders);
+
     std::thread::spawn(move || {
-        let (paths, config) = config;
         let dest_dir = &config.destination;
         let namer = &config.naming.build_func();
+        
         info!("{}", dest_dir.display());
-        for path in paths {
+
+        for path in expanded_paths {
             match xmodits_common::dump_samples_advanced(
                 &path,
                 &folder(dest_dir, &path, !config.no_folder),
