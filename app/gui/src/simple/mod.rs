@@ -1,5 +1,5 @@
 use crate::core::cfg::Config;
-use crate::core::dialog::{failed_single, success, success_partial, success_partial_no_log};
+use crate::core::dialog::{failed_single, success, success_partial, success_partial_no_log, show_help_box};
 use rand::Rng;
 use std::cmp::Ordering;
 use std::fs::File;
@@ -9,15 +9,22 @@ use xmodits_common::folder;
 use xmodits_lib::XmoditsError;
 
 pub fn rip(paths: Vec<PathBuf>) {
+    let paths: Vec<PathBuf> = paths
+        .into_iter()
+        .filter(|f| f.is_file())
+        .collect();
+    if paths.len() == 0 {
+        return show_help_box();
+    };
     let config = Config::load();
     let log_path = match &config.general.logging_path {
         Some(log) => log,
         None => &config.ripping.destination,
     };
-    dbg!(&log_path);
+    // dbg!(&log_path);
     let config = &config.ripping;
     let namer = config.naming.build_func();
-
+    
     let mut errors: Vec<(usize, XmoditsError)> = paths
         .iter()
         .map(|mod_path| {
@@ -50,7 +57,7 @@ pub fn rip(paths: Vec<PathBuf>) {
                 Ok(mut file) => {
                     errors.iter().for_each(|(idx, error)| {
                         let _ = file.write_all(
-                            format!("{}   <--- {}\n\n", Path::new(&paths[*idx]).display(), error)
+                            format!("{} <--- {}\n\n", Path::new(&paths[*idx]).display(), error)
                                 .as_bytes(),
                         );
                     });

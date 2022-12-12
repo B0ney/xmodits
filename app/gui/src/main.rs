@@ -1,4 +1,4 @@
-// #![windows_subsystem = "windows"] // Will this make logging impossible?
+#![windows_subsystem = "windows"] // Will this make logging impossible?
 // #[allow(unused)]
 mod core;
 #[allow(unused)]

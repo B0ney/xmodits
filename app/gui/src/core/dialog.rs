@@ -9,13 +9,18 @@ fn show_dialoge(title: &str, msg: &str, msg_type: MessageType) {
         .unwrap()
 }
 
-// pub fn show_help_box() {
-//     show_dialoge(
-//         "No tracker modules",
-//         "Please drag and drop a valid tracker module onto xmodits.\nSupported formats: IT, XM, S3M, MOD, UMX",
-//         MessageType::Info
-//     )
-// }
+pub fn show_help_box() {
+    // show_dialoge(
+    //     "No tracker modules",
+    //     "Please drag and drop a valid tracker module onto xmodits.\nSupported formats: IT, XM, S3M, MOD, UMX",
+    //     MessageType::Info
+    // )
+    show_dialoge(
+        "No tracker modules",
+        "If you wish to rip from a folder, please launch the GUI instead",
+        MessageType::Info
+    )
+}
 
 pub fn success() {
     show_dialoge(

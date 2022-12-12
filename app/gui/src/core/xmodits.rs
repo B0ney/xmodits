@@ -17,13 +17,12 @@ enum State {
     Idle {
         start_msg: Receiver<gh>,
     },
-    Start(gh),
     Ripping {
         ripping_msg: Receiver<ThreadMsg>,
         total: usize,
         progress: usize,
     },
-    Done,
+    // Done,
 }
 
 /// Messages emitted by subscription
@@ -66,23 +65,22 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
             )
         }
         State::Idle { mut start_msg } => match start_msg.recv().await {
-            Some(gh) => (None, State::Start(gh)),
+            Some(config) => {
+                let total = config.0.len();
+                let (tx, rx) = mpsc::channel(120);
+
+                spawn_thread(tx, config);
+                (
+                    None,
+                    State::Ripping {
+                        ripping_msg: rx,
+                        total,
+                        progress: 0,
+                    },
+                )
+            },
             None => (None, State::Idle { start_msg }),
         },
-        State::Start(config) => {
-            let total = config.0.len();
-            let (tx, rx) = mpsc::channel(120);
-
-            spawn_thread(tx, config);
-            (
-                None,
-                State::Ripping {
-                    ripping_msg: rx,
-                    total,
-                    progress: 0,
-                },
-            )
-        }
         State::Ripping {
             mut ripping_msg,
             total,
