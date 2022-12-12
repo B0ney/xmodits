@@ -31,18 +31,18 @@ impl SampleNameConfig {
                     self.lower = false;
                 }
                 if upper {
-                    self.upper = upper;
                     self.index_only = false;
                 }
+                self.upper = upper;
             }
             Message::LowerCase(lower) => {
                 if self.upper && lower {
                     self.upper = false;
                 }
                 if lower {
-                    self.lower = lower;
                     self.index_only = false;
                 }
+                self.lower = lower;
             }
             Message::IndexPadding(padding) => self.index_padding = padding,
         }

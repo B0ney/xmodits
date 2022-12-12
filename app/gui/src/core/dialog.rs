@@ -63,10 +63,10 @@ pub fn failed_single(error: &str) {
 //     )
 // }
 
-pub fn critical_error(error: &str, module: &std::ffi::OsStr) {
+pub fn critical_error(error: &str) {
     show_dialoge(
-        "Fatal Error",
-        &format!("An internal panic occured while attemping to rip from {:?}\n\nError: {}\nPlease provide this module in your bug report.", module, error),
+        "FATAL ERROR (>_<)",
+        &format!("{}\n\nThe program will now terminate.", error),
         MessageType::Error
     )
 }

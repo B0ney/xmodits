@@ -271,7 +271,7 @@ impl XmoditsGui {
             ..iced::Settings::default()
         };
 
-        Self::run(settings).unwrap_err();
+        Self::run(settings);
     }
 }
 

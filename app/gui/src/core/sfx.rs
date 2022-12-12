@@ -7,7 +7,7 @@ type SoundBuffer = Buffered<Decoder<Cursor<&'static [u8]>>>;
 
 const SFX_1: &[u8] = include_bytes!("../../res/sfx/sfx_1.wav");
 const SFX_2: &[u8] = include_bytes!("../../res/sfx/sfx_2.wav");
-const SFX_3: &[u8] = include_bytes!("../../res/sfx/bruh.umx");
+// const SFX_3: &[u8] = include_bytes!("../../res/sfx/bruh.umx");
 
 // const SFX_3: &[u8] = include_bytes!("../../res/sfx/riff.umx");
 // const SFX_4: &[u8] = include_bytes!("../../res/sfx/aauugghh.umx");
@@ -16,7 +16,7 @@ pub static SFX: Lazy<HashMap<&'static str, SoundBuffer>> = Lazy::new(|| {
     let sfx: &[(&str, &[u8])] = &[
         ("sfx_1", SFX_1),
         ("sfx_2", SFX_2),
-        ("sfx_3", SFX_3),
+        // ("sfx_3", SFX_3),
         // ("sfx_4", SFX_4),
     ];
 
