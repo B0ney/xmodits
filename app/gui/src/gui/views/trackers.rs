@@ -1,12 +1,12 @@
 use crate::gui::style::{self, Theme};
-use crate::gui::{icons, JETBRAINS_MONO};
+use crate::gui::{icon, icons, JETBRAINS_MONO};
 use iced::widget::Space;
 use iced::widget::{button, checkbox, column, pick_list, row, scrollable, text};
 use iced::{widget::container, Element, Length, Renderer};
 use iced::{Alignment, Command};
-use walkdir::WalkDir;
 use std::path::{Path, PathBuf};
 use tracing::{info, warn};
+use walkdir::WalkDir;
 use xmodits_lib::{load_module, TrackerModule, XmoditsError};
 
 #[derive(Debug, Clone)]
@@ -60,8 +60,7 @@ impl Info {
 
     pub fn path(&self) -> &Path {
         match self {
-            Info::Valid { path, .. } |
-            Info::Invalid { path, .. } => path,
+            Info::Valid { path, .. } | Info::Invalid { path, .. } => path,
         }
     }
 
@@ -240,14 +239,12 @@ impl Trackers {
                         button(if gs.is_dir() {
                             row![
                                 checkbox("", gs.selected, move |b| Message::Select((idx, b))),
-                                text(&gs.filename), 
+                                text(&gs.filename),
                                 Space::with_width(Length::Fill),
-
                                 icons::folder_icon()
                             ]
                             .spacing(1)
                             .align_items(Alignment::Center)
-
                         } else {
                             row![
                                 checkbox("", gs.selected, move |b| Message::Select((idx, b))),
@@ -255,9 +252,7 @@ impl Trackers {
                             ]
                             .spacing(1)
                             .align_items(Alignment::Center)
-                        }
-                            
-                        )
+                        })
                         .width(Length::Fill)
                         .on_press(Message::Probe(idx))
                         .padding(4)
@@ -269,7 +264,14 @@ impl Trackers {
             .height(Length::Fill)
         };
         let bottom_button = row![
-            button("Add").padding(10).on_press(Message::AddFileDialog),
+            button(
+                //row![
+                icons::add_file_icon(),
+                // text("Add")
+                //]
+            )
+            .padding(10)
+            .on_press(Message::AddFileDialog),
             button("Add Folder")
                 .padding(10)
                 .on_press(Message::AddFolderDialog),
@@ -287,6 +289,7 @@ impl Trackers {
                     total_modules,
                     total_selected,
                     Space::with_width(Length::Fill),
+                    // checkbox is 5 units taller than the other elements
                     checkbox("Select all", self.all_selected, Message::SelectAll)
                         .style(style::checkbox::CheckBox::PackageDisabled),
                 ]
@@ -298,7 +301,7 @@ impl Trackers {
                     .width(Length::Fill),
                 bottom_button
             ]
-            .spacing(5),
+            .spacing(10),
         )
         .height(Length::Fill)
         .into()
@@ -330,14 +333,13 @@ impl Trackers {
                 Info::Invalid { error, .. } => container(
                     column![
                         text(format!("Failed to load \"{}\"", info.filename())),
-                            // .style(style::text::Text::Danger), 
+                        // .style(style::text::Text::Danger),
                         text(error)
                     ]
                     .spacing(5)
                     .align_items(Alignment::Center)
                     .width(Length::Fill),
                 ),
-                
             },
             None => container(title_2),
         };
@@ -352,7 +354,7 @@ impl Trackers {
                     .center_x()
                     .center_y()
             ]
-            .spacing(10),
+            .spacing(15), // Why dies it need to be 15? it should be 10
         )
         .width(Length::Fill)
         .height(Length::Fill)
@@ -361,14 +363,13 @@ impl Trackers {
 }
 
 pub fn filename(path: &Path) -> String {
-    path
-        .file_name()
-        .and_then(|f| Some(f.to_string_lossy().to_string()))
+    path.file_name()
+        .map(|f| f.to_string_lossy().to_string())
         .unwrap_or_default()
 }
 
 async fn tracker_info(path: PathBuf) -> Option<Info> {
-    let Some((tracker_result, path)) = tokio::task::spawn_blocking(move || 
+    let Some((tracker_result, path)) = tokio::task::spawn_blocking(move ||
         (load_module(&path), path)
     ).await.ok() else {
         return None;

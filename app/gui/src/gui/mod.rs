@@ -129,7 +129,7 @@ impl Application for XmoditsGui {
                         let _ = tx.try_send((
                             self.tracker.move_paths(),
                             self.config.ripping.to_owned(),
-                            self.config.general.folder_recursion_depth
+                            self.config.general.folder_recursion_depth,
                         ));
                         self.audio.play("sfx_1")
                     }
@@ -212,11 +212,15 @@ impl Application for XmoditsGui {
                         .padding(10)
                         .on_press(Message::SaveConfig)]
                     .width(Length::FillPortion(1))
-                    .align_items(Alignment::End),
-                    button("Start")
-                        .padding(10)
-                        .on_press(Message::StartRip)
-                        .width(Length::Fill),
+                    .align_items(Alignment::Center),
+                    button(
+                        row![text("Start"), icons::download_icon()].align_items(Alignment::Center)
+                    )
+                    //"Start"
+                    .padding(10)
+                    .on_press(Message::StartRip)
+                    .style(style::button::Button::RestorePackage)
+                    .width(Length::Fill),
                 ]
                 .spacing(10),
             )

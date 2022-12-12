@@ -1,8 +1,8 @@
 use iced::{subscription, Subscription};
-use walkdir::WalkDir;
 use std::path::PathBuf;
 use tokio::sync::mpsc::{self, Receiver, Sender};
 use tracing::{info, warn};
+use walkdir::WalkDir;
 use xmodits_common::folder;
 
 use super::cfg::SampleRippingConfig;
@@ -40,6 +40,7 @@ pub enum DownloadMessage {
 
 /// Messages emitted by thread
 enum ThreadMsg {
+    SetTotal(usize),
     Ok,
     Failed((PathBuf, String)),
     Done,
@@ -50,7 +51,7 @@ enum ThreadMsg {
 /// * A module has been ripped (can be used to track progress)
 /// * A module cannot be ripped
 pub fn xmodits_subscription() -> Subscription<DownloadMessage> {
-    subscription::unfold(ID, State::Init, |state| rip(state))
+    subscription::unfold(ID, State::Init, rip)
 }
 
 async fn rip(state: State) -> (Option<DownloadMessage>, State) {
@@ -107,6 +108,14 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
                     },
                 )
             }
+            Some(ThreadMsg::SetTotal(total)) => (
+                None,
+                State::Ripping {
+                    ripping_msg,
+                    total,
+                    progress,
+                },
+            ),
             _ => (Some(DownloadMessage::Done), State::Init),
         },
 
@@ -116,7 +125,9 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
 
 fn spawn_thread(tx: Sender<ThreadMsg>, config: gh) {
     let (paths, config, mut scan_depth) = config;
-    if scan_depth == 0 { scan_depth += 1 }
+    if scan_depth == 0 {
+        scan_depth += 1
+    }
 
     let mut files: Vec<PathBuf> = Vec::new();
     let mut folders: Vec<PathBuf> = Vec::new();
@@ -127,27 +138,25 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: gh) {
         } else if i.is_dir() {
             folders.push(i)
         }
-    };
+    }
 
-    let expanded_folders = folders
-        .into_iter()
-        .map(move |f| WalkDir::new(f)
+    let expanded_folders = folders.into_iter().flat_map(move |f| {
+        WalkDir::new(f)
             .max_depth(scan_depth as usize)
             .into_iter()
             .filter_map(|f| f.ok())
-            .map(|f|f.into_path())
+            .map(|f| f.into_path())
             .filter(|f| f.is_file())
-        )
-        .flatten();
-    
-    let expanded_paths = files
-        .into_iter()
-        .chain(expanded_folders);
+    });
+
+    let expanded_paths: Vec<PathBuf> = files.into_iter().chain(expanded_folders).collect();
 
     std::thread::spawn(move || {
+        let _ = tx.blocking_send(ThreadMsg::SetTotal(expanded_paths.len()));
+
         let dest_dir = &config.destination;
         let namer = &config.naming.build_func();
-        
+
         info!("{}", dest_dir.display());
 
         for path in expanded_paths {

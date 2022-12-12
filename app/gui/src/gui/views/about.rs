@@ -30,7 +30,7 @@ pub fn view() -> Element<'static, Message, Renderer<Theme>> {
         .width(Length::Fill)
         .height(Length::Fill);
 
-    container(column![text("About").font(JETBRAINS_MONO), about].spacing(10))
+    container(column![text("About").font(JETBRAINS_MONO), about].spacing(15))
         .width(Length::Fill)
         .into()
 }

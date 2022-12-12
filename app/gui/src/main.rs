@@ -14,13 +14,13 @@ fn main() {
         // all spans/events with a level higher than TRACE (e.g, debug, info, warn, etc.)
         // will be written to stdout.
         .with_max_level(Level::TRACE)
-        .finish();// completes the builder.
+        .finish(); // completes the builder.
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
     let args: Vec<PathBuf> = env::args()
         .skip(1)
-        .map(|arg| PathBuf::new().join(arg).to_owned())
+        .map(|arg| PathBuf::new().join(arg))
         .collect();
 
     // The user may want to just drag and drop a module without any thought

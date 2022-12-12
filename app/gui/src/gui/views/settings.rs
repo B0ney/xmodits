@@ -52,7 +52,7 @@ impl GeneralConfig {
         .width(Length::Fill)
         .height(Length::Fill);
 
-        container(column![text("Settings").font(JETBRAINS_MONO), settings].spacing(10))
+        container(column![text("Settings").font(JETBRAINS_MONO), settings].spacing(15))
             .width(Length::Fill)
             .into()
     }
