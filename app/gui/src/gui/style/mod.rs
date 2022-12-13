@@ -1,9 +1,10 @@
 pub mod button;
 pub mod checkbox;
-mod radio;
+pub mod radio;
 pub mod scrollable;
 pub mod text;
 pub mod text_input;
+pub mod progress_bar;
 use iced::overlay::menu;
 use iced::widget::{container, pick_list, rule};
 

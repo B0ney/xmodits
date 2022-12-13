@@ -147,19 +147,30 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
     let expanded_paths: Vec<PathBuf> = files.into_iter().chain(expanded_folders).collect();
 
     std::thread::spawn(move || {
+        let dest_dir = config.destination;
+        if !dest_dir.is_dir() {
+            if let Err(e) = std::fs::create_dir(&dest_dir) {
+                tx.blocking_send(ThreadMsg::Failed((dest_dir, e.to_string())))
+                    .expect("Channel closed prematurely");
+
+                tx.blocking_send(ThreadMsg::Done)
+                    .expect("Channel closed prematurely");
+                return;
+            };
+        }
+
         tx.blocking_send(ThreadMsg::SetTotal(expanded_paths.len()))
             .expect("Channel closed prematurely");
 
-        let dest_dir = &config.destination;
         let namer = &config.naming.build_func();
 
-        info!("Destination: {}", dest_dir.display());
+        info!("Destination: {}", &dest_dir.display());
 
         for path in expanded_paths {
             tx.blocking_send(
                 match xmodits_common::dump_samples_advanced(
                     &path,
-                    &folder(dest_dir, &path, !config.no_folder),
+                    &folder(&dest_dir, &path, !config.no_folder),
                     namer,
                     !config.no_folder,
                     &None,

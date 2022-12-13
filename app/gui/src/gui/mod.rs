@@ -8,7 +8,7 @@ use crate::core::{
     xmodits::{xmodits_subscription, DownloadMessage},
 };
 use iced::keyboard::{Event as KeyboardEvent, KeyCode};
-use iced::widget::{button, column, container, row, text, Column, Container};
+use iced::widget::{button, column, container, row, text, Column, Container, progress_bar};
 use iced::window::{Event as WindowEvent, Icon};
 use iced::{
     window::Settings as Window, Alignment, Application, Command, Element, Event, Length, Renderer,
@@ -30,7 +30,7 @@ use views::trackers::Trackers;
 pub enum View {
     #[default]
     Configure,
-    Settings,
+    // Settings,
     About,
     Help,
 }
@@ -38,7 +38,7 @@ pub enum View {
 #[derive(Debug, Clone)]
 pub enum Message {
     ConfigurePressed,
-    SettingsPressed,
+    // SettingsPressed,
     AboutPressed,
     HelpPressed,
     Tracker(TrackerMessage),
@@ -62,6 +62,7 @@ pub struct XmoditsGui {
     config: Config,
     audio: Audio,
     tracker: Trackers,
+    progress: f32,
     sender: Option<Sender<(Vec<PathBuf>, SampleRippingConfig, u8)>>,
 }
 
@@ -88,7 +89,7 @@ impl Application for XmoditsGui {
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::ConfigurePressed => self.view = View::Configure,
-            Message::SettingsPressed => self.view = View::Settings,
+            // Message::SettingsPressed => self.view = View::Settings,
             Message::AboutPressed => self.view = View::About,
             Message::HelpPressed => self.view = View::Help,
             Message::Tracker(msg) => return self.tracker.update(msg).map(Message::Tracker),
@@ -132,7 +133,7 @@ impl Application for XmoditsGui {
                 }
                 DownloadMessage::Progress { progress, result } => {
                     info!("{}", progress);
-
+                    self.progress = progress;
                     if let Err((path, e)) = result {
                         warn!("{} <-- {}", &path.display(), e);
                         // self.audio.play("sfx_2")
@@ -182,9 +183,9 @@ impl Application for XmoditsGui {
             button("Configure")
                 .on_press(Message::ConfigurePressed)
                 .padding(10),
-            button("Settings")
-                .on_press(Message::SettingsPressed)
-                .padding(10),
+            // button("Settings")
+            //     .on_press(Message::SettingsPressed)
+            //     .padding(10),
             button("Help").on_press(Message::HelpPressed).padding(10),
             button("About").on_press(Message::AboutPressed).padding(10),
         ]
@@ -214,7 +215,7 @@ impl Application for XmoditsGui {
                 .spacing(10),
             )
             .into(),
-            View::Settings => self.config.general.view().map(Message::ChangeSetting),
+            // View::Settings => self.config.general.view().map(Message::ChangeSetting),
             View::About => views::about::view().map(Message::About),
             View::Help => views::help::view().map(|_| Message::Ignore),
         };
