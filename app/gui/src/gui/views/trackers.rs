@@ -1,17 +1,15 @@
 use crate::gui::style::{self, Theme};
-use crate::gui::{icon, icons, JETBRAINS_MONO};
+use crate::gui::{icons, JETBRAINS_MONO};
 use iced::widget::Space;
-use iced::widget::{button, checkbox, column, pick_list, row, scrollable, text};
+use iced::widget::{button, checkbox, column, row, scrollable, text};
 use iced::{widget::container, Element, Length, Renderer};
 use iced::{Alignment, Command};
 use std::path::{Path, PathBuf};
-use tracing::{info, warn};
-use walkdir::WalkDir;
-use xmodits_lib::{load_module, TrackerModule, XmoditsError};
+// use tracing::{info, warn};
+use xmodits_lib::{load_module, TrackerModule};
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    // Remove(usize),
     Add(Option<Vec<PathBuf>>),
     Probe(usize),
     Clear,
@@ -125,12 +123,6 @@ impl Trackers {
 
     pub fn update(&mut self, msg: Message) -> Command<Message> {
         match msg {
-            // Message::Remove(idx) => {
-            //     if idx < self.paths.len() {
-            //         // self.paths.swap_remove(idx); // faster but not user friendly
-            //         self.paths.remove(idx);
-            //     }
-            // }
             Message::Probe(idx) => {
                 let path = &self.paths[idx].path;
                 if !self.current_exists(path) && path.is_file() {
@@ -204,10 +196,8 @@ impl Trackers {
         self.paths.len()
     }
 
-    pub fn cloned_paths(&self) -> Vec<PathBuf> {
-        self.paths.iter().map(|f| f.path.to_owned()).collect()
-    }
     pub fn move_paths(&mut self) -> Vec<PathBuf> {
+        self.current = None;
         self.paths.drain(..).into_iter().map(|f| f.path).collect()
     }
 
@@ -276,7 +266,7 @@ impl Trackers {
                 .padding(10)
                 .on_press(Message::AddFolderDialog),
             Space::with_width(Length::Fill),
-            button(row![icons::delete_icon(), "Delete Selected"])
+            button("Delete Selected")
                 .padding(10)
                 .on_press(Message::DeleteSelected),
             button("Clear").padding(10).on_press(Message::Clear),
@@ -317,8 +307,8 @@ impl Trackers {
                     module_name,
                     format,
                     samples,
-                    path,
                     total_sample_size,
+                    ..
                 } => container(
                     column![
                         text(format!("Module Name: {}", module_name)),
@@ -354,7 +344,7 @@ impl Trackers {
                     .center_x()
                     .center_y()
             ]
-            .spacing(15), // Why dies it need to be 15? it should be 10
+            .spacing(15),
         )
         .width(Length::Fill)
         .height(Length::Fill)

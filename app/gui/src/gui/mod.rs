@@ -1,34 +1,30 @@
 pub mod icons;
 pub mod style;
 pub mod views;
-use crate::core;
-use crate::core::cfg::Config;
-use crate::core::dialog::success;
-use crate::core::font::JETBRAINS_MONO;
-use crate::core::xmodits::{self, xmodits_subscription};
-use iced::keyboard::{Event as KeyboardEvent, KeyCode};
-use iced::widget::{
-    button, checkbox, column, container, pick_list, row, scrollable, text, text_input, Button,
-    Checkbox, Column, Container, Row, Space, Text,
+use crate::core::{
+    cfg::{Config, SampleRippingConfig},
+    font::JETBRAINS_MONO,
+    sfx::Audio,
+    xmodits::{xmodits_subscription, DownloadMessage},
 };
-use iced::window::Event as WindowEvent;
-use iced::window::Icon;
-use iced::{time, Alignment, Event, Subscription};
-use iced::{window::Settings as Window, Application, Command, Element, Length, Renderer, Settings};
+use iced::keyboard::{Event as KeyboardEvent, KeyCode};
+use iced::widget::{button, column, container, row, text, Column, Container};
+use iced::window::{Event as WindowEvent, Icon};
+use iced::{
+    window::Settings as Window, Alignment, Application, Command, Element, Event, Length, Renderer,
+    Settings, Subscription,
+};
 use image::{self, GenericImageView};
 use std::path::PathBuf;
 use style::Theme;
-use tokio::sync::mpsc::{self, Receiver, Sender};
+use tokio::sync::mpsc::Sender;
 use tracing::{info, warn};
-
 use views::about::Message as AboutMessage;
 use views::config_name::Message as ConfigMessage;
 use views::config_ripping::Message as ConfigRippingMessage;
 use views::settings::Message as SettingsMessage;
 use views::trackers::Message as TrackerMessage;
 use views::trackers::Trackers;
-
-use xmodits::DownloadMessage;
 
 #[derive(Default, Debug, Clone)]
 pub enum View {
@@ -37,7 +33,6 @@ pub enum View {
     Settings,
     About,
     Help,
-    Ripping,
 }
 
 #[derive(Debug, Clone)]
@@ -46,23 +41,18 @@ pub enum Message {
     SettingsPressed,
     AboutPressed,
     HelpPressed,
-
     Tracker(TrackerMessage),
     SetCfg(ConfigMessage),
     SetRipCfg(ConfigRippingMessage),
     ChangeSetting(SettingsMessage),
     About(AboutMessage),
-
     SetDestinationDialog,
     SetDestination(Option<PathBuf>),
-
-    Beep(String),
     SaveConfig,
     StartRip,
-
-    Progress(xmodits::DownloadMessage),
+    Progress(DownloadMessage),
     WindowEvent(Event),
-
+    // Beep(String),
     Ignore,
 }
 
@@ -70,9 +60,9 @@ pub enum Message {
 pub struct XmoditsGui {
     view: View,
     config: Config,
-    audio: core::sfx::Audio,
+    audio: Audio,
     tracker: Trackers,
-    sender: Option<Sender<xmodits::gh>>,
+    sender: Option<Sender<(Vec<PathBuf>, SampleRippingConfig, u8)>>,
 }
 
 impl Application for XmoditsGui {
@@ -122,7 +112,6 @@ impl Application for XmoditsGui {
                     self.config.ripping.destination = destination;
                 }
             }
-            Message::Beep(sfx) => self.audio.play(&sfx),
             Message::StartRip => {
                 if let Some(ref mut tx) = self.sender {
                     if self.tracker.total_modules() > 0 {
@@ -165,6 +154,7 @@ impl Application for XmoditsGui {
                 Event::Window(WindowEvent::FileDropped(path)) => self.tracker.add(path),
                 _ => (),
             },
+            // Message::Beep(sfx) => self.audio.play(&sfx),
             Message::Ignore => (),
         }
         Command::none()
@@ -195,8 +185,8 @@ impl Application for XmoditsGui {
             button("Settings")
                 .on_press(Message::SettingsPressed)
                 .padding(10),
-            button("About").on_press(Message::AboutPressed).padding(10),
             button("Help").on_press(Message::HelpPressed).padding(10),
+            button("About").on_press(Message::AboutPressed).padding(10),
         ]
         .spacing(5)
         .width(Length::FillPortion(1))
@@ -216,7 +206,6 @@ impl Application for XmoditsGui {
                     button(
                         row![text("Start"), icons::download_icon()].align_items(Alignment::Center)
                     )
-                    //"Start"
                     .padding(10)
                     .on_press(Message::StartRip)
                     .style(style::button::Button::RestorePackage)
@@ -228,7 +217,6 @@ impl Application for XmoditsGui {
             View::Settings => self.config.general.view().map(Message::ChangeSetting),
             View::About => views::about::view().map(Message::About),
             View::Help => views::help::view().map(|_| Message::Ignore),
-            View::Ripping => todo!(),
         };
 
         let main: _ = row![
@@ -271,7 +259,7 @@ impl XmoditsGui {
             ..iced::Settings::default()
         };
 
-        Self::run(settings);
+        let _ = Self::run(settings);
     }
 }
 

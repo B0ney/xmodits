@@ -1,15 +1,13 @@
 // #![windows_subsystem = "windows"] // Will this make logging impossible?
 // #[allow(unused)]
 mod core;
+mod dialog;
 #[allow(unused)]
 mod gui;
-#[allow(unused)]
 mod simple;
-use std::{env, path::PathBuf, process::exit};
+use std::{env, path::PathBuf};
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
-
-use crate::core::dialog;
 
 fn main() {
     set_panic_hook();
@@ -42,15 +40,16 @@ pub fn set_panic_hook() {
         // std::thread::park();
         let info = match panic_info.location() {
             Some(location) => format!(
-                "Panic occurred in file '{}' at line {}", 
-                location.file(), location.line()
+                "Panic occurred in file '{}' at line {}",
+                location.file(),
+                location.line()
             ),
             None => String::from("Panic occurred but can't get location information..."),
         };
 
         let message = match (
             panic_info.payload().downcast_ref::<String>(),
-            panic_info.payload().downcast_ref::<&str>()        
+            panic_info.payload().downcast_ref::<&str>(),
         ) {
             (Some(e), None) => e.as_str(),
             (None, Some(e)) => e,
@@ -59,6 +58,6 @@ pub fn set_panic_hook() {
 
         dialog::critical_error(&format!("{}\n{:?}", info, message));
 
-        exit(-1)
+        std::process::exit(1)
     }));
 }

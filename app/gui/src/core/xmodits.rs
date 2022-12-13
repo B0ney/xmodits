@@ -1,12 +1,12 @@
 use iced::{subscription, Subscription};
 use std::path::PathBuf;
 use tokio::sync::mpsc::{self, Receiver, Sender};
-use tracing::{info, warn};
+use tracing::info;
 use walkdir::WalkDir;
 use xmodits_common::folder;
 
 use super::cfg::SampleRippingConfig;
-pub type gh = (Vec<PathBuf>, SampleRippingConfig, u8);
+pub type StartSignal = (Vec<PathBuf>, SampleRippingConfig, u8);
 const ID: &str = "XMODITS_RIPPING";
 
 /// State of subscription
@@ -15,29 +15,28 @@ enum State {
     #[default]
     Init,
     Idle {
-        start_msg: Receiver<gh>,
+        start_msg: Receiver<StartSignal>,
     },
     Ripping {
         ripping_msg: Receiver<ThreadMsg>,
         total: usize,
         progress: usize,
     },
-    // Done,
 }
 
 /// Messages emitted by subscription
 #[derive(Clone, Debug)]
 pub enum DownloadMessage {
-    Ready(Sender<gh>),
+    Ready(Sender<StartSignal>),
     Done,
     Progress {
         progress: f32,
         result: Result<(), (PathBuf, String)>,
     },
-    // Cancel,
 }
 
 /// Messages emitted by thread
+#[derive(Debug)]
 enum ThreadMsg {
     SetTotal(usize),
     Ok,
@@ -56,7 +55,7 @@ pub fn xmodits_subscription() -> Subscription<DownloadMessage> {
 async fn rip(state: State) -> (Option<DownloadMessage>, State) {
     match state {
         State::Init => {
-            let (sender, receiver) = mpsc::channel::<gh>(1);
+            let (sender, receiver) = mpsc::channel::<StartSignal>(1);
             (
                 Some(DownloadMessage::Ready(sender)),
                 State::Idle {
@@ -78,7 +77,7 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
                         progress: 0,
                     },
                 )
-            },
+            }
             None => (None, State::Idle { start_msg }),
         },
         State::Ripping {
@@ -116,12 +115,10 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
             ),
             _ => (Some(DownloadMessage::Done), State::Init),
         },
-
-        _ => (Some(DownloadMessage::Done), State::Init),
     }
 }
 
-fn spawn_thread(tx: Sender<ThreadMsg>, config: gh) {
+fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
     let (paths, config, mut scan_depth) = config;
     if scan_depth == 0 {
         scan_depth += 1
@@ -150,31 +147,32 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: gh) {
     let expanded_paths: Vec<PathBuf> = files.into_iter().chain(expanded_folders).collect();
 
     std::thread::spawn(move || {
-        let _ = tx.blocking_send(ThreadMsg::SetTotal(expanded_paths.len()));
+        tx.blocking_send(ThreadMsg::SetTotal(expanded_paths.len()))
+            .expect("Channel closed prematurely");
 
         let dest_dir = &config.destination;
         let namer = &config.naming.build_func();
 
-        info!("{}", dest_dir.display());
+        info!("Destination: {}", dest_dir.display());
 
         for path in expanded_paths {
-            match xmodits_common::dump_samples_advanced(
-                &path,
-                &folder(dest_dir, &path, !config.no_folder),
-                namer,
-                !config.no_folder,
-                &None,
-                false,
-            ) {
-                Ok(_) => {
-                    let _ = tx.blocking_send(ThreadMsg::Ok);
-                }
-                Err(e) => {
-                    let _ = tx.blocking_send(ThreadMsg::Failed((path, e.to_string())));
-                }
-            };
+            tx.blocking_send(
+                match xmodits_common::dump_samples_advanced(
+                    &path,
+                    &folder(dest_dir, &path, !config.no_folder),
+                    namer,
+                    !config.no_folder,
+                    &None,
+                    false,
+                ) {
+                    Ok(_) => ThreadMsg::Ok,
+                    Err(e) => ThreadMsg::Failed((path, e.to_string())),
+                },
+            )
+            .expect("Channel closed prematurely");
         }
 
-        tx.blocking_send(ThreadMsg::Done);
+        tx.blocking_send(ThreadMsg::Done)
+            .expect("Channel closed prematurely");
     });
 }

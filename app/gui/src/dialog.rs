@@ -1,3 +1,4 @@
+use std::path::Path;
 use native_dialog::{MessageDialog, MessageType};
 
 fn show_dialoge(title: &str, msg: &str, msg_type: MessageType) {
@@ -10,27 +11,25 @@ fn show_dialoge(title: &str, msg: &str, msg_type: MessageType) {
 }
 
 pub fn show_help_box() {
-    // show_dialoge(
-    //     "No tracker modules",
-    //     "Please drag and drop a valid tracker module onto xmodits.\nSupported formats: IT, XM, S3M, MOD, UMX",
-    //     MessageType::Info
-    // )
     show_dialoge(
         "No tracker modules",
         "If you wish to rip from a folder, please launch the GUI instead",
-        MessageType::Info
-    )
-}
-
-pub fn success() {
-    show_dialoge(
-        "Success!",
-        "Ripped samples successfully!",
         MessageType::Info,
     )
 }
 
-pub fn success_partial<P: AsRef<std::path::Path>>(log_path: P) {
+pub fn success<P: AsRef<Path>>(dest: P) {
+    show_dialoge(
+        "Success!",
+        &format!(
+            "Successfully ripped samples to folder:\n{}",
+            dest.as_ref().display()
+        ),
+        MessageType::Info,
+    )
+}
+
+pub fn success_partial<P: AsRef<Path>>(log_path: P) {
     show_dialoge(
         "Some errors have occured",
         &format!(
@@ -40,11 +39,12 @@ pub fn success_partial<P: AsRef<std::path::Path>>(log_path: P) {
         MessageType::Warning,
     )
 }
+
 pub fn success_partial_no_log(error: &str) {
     show_dialoge(
         "Some errors have occured",
         &format!(
-            "There were some errors while dumping, but I couldn't create a log file: {}",
+            "There were some errors while riping, but xmodits could not create a log file: {}",
             error
         ),
         MessageType::Warning,
@@ -67,6 +67,6 @@ pub fn critical_error(error: &str) {
     show_dialoge(
         "FATAL ERROR (>_<)",
         &format!("{}\n\nThe program will now terminate.", error),
-        MessageType::Error
+        MessageType::Error,
     )
 }

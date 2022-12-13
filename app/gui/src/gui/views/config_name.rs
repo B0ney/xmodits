@@ -1,10 +1,7 @@
-use std::path::PathBuf;
-
 use crate::gui::{style, JETBRAINS_MONO};
 use crate::{core::cfg::SampleNameConfig, gui::style::Theme};
-use iced::widget::Space;
-use iced::widget::{checkbox, column, pick_list, row, text};
-use iced::{widget::container, Alignment, Element, Length, Renderer};
+use iced::widget::{checkbox, column, container, row, text};
+use iced::{Element, Length, Renderer};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -12,7 +9,7 @@ pub enum Message {
     IndexRaw(bool),
     UpperCase(bool),
     LowerCase(bool),
-    IndexPadding(u8),
+    // IndexPadding(u8),
 }
 
 impl SampleNameConfig {
@@ -43,8 +40,7 @@ impl SampleNameConfig {
                     self.index_only = false;
                 }
                 self.lower = lower;
-            }
-            Message::IndexPadding(padding) => self.index_padding = padding,
+            } // Message::IndexPadding(padding) => self.index_padding = padding,
         }
     }
     pub fn view(&self) -> Element<Message, Renderer<Theme>> {
@@ -67,7 +63,7 @@ impl SampleNameConfig {
         .padding(8)
         .width(Length::Fill);
 
-        container(column![text("Ripping Configuration").font(JETBRAINS_MONO), settings].spacing(10))
+        container(column![text("Sample Naming").font(JETBRAINS_MONO), settings].spacing(10))
             .width(Length::Fill)
             .into()
     }

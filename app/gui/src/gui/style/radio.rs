@@ -1,6 +1,6 @@
 use super::Theme;
 use iced::widget::radio;
-use iced::{Background, Color};
+use iced::Color;
 
 impl radio::StyleSheet for Theme {
     type Style = ();

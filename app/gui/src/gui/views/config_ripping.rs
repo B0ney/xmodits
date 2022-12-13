@@ -1,14 +1,13 @@
 use crate::gui::{style, JETBRAINS_MONO};
 use crate::{core::cfg::SampleRippingConfig, gui::style::Theme};
-use iced::widget::{checkbox, column, pick_list, row, text};
-use iced::widget::{text_input, Space};
-use iced::{widget::container, Alignment, Element, Length, Renderer};
+use iced::widget::{checkbox, column, container, row, text, text_input};
+use iced::{Element, Length, Renderer};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     SetDestination(PathBuf),
-    SetHint(Option<String>),
+    // SetHint(Option<String>),
     ToggleEmbedLoopPoint(bool),
     ToggleNoFolder(bool),
 }
@@ -17,7 +16,7 @@ impl SampleRippingConfig {
     pub fn update(&mut self, msg: Message) {
         match msg {
             Message::SetDestination(path) => self.destination = path,
-            Message::SetHint(hint) => self.hint = hint,
+            // Message::SetHint(hint) => self.hint = hint,
             Message::ToggleEmbedLoopPoint(toggle) => self.embed_loop_points = toggle,
             Message::ToggleNoFolder(toggle) => self.no_folder = toggle,
         }

@@ -32,11 +32,11 @@ rand = "0.8.5"
 
 [dependencies.iced]
 version = "0.5.2"
+# git = "https://github.com/iced-rs/iced"
 features = [
     "glow", 
     "image", 
     "default_system_font",
-    "svg",
     "tokio",
 ]
 

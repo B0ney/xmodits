@@ -1,5 +1,7 @@
 use crate::core::cfg::Config;
-use crate::core::dialog::{failed_single, success, success_partial, success_partial_no_log, show_help_box};
+use crate::dialog::{
+    failed_single, show_help_box, success, success_partial, success_partial_no_log,
+};
 use rand::Rng;
 use std::cmp::Ordering;
 use std::fs::File;
@@ -9,11 +11,8 @@ use xmodits_common::folder;
 use xmodits_lib::XmoditsError;
 
 pub fn rip(paths: Vec<PathBuf>) {
-    let paths: Vec<PathBuf> = paths
-        .into_iter()
-        .filter(|f| f.is_file())
-        .collect();
-    if paths.len() == 0 {
+    let paths: Vec<PathBuf> = paths.into_iter().filter(|f| f.is_file()).collect();
+    if paths.is_empty() {
         return show_help_box();
     };
     let config = Config::load();
@@ -21,10 +20,9 @@ pub fn rip(paths: Vec<PathBuf>) {
         Some(log) => log,
         None => &config.ripping.destination,
     };
-    // dbg!(&log_path);
     let config = &config.ripping;
     let namer = config.naming.build_func();
-    
+
     let mut errors: Vec<(usize, XmoditsError)> = paths
         .iter()
         .map(|mod_path| {
@@ -45,7 +43,7 @@ pub fn rip(paths: Vec<PathBuf>) {
         .collect();
 
     match errors.len().cmp(&1) {
-        Ordering::Less => success(),
+        Ordering::Less => success(&config.destination),
         Ordering::Equal => failed_single(&errors.pop().unwrap().1.to_string()),
         Ordering::Greater => {
             let log_path: PathBuf = PathBuf::new().join(log_path).join(format!(

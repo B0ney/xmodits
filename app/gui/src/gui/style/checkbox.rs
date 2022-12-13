@@ -1,6 +1,6 @@
 use super::Theme;
 use iced::widget::checkbox;
-use iced::{color, Background, Color};
+use iced::{color, Background};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub enum CheckBox {

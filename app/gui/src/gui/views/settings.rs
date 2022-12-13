@@ -1,17 +1,15 @@
-use std::path::PathBuf;
-
+// use std::path::PathBuf;
 use crate::core::cfg::GeneralConfig;
 use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
-use iced::widget::button;
-use iced::widget::{checkbox, column, pick_list, row, text, text_input};
+use iced::widget::{checkbox, column, pick_list, row, text};
 use iced::{widget::container, Element, Length, Renderer};
 
 #[derive(Debug, Clone)]
 pub enum Message {
     ToggleSFX(bool),
     SetRecursionDepth(u8),
-    SetLogPath(Option<PathBuf>),
+    // SetLogPath(Option<PathBuf>),
     ToggleQuietOutput(bool),
 }
 
@@ -20,7 +18,7 @@ impl GeneralConfig {
         match msg {
             Message::ToggleSFX(b) => self.sfx = b,
             Message::SetRecursionDepth(depth) => self.folder_recursion_depth = depth,
-            Message::SetLogPath(path) => self.logging_path = path,
+            // Message::SetLogPath(path) => self.logging_path = path,
             Message::ToggleQuietOutput(b) => self.quiet_output = b,
         }
     }
