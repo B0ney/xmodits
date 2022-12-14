@@ -6,7 +6,7 @@ use super::Theme;
 #[derive(Default, Debug, Clone, Copy)]
 pub enum ProgressBar {
     #[default]
-    Default
+    Default,
 }
 
 impl progress_bar::StyleSheet for Theme {

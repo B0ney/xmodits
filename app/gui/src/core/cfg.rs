@@ -18,12 +18,28 @@ pub fn create_config_dir() -> Result<()> {
     Ok(fs::create_dir(&config_dir())?)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub general: GeneralConfig,
     pub ripping: SampleRippingConfig,
 }
 
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            general: Default::default(),
+            ripping: SampleRippingConfig {
+                destination: dirs::download_dir().expect("Expected Downloads folder"),
+                folder_recursion_depth: 1,
+                naming: SampleNameConfig {
+                    index_padding: 2,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+        }
+    }
+}
 impl Config {
     pub fn load() -> Self {
         let Ok(toml) = fs::read_to_string(Self::path()) else {
@@ -58,48 +74,27 @@ impl Config {
     // pub fn exists() -> bool {
     //     Self::path().exists()
     // }
-
-    pub fn name_cfg(&self) -> &SampleNameConfig {
-        &self.ripping.naming
-    }
-
-    pub fn name_cfg_mut(&mut self) -> &mut SampleNameConfig {
-        &mut self.ripping.naming
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct GeneralConfig {
-    pub sfx: bool,
-    pub folder_recursion_depth: u8,
+    // pub sfx: bool,
+    // pub folder_recursion_depth: u8,
     pub logging_path: Option<PathBuf>,
-    pub quiet_output: bool,
+    // pub quiet_output: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+// Warning, due to the limitations of the toml format,
+// the order of these properties matter.
+// Structs are treated as tables, and so must be placed at the bottom.
+#[derive(Default, Serialize, Deserialize, Debug, Clone)]
 pub struct SampleRippingConfig {
     pub destination: PathBuf,
     pub hint: FormatHint,
     pub no_folder: bool,
     pub embed_loop_points: bool,
+    pub folder_recursion_depth: u8,
     pub naming: SampleNameConfig,
-}
-
-impl Default for SampleRippingConfig {
-    fn default() -> Self {
-        let naming = SampleNameConfig {
-            index_padding: 2,
-            ..Default::default()
-        };
-
-        Self {
-            destination: dirs::download_dir().expect("Expected Downloads folder"),
-            hint: FormatHint::default(),
-            no_folder: false,
-            embed_loop_points: false,
-            naming,
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -121,20 +116,8 @@ impl SampleNameConfig {
             self.upper,
         )
     }
-
-    // pub fn set_index_only(set: bool) {}
 }
 
-// #[test]
-// fn a() {
-//     use path_absolutize::*;
-
-//     let p =PathBuf::new().join("~\\Downloads");
-//     dbg!(p.is_relative());
-//     dbg!(p.is_absolute());
-//     dbg!(p.absolutize().unwrap());
-//     // let a = shellexpand::tilde();
-// }
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FormatHint {
     #[default]
@@ -155,14 +138,26 @@ impl FormatHint {
         FormatHint::MOD,
         FormatHint::UMX,
     ];
+}
 
-    pub fn convert(&self) -> Option<String> {
+impl Into<Option<String>> for FormatHint {
+    fn into(self) -> Option<String> {
         match self {
             FormatHint::None => None,
-            hint => Some(hint.to_string().to_lowercase())
+            hint => Some(hint.to_string().to_lowercase()),
         }
-    } 
+    }
 }
+
+// impl Into<Option<String>> for &FormatHint {
+//     fn into(self) -> Option<String> {
+//         match self {
+//             FormatHint::None => None,
+//             hint => Some(hint.to_string().to_lowercase()),
+//         }
+//     }
+// }
+
 impl std::fmt::Display for FormatHint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(

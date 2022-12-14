@@ -14,7 +14,7 @@ winres = "0.1"
 xmodits-lib = { path = "../../", features=["thread"] } #
 xmodits-common = { path = "../xmodits_common"}
 anyhow = "1.0.66"
-toml = "0.5.9"
+toml = "0.5.10"
 dirs = "4.0.0"
 once_cell = "1.15.0"
 serde = { version = "1.0.147", features = ["derive"] }

@@ -163,7 +163,7 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
             .expect("Channel closed prematurely");
 
         let namer = &config.naming.build_func();
-        let hint = config.hint.convert();
+        let hint = config.hint.into();
         // info!("Destination: {}", &dest_dir.display());
 
         for path in expanded_paths {

@@ -1,5 +1,5 @@
-use std::path::Path;
 use native_dialog::{MessageDialog, MessageType};
+use std::path::Path;
 
 fn show_dialoge(title: &str, msg: &str, msg_type: MessageType) {
     MessageDialog::new()

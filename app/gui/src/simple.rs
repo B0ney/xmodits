@@ -22,7 +22,7 @@ pub fn rip(paths: Vec<PathBuf>) {
     };
     let config = &config.ripping;
     let namer = config.naming.build_func();
-    let hint = &config.hint.convert();
+    let hint = &config.hint.into();
 
     let mut errors: Vec<(usize, XmoditsError)> = paths
         .iter()

@@ -8,7 +8,7 @@ use crate::core::{
     xmodits::{xmodits_subscription, DownloadMessage},
 };
 use iced::keyboard::{Event as KeyboardEvent, KeyCode};
-use iced::widget::{button, column, container, row, text, Column, Container, progress_bar};
+use iced::widget::{button, column, container, progress_bar, row, text, Column, Container};
 use iced::window::{Event as WindowEvent, Icon};
 use iced::{
     window::Settings as Window, Alignment, Application, Command, Element, Event, Length, Renderer,
@@ -73,9 +73,14 @@ impl Application for XmoditsGui {
     type Flags = ();
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
+        let config = Config::load();
         (
             Self {
-                config: Config::load(),
+                tracker: Trackers {
+                    hint: config.ripping.hint.into(),
+                    ..Default::default()
+                },
+                config,
                 ..Default::default()
             },
             Command::none(),
@@ -93,8 +98,14 @@ impl Application for XmoditsGui {
             Message::AboutPressed => self.view = View::About,
             Message::HelpPressed => self.view = View::Help,
             Message::Tracker(msg) => return self.tracker.update(msg).map(Message::Tracker),
-            Message::SetCfg(msg) => self.config.name_cfg_mut().update(msg),
-            Message::SetRipCfg(msg) => self.config.ripping.update(msg),
+            Message::SetCfg(msg) => self.config.ripping.naming.update(msg),
+            Message::SetRipCfg(msg) => match msg {
+                ConfigRippingMessage::SetHint(hint) => {
+                    self.tracker.set_hint(hint.into());
+                    self.config.ripping.update(msg);
+                }
+                _ => self.config.ripping.update(msg),
+            },
             Message::ChangeSetting(msg) => self.config.general.update(msg),
             Message::About(msg) => views::about::update(msg),
             Message::SetDestinationDialog => {
@@ -119,7 +130,7 @@ impl Application for XmoditsGui {
                         let _ = tx.try_send((
                             self.tracker.move_paths(),
                             self.config.ripping.to_owned(),
-                            self.config.general.folder_recursion_depth,
+                            self.config.ripping.folder_recursion_depth,
                         ));
                         self.audio.play("sfx_1")
                     }
@@ -142,7 +153,9 @@ impl Application for XmoditsGui {
             },
             Message::SaveConfig => {
                 // TODO: wrap config save in command, make a new async save method.
-                let _ = self.config.save();
+                if let Err(e) = self.config.save() {
+                    warn!("{}", e);
+                };
                 self.audio.play("sfx_1");
             }
             Message::WindowEvent(e) => match e {
@@ -186,12 +199,8 @@ impl Application for XmoditsGui {
             // button("Settings")
             //     .on_press(Message::SettingsPressed)
             //     .padding(10),
-            button("Help")
-                .on_press(Message::HelpPressed)
-                .padding(10),
-            button("About")
-                .on_press(Message::AboutPressed)
-                .padding(10),
+            button("Help").on_press(Message::HelpPressed).padding(10),
+            button("About").on_press(Message::AboutPressed).padding(10),
         ]
         .spacing(5)
         .width(Length::FillPortion(1))
@@ -201,26 +210,29 @@ impl Application for XmoditsGui {
             View::Configure => container(
                 column![
                     self.tracker.view_current_tracker().map(|_| Message::Ignore),
-                    self.config.name_cfg().view().map(Message::SetCfg),
+                    self.config.ripping.naming.view().map(Message::SetCfg),
                     self.config.ripping.view().map(Message::SetRipCfg),
-                    self.config.general.view().map(Message::ChangeSetting),
+                    self.config
+                        .ripping
+                        .view_folder_scan_depth()
+                        .map(Message::SetRipCfg),
+                    // self.config.general.view().map(Message::ChangeSetting),
                     row![
                         button("Save Configuration")
-                        .padding(10)
-                        .on_press(Message::SaveConfig),
+                            .padding(10)
+                            .on_press(Message::SaveConfig),
                         button(
-                            row![text("Start"), icons::download_icon()].align_items(Alignment::Center)
+                            row![text("Start"), icons::download_icon()]
+                                .align_items(Alignment::Center)
                         )
                         .padding(10)
                         .on_press(Message::StartRip)
                         .style(style::button::Button::RestorePackage)
                         .width(Length::Fill),
-                        
                     ]
                     .spacing(5)
                     .width(Length::FillPortion(1))
                     .align_items(Alignment::Center),
-                    
                 ]
                 .spacing(10),
             )
@@ -231,19 +243,12 @@ impl Application for XmoditsGui {
         };
 
         let main: _ = row![
-            column![
-                menu,
-                g
-            ]
-            .spacing(10)
-            .width(Length::FillPortion(4)), // 8
+            column![menu, g].spacing(10).width(Length::FillPortion(4)), // 8
             column![
                 set_destination,
                 self.tracker.view_trackers().map(Message::Tracker),
-
                 Trackers::bottom_button().map(Message::Tracker),
                 // self.tracker
-                
 
                 // button(
                 //     row![text("Start"), icons::download_icon()].align_items(Alignment::Center)

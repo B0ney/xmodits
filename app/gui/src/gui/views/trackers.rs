@@ -1,12 +1,12 @@
 use crate::gui::style::{self, Theme};
 use crate::gui::{icons, JETBRAINS_MONO};
-use iced::widget::{Space, Row};
 use iced::widget::{button, checkbox, column, row, scrollable, text};
+use iced::widget::{Row, Space};
 use iced::{widget::container, Element, Length, Renderer};
 use iced::{Alignment, Command};
 use std::path::{Path, PathBuf};
 // use tracing::{info, warn};
-use xmodits_lib::{load_module, TrackerModule};
+use xmodits_lib::{load_from_ext, load_module, TrackerModule};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -55,6 +55,12 @@ impl Info {
     pub fn invalid(error: String, path: PathBuf) -> Self {
         Self::Invalid { error, path }
     }
+    pub fn is_valid(&self) -> bool {
+        match self {
+            Self::Valid { .. } => true,
+            Self::Invalid { .. } => false,
+        }
+    }
 
     pub fn path(&self) -> &Path {
         match self {
@@ -67,7 +73,7 @@ impl Info {
     }
 }
 
-struct Entry {
+pub struct Entry {
     path: PathBuf,
     filename: String,
     selected: bool,
@@ -88,10 +94,11 @@ impl Entry {
 
 #[derive(Default)]
 pub struct Trackers {
-    paths: Vec<Entry>,
-    current: Option<Box<Info>>,
-    all_selected: bool,
-    is_ripping: bool,
+    pub paths: Vec<Entry>,
+    pub current: Option<Box<Info>>,
+    pub all_selected: bool,
+    pub is_ripping: bool,
+    pub hint: Option<String>,
 }
 
 impl Trackers {
@@ -99,6 +106,9 @@ impl Trackers {
         if !self.paths.iter().map(|e| &e.path).any(|x| x == &path) {
             self.paths.push(Entry::new(path));
         }
+    }
+    pub fn set_hint(&mut self, hint: Option<String>) {
+        self.hint = hint;
     }
     // TODO: explore draining iterator
     pub fn delete_selected(&mut self) {
@@ -121,16 +131,24 @@ impl Trackers {
         }
         self.all_selected = false;
     }
-    pub fn update_ripping_progress() {
-
-    }
+    pub fn update_ripping_progress() {}
 
     pub fn update(&mut self, msg: Message) -> Command<Message> {
         match msg {
             Message::Probe(idx) => {
                 let path = &self.paths[idx].path;
-                if !self.current_exists(path) && path.is_file() {
-                    return Command::perform(tracker_info(path.to_owned()), Message::TrackerInfo);
+                if path.is_file() {
+                    let command = Command::perform(
+                        tracker_info(path.to_owned(), self.hint.to_owned()),
+                        Message::TrackerInfo,
+                    );
+                    match self.current {
+                        Some(ref e) if !e.is_valid() || e.path() != path => {
+                            return command;
+                        }
+                        None => return command,
+                        _ => (),
+                    }
                 }
             }
             Message::Clear => {
@@ -154,16 +172,10 @@ impl Trackers {
                 }
             }
             Message::AddFileDialog => {
-                return Command::perform(
-                    files_dialog(),
-                    Message::Add,
-                );
+                return Command::perform(files_dialog(), Message::Add);
             }
             Message::AddFolderDialog => {
-                return Command::perform(
-                    folders_dialog(),
-                    Message::Add,
-                );
+                return Command::perform(folders_dialog(), Message::Add);
             }
             Message::Add(path) => {
                 if let Some(paths) = path {
@@ -235,7 +247,6 @@ impl Trackers {
             )))
             .height(Length::Fill)
         };
-        
 
         container(
             column![
@@ -345,9 +356,12 @@ pub fn filename(path: &Path) -> String {
         .unwrap_or_default()
 }
 
-async fn tracker_info(path: PathBuf) -> Option<Box<Info>> {
+async fn tracker_info(path: PathBuf, hint: Option<String>) -> Option<Box<Info>> {
     let Some((tracker_result, path)) = tokio::task::spawn_blocking(move ||
-        (load_module(&path), path)
+        (match hint {
+            Some(hint) => load_from_ext(&path, &hint),
+            None => load_module(&path)
+        }, path)
     ).await.ok() else {
         return None;
     };
@@ -358,8 +372,7 @@ async fn tracker_info(path: PathBuf) -> Option<Box<Info>> {
 }
 
 fn paths(h: Option<Vec<rfd::FileHandle>>) -> Option<Vec<PathBuf>> {
-    h
-    .map(|filehandles| {
+    h.map(|filehandles| {
         filehandles
             .into_iter()
             .map(|d| d.path().to_owned())
@@ -368,15 +381,9 @@ fn paths(h: Option<Vec<rfd::FileHandle>>) -> Option<Vec<PathBuf>> {
 }
 
 pub async fn folders_dialog() -> Option<Vec<PathBuf>> {
-    paths(rfd::AsyncFileDialog::new()
-        .pick_folders()
-        .await
-    )
+    paths(rfd::AsyncFileDialog::new().pick_folders().await)
 }
 
 pub async fn files_dialog() -> Option<Vec<PathBuf>> {
-    paths(rfd::AsyncFileDialog::new()
-        .pick_files()
-        .await
-    )    
+    paths(rfd::AsyncFileDialog::new().pick_files().await)
 }

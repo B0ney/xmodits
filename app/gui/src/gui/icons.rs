@@ -1,7 +1,7 @@
 use crate::core::font::ICONS;
+use crate::gui::style::Theme;
 use iced::widget::{text, Text};
 use iced::{alignment, Length, Renderer};
-use crate::gui::style::Theme;
 
 pub fn delete_icon() -> Text<'static, Renderer<Theme>> {
     icon('\u{F1F8}')
