@@ -3,7 +3,7 @@ use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
 use iced::widget::{button, column, container, text};
 use iced::{Element, Length, Renderer};
-use tracing::warn;
+// use tracing::warn;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -14,7 +14,7 @@ pub fn update(msg: Message) {
     match msg {
         Message::GH => {
             if let Err(e) = open::that("https://github.com/B0ney/xmodits") {
-                warn!("Could not open external link: {:?}", e)
+                // warn!("Could not open external link: {:?}", e)
             };
         }
     }

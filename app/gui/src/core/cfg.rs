@@ -79,7 +79,7 @@ pub struct GeneralConfig {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SampleRippingConfig {
     pub destination: PathBuf,
-    pub hint: Option<String>,
+    pub hint: FormatHint,
     pub no_folder: bool,
     pub embed_loop_points: bool,
     pub naming: SampleNameConfig,
@@ -94,7 +94,7 @@ impl Default for SampleRippingConfig {
 
         Self {
             destination: dirs::download_dir().expect("Expected Downloads folder"),
-            hint: None,
+            hint: FormatHint::default(),
             no_folder: false,
             embed_loop_points: false,
             naming,
@@ -135,3 +135,47 @@ impl SampleNameConfig {
 //     dbg!(p.absolutize().unwrap());
 //     // let a = shellexpand::tilde();
 // }
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FormatHint {
+    #[default]
+    None,
+    IT,
+    XM,
+    S3M,
+    MOD,
+    UMX,
+}
+
+impl FormatHint {
+    pub const ALL: [FormatHint; 6] = [
+        FormatHint::None,
+        FormatHint::IT,
+        FormatHint::XM,
+        FormatHint::S3M,
+        FormatHint::MOD,
+        FormatHint::UMX,
+    ];
+
+    pub fn convert(&self) -> Option<String> {
+        match self {
+            FormatHint::None => None,
+            hint => Some(hint.to_string().to_lowercase())
+        }
+    } 
+}
+impl std::fmt::Display for FormatHint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                FormatHint::None => "None",
+                FormatHint::IT => "IT",
+                FormatHint::XM => "XM",
+                FormatHint::S3M => "S3M",
+                FormatHint::MOD => "MOD",
+                FormatHint::UMX => "UMX",
+            }
+        )
+    }
+}

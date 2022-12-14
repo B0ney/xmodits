@@ -1,7 +1,7 @@
 use iced::{subscription, Subscription};
 use std::path::PathBuf;
 use tokio::sync::mpsc::{self, Receiver, Sender};
-use tracing::info;
+// use tracing::info;
 use walkdir::WalkDir;
 use xmodits_common::folder;
 
@@ -163,8 +163,8 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
             .expect("Channel closed prematurely");
 
         let namer = &config.naming.build_func();
-
-        info!("Destination: {}", &dest_dir.display());
+        let hint = config.hint.convert();
+        // info!("Destination: {}", &dest_dir.display());
 
         for path in expanded_paths {
             tx.blocking_send(
@@ -173,7 +173,7 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
                     &folder(&dest_dir, &path, !config.no_folder),
                     namer,
                     !config.no_folder,
-                    &None,
+                    &hint,
                     false,
                 ) {
                     Ok(_) => ThreadMsg::Ok,

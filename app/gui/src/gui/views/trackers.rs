@@ -1,6 +1,6 @@
 use crate::gui::style::{self, Theme};
 use crate::gui::{icons, JETBRAINS_MONO};
-use iced::widget::Space;
+use iced::widget::{Space, Row};
 use iced::widget::{button, checkbox, column, row, scrollable, text};
 use iced::{widget::container, Element, Length, Renderer};
 use iced::{Alignment, Command};
@@ -16,7 +16,7 @@ pub enum Message {
     Select((usize, bool)),
     SelectAll(bool),
     DeleteSelected,
-    TrackerInfo(Option<Info>),
+    TrackerInfo(Option<Box<Info>>),
     AddFileDialog,
     AddFolderDialog,
 }
@@ -89,8 +89,9 @@ impl Entry {
 #[derive(Default)]
 pub struct Trackers {
     paths: Vec<Entry>,
-    current: Option<Info>,
+    current: Option<Box<Info>>,
     all_selected: bool,
+    is_ripping: bool,
 }
 
 impl Trackers {
@@ -119,6 +120,9 @@ impl Trackers {
             }
         }
         self.all_selected = false;
+    }
+    pub fn update_ripping_progress() {
+
     }
 
     pub fn update(&mut self, msg: Message) -> Command<Message> {
@@ -151,35 +155,13 @@ impl Trackers {
             }
             Message::AddFileDialog => {
                 return Command::perform(
-                    async {
-                        // TODO: make this a separate async function
-                        rfd::AsyncFileDialog::new()
-                            .pick_files()
-                            .await
-                            .map(|filehandles| {
-                                filehandles
-                                    .into_iter()
-                                    .map(|d| d.path().to_owned())
-                                    .collect()
-                            })
-                    },
+                    files_dialog(),
                     Message::Add,
                 );
             }
             Message::AddFolderDialog => {
                 return Command::perform(
-                    async {
-                        // TODO: make this a separate async function
-                        rfd::AsyncFileDialog::new()
-                            .pick_folders()
-                            .await
-                            .map(|filehandles| {
-                                filehandles
-                                    .into_iter()
-                                    .map(|d| d.path().to_owned())
-                                    .collect()
-                            })
-                    },
+                    folders_dialog(),
                     Message::Add,
                 );
             }
@@ -253,25 +235,7 @@ impl Trackers {
             )))
             .height(Length::Fill)
         };
-        let bottom_button = row![
-            button(
-                //row![
-                icons::add_file_icon(),
-                // text("Add")
-                //]
-            )
-            .padding(10)
-            .on_press(Message::AddFileDialog),
-            button("Add Folder")
-                .padding(10)
-                .on_press(Message::AddFolderDialog),
-            Space::with_width(Length::Fill),
-            button("Delete Selected")
-                .padding(10)
-                .on_press(Message::DeleteSelected),
-            button("Clear").padding(10).on_press(Message::Clear),
-        ]
-        .spacing(10);
+        
 
         container(
             column![
@@ -289,11 +253,34 @@ impl Trackers {
                     .padding(5)
                     .style(style::Container::Black)
                     .width(Length::Fill),
-                bottom_button
+                // Self::bottom_button()
             ]
             .spacing(10),
         )
         .height(Length::Fill)
+        .into()
+    }
+
+    pub fn bottom_button() -> Element<'static, Message, Renderer<Theme>> {
+        row![
+            button(
+                //row![
+                icons::add_file_icon(),
+                // text("Add")
+                //]
+            )
+            .padding(10)
+            .on_press(Message::AddFileDialog),
+            button("Add Folder")
+                .padding(10)
+                .on_press(Message::AddFolderDialog),
+            Space::with_width(Length::Fill),
+            button("Delete Selected")
+                .padding(10)
+                .on_press(Message::DeleteSelected),
+            button("Clear").padding(10).on_press(Message::Clear),
+        ]
+        .spacing(10)
         .into()
     }
 
@@ -302,7 +289,7 @@ impl Trackers {
         let title_2: _ = text("None selected").font(JETBRAINS_MONO);
 
         let content: _ = match &self.current {
-            Some(info) => match info {
+            Some(info) => match &**info {
                 Info::Valid {
                     module_name,
                     format,
@@ -358,14 +345,38 @@ pub fn filename(path: &Path) -> String {
         .unwrap_or_default()
 }
 
-async fn tracker_info(path: PathBuf) -> Option<Info> {
+async fn tracker_info(path: PathBuf) -> Option<Box<Info>> {
     let Some((tracker_result, path)) = tokio::task::spawn_blocking(move ||
         (load_module(&path), path)
     ).await.ok() else {
         return None;
     };
     match tracker_result {
-        Ok(tracker) => Some(Info::valid(tracker, path)),
-        Err(error) => Some(Info::invalid(error.to_string(), path)),
+        Ok(tracker) => Some(Box::new(Info::valid(tracker, path))),
+        Err(error) => Some(Box::new(Info::invalid(error.to_string(), path))),
     }
+}
+
+fn paths(h: Option<Vec<rfd::FileHandle>>) -> Option<Vec<PathBuf>> {
+    h
+    .map(|filehandles| {
+        filehandles
+            .into_iter()
+            .map(|d| d.path().to_owned())
+            .collect()
+    })
+}
+
+pub async fn folders_dialog() -> Option<Vec<PathBuf>> {
+    paths(rfd::AsyncFileDialog::new()
+        .pick_folders()
+        .await
+    )
+}
+
+pub async fn files_dialog() -> Option<Vec<PathBuf>> {
+    paths(rfd::AsyncFileDialog::new()
+        .pick_files()
+        .await
+    )    
 }

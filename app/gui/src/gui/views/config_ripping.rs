@@ -1,13 +1,15 @@
 use crate::gui::{style, JETBRAINS_MONO};
 use crate::{core::cfg::SampleRippingConfig, gui::style::Theme};
-use iced::widget::{checkbox, column, container, row, text, text_input};
+use crate::core::cfg::FormatHint;
+use iced::Alignment;
+use iced::widget::{checkbox, column, container, row, text, text_input, pick_list};
 use iced::{Element, Length, Renderer};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     SetDestination(PathBuf),
-    // SetHint(Option<String>),
+    SetHint(FormatHint),
     ToggleEmbedLoopPoint(bool),
     ToggleNoFolder(bool),
 }
@@ -16,7 +18,7 @@ impl SampleRippingConfig {
     pub fn update(&mut self, msg: Message) {
         match msg {
             Message::SetDestination(path) => self.destination = path,
-            // Message::SetHint(hint) => self.hint = hint,
+            Message::SetHint(hint) => self.hint = hint,
             Message::ToggleEmbedLoopPoint(toggle) => self.embed_loop_points = toggle,
             Message::ToggleNoFolder(toggle) => self.no_folder = toggle,
         }
@@ -31,17 +33,18 @@ impl SampleRippingConfig {
                     self.embed_loop_points,
                     Message::ToggleEmbedLoopPoint
                 ),
-                // row![
-                //     pick_list(
-                //         vec![Some("umx".to_string()), None],
-                //         Some(config.hint),
-                //         Message::IndexPadding
-                //     )
-                //     .width(Length::Units(50)),
-                //     // Space::with_width(Length::FillPortion(4)),
-                //     text("Padding"),
-                // ]
-                // .spacing(5)
+                row![
+                    pick_list(
+                        &FormatHint::ALL[..],
+                        Some(self.hint),
+                        Message::SetHint
+                    )
+                    // .width(Length::Units(50))
+                    ,
+                    text("Format Hinting"),
+                ]
+                .align_items(Alignment::Center)
+                .spacing(5)
             ]
             .spacing(8),]
             .spacing(8),

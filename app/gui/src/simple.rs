@@ -22,6 +22,7 @@ pub fn rip(paths: Vec<PathBuf>) {
     };
     let config = &config.ripping;
     let namer = config.naming.build_func();
+    let hint = &config.hint.convert();
 
     let mut errors: Vec<(usize, XmoditsError)> = paths
         .iter()
@@ -31,7 +32,7 @@ pub fn rip(paths: Vec<PathBuf>) {
                 &folder(&config.destination, mod_path, !config.no_folder),
                 &namer,
                 !config.no_folder,
-                &config.hint,
+                hint,
                 config.embed_loop_points,
             )
         })

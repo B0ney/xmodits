@@ -162,7 +162,7 @@ impl Application for XmoditsGui {
     }
 
     fn view(&self) -> Element<Message, Renderer<Self::Theme>> {
-        let trackers: _ = self.tracker.view_trackers().map(Message::Tracker);
+        // let trackers: _ = self.tracker.view_trackers().map(Message::Tracker);
 
         let input = self
             .config
@@ -186,8 +186,12 @@ impl Application for XmoditsGui {
             // button("Settings")
             //     .on_press(Message::SettingsPressed)
             //     .padding(10),
-            button("Help").on_press(Message::HelpPressed).padding(10),
-            button("About").on_press(Message::AboutPressed).padding(10),
+            button("Help")
+                .on_press(Message::HelpPressed)
+                .padding(10),
+            button("About")
+                .on_press(Message::AboutPressed)
+                .padding(10),
         ]
         .spacing(5)
         .width(Length::FillPortion(1))
@@ -199,18 +203,24 @@ impl Application for XmoditsGui {
                     self.tracker.view_current_tracker().map(|_| Message::Ignore),
                     self.config.name_cfg().view().map(Message::SetCfg),
                     self.config.ripping.view().map(Message::SetRipCfg),
-                    row![button("Save Configuration")
+                    self.config.general.view().map(Message::ChangeSetting),
+                    row![
+                        button("Save Configuration")
                         .padding(10)
-                        .on_press(Message::SaveConfig)]
+                        .on_press(Message::SaveConfig),
+                        button(
+                            row![text("Start"), icons::download_icon()].align_items(Alignment::Center)
+                        )
+                        .padding(10)
+                        .on_press(Message::StartRip)
+                        .style(style::button::Button::RestorePackage)
+                        .width(Length::Fill),
+                        
+                    ]
+                    .spacing(5)
                     .width(Length::FillPortion(1))
                     .align_items(Alignment::Center),
-                    button(
-                        row![text("Start"), icons::download_icon()].align_items(Alignment::Center)
-                    )
-                    .padding(10)
-                    .on_press(Message::StartRip)
-                    .style(style::button::Button::RestorePackage)
-                    .width(Length::Fill),
+                    
                 ]
                 .spacing(10),
             )
@@ -221,10 +231,30 @@ impl Application for XmoditsGui {
         };
 
         let main: _ = row![
-            column![menu, g].spacing(10).width(Length::FillPortion(4)), // 8
-            column![set_destination, trackers]
-                .width(Length::FillPortion(5)) //6
-                .spacing(10),
+            column![
+                menu,
+                g
+            ]
+            .spacing(10)
+            .width(Length::FillPortion(4)), // 8
+            column![
+                set_destination,
+                self.tracker.view_trackers().map(Message::Tracker),
+
+                Trackers::bottom_button().map(Message::Tracker),
+                // self.tracker
+                
+
+                // button(
+                //     row![text("Start"), icons::download_icon()].align_items(Alignment::Center)
+                // )
+                // .padding(10)
+                // .on_press(Message::StartRip)
+                // .style(style::button::Button::RestorePackage)
+                // .width(Length::Fill),
+            ]
+            .width(Length::FillPortion(5)) //6
+            .spacing(10),
         ]
         .spacing(10);
 
