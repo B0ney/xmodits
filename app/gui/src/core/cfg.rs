@@ -15,7 +15,7 @@ pub fn config_dir() -> PathBuf {
 }
 
 pub fn create_config_dir() -> Result<()> {
-    Ok(fs::create_dir(&config_dir())?)
+    Ok(fs::create_dir(config_dir())?)
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -117,7 +117,7 @@ impl SampleNameConfig {
         )
     }
 }
-
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FormatHint {
     #[default]

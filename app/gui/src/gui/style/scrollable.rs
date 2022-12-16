@@ -1,6 +1,6 @@
 use super::Theme;
 use iced::widget::scrollable;
-use iced::{Background, Color};
+use iced::{color, Background, Color};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub enum Scrollable {
@@ -20,9 +20,9 @@ impl scrollable::StyleSheet for Theme {
             border_color: Color::TRANSPARENT,
             scroller: scrollable::Scroller {
                 color: d,
-                border_radius: 0.0,
-                border_width: 0.0,
-                border_color: Color::TRANSPARENT,
+                border_radius: 5.0,
+                border_width: 1.0,
+                border_color: color!(0x474747),
             },
         };
         //

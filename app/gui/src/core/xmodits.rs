@@ -171,7 +171,7 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
             tx.blocking_send(
                 match xmodits_common::dump_samples_advanced(
                     &path,
-                    &folder(&dest_dir, &path, !config.no_folder),
+                    folder(&dest_dir, &path, !config.no_folder),
                     namer,
                     !config.no_folder,
                     &hint,
@@ -182,7 +182,6 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
                 },
             )
             .expect("Channel closed prematurely");
-            std::thread::sleep(std::time::Duration::from_secs(1));
         }
 
         tx.blocking_send(ThreadMsg::Done)

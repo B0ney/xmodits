@@ -1,15 +1,14 @@
 use crate::core::cfg::SampleRippingConfig;
-use crate::core::xmodits::DownloadMessage;
+use crate::core::xmodits::{DownloadMessage, StartSignal};
 use crate::gui::style::{self, Theme};
 use crate::gui::{icons, JETBRAINS_MONO};
-use iced::widget::{container, button, checkbox, column, row, scrollable, text, progress_bar};
-use iced::widget::{Row, Space};
-use iced::{Element, Length, Renderer};
-use iced::{Alignment, Command};
-use tokio::sync::mpsc::Sender;
-use tracing::{warn, info};
+use iced::widget::{
+    button, checkbox, column, container, progress_bar, row, scrollable, text, Space,
+};
+use iced::{Alignment, Command, Element, Length, Renderer};
 use std::path::{Path, PathBuf};
-// use tracing::{info, warn};
+use tokio::sync::mpsc::Sender;
+use tracing::{info, warn};
 use xmodits_lib::{load_from_ext, load_module, TrackerModule};
 
 #[derive(Debug, Clone)]
@@ -78,7 +77,7 @@ impl Info {
     }
 }
 
-pub struct Entry {
+struct Entry {
     path: PathBuf,
     filename: String,
     selected: bool,
@@ -97,22 +96,23 @@ impl Entry {
     }
 }
 #[derive(Default, PartialEq, Eq)]
-pub enum State {
+enum State {
     #[default]
     None,
     Ripping,
-    Done
+    Done,
 }
 
 #[derive(Default)]
 pub struct Trackers {
-    pub paths: Vec<Entry>,
-    pub current: Option<Box<Info>>,
-    pub all_selected: bool,
-    pub hint: Option<String>,
-    pub sender: Option<Sender<(Vec<PathBuf>, SampleRippingConfig)>>,
-    pub progress: f32,
-    pub state: State
+    paths: Vec<Entry>,
+    current: Option<Box<Info>>,
+    all_selected: bool,
+    hint: Option<String>,
+    sender: Option<Sender<StartSignal>>,
+    progress: f32,
+    state: State,
+    errors: Vec<(PathBuf, String)>,
 }
 
 impl Trackers {
@@ -120,14 +120,19 @@ impl Trackers {
         if self.state != State::Ripping {
             if !self.paths.iter().map(|e| &e.path).any(|x| x == &path) {
                 self.paths.push(Entry::new(path));
-            }        
+            }
             if self.state == State::Done {
+                self.errors.clear();
                 self.state = State::None
             }
         }
     }
     pub fn set_hint(&mut self, hint: Option<String>) {
         self.hint = hint;
+    }
+    pub fn with_hint(mut self, hint: Option<String>) -> Self {
+        self.set_hint(hint);
+        self
     }
     // TODO: explore draining iterator
     pub fn delete_selected(&mut self) {
@@ -200,7 +205,7 @@ impl Trackers {
                     paths.into_iter().for_each(|path| self.add(path));
                 }
             }
-            Message::SubscriptionMessage(msg) =>  match msg {
+            Message::SubscriptionMessage(msg) => match msg {
                 DownloadMessage::Ready(tx) => self.sender = Some(tx),
                 DownloadMessage::Done => {
                     self.state = State::Done;
@@ -211,11 +216,10 @@ impl Trackers {
                     info!("{}", progress);
                     self.progress = progress;
                     if let Err((path, e)) = result {
-                        warn!("{} <-- {}", &path.display(), e);
-                        // self.audio.play("sfx_2")
+                        warn!("{} <-- {}", &path.display(), &e);
+                        self.errors.push((path, e));
                     }
-                } // useful for progress bars
-                _ => (),
+                }
             },
         }
         Command::none()
@@ -233,7 +237,7 @@ impl Trackers {
                             .map(|f| f.path)
                             .collect()
                     },
-                    cfg.to_owned()
+                    cfg.to_owned(),
                 ));
                 self.state = State::Ripping;
                 // self.audio.play("sfx_1")
@@ -244,11 +248,6 @@ impl Trackers {
     pub fn total_modules(&self) -> usize {
         self.paths.len()
     }
-
-    // pub fn move_paths(&mut self) -> Vec<PathBuf> {
-    //     self.current = None;
-    //     self.paths.drain(..).into_iter().map(|f| f.path).collect()
-    // }
 
     pub fn current_exists(&self, path: &Path) -> bool {
         matches!(&self.current, Some(info) if info.path() == path)
@@ -279,7 +278,9 @@ impl Trackers {
                             s.push(row![
                                 button(if gs.is_dir() {
                                     row![
-                                        checkbox("", gs.selected, move |b| Message::Select((idx, b))),
+                                        checkbox("", gs.selected, move |b| Message::Select((
+                                            idx, b
+                                        ))),
                                         text(&gs.filename),
                                         Space::with_width(Length::Fill),
                                         icons::folder_icon()
@@ -288,7 +289,9 @@ impl Trackers {
                                     .align_items(Alignment::Center)
                                 } else {
                                     row![
-                                        checkbox("", gs.selected, move |b| Message::Select((idx, b))),
+                                        checkbox("", gs.selected, move |b| Message::Select((
+                                            idx, b
+                                        ))),
                                         text(&gs.filename),
                                     ]
                                     .spacing(1)
@@ -304,31 +307,60 @@ impl Trackers {
                     )))
                     .height(Length::Fill)
                 }
-            },
-            State::Ripping => {
-                container(
-                    column![
-                        text("Ripping...").font(JETBRAINS_MONO),
-                        progress_bar(0.0..=100.0, self.progress)
-                            .height(Length::Units(5))
-                            .width(Length::Units(200))
-
-                    ]
-                    .spacing(5)
-                    .align_items(Alignment::Center)
-                )
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .center_x()
-                .center_y()
-            },
+            }
+            State::Ripping => container(
+                column![
+                    text("Ripping...").font(JETBRAINS_MONO),
+                    progress_bar(0.0..=100.0, self.progress)
+                        .height(Length::Units(5))
+                        .width(Length::Units(200))
+                ]
+                .spacing(5)
+                .align_items(Alignment::Center),
+            )
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x()
+            .center_y(),
             State::Done => {
-                container(text("Done! Drag and drop.").font(JETBRAINS_MONO))
+                if self.errors.is_empty() {
+                    container(text("Done! Drag and drop.").font(JETBRAINS_MONO))
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .center_x()
+                        .center_y()
+                } else {
+                    container(column![
+                        column![text("Done!... But there were some errors: ").font(JETBRAINS_MONO)]
+                            .padding(4),
+                        scrollable(
+                            self.errors
+                                .iter()
+                                .fold(column![].spacing(10).padding(5), |t, (s, x)| {
+                                    t.push(row![
+                                        container(
+                                            column![
+                                                text(filename(s)),
+                                                text(x)
+                                            ]
+                                            .width(Length::Fill)
+                                            .align_items(Alignment::Center)
+                                        )
+                                        .style(style::Container::Frame)
+                                        .width(Length::Fill)
+                                        .padding(4),
+                                        Space::with_width(Length::Units(15))
+                                    ])
+                                })
+                                .width(Length::Fill),
+                        ),
+                        // text("Drag and drop").font(JETBRAINS_MONO),
+                        // Space::with_height(Length::Units(5)),
+                    ])
                     .width(Length::Fill)
                     .height(Length::Fill)
-                    .center_x()
-                    .center_y()
-            },
+                }
+            }
         };
 
         container(
@@ -347,7 +379,6 @@ impl Trackers {
                     .padding(5)
                     .style(style::Container::Black)
                     .width(Length::Fill),
-                // Self::bottom_button()
             ]
             .spacing(10),
         )
@@ -440,12 +471,17 @@ pub fn filename(path: &Path) -> String {
 }
 
 async fn tracker_info(path: PathBuf, hint: Option<String>) -> Option<Box<Info>> {
-    let (tracker_result, path) = tokio::task::spawn_blocking(move ||
-        (match hint {
-            Some(hint) => load_from_ext(&path, &hint),
-            None => load_module(&path)
-        }, path)
-    ).await.ok()?;
+    let (tracker_result, path) = tokio::task::spawn_blocking(move || {
+        (
+            match hint {
+                Some(hint) => load_from_ext(&path, &hint),
+                None => load_module(&path),
+            },
+            path,
+        )
+    })
+    .await
+    .ok()?;
     match tracker_result {
         Ok(tracker) => Some(Box::new(Info::valid(tracker, path))),
         Err(error) => Some(Box::new(Info::invalid(error.to_string(), path))),

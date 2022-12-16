@@ -13,7 +13,7 @@ pub enum Message {
 pub fn update(msg: Message) {
     match msg {
         Message::GH => {
-            if let Err(e) = open::that("https://github.com/B0ney/xmodits") {
+            if let Err(_) = open::that("https://github.com/B0ney/xmodits") {
                 // warn!("Could not open external link: {:?}", e)
             };
         }

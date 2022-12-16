@@ -3,9 +3,9 @@ use crate::gui::style::Theme;
 use iced::widget::{text, Text};
 use iced::{alignment, Length, Renderer};
 
-pub fn delete_icon() -> Text<'static, Renderer<Theme>> {
-    icon('\u{F1F8}')
-}
+// pub fn delete_icon() -> Text<'static, Renderer<Theme>> {
+//     icon('\u{F1F8}')
+// }
 
 pub fn github_icon() -> Text<'static, Renderer<Theme>> {
     icon('\u{f345}')

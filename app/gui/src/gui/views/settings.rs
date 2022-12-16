@@ -1,10 +1,10 @@
 // use std::path::PathBuf;
 use crate::core::cfg::GeneralConfig;
-use crate::gui::style::{self, Theme};
-use crate::gui::JETBRAINS_MONO;
-use iced::widget::{checkbox, column, pick_list, row, text};
-use iced::Alignment;
-use iced::{widget::container, Element, Length, Renderer};
+// use crate::gui::style::{self, Theme};
+// use crate::gui::JETBRAINS_MONO;
+// use iced::widget::{checkbox, column, pick_list, row, text};
+// use iced::Alignment;
+// use iced::{widget::container, Element, Length, Renderer};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -15,13 +15,13 @@ pub enum Message {
 }
 
 impl GeneralConfig {
-    pub fn update(&mut self, msg: Message) {
-        // match msg {
-        //     // Message::ToggleSFX(b) => self.sfx = b,
-        //     // Message::SetLogPath(path) => self.logging_path = path,
-        //     // Message::ToggleQuietOutput(b) => self.quiet_output = b,
-        // }
-    }
+    // pub fn update(&mut self, _: Message) {
+    //     // match msg {
+    //     //     // Message::ToggleSFX(b) => self.sfx = b,
+    //     //     // Message::SetLogPath(path) => self.logging_path = path,
+    //     //     // Message::ToggleQuietOutput(b) => self.quiet_output = b,
+    //     // }
+    // }
 
     // pub fn view(&self) -> Element<Message, Renderer<Theme>> {
     //     let settings: _ = container(

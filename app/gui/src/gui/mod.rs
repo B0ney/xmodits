@@ -2,13 +2,13 @@ pub mod icons;
 pub mod style;
 pub mod views;
 use crate::core::{
-    cfg::{Config, SampleRippingConfig},
+    cfg::Config,
     font::JETBRAINS_MONO,
     sfx::Audio,
     xmodits::{xmodits_subscription, DownloadMessage},
 };
 use iced::keyboard::{Event as KeyboardEvent, KeyCode};
-use iced::widget::{button, column, container, progress_bar, row, text, Column, Container};
+use iced::widget::{button, column, container, row, text, Column, Container};
 use iced::window::{Event as WindowEvent, Icon};
 use iced::{
     window::Settings as Window, Alignment, Application, Command, Element, Event, Length, Renderer,
@@ -17,12 +17,11 @@ use iced::{
 use image::{self, GenericImageView};
 use std::path::PathBuf;
 use style::Theme;
-use tokio::sync::mpsc::Sender;
-use tracing::{info, warn};
+use tracing::warn;
 use views::about::Message as AboutMessage;
 use views::config_name::Message as ConfigMessage;
 use views::config_ripping::Message as ConfigRippingMessage;
-use views::settings::Message as SettingsMessage;
+// use views::settings::Message as SettingsMessage;
 use views::trackers::Message as TrackerMessage;
 use views::trackers::Trackers;
 
@@ -44,7 +43,7 @@ pub enum Message {
     Tracker(TrackerMessage),
     SetCfg(ConfigMessage),
     SetRipCfg(ConfigRippingMessage),
-    ChangeSetting(SettingsMessage),
+    // ChangeSetting(SettingsMessage),
     About(AboutMessage),
     SetDestinationDialog,
     SetDestination(Option<PathBuf>),
@@ -62,7 +61,6 @@ pub struct XmoditsGui {
     config: Config,
     audio: Audio,
     tracker: Trackers,
-    progress: f32,
 }
 
 impl Application for XmoditsGui {
@@ -75,10 +73,7 @@ impl Application for XmoditsGui {
         let config = Config::load();
         (
             Self {
-                tracker: Trackers {
-                    hint: config.ripping.hint.into(),
-                    ..Default::default()
-                },
+                tracker: Trackers::default().with_hint(config.ripping.hint.into()),
                 config,
                 ..Default::default()
             },
@@ -105,7 +100,7 @@ impl Application for XmoditsGui {
                 }
                 _ => self.config.ripping.update(msg),
             },
-            Message::ChangeSetting(msg) => self.config.general.update(msg),
+            // Message::ChangeSetting(msg) => self.config.general.update(msg),
             Message::About(msg) => views::about::update(msg),
             Message::SetDestinationDialog => {
                 return Command::perform(
@@ -126,7 +121,12 @@ impl Application for XmoditsGui {
             Message::StartRip => {
                 self.tracker.start_rip(&self.config.ripping);
             }
-            Message::Progress(msg) => return self.tracker.update(TrackerMessage::SubscriptionMessage(msg)).map(Message::Tracker),
+            Message::Progress(msg) => {
+                return self
+                    .tracker
+                    .update(TrackerMessage::SubscriptionMessage(msg))
+                    .map(Message::Tracker)
+            }
             Message::SaveConfig => {
                 // TODO: wrap config save in command, make a new async save method.
                 if let Err(e) = self.config.save() {
@@ -251,7 +251,7 @@ impl XmoditsGui {
     pub fn start() {
         let settings: Settings<()> = Settings {
             window: Window {
-                size: (780, 540),
+                size: (780, 640),
                 resizable: true,
                 decorations: true,
                 icon: Some(icon()),

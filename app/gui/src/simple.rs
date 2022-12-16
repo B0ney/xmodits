@@ -29,7 +29,7 @@ pub fn rip(paths: Vec<PathBuf>) {
         .map(|mod_path| {
             xmodits_common::dump_samples_advanced(
                 mod_path,
-                &folder(&config.destination, mod_path, !config.no_folder),
+                folder(&config.destination, mod_path, !config.no_folder),
                 &namer,
                 !config.no_folder,
                 hint,

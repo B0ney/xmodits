@@ -1,5 +1,4 @@
 // #![windows_subsystem = "windows"] // Will this make logging impossible?
-// #[allow(unused)]
 mod core;
 mod dialog;
 #[allow(unused)]
