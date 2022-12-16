@@ -16,9 +16,9 @@ impl progress_bar::StyleSheet for Theme {
         let p = self.palette();
 
         progress_bar::Appearance {
-            background: Background::Color(p.base.foreground),
-            bar: Background::Color(p.base.background),
-            border_radius: 10.0,
+            background: Background::Color(p.base.background),
+            bar: Background::Color(p.normal.primary),
+            border_radius: 64.0,
         }
     }
 }

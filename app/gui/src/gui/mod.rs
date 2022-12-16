@@ -63,7 +63,6 @@ pub struct XmoditsGui {
     audio: Audio,
     tracker: Trackers,
     progress: f32,
-    sender: Option<Sender<(Vec<PathBuf>, SampleRippingConfig, u8)>>,
 }
 
 impl Application for XmoditsGui {
@@ -125,32 +124,9 @@ impl Application for XmoditsGui {
                 }
             }
             Message::StartRip => {
-                if let Some(ref mut tx) = self.sender {
-                    if self.tracker.total_modules() > 0 {
-                        let _ = tx.try_send((
-                            self.tracker.move_paths(),
-                            self.config.ripping.to_owned(),
-                            self.config.ripping.folder_recursion_depth,
-                        ));
-                        self.audio.play("sfx_1")
-                    }
-                }
+                self.tracker.start_rip(&self.config.ripping);
             }
-            Message::Progress(msg) => match msg {
-                DownloadMessage::Ready(tx) => self.sender = Some(tx),
-                DownloadMessage::Done => {
-                    // success();
-                    info!("Done!"); // notify when finished ripping
-                }
-                DownloadMessage::Progress { progress, result } => {
-                    info!("{}", progress);
-                    self.progress = progress;
-                    if let Err((path, e)) = result {
-                        warn!("{} <-- {}", &path.display(), e);
-                        // self.audio.play("sfx_2")
-                    }
-                } // useful for progress bars
-            },
+            Message::Progress(msg) => return self.tracker.update(TrackerMessage::SubscriptionMessage(msg)).map(Message::Tracker),
             Message::SaveConfig => {
                 // TODO: wrap config save in command, make a new async save method.
                 if let Err(e) = self.config.save() {
@@ -248,15 +224,6 @@ impl Application for XmoditsGui {
                 set_destination,
                 self.tracker.view_trackers().map(Message::Tracker),
                 Trackers::bottom_button().map(Message::Tracker),
-                // self.tracker
-
-                // button(
-                //     row![text("Start"), icons::download_icon()].align_items(Alignment::Center)
-                // )
-                // .padding(10)
-                // .on_press(Message::StartRip)
-                // .style(style::button::Button::RestorePackage)
-                // .width(Length::Fill),
             ]
             .width(Length::FillPortion(5)) //6
             .spacing(10),

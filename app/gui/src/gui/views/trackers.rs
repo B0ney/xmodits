@@ -1,9 +1,13 @@
+use crate::core::cfg::SampleRippingConfig;
+use crate::core::xmodits::DownloadMessage;
 use crate::gui::style::{self, Theme};
 use crate::gui::{icons, JETBRAINS_MONO};
-use iced::widget::{button, checkbox, column, row, scrollable, text};
+use iced::widget::{container, button, checkbox, column, row, scrollable, text, progress_bar};
 use iced::widget::{Row, Space};
-use iced::{widget::container, Element, Length, Renderer};
+use iced::{Element, Length, Renderer};
 use iced::{Alignment, Command};
+use tokio::sync::mpsc::Sender;
+use tracing::{warn, info};
 use std::path::{Path, PathBuf};
 // use tracing::{info, warn};
 use xmodits_lib::{load_from_ext, load_module, TrackerModule};
@@ -19,6 +23,7 @@ pub enum Message {
     TrackerInfo(Option<Box<Info>>),
     AddFileDialog,
     AddFolderDialog,
+    SubscriptionMessage(DownloadMessage),
 }
 
 #[derive(Debug, Clone)]
@@ -91,20 +96,34 @@ impl Entry {
         self.path.is_dir()
     }
 }
+#[derive(Default, PartialEq, Eq)]
+pub enum State {
+    #[default]
+    None,
+    Ripping,
+    Done
+}
 
 #[derive(Default)]
 pub struct Trackers {
     pub paths: Vec<Entry>,
     pub current: Option<Box<Info>>,
     pub all_selected: bool,
-    pub is_ripping: bool,
     pub hint: Option<String>,
+    pub sender: Option<Sender<(Vec<PathBuf>, SampleRippingConfig)>>,
+    pub progress: f32,
+    pub state: State
 }
 
 impl Trackers {
     pub fn add(&mut self, path: PathBuf) {
-        if !self.paths.iter().map(|e| &e.path).any(|x| x == &path) {
-            self.paths.push(Entry::new(path));
+        if self.state != State::Ripping {
+            if !self.paths.iter().map(|e| &e.path).any(|x| x == &path) {
+                self.paths.push(Entry::new(path));
+            }        
+            if self.state == State::Done {
+                self.state = State::None
+            }
         }
     }
     pub fn set_hint(&mut self, hint: Option<String>) {
@@ -131,7 +150,6 @@ impl Trackers {
         }
         self.all_selected = false;
     }
-    pub fn update_ripping_progress() {}
 
     pub fn update(&mut self, msg: Message) -> Command<Message> {
         match msg {
@@ -182,18 +200,55 @@ impl Trackers {
                     paths.into_iter().for_each(|path| self.add(path));
                 }
             }
+            Message::SubscriptionMessage(msg) =>  match msg {
+                DownloadMessage::Ready(tx) => self.sender = Some(tx),
+                DownloadMessage::Done => {
+                    self.state = State::Done;
+                    // success();
+                    info!("Done!"); // notify when finished ripping
+                }
+                DownloadMessage::Progress { progress, result } => {
+                    info!("{}", progress);
+                    self.progress = progress;
+                    if let Err((path, e)) = result {
+                        warn!("{} <-- {}", &path.display(), e);
+                        // self.audio.play("sfx_2")
+                    }
+                } // useful for progress bars
+                _ => (),
+            },
         }
         Command::none()
+    }
+
+    pub fn start_rip(&mut self, cfg: &SampleRippingConfig) {
+        let total_modules = self.total_modules() > 0;
+        if let Some(tx) = &mut self.sender {
+            if total_modules {
+                let _ = tx.try_send((
+                    {
+                        self.current = None;
+                        std::mem::take(&mut self.paths)
+                            .into_iter()
+                            .map(|f| f.path)
+                            .collect()
+                    },
+                    cfg.to_owned()
+                ));
+                self.state = State::Ripping;
+                // self.audio.play("sfx_1")
+            }
+        }
     }
 
     pub fn total_modules(&self) -> usize {
         self.paths.len()
     }
 
-    pub fn move_paths(&mut self) -> Vec<PathBuf> {
-        self.current = None;
-        self.paths.drain(..).into_iter().map(|f| f.path).collect()
-    }
+    // pub fn move_paths(&mut self) -> Vec<PathBuf> {
+    //     self.current = None;
+    //     self.paths.drain(..).into_iter().map(|f| f.path).collect()
+    // }
 
     pub fn current_exists(&self, path: &Path) -> bool {
         matches!(&self.current, Some(info) if info.path() == path)
@@ -209,43 +264,71 @@ impl Trackers {
         let total_selected: _ =
             text(format!("Selected: {}", self.total_selected())).font(JETBRAINS_MONO);
 
-        let tracker_list: _ = if self.paths.is_empty() {
-            container(text("Drag and drop").font(JETBRAINS_MONO))
+        let tracker_list: _ = match self.state {
+            State::None => {
+                if self.paths.is_empty() {
+                    container(text("Drag and drop").font(JETBRAINS_MONO))
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .center_x()
+                        .center_y()
+                } else {
+                    container(scrollable(self.paths.iter().enumerate().fold(
+                        column![].spacing(10).padding(5),
+                        |s, (idx, gs)| {
+                            s.push(row![
+                                button(if gs.is_dir() {
+                                    row![
+                                        checkbox("", gs.selected, move |b| Message::Select((idx, b))),
+                                        text(&gs.filename),
+                                        Space::with_width(Length::Fill),
+                                        icons::folder_icon()
+                                    ]
+                                    .spacing(1)
+                                    .align_items(Alignment::Center)
+                                } else {
+                                    row![
+                                        checkbox("", gs.selected, move |b| Message::Select((idx, b))),
+                                        text(&gs.filename),
+                                    ]
+                                    .spacing(1)
+                                    .align_items(Alignment::Center)
+                                })
+                                .width(Length::Fill)
+                                .on_press(Message::Probe(idx))
+                                .padding(4)
+                                .style(style::button::Button::NormalPackage),
+                                Space::with_width(Length::Units(15))
+                            ])
+                        },
+                    )))
+                    .height(Length::Fill)
+                }
+            },
+            State::Ripping => {
+                container(
+                    column![
+                        text("Ripping...").font(JETBRAINS_MONO),
+                        progress_bar(0.0..=100.0, self.progress)
+                            .height(Length::Units(5))
+                            .width(Length::Units(200))
+
+                    ]
+                    .spacing(5)
+                    .align_items(Alignment::Center)
+                )
                 .width(Length::Fill)
                 .height(Length::Fill)
                 .center_x()
                 .center_y()
-        } else {
-            container(scrollable(self.paths.iter().enumerate().fold(
-                column![].spacing(10).padding(5),
-                |s, (idx, gs)| {
-                    s.push(row![
-                        button(if gs.is_dir() {
-                            row![
-                                checkbox("", gs.selected, move |b| Message::Select((idx, b))),
-                                text(&gs.filename),
-                                Space::with_width(Length::Fill),
-                                icons::folder_icon()
-                            ]
-                            .spacing(1)
-                            .align_items(Alignment::Center)
-                        } else {
-                            row![
-                                checkbox("", gs.selected, move |b| Message::Select((idx, b))),
-                                text(&gs.filename),
-                            ]
-                            .spacing(1)
-                            .align_items(Alignment::Center)
-                        })
-                        .width(Length::Fill)
-                        .on_press(Message::Probe(idx))
-                        .padding(4)
-                        .style(style::button::Button::NormalPackage),
-                        Space::with_width(Length::Units(15))
-                    ])
-                },
-            )))
-            .height(Length::Fill)
+            },
+            State::Done => {
+                container(text("Done! Drag and drop.").font(JETBRAINS_MONO))
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x()
+                    .center_y()
+            },
         };
 
         container(
@@ -357,14 +440,12 @@ pub fn filename(path: &Path) -> String {
 }
 
 async fn tracker_info(path: PathBuf, hint: Option<String>) -> Option<Box<Info>> {
-    let Some((tracker_result, path)) = tokio::task::spawn_blocking(move ||
+    let (tracker_result, path) = tokio::task::spawn_blocking(move ||
         (match hint {
             Some(hint) => load_from_ext(&path, &hint),
             None => load_module(&path)
         }, path)
-    ).await.ok() else {
-        return None;
-    };
+    ).await.ok()?;
     match tracker_result {
         Ok(tracker) => Some(Box::new(Info::valid(tracker, path))),
         Err(error) => Some(Box::new(Info::invalid(error.to_string(), path))),

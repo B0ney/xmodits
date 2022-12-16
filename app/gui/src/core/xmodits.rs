@@ -6,7 +6,7 @@ use walkdir::WalkDir;
 use xmodits_common::folder;
 
 use super::cfg::SampleRippingConfig;
-pub type StartSignal = (Vec<PathBuf>, SampleRippingConfig, u8);
+pub type StartSignal = (Vec<PathBuf>, SampleRippingConfig);
 const ID: &str = "XMODITS_RIPPING";
 
 /// State of subscription
@@ -119,10 +119,11 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
 }
 
 fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
-    let (paths, config, mut scan_depth) = config;
-    if scan_depth == 0 {
-        scan_depth += 1
-    }
+    let (paths, config) = config;
+    let scan_depth = match config.folder_recursion_depth {
+        0 => 1,
+        d => d,
+    };
 
     let mut files: Vec<PathBuf> = Vec::new();
     let mut folders: Vec<PathBuf> = Vec::new();
@@ -181,6 +182,7 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
                 },
             )
             .expect("Channel closed prematurely");
+            std::thread::sleep(std::time::Duration::from_secs(1));
         }
 
         tx.blocking_send(ThreadMsg::Done)
