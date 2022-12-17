@@ -227,7 +227,7 @@ impl Trackers {
 
                     self.state = match self.errors.is_empty() {
                         true => State::Done,
-                        false => State::Done,
+                        false => State::DoneWithErrors,
                     };
      
                     info!("Done!"); // notify when finished ripping
