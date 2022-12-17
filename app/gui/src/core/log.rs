@@ -1,6 +1,10 @@
 use anyhow::Result;
-use std::{fs::File, io::Write, path::{PathBuf, Path}};
 use rand::Rng;
+use std::{
+    fs::File,
+    io::Write,
+    path::{Path, PathBuf},
+};
 
 pub async fn async_write_error_log(
     log_path: PathBuf,
@@ -12,7 +16,7 @@ pub async fn async_write_error_log(
 pub fn write_error_log<E, P>(log_path: &PathBuf, errors: Vec<(P, E)>) -> Result<()>
 where
     E: std::fmt::Display,
-    P: AsRef<Path>
+    P: AsRef<Path>,
 {
     let log_path: PathBuf = log_path.join(format!(
         "xmodits-error-log-{:04X}.txt",

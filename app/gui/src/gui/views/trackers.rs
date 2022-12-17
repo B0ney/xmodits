@@ -129,8 +129,10 @@ impl Trackers {
             if !self.paths.iter().map(|e| &e.path).any(|x| x == &path) {
                 self.paths.push(Entry::new(path));
             }
-            if self.state != State::None {
+            if !self.errors.is_empty() {
                 self.errors.clear();
+            }
+            if self.state != State::None {
                 self.state = State::None
             }
         }
@@ -220,16 +222,20 @@ impl Trackers {
                     if self.errors.len() > 150 {
                         self.state = State::DoneWithTooMuchErrors(self.log_path.clone());
                         // TODO: have a way to propagate error
-                        return Command::perform(async_write_error_log(
-                            self.log_path.clone(), self.errors.clone()
-                        ), |_| Message::Ignore)
+                        return Command::perform(
+                            async_write_error_log(
+                                self.log_path.clone(),
+                                std::mem::take(&mut self.errors),
+                            ),
+                            |_| Message::Ignore,
+                        );
                     }
 
                     self.state = match self.errors.is_empty() {
                         true => State::Done,
                         false => State::DoneWithErrors,
                     };
-     
+
                     info!("Done!"); // notify when finished ripping
                 }
                 DownloadMessage::Progress { progress, result } => {
@@ -253,6 +259,7 @@ impl Trackers {
                 let _ = tx.try_send((
                     {
                         self.log_path = cfg.destination.to_owned();
+                        self.progress = 0.0;
                         self.current = None;
                         std::mem::take(&mut self.paths)
                             .into_iter()

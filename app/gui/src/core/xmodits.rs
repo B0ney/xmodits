@@ -119,36 +119,38 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
 }
 
 fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
-    let (paths, config) = config;
-    let scan_depth = match config.folder_recursion_depth {
-        0 => 1,
-        d => d,
-    };
-
-    let mut files: Vec<PathBuf> = Vec::new();
-    let mut folders: Vec<PathBuf> = Vec::new();
-
-    for i in paths {
-        if i.is_file() {
-            files.push(i)
-        } else if i.is_dir() {
-            folders.push(i)
-        }
-    }
-
-    let expanded_folders = folders.into_iter().flat_map(move |f| {
-        WalkDir::new(f)
-            .max_depth(scan_depth as usize)
-            .into_iter()
-            .filter_map(|f| f.ok())
-            .map(|f| f.into_path())
-            .filter(|f| f.is_file())
-    });
-
-    let expanded_paths: Vec<PathBuf> = files.into_iter().chain(expanded_folders).collect();
-
     std::thread::spawn(move || {
+        let (paths, config) = config;
+        let scan_depth = match config.folder_recursion_depth {
+            0 => 1,
+            d => d,
+        };
+
+        let mut files: Vec<PathBuf> = Vec::new();
+        let mut folders: Vec<PathBuf> = Vec::new();
+
+        for i in paths {
+            if i.is_file() {
+                files.push(i)
+            } else if i.is_dir() {
+                folders.push(i)
+            }
+        }
+
+        let expanded_folders = folders.into_iter().flat_map(move |f| {
+            WalkDir::new(f)
+                .max_depth(scan_depth as usize)
+                .into_iter()
+                .filter_map(|f| f.ok())
+                .map(|f| f.into_path())
+                .filter(|f| f.is_file())
+            }
+        );
+
+        let expanded_paths: Vec<PathBuf> = files.into_iter().chain(expanded_folders).collect();
+
         let dest_dir = config.destination;
+        
         if !dest_dir.is_dir() {
             if let Err(e) = std::fs::create_dir(&dest_dir) {
                 tx.blocking_send(ThreadMsg::Failed((dest_dir, e.to_string())))
@@ -165,7 +167,6 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
 
         let namer = &config.naming.build_func();
         let hint = config.hint.into();
-        // info!("Destination: {}", &dest_dir.display());
 
         for path in expanded_paths {
             tx.blocking_send(
@@ -175,7 +176,7 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
                     namer,
                     !config.no_folder,
                     &hint,
-                    false,
+                    config.embed_loop_points,
                 ) {
                     Ok(_) => ThreadMsg::Ok,
                     Err(e) => ThreadMsg::Failed((path, e.to_string())),
