@@ -1,7 +1,6 @@
 use iced::{subscription, Subscription};
 use std::path::PathBuf;
 use tokio::sync::mpsc::{self, Receiver, Sender};
-// use tracing::info;
 use walkdir::WalkDir;
 use xmodits_common::folder;
 
@@ -136,7 +135,7 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
                 folders.push(i)
             }
         }
-
+        // Can use a lot of memory if max_depth is too high
         let expanded_folders = folders.into_iter().flat_map(move |f| {
             WalkDir::new(f)
                 .max_depth(scan_depth as usize)
@@ -144,13 +143,12 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
                 .filter_map(|f| f.ok())
                 .map(|f| f.into_path())
                 .filter(|f| f.is_file())
-            }
-        );
+        });
 
         let expanded_paths: Vec<PathBuf> = files.into_iter().chain(expanded_folders).collect();
 
         let dest_dir = config.destination;
-        
+
         if !dest_dir.is_dir() {
             if let Err(e) = std::fs::create_dir(&dest_dir) {
                 tx.blocking_send(ThreadMsg::Failed((dest_dir, e.to_string())))

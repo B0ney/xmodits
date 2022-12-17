@@ -43,7 +43,7 @@ pub fn rip(paths: Vec<PathBuf>) {
         Ordering::Less => success(&config.destination),
         Ordering::Equal => failed_single(&errors.pop().unwrap().1.to_string()),
         Ordering::Greater => match write_error_log(log_path, errors) {
-            Ok(_) => success_partial(log_path),
+            Ok(log_path) => success_partial(log_path),
             Err(error) => success_partial_no_log(&error.to_string()),
         },
     }

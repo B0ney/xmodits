@@ -25,8 +25,7 @@ pub enum Message {
     AddFileDialog,
     AddFolderDialog,
     SubscriptionMessage(DownloadMessage),
-    // SetState
-    Ignore,
+    SetState(State),
 }
 
 #[derive(Debug, Clone)]
@@ -59,7 +58,6 @@ impl Info {
                 / 1024,
         }
     }
-
     pub fn invalid(error: String, path: PathBuf) -> Self {
         Self::Invalid { error, path }
     }
@@ -69,13 +67,11 @@ impl Info {
             Self::Invalid { .. } => false,
         }
     }
-
     pub fn path(&self) -> &Path {
         match self {
             Info::Valid { path, .. } | Info::Invalid { path, .. } => path,
         }
     }
-
     pub fn filename(&self) -> String {
         filename(self.path())
     }
@@ -99,15 +95,16 @@ impl Entry {
         self.path.is_dir()
     }
 }
-#[derive(Default, PartialEq, Eq)]
-enum State {
+
+#[derive(Default, PartialEq, Eq, Debug, Clone)]
+pub enum State {
     #[default]
     None,
     Ripping,
     Done,
-    DoneWithErrors,
+    DoneWithErrors(Vec<(PathBuf, String)>),
     DoneWithTooMuchErrors(PathBuf),
-    DoneWithTooMuchErrorsNoLog(PathBuf),
+    DoneWithTooMuchErrorsNoLog(String),
 }
 
 #[derive(Default)]
@@ -126,7 +123,7 @@ pub struct Trackers {
 impl Trackers {
     pub fn add(&mut self, path: PathBuf) {
         if self.state != State::Ripping {
-            if !self.paths.iter().map(|e| &e.path).any(|x| x == &path) {
+            if !self.paths.iter().any(|x| &x.path == &path) {
                 self.paths.push(Entry::new(path));
             }
             if !self.errors.is_empty() {
@@ -165,7 +162,35 @@ impl Trackers {
         }
         self.all_selected = false;
     }
-
+    pub fn total_modules(&self) -> usize {
+        self.paths.len()
+    }
+    pub fn current_exists(&self, path: &Path) -> bool {
+        matches!(&self.current, Some(info) if info.path() == path)
+    }
+    pub fn total_selected(&self) -> usize {
+        self.paths.iter().filter(|f| f.selected).count()
+    }
+    pub fn start_rip(&mut self, cfg: &SampleRippingConfig) {
+        let total_modules = self.total_modules() > 0;
+        if let Some(tx) = &mut self.sender {
+            if total_modules {
+                let _ = tx.try_send((
+                    {
+                        self.log_path = cfg.destination.to_owned();
+                        self.progress = 0.0;
+                        self.current = None;
+                        std::mem::take(&mut self.paths)
+                            .into_iter()
+                            .map(|f| f.path)
+                            .collect()
+                    },
+                    cfg.to_owned(),
+                ));
+                self.state = State::Ripping;
+            }
+        }
+    }
     pub fn update(&mut self, msg: Message) -> Command<Message> {
         match msg {
             Message::Probe(idx) => {
@@ -176,7 +201,7 @@ impl Trackers {
                         Message::TrackerInfo,
                     );
                     match self.current {
-                        Some(ref e) if !e.is_valid() || e.path() != path => {
+                        Some(ref info) if !info.is_valid() || info.path() != path => {
                             return command;
                         }
                         None => return command,
@@ -218,23 +243,23 @@ impl Trackers {
             Message::SubscriptionMessage(msg) => match msg {
                 DownloadMessage::Ready(tx) => self.sender = Some(tx),
                 DownloadMessage::Done => {
-                    // TODO: refactor
-                    if self.errors.len() > 150 {
-                        self.state = State::DoneWithTooMuchErrors(self.log_path.clone());
-                        // TODO: have a way to propagate error
-                        return Command::perform(
-                            async_write_error_log(
-                                self.log_path.clone(),
-                                std::mem::take(&mut self.errors),
-                            ),
-                            |_| Message::Ignore,
-                        );
-                    }
+                    let errors = std::mem::take(&mut self.errors);
+                    let log_path = self.log_path.to_owned();
 
-                    self.state = match self.errors.is_empty() {
-                        true => State::Done,
-                        false => State::DoneWithErrors,
-                    };
+                    return Command::perform(
+                        async move {
+                            match errors.len() {
+                                0 => State::Done,
+                                1..=150 => State::DoneWithErrors(errors),
+                                // If there's too many errors, don't display them, put them in a file.
+                                _ => match async_write_error_log(log_path, errors).await {
+                                    Ok(log_path) => State::DoneWithTooMuchErrors(log_path),
+                                    Err(e) => State::DoneWithTooMuchErrorsNoLog(e.to_string()),
+                                },
+                            }
+                        },
+                        Message::SetState,
+                    );
 
                     info!("Done!"); // notify when finished ripping
                 }
@@ -247,44 +272,10 @@ impl Trackers {
                     }
                 }
             },
-            Message::Ignore => (),
+            Message::SetState(state) => self.state = state,
         }
         Command::none()
     }
-
-    pub fn start_rip(&mut self, cfg: &SampleRippingConfig) {
-        let total_modules = self.total_modules() > 0;
-        if let Some(tx) = &mut self.sender {
-            if total_modules {
-                let _ = tx.try_send((
-                    {
-                        self.log_path = cfg.destination.to_owned();
-                        self.progress = 0.0;
-                        self.current = None;
-                        std::mem::take(&mut self.paths)
-                            .into_iter()
-                            .map(|f| f.path)
-                            .collect()
-                    },
-                    cfg.to_owned(),
-                ));
-                self.state = State::Ripping;
-            }
-        }
-    }
-
-    pub fn total_modules(&self) -> usize {
-        self.paths.len()
-    }
-
-    pub fn current_exists(&self, path: &Path) -> bool {
-        matches!(&self.current, Some(info) if info.path() == path)
-    }
-
-    pub fn total_selected(&self) -> usize {
-        self.paths.iter().filter(|f| f.selected).count()
-    }
-
     pub fn view_trackers(&self) -> Element<Message, Renderer<Theme>> {
         let total_modules: _ =
             text(format!("Modules: {}", self.total_modules())).font(JETBRAINS_MONO);
@@ -361,11 +352,11 @@ impl Trackers {
             .height(Length::Fill)
             .center_x()
             .center_y(),
-            State::DoneWithErrors => container(column![
-                column![text("(._.) - Done... But there were some errors...").font(JETBRAINS_MONO)]
+            State::DoneWithErrors(ref errors) => container(column![
+                column![text("Done... But there were some errors... (._.)").font(JETBRAINS_MONO)]
                     .padding(4),
                 scrollable(
-                    self.errors
+                    errors
                         .iter()
                         .fold(column![].spacing(10).padding(5), |t, (s, x)| {
                             t.push(row![
@@ -386,14 +377,27 @@ impl Trackers {
             .width(Length::Fill)
             .height(Length::Fill),
             State::DoneWithTooMuchErrors(ref error_log) => container(column![column![
-                text("(-_-') - Done... But there's too many errors to display!")
-                    .font(JETBRAINS_MONO),
-                text(format!("Check the logs at: {}", error_log.display())).font(JETBRAINS_MONO)
+                text("Done...").font(JETBRAINS_MONO),
+                text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
+                text(""),
+                text("Check the logs at:").font(JETBRAINS_MONO),
+                text(format!("{}", error_log.display())).font(JETBRAINS_MONO)
             ]
             .padding(4)])
             .width(Length::Fill)
             .height(Length::Fill),
-            State::DoneWithTooMuchErrorsNoLog(_) => todo!(),
+            State::DoneWithTooMuchErrorsNoLog(ref error) => container(column![column![
+                text("Done...").font(JETBRAINS_MONO),
+                text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
+                // TODO: maybe display the first 150 errors?
+                text(""),
+                text("Unfortunatley, it's not possible to produce an error log:")
+                    .font(JETBRAINS_MONO),
+                text(format!("{}", error)).font(JETBRAINS_MONO)
+            ]
+            .padding(4)])
+            .width(Length::Fill)
+            .height(Length::Fill),
         };
 
         container(
@@ -418,7 +422,6 @@ impl Trackers {
         .height(Length::Fill)
         .into()
     }
-
     pub fn bottom_button() -> Element<'static, Message, Renderer<Theme>> {
         row![
             button(
@@ -441,7 +444,6 @@ impl Trackers {
         .spacing(10)
         .into()
     }
-
     pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> {
         let title: _ = text("Current Tracker Information").font(JETBRAINS_MONO);
         let title_2: _ = text("None selected").font(JETBRAINS_MONO);
