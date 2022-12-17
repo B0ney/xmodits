@@ -1,4 +1,5 @@
 use crate::core::cfg::SampleRippingConfig;
+use crate::core::log::async_write_error_log;
 use crate::core::xmodits::{DownloadMessage, StartSignal};
 use crate::gui::style::{self, Theme};
 use crate::gui::{icons, JETBRAINS_MONO};
@@ -9,6 +10,7 @@ use iced::{Alignment, Command, Element, Length, Renderer};
 use std::path::{Path, PathBuf};
 use tokio::sync::mpsc::Sender;
 use tracing::{info, warn};
+use xmodits_common::filename;
 use xmodits_lib::{load_from_ext, load_module, TrackerModule};
 
 #[derive(Debug, Clone)]
@@ -23,6 +25,8 @@ pub enum Message {
     AddFileDialog,
     AddFolderDialog,
     SubscriptionMessage(DownloadMessage),
+    // SetState
+    Ignore,
 }
 
 #[derive(Debug, Clone)]
@@ -101,6 +105,9 @@ enum State {
     None,
     Ripping,
     Done,
+    DoneWithErrors,
+    DoneWithTooMuchErrors(PathBuf),
+    DoneWithTooMuchErrorsNoLog(PathBuf),
 }
 
 #[derive(Default)]
@@ -113,6 +120,7 @@ pub struct Trackers {
     progress: f32,
     state: State,
     errors: Vec<(PathBuf, String)>,
+    log_path: PathBuf,
 }
 
 impl Trackers {
@@ -121,7 +129,7 @@ impl Trackers {
             if !self.paths.iter().map(|e| &e.path).any(|x| x == &path) {
                 self.paths.push(Entry::new(path));
             }
-            if self.state == State::Done {
+            if self.state != State::None {
                 self.errors.clear();
                 self.state = State::None
             }
@@ -208,8 +216,20 @@ impl Trackers {
             Message::SubscriptionMessage(msg) => match msg {
                 DownloadMessage::Ready(tx) => self.sender = Some(tx),
                 DownloadMessage::Done => {
-                    self.state = State::Done;
-                    // success();
+                    // TODO: refactor
+                    if self.errors.len() > 150 {
+                        self.state = State::DoneWithTooMuchErrors(self.log_path.clone());
+                        // TODO: have a way to propagate error
+                        return Command::perform(async_write_error_log(
+                            self.log_path.clone(), self.errors.clone()
+                        ), |_| Message::Ignore)
+                    }
+
+                    self.state = match self.errors.is_empty() {
+                        true => State::Done,
+                        false => State::Done,
+                    };
+     
                     info!("Done!"); // notify when finished ripping
                 }
                 DownloadMessage::Progress { progress, result } => {
@@ -221,6 +241,7 @@ impl Trackers {
                     }
                 }
             },
+            Message::Ignore => (),
         }
         Command::none()
     }
@@ -231,6 +252,7 @@ impl Trackers {
             if total_modules {
                 let _ = tx.try_send((
                     {
+                        self.log_path = cfg.destination.to_owned();
                         self.current = None;
                         std::mem::take(&mut self.paths)
                             .into_iter()
@@ -240,7 +262,6 @@ impl Trackers {
                     cfg.to_owned(),
                 ));
                 self.state = State::Ripping;
-                // self.audio.play("sfx_1")
             }
         }
     }
@@ -322,45 +343,50 @@ impl Trackers {
             .height(Length::Fill)
             .center_x()
             .center_y(),
-            State::Done => {
-                if self.errors.is_empty() {
-                    container(text("Done! Drag and drop.").font(JETBRAINS_MONO))
-                        .width(Length::Fill)
-                        .height(Length::Fill)
-                        .center_x()
-                        .center_y()
-                } else {
-                    container(column![
-                        column![text("Done!... But there were some errors: ").font(JETBRAINS_MONO)]
-                            .padding(4),
-                        scrollable(
-                            self.errors
-                                .iter()
-                                .fold(column![].spacing(10).padding(5), |t, (s, x)| {
-                                    t.push(row![
-                                        container(
-                                            column![
-                                                text(filename(s)),
-                                                text(x)
-                                            ]
-                                            .width(Length::Fill)
-                                            .align_items(Alignment::Center)
-                                        )
-                                        .style(style::Container::Frame)
+            State::Done => container(
+                column![
+                    text("Done! \\(^_^)/").font(JETBRAINS_MONO),
+                    text("Drag and drop").font(JETBRAINS_MONO)
+                ]
+                .align_items(Alignment::Center),
+            )
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x()
+            .center_y(),
+            State::DoneWithErrors => container(column![
+                column![text("(._.) - Done... But there were some errors...").font(JETBRAINS_MONO)]
+                    .padding(4),
+                scrollable(
+                    self.errors
+                        .iter()
+                        .fold(column![].spacing(10).padding(5), |t, (s, x)| {
+                            t.push(row![
+                                container(
+                                    column![text(filename(s)), text(x)]
                                         .width(Length::Fill)
-                                        .padding(4),
-                                        Space::with_width(Length::Units(15))
-                                    ])
-                                })
-                                .width(Length::Fill),
-                        ),
-                        // text("Drag and drop").font(JETBRAINS_MONO),
-                        // Space::with_height(Length::Units(5)),
-                    ])
-                    .width(Length::Fill)
-                    .height(Length::Fill)
-                }
-            }
+                                        .align_items(Alignment::Center)
+                                )
+                                .style(style::Container::Frame)
+                                .width(Length::Fill)
+                                .padding(4),
+                                Space::with_width(Length::Units(15))
+                            ])
+                        })
+                        .width(Length::Fill),
+                ),
+            ])
+            .width(Length::Fill)
+            .height(Length::Fill),
+            State::DoneWithTooMuchErrors(ref error_log) => container(column![column![
+                text("(-_-') - Done... But there's too many errors to display!")
+                    .font(JETBRAINS_MONO),
+                text(format!("Check the logs at: {}", error_log.display())).font(JETBRAINS_MONO)
+            ]
+            .padding(4)])
+            .width(Length::Fill)
+            .height(Length::Fill),
+            State::DoneWithTooMuchErrorsNoLog(_) => todo!(),
         };
 
         container(
@@ -462,12 +488,6 @@ impl Trackers {
         .height(Length::Fill)
         .into()
     }
-}
-
-pub fn filename(path: &Path) -> String {
-    path.file_name()
-        .map(|f| f.to_string_lossy().to_string())
-        .unwrap_or_default()
 }
 
 async fn tracker_info(path: PathBuf, hint: Option<String>) -> Option<Box<Info>> {

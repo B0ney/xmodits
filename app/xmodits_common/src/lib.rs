@@ -51,6 +51,12 @@ pub fn mod_name<P: AsRef<Path>>(mod_path: P) -> String {
         .replace('.', "_")
 }
 
+pub fn filename(path: &Path) -> String {
+    path.file_name()
+        .map(|f| f.to_string_lossy().to_string())
+        .unwrap_or_default()
+}
+
 pub fn folder<P, Q>(destination: P, path: Q, with_folder: bool) -> PathBuf
 where
     P: AsRef<Path>,

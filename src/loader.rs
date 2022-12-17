@@ -8,7 +8,7 @@ use crate::tracker_formats::*;
 use crate::TrackerDumper;
 use crate::TrackerModule;
 use crate::XmoditsError;
-use phf::phf_map;
+use phf::phf_ordered_map;
 
 const MAX_FILESIZE_MB: u64 = 1024 * 1024 * 64;
 
@@ -23,11 +23,18 @@ fn load<T: TrackerDumper>(buf: Vec<u8>) -> Result<TrackerModule, XmoditsError> {
     T::load_from_buf_unchecked(buf)
 }
 
-pub static LOADERS: phf::Map<&str, (ModValidatorFunc, ModLoaderFunc)> = phf_map! {
+/// An ordered hashmap 
+/// 
+/// Key: format file extension
+/// 
+/// Value: (validator, loader)
+pub static LOADERS: phf::OrderedMap<&str, (ModValidatorFunc, ModLoaderFunc)> = phf_ordered_map! {
     "it" => (validate::<ITFile>, load::<ITFile>),
     "xm" => (validate::<XMFile>, load::<XMFile>),
     "s3m" => (validate::<S3MFile>, load::<S3MFile>),
     "umx" => (validate::<UMXFile>, load::<UMXFile>),
+    // MOD has the least validations, so we put this last.
+    // This is why we made it an ordered hashmap.
     "mod" => (validate::<MODFile>, load::<MODFile>),
 };
 
@@ -44,10 +51,18 @@ where
     load_from_ext(path, &ext)
 }
 
+/// Load a module given a path and file extension.
+/// 
+/// 
 pub fn load_from_ext<P>(path: P, ext: &str) -> Result<TrackerModule, XmoditsError>
 where
     P: AsRef<std::path::Path>,
 {
+    // Check if file extension exists in hashmap.
+    //
+    // If it exists, we obtain two function objects:
+    // 1) function to validate a particular format.
+    // 2) function to load the file. (Takes ownership of buffer)
     let Some((validator, loader)) = LOADERS.get(ext) else {
         return Err(XmoditsError::UnsupportedFormat(format!(
             "'{}' is not a supported format.",
@@ -55,12 +70,20 @@ where
         )))
     };
 
+    // After obtaining the function objects,
+    // load the file into memory
     let buf: Vec<u8> = load_to_buf(path)?;
 
+    // Validate the loaded file.
+    // If validation succeeds, early return the loaded module.
     let Err(original_err) = validator(&buf) else {
         return loader(buf)
     };
 
+    // If validation fails, hold the original error so that we may return it if all else fails.
+    // Iterate through all the (validator, loaders) in hashmap and attempt to load it.
+    // 
+    // We exclude "mod" because it has little to no validation.
     for (_, (validator_bak, loader_bak)) in
         LOADERS.entries().filter(|(k, _)| !["mod", ext].contains(k))
     {
@@ -69,9 +92,18 @@ where
         }
     }
 
+    // Return original error if we cannot find a suitable format.
     Err(original_err)
 }
 
+/// Read file contents into a ```Vec<u8>```
+/// 
+/// Traditionally, we'd use file objects + BufReader,
+/// but this is fine for two reasons:
+///
+/// 1) Tracker Modules are very small.
+/// 2) 90% of its size are raw samples that need to be processed anyway.
+///  
 pub fn load_to_buf<P>(path: P) -> Result<Vec<u8>, XmoditsError>
 where
     P: AsRef<std::path::Path>,
