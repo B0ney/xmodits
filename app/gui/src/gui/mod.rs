@@ -175,7 +175,7 @@ impl Application for XmoditsGui {
             // button("Settings")
             //     .on_press(Message::SettingsPressed)
             //     .padding(10),
-            button("Help").on_press(Message::HelpPressed).padding(10),
+            // button("Help").on_press(Message::HelpPressed).padding(10),
             button("About").on_press(Message::AboutPressed).padding(10),
         ]
         .spacing(5)
@@ -203,7 +203,7 @@ impl Application for XmoditsGui {
                         )
                         .padding(10)
                         .on_press(Message::StartRip)
-                        .style(style::button::Button::RestorePackage)
+                        .style(style::button::Button::Start)
                         .width(Length::Fill),
                     ]
                     .spacing(5)

@@ -7,13 +7,12 @@ use super::Theme;
 pub enum Button {
     #[default]
     Primary,
+    Hyperlink,
     Unavailable,
-    SelfUpdate,
-    Refresh,
-    UninstallPackage,
-    RestorePackage,
     NormalPackage,
-    SelectedPackage,
+    Start,
+    Delete,
+    // SelectedPackage,
 }
 
 impl button::StyleSheet for Theme {
@@ -39,10 +38,6 @@ impl button::StyleSheet for Theme {
         match style {
             Button::Primary => active_appearance(None, p.bright.primary),
             Button::Unavailable => active_appearance(None, p.bright.error),
-            Button::Refresh => active_appearance(None, p.bright.primary),
-            Button::SelfUpdate => active_appearance(None, p.bright.primary),
-            Button::UninstallPackage => active_appearance(None, p.bright.error),
-            Button::RestorePackage => active_appearance(None, p.bright.secondary),
             Button::NormalPackage => button::Appearance {
                 background: Some(Background::Color(p.base.foreground)),
                 text_color: p.bright.surface,
@@ -51,19 +46,26 @@ impl button::StyleSheet for Theme {
                 border_color: color!(0x474747),
                 ..appearance
             },
-            Button::SelectedPackage => button::Appearance {
-                background: Some(Background::Color(Color {
-                    a: 0.25,
-                    ..p.normal.primary
-                })),
-                text_color: p.bright.primary,
-                border_radius: 5.0,
-                border_width: 1.0,
-                border_color: color!(0x474747),
+            // Button::SelectedPackage => button::Appearance {
+            //     background: Some(Background::Color(Color {
+            //         a: 0.25,
+            //         ..p.normal.primary
+            //     })),
+            //     text_color: p.bright.primary,
+            //     border_radius: 5.0,
+            //     border_width: 1.0,
+            //     border_color: color!(0x474747),
 
-                // border_color: p.normal.primary,
+            //     // border_color: p.normal.primary,
+            //     ..appearance
+            // },
+            Button::Hyperlink => button::Appearance {
+                background: None,
+                text_color: p.bright.surface,
                 ..appearance
             },
+            Button::Start => active_appearance(None, p.bright.secondary),
+            Button::Delete => active_appearance(None, p.bright.error),
         }
     }
 
@@ -79,14 +81,15 @@ impl button::StyleSheet for Theme {
         };
 
         match style {
-            Button::Primary => hover_appearance(p.bright.primary, None),
+            Button::Primary => hover_appearance(p.bright.primary, Some(p.bright.surface)),
             Button::Unavailable => hover_appearance(p.bright.error, None),
-            Button::Refresh => hover_appearance(p.bright.primary, None),
-            Button::SelfUpdate => hover_appearance(p.bright.primary, None),
-            Button::UninstallPackage => hover_appearance(p.bright.error, None),
-            Button::RestorePackage => hover_appearance(p.bright.secondary, None),
             Button::NormalPackage => hover_appearance(p.normal.primary, Some(p.bright.surface)),
-            Button::SelectedPackage => hover_appearance(p.normal.primary, None),
+            Button::Hyperlink => button::Appearance {
+                background: None,
+                ..hover_appearance(p.bright.primary, None)
+            },
+            Button::Start => hover_appearance(p.bright.secondary, Some(p.bright.surface)),
+            Button::Delete =>  hover_appearance(p.bright.error, Some(p.bright.surface)),
         }
     }
 
@@ -104,8 +107,8 @@ impl button::StyleSheet for Theme {
         };
 
         match style {
-            Button::RestorePackage => disabled_appearance(p.normal.primary, Some(p.bright.primary)),
-            Button::UninstallPackage => disabled_appearance(p.bright.error, None),
+            // Button::RestorePackage => disabled_appearance(p.normal.primary, Some(p.bright.primary)),
+            // Button::UninstallPackage => disabled_appearance(p.bright.error, None),
             _ => button::Appearance { ..active },
         }
     }

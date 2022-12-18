@@ -13,7 +13,7 @@ fn show_dialoge(title: &str, msg: &str, msg_type: MessageType) {
 pub fn show_help_box() {
     show_dialoge(
         "No tracker modules",
-        "If you wish to rip from a folder, please launch the GUI instead.",
+        "If you want to rip from a folder, please launch the GUI.",
         MessageType::Info,
     )
 }
@@ -30,7 +30,7 @@ pub fn success_partial<P: AsRef<Path>>(log_path: P) {
     show_dialoge(
         "Some errors have occured",
         &format!(
-            "There were some errors while dumping. Check the logs at: {}",
+            "Xmodits could not rip everything. Check the logs at: {}",
             log_path.as_ref().display()
         ),
         MessageType::Warning,
@@ -41,7 +41,7 @@ pub fn success_partial_no_log(error: &str) {
     show_dialoge(
         "Some errors have occured",
         &format!(
-            "There were some errors while dumping, but xmodits could not create a log file: {}",
+            "Xmodits could not rip everything. And it could not create a log file: {}",
             error
         ),
         MessageType::Warning,

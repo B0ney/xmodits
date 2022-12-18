@@ -5,8 +5,8 @@ use iced::{color, Background};
 #[derive(Default, Debug, Clone, Copy)]
 pub enum CheckBox {
     #[default]
-    PackageEnabled,
-    PackageDisabled,
+    Enabled,
+    Disabled,
 }
 
 impl checkbox::StyleSheet for Theme {
@@ -22,50 +22,12 @@ impl checkbox::StyleSheet for Theme {
             text_color: Some(self.palette().bright.surface),
         };
         match style {
-            CheckBox::PackageEnabled => default,
-            CheckBox::PackageDisabled => checkbox::Appearance {
+            CheckBox::Enabled => default,
+            CheckBox::Disabled => checkbox::Appearance {
                 background: Background::Color(self.palette().base.foreground),
                 ..default
             },
         }
-
-        // match style {
-        //     CheckBox::PackageEnabled => checkbox::Appearance {
-        //         background: Background::Color(self.palette().base.background),
-        //         checkmark_color: self.palette().bright.primary,
-        //         border_radius: 5.0,
-        //         border_width: 1.0,
-        //         border_color: self.palette().base.background,
-        //         text_color: Some(self.palette().bright.surface),
-        //     },
-        //     CheckBox::PackageDisabled => checkbox::Appearance {
-        //         background: Background::Color(Color {
-        //             a: 0.55,
-        //             ..self.palette().base.background
-        //         }),
-        //         checkmark_color: self.palette().bright.primary,
-        //         border_radius: 5.0,
-        //         border_width: 1.0,
-        //         border_color: self.palette().normal.primary,
-        //         text_color: Some(self.palette().normal.primary),
-        //     },
-        //     CheckBox::SettingsEnabled => checkbox::Appearance {
-        //         background: Background::Color(self.palette().base.background),
-        //         checkmark_color: self.palette().bright.primary,
-        //         border_radius: 5.0,
-        //         border_width: 1.0,
-        //         border_color: self.palette().bright.primary,
-        //         text_color: Some(self.palette().bright.surface),
-        //     },
-        //     CheckBox::SettingsDisabled => checkbox::Appearance {
-        //         background: Background::Color(self.palette().base.foreground),
-        //         checkmark_color: self.palette().bright.primary,
-        //         border_radius: 5.0,
-        //         border_width: 1.0,
-        //         border_color: self.palette().normal.primary,
-        //         text_color: Some(self.palette().bright.surface),
-        //     },
-        // }
     }
 
     fn hovered(&self, style: &Self::Style, is_checked: bool) -> checkbox::Appearance {
@@ -79,10 +41,8 @@ impl checkbox::StyleSheet for Theme {
         };
 
         match style {
-            CheckBox::PackageEnabled => from_appearance(),
-            // CheckBox::SettingsEnabled => from_appearance(),
-            CheckBox::PackageDisabled => self.active(style, is_checked),
-            // CheckBox::SettingsDisabled => self.active(style, is_checked),
+            CheckBox::Enabled => from_appearance(),
+            CheckBox::Disabled => self.active(style, is_checked),
         }
     }
 }

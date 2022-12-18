@@ -6,7 +6,7 @@ use crate::gui::{icons, JETBRAINS_MONO};
 use iced::widget::{
     button, checkbox, column, container, progress_bar, row, scrollable, text, Space,
 };
-use iced::{Alignment, Command, Element, Length, Renderer};
+use iced::{alignment::Horizontal, Alignment, Command, Element, Length, Renderer};
 use std::path::{Path, PathBuf};
 use tokio::sync::mpsc::Sender;
 use tracing::{info, warn};
@@ -210,6 +210,10 @@ impl Trackers {
             Message::Clear => {
                 self.paths.clear();
                 self.current = None;
+
+                if !matches!(self.state, State::None | State::Ripping(_)) {
+                    self.state = State::None;
+                }
             }
             Message::Select((idx, toggle)) => {
                 self.paths[idx].selected = toggle;
@@ -356,17 +360,24 @@ impl Trackers {
             .center_x()
             .center_y(),
             State::DoneWithErrors(ref errors) => container(column![
-                column![text("Done... But there were some errors... (._.)").font(JETBRAINS_MONO)]
-                    .padding(4),
+                column![
+                    text("Done... But Xmodits could not rip everything... (._.)")
+                        .font(JETBRAINS_MONO)
+                        .horizontal_alignment(Horizontal::Center)
+                ]
+                .padding(4),
                 scrollable(
                     errors
                         .iter()
                         .fold(column![].spacing(10).padding(5), |t, (s, x)| {
                             t.push(row![
                                 container(
-                                    column![text(filename(s)), text(x)]
-                                        .width(Length::Fill)
-                                        .align_items(Alignment::Center)
+                                    column![
+                                        text(filename(s)),
+                                        text(x).horizontal_alignment(Horizontal::Center)
+                                    ]
+                                    .width(Length::Fill)
+                                    .align_items(Alignment::Center)
                                 )
                                 .style(style::Container::Frame)
                                 .width(Length::Fill)
@@ -379,26 +390,34 @@ impl Trackers {
             ])
             .width(Length::Fill)
             .height(Length::Fill),
-            State::DoneWithTooMuchErrors(ref error_log) => container(column![column![
-                text("Done...").font(JETBRAINS_MONO),
-                text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
-                text(""),
-                text("Check the logs at:").font(JETBRAINS_MONO),
-                text(format!("{}", error_log.display())).font(JETBRAINS_MONO)
-            ]
-            .padding(4)])
+            State::DoneWithTooMuchErrors(ref error_log) => container(
+                column![
+                    text("Done...").font(JETBRAINS_MONO),
+                    text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
+                    text("Check the logs at:").font(JETBRAINS_MONO),
+                    text(format!("{}", error_log.display()))
+                        .font(JETBRAINS_MONO)
+                        .horizontal_alignment(Horizontal::Center)
+                ]
+                .padding(4)
+                .spacing(5),
+            )
             .width(Length::Fill)
             .height(Length::Fill),
-            State::DoneWithTooMuchErrorsNoLog(ref error) => container(column![column![
-                text("Done...").font(JETBRAINS_MONO),
-                text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
-                // TODO: maybe display the first 150 errors?
-                text(""),
-                text("Unfortunatley, it's not possible to produce an error log:")
-                    .font(JETBRAINS_MONO),
-                text(format!("{}", error)).font(JETBRAINS_MONO)
-            ]
-            .padding(4)])
+            State::DoneWithTooMuchErrorsNoLog(ref error) => container(
+                column![
+                    text("Done...").font(JETBRAINS_MONO),
+                    text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
+                    // TODO: maybe display the first 150 errors?
+                    text("Unfortunatley, it's not possible to produce an error log:")
+                        .font(JETBRAINS_MONO),
+                    text(format!("{}", error))
+                        .font(JETBRAINS_MONO)
+                        .horizontal_alignment(Horizontal::Center)
+                ]
+                .padding(4)
+                .spacing(5),
+            )
             .width(Length::Fill)
             .height(Length::Fill),
         };
@@ -411,7 +430,7 @@ impl Trackers {
                     Space::with_width(Length::Fill),
                     // checkbox is 5 units taller than the other elements
                     checkbox("Select all", self.all_selected, Message::SelectAll)
-                        .style(style::checkbox::CheckBox::PackageDisabled),
+                        .style(style::checkbox::CheckBox::Disabled),
                 ]
                 .spacing(15)
                 .align_items(Alignment::Center),
@@ -427,30 +446,23 @@ impl Trackers {
     }
     pub fn bottom_button() -> Element<'static, Message, Renderer<Theme>> {
         row![
-            button(
-                //row![
-                icons::add_file_icon(),
-                // text("Add")
-                //]
-            )
-            .padding(10)
-            .on_press(Message::AddFileDialog),
-            button("Add Folder")
+            button(text("Add File"))
+                .padding(10)
+                .on_press(Message::AddFileDialog),
+            button(text("Add Folder"))
                 .padding(10)
                 .on_press(Message::AddFolderDialog),
             Space::with_width(Length::Fill),
             button("Delete Selected")
                 .padding(10)
-                .on_press(Message::DeleteSelected),
+                .on_press(Message::DeleteSelected)
+                .style(style::button::Button::Delete),
             button("Clear").padding(10).on_press(Message::Clear),
         ]
         .spacing(10)
         .into()
     }
     pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> {
-        let title: _ = text("Current Tracker Information").font(JETBRAINS_MONO);
-        let title_2: _ = text("None selected").font(JETBRAINS_MONO);
-
         let content: _ = match &self.current {
             Some(info) => match &**info {
                 Info::Valid {
@@ -472,20 +484,21 @@ impl Trackers {
                 ),
                 Info::Invalid { error, .. } => container(
                     column![
-                        text(format!("Failed to load \"{}\"", info.filename())),
+                        text(format!("Failed to load \"{}\"", info.filename()))
+                            .horizontal_alignment(Horizontal::Center),
                         // .style(style::text::Text::Danger),
-                        text(error)
+                        text(error).horizontal_alignment(Horizontal::Center),
                     ]
                     .spacing(5)
                     .align_items(Alignment::Center)
                     .width(Length::Fill),
                 ),
             },
-            None => container(title_2),
+            None => container(text("None selected").font(JETBRAINS_MONO)),
         };
         container(
             column![
-                title,
+                text("Current Tracker Information").font(JETBRAINS_MONO),
                 content
                     .style(style::Container::Frame)
                     .height(Length::Fill)

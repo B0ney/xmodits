@@ -10,7 +10,7 @@ use std::path::PathBuf;
 pub enum Message {
     SetDestination(PathBuf),
     SetHint(FormatHint),
-    ToggleEmbedLoopPoint(bool),
+    // ToggleEmbedLoopPoint(bool),
     ToggleNoFolder(bool),
     SetRecursionDepth(u8),
 }
@@ -20,7 +20,7 @@ impl SampleRippingConfig {
         match msg {
             Message::SetDestination(path) => self.destination = path,
             Message::SetHint(hint) => self.hint = hint,
-            Message::ToggleEmbedLoopPoint(toggle) => self.embed_loop_points = toggle,
+            // Message::ToggleEmbedLoopPoint(toggle) => self.embed_loop_points = toggle,
             Message::ToggleNoFolder(toggle) => self.no_folder = toggle,
             Message::SetRecursionDepth(depth) => self.folder_recursion_depth = depth,
         }
@@ -30,11 +30,11 @@ impl SampleRippingConfig {
         let settings: _ = container(
             row![column![
                 checkbox("No Folder", self.no_folder, Message::ToggleNoFolder),
-                checkbox(
-                    "Embed Sample Loops",
-                    self.embed_loop_points,
-                    Message::ToggleEmbedLoopPoint
-                ),
+                // checkbox(
+                //     "Embed Sample Loops",
+                //     self.embed_loop_points,
+                //     Message::ToggleEmbedLoopPoint
+                // ),
                 row![
                     pick_list(&FormatHint::ALL[..], Some(self.hint), Message::SetHint),
                     text("Format Hinting"),

@@ -26,9 +26,9 @@ pub struct Cli {
     #[arg(default_value_t = 2, short='p', long="index-padding", value_parser=0..=5)]
     pub index_padding: i64,
 
-    #[arg(help = "Embed sample loop points in WAV")]
-    #[arg(short, long)]
-    pub loop_points: bool,
+    // #[arg(help = "Embed sample loop points in WAV")]
+    // #[arg(short, long)]
+    // pub loop_points: bool,
 
     // #[arg(help="Include embedded text from tracker (if it exists)")]
     // #[arg(short='c', long)]

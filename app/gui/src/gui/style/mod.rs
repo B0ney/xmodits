@@ -3,6 +3,7 @@ pub mod checkbox;
 pub mod progress_bar;
 pub mod radio;
 pub mod scrollable;
+pub mod svg;
 pub mod text;
 pub mod text_input;
 use iced::overlay::menu;

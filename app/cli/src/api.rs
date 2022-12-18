@@ -72,7 +72,8 @@ pub fn rip(cli: Cli, destination: PathBuf) {
             &sample_namer_func,
             !cli.no_folder,
             &cli.hint,
-            cli.loop_points,
+            // cli.loop_points,
+            false,
         ) {
             eprintln!("Error {} <-- \"{}\"", error, file_name(mod_path))
         }

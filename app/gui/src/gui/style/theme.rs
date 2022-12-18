@@ -18,7 +18,6 @@ use iced::{color, Color};
 
 #[derive(Default, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Theme {
-    Lupin,
     #[default]
     Dark,
     Light,
@@ -54,7 +53,7 @@ pub struct ColorPalette {
 }
 
 impl Theme {
-    pub const ALL: [Self; 3] = [Self::Lupin, Self::Dark, Self::Light];
+    pub const ALL: [Self; 2] = [Self::Dark, Self::Light];
     pub fn palette(&self) -> ColorPalette {
         match self {
             Self::Dark => ColorPalette {
@@ -73,7 +72,7 @@ impl Theme {
                     primary: color!(0xBA84FC),
                     secondary: color!(0x49eb7a),
                     surface: color!(0xE0E0E0),
-                    error: color!(0xC13047),
+                    error: color!(0xa37777),
                 },
             },
             Self::Light => ColorPalette {
@@ -94,24 +93,6 @@ impl Theme {
                     error: color!(0xC13047),
                 },
             },
-            Self::Lupin => ColorPalette {
-                base: BaseColors {
-                    background: color!(0x282a36),
-                    foreground: color!(0x353746),
-                },
-                normal: NormalColors {
-                    primary: color!(0x58406F),
-                    secondary: color!(0x386e50),
-                    surface: color!(0xa2a4a3),
-                    error: color!(0xA13034),
-                },
-                bright: BrightColors {
-                    primary: color!(0xbd94f9),
-                    secondary: color!(0x49eb7a),
-                    surface: color!(0xf4f8f3),
-                    error: color!(0xE63E6D),
-                },
-            },
         }
     }
 }
@@ -124,7 +105,6 @@ impl std::fmt::Display for Theme {
             match self {
                 Theme::Dark => "Dark",
                 Theme::Light => "Light",
-                Theme::Lupin => "Lupin",
             }
         )
     }

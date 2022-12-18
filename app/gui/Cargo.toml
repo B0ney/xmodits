@@ -4,7 +4,8 @@ authors = ["B0ney <https://github.com/B0ney>"]
 version = "0.9.8"
 edition = "2021"
 build = "build.rs"
-
+license = "gpl3"
+repository = "https://github.com/B0ney/xmodits"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [target.'cfg(windows)'.build-dependencies]
@@ -33,6 +34,7 @@ rand = "0.8.5"
 version = "0.6.0"
 # git = "https://github.com/iced-rs/iced"
 features = [
+    "svg",
     "glow", 
     "image", 
     "default_system_font",
