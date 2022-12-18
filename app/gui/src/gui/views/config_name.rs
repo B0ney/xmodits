@@ -1,7 +1,7 @@
 use crate::gui::{style, JETBRAINS_MONO};
 use crate::{core::cfg::SampleNameConfig, gui::style::Theme};
-use iced::widget::{checkbox, column, container, row, text};
-use iced::{Element, Length, Renderer};
+use iced::widget::{checkbox, column, container, pick_list, row, text};
+use iced::{Alignment, Element, Length, Renderer};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -9,7 +9,7 @@ pub enum Message {
     IndexRaw(bool),
     UpperCase(bool),
     LowerCase(bool),
-    // IndexPadding(u8),
+    IndexPadding(u8),
 }
 
 impl SampleNameConfig {
@@ -40,22 +40,36 @@ impl SampleNameConfig {
                     self.index_only = false;
                 }
                 self.lower = lower;
-            } // Message::IndexPadding(padding) => self.index_padding = padding,
+            }
+            Message::IndexPadding(padding) => self.index_padding = padding,
         }
     }
     pub fn view(&self) -> Element<Message, Renderer<Theme>> {
         let settings: _ = container(
-            row![
-                column![
-                    checkbox("Index Only", self.index_only, Message::IndexOnly),
-                    checkbox("Preserve Index", self.index_raw, Message::IndexRaw)
+            column![
+                row![
+                    column![
+                        checkbox("Index Only", self.index_only, Message::IndexOnly),
+                        checkbox("Preserve Index", self.index_raw, Message::IndexRaw)
+                    ]
+                    .spacing(8),
+                    column![
+                        checkbox("Upper Case", self.upper, Message::UpperCase),
+                        checkbox("Lower Case", self.lower, Message::LowerCase)
+                    ]
+                    .spacing(8)
                 ]
                 .spacing(8),
-                column![
-                    checkbox("Upper Case", self.upper, Message::UpperCase),
-                    checkbox("Lower Case", self.lower, Message::LowerCase)
+                row![
+                    pick_list(
+                        (1..4).collect::<Vec<u8>>(),
+                        Some(self.index_padding),
+                        Message::IndexPadding
+                    ),
+                    "Index Padding"
                 ]
-                .spacing(8)
+                .align_items(Alignment::Center)
+                .spacing(5),
             ]
             .spacing(8),
         )
