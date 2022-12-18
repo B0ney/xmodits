@@ -12,7 +12,7 @@ fn dump(
     index_padding: Option<usize>, // Set sample number padding
     index_only: Option<bool>,     // Only name sample by their number
     with_folder: Option<bool>,    // create new folder
-    with_loop_points: Option<bool>,
+    loop_points: Option<bool>,
     upper: Option<bool>,
     lower: Option<bool>,
     hint: Option<String>,
@@ -24,7 +24,7 @@ fn dump(
         index_padding,
         index_only,
         with_folder,
-        with_loop_points,
+        loop_points,
         upper,
         lower,
         hint,
@@ -40,7 +40,7 @@ fn dump_multiple(
     index_padding: Option<usize>,
     index_only: Option<bool>,
     with_folder: Option<bool>,
-    with_loop_points: Option<bool>,
+    loop_points: Option<bool>,
     upper: Option<bool>,
     lower: Option<bool>,
     hint: Option<String>,
@@ -52,7 +52,7 @@ fn dump_multiple(
         index_padding,
         index_only,
         with_folder,
-        with_loop_points,
+        loop_points,
         upper,
         lower,
         hint,

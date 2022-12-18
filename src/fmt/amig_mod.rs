@@ -46,12 +46,42 @@ impl TrackerDumper for MODFile {
                 "XPK compressed MOD files are not supported",
             ));
         }
+        // TODO: temporary bug fix
+        {
+            let smp_num: u8 = {
+                // Valid ASCII chars are in between 32-127
+                if buf[dword!(0x0438)].iter().any(|b| *b <= 32 || *b >= 126) {
+                    15
+                } else {
+                    31
+                }
+            };
+    
+            // Fixed panic on modules made with ultimate sound tracker.
+            // ^ outdated
+            // TODO: Why did I add 1? I fogor
+            let offset: usize = if smp_num == 15 { (15 + 1) * 30 } else { 0 };
+    
+            let largest_pat = *buf[slice!(PAT_META - offset, 128)].iter().max().unwrap() as usize;
+    
+            // TODO: Document mysterious values
+            // 0x0438 = 4 byte tag to identify mod type add 4 to skip
+            let smp_index: usize = { 4 + (0x0438 - offset) + (largest_pat + 1) * 1024 };
+    
+            if smp_index == buf.len() {
+                return Err(XmoditsError::EmptyModule);
+            }
+            if smp_index >= buf.len() {
+                return Err(XmoditsError::invalid("Not a valid MOD file"));
+            }
+        }
+
         Ok(())
     }
 
     fn load_from_buf_unchecked(buf: Vec<u8>) -> Result<TrackerModule, Error> {
         let title: String = read_string(&buf, 0x0000, 20);
-        let alt_finetune: bool = ALT_FINETUNE.contains(&&buf[dword!(0x0438)]);
+        // let alt_finetune: bool = ALT_FINETUNE.contains(&&buf[dword!(0x0438)]);
 
         // if it contains any non-ascii, it was probably made with ultimate sound tracker
         let smp_num: u8 = {
@@ -74,14 +104,14 @@ impl TrackerDumper for MODFile {
         // 0x0438 = 4 byte tag to identify mod type add 4 to skip
         let smp_index: usize = { 4 + (0x0438 - offset) + (largest_pat + 1) * 1024 };
 
-        if smp_index == buf.len() {
-            return Err(XmoditsError::EmptyModule);
-        }
-        if smp_index >= buf.len() {
-            return Err(XmoditsError::invalid("Not a valid MOD file"));
-        }
+        // if smp_index == buf.len() {
+        //     return Err(XmoditsError::EmptyModule);
+        // }
+        // if smp_index >= buf.len() {
+        //     return Err(XmoditsError::invalid("Not a valid MOD file"));
+        // }
 
-        let smp_data: Vec<MODSample> = build_samples(smp_num, &buf, smp_index, alt_finetune)?;
+        let smp_data: Vec<MODSample> = build_samples(smp_num, &buf, smp_index)?;
 
         // let last = smp_data.last().unwrap();
         // let end = last.ptr + last.len;
@@ -133,7 +163,6 @@ fn build_samples(
     smp_num: u8,
     buf: &[u8],
     smp_start: usize,
-    alt_finetune: bool,
 ) -> Result<Vec<MODSample>, Error> {
     let mut smp_data: Vec<MODSample> = Vec::with_capacity(smp_num as usize);
     let mut smp_pcm_stream_index: usize = smp_start;

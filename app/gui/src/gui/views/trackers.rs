@@ -128,9 +128,6 @@ impl Trackers {
         if !self.paths.iter().any(|x| &x.path == &path) {
             self.paths.push(Entry::new(path));
         }
-        if !self.errors.is_empty() {
-            self.errors.clear();
-        }
         if self.state != State::None {
             self.state = State::None
         }

@@ -31,7 +31,7 @@ impl SampleRippingConfig {
             row![column![
                 checkbox("No Folder", self.no_folder, Message::ToggleNoFolder),
                 checkbox(
-                    "Embed sample loops",
+                    "Embed Sample Loops",
                     self.embed_loop_points,
                     Message::ToggleEmbedLoopPoint
                 ),
