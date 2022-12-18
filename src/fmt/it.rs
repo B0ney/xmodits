@@ -4,6 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+use std::borrow::Cow;
+
 use super::compression::decompress_sample;
 use crate::dword;
 use crate::utils::prelude::*;
@@ -23,7 +25,6 @@ const IT215: u16 = 0x0215; // IT215 compression
 pub struct ITFile {
     title: String,
     buf: Vec<u8>,
-    pcm_cache: Vec<Vec<u8>>,
     compat_ver: u16,
     smp_num: u16,
     smp_data: Vec<ITSample>,
@@ -73,29 +74,24 @@ impl TrackerDumper for ITFile {
             smp_data,
             compat_ver,
             buf,
-            pcm_cache: vec![Vec::new(); smp_num as usize],
         }))
     }
 
-    fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
+    fn pcm(&mut self, index: usize) -> Result<Cow<[u8]>, XmoditsError> {
         let smp = &mut self.smp_data[index];
 
-        if smp.is_compressed && self.pcm_cache[index].is_empty() {
-            self.pcm_cache[index] = decompress_sample(
+        Ok(match smp.is_compressed {
+            true => Cow::Owned(decompress_sample(
                 &self.buf[smp.ptr..],
                 smp.len as u32,
                 smp.bits,
                 self.compat_ver == IT215,
-            )?;
-        };
+            )?),
 
-        Ok(match smp.is_compressed {
-            true => &self.pcm_cache[index],
-
-            false => match smp.bits {
+            false => Cow::Borrowed(match smp.bits {
                 8 => make_signed_u8_checked(&mut self.buf, smp),
                 _ => &self.buf[smp.ptr_range()],
-            },
+            }),
         })
     }
 

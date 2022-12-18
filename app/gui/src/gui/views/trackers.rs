@@ -100,7 +100,7 @@ impl Entry {
 pub enum State {
     #[default]
     None,
-    Ripping,
+    Ripping(Option<String>),
     Done,
     DoneWithErrors(Vec<(PathBuf, String)>),
     DoneWithTooMuchErrors(PathBuf),
@@ -122,16 +122,17 @@ pub struct Trackers {
 
 impl Trackers {
     pub fn add(&mut self, path: PathBuf) {
-        if self.state != State::Ripping {
-            if !self.paths.iter().any(|x| &x.path == &path) {
-                self.paths.push(Entry::new(path));
-            }
-            if !self.errors.is_empty() {
-                self.errors.clear();
-            }
-            if self.state != State::None {
-                self.state = State::None
-            }
+        if matches!(self.state, State::Ripping(_)) {
+            return;
+        }
+        if !self.paths.iter().any(|x| &x.path == &path) {
+            self.paths.push(Entry::new(path));
+        }
+        if !self.errors.is_empty() {
+            self.errors.clear();
+        }
+        if self.state != State::None {
+            self.state = State::None
         }
     }
     pub fn set_hint(&mut self, hint: Option<String>) {
@@ -187,7 +188,7 @@ impl Trackers {
                     },
                     cfg.to_owned(),
                 ));
-                self.state = State::Ripping;
+                self.state = State::Ripping(None);
             }
         }
     }
@@ -242,6 +243,7 @@ impl Trackers {
             }
             Message::SubscriptionMessage(msg) => match msg {
                 DownloadMessage::Ready(tx) => self.sender = Some(tx),
+                DownloadMessage::Info(info) => self.state = State::Ripping(info),
                 DownloadMessage::Done => {
                     let errors = std::mem::take(&mut self.errors);
                     let log_path = self.log_path.to_owned();
@@ -327,9 +329,13 @@ impl Trackers {
                     .height(Length::Fill)
                 }
             }
-            State::Ripping => container(
+            State::Ripping(ref message) => container(
                 column![
-                    text("Ripping...").font(JETBRAINS_MONO),
+                    text(match message.as_ref() {
+                        Some(info) => info,
+                        None => "Ripping...",
+                    })
+                    .font(JETBRAINS_MONO),
                     progress_bar(0.0..=100.0, self.progress)
                         .height(Length::Units(5))
                         .width(Length::Units(200))

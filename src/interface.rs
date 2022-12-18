@@ -7,6 +7,7 @@ use crate::loader::load_to_buf;
 use crate::utils::prelude::Wav;
 use crate::utils::Error;
 use crate::XmoditsError;
+use std::borrow::Cow;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -56,7 +57,7 @@ pub struct TrackerSample {
 }
 
 impl TrackerSample {
-    /// Return both Start & End pointers to sample data as a range.
+    /// Return both start & end pointers to sample data as a range.
     pub fn ptr_range(&self) -> std::ops::Range<usize> {
         self.ptr..(self.ptr + self.len)
     }
@@ -136,11 +137,11 @@ pub trait TrackerDumper {
     ) -> Result<(), Error> {
         let smp = &self.list_sample_data()[index];
 
-        Ok(Wav::from_tracker_sample(smp).write_ref(file, self.pcm(index)?, with_loop_points)?)
+        Ok(Wav::from_tracker_sample(smp).write_ref(file, &self.pcm(index)?, with_loop_points)?)
     }
 
-    /// return reference to readable pcm data
-    fn pcm(&mut self, index: usize) -> Result<&[u8], Error>;
+    /// return ```Cow<[u8]>``` to readable pcm data.
+    fn pcm(&mut self, index: usize) -> Result<Cow<[u8]>, Error>;
 
     // Load tracker module from given path
     fn load_module<P>(path: P) -> Result<TrackerModule, Error>

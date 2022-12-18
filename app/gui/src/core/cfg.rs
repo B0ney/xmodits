@@ -127,16 +127,18 @@ pub enum FormatHint {
     S3M,
     MOD,
     UMX,
+    MPTM,
 }
 
 impl FormatHint {
-    pub const ALL: [FormatHint; 6] = [
+    pub const ALL: [FormatHint; 7] = [
         FormatHint::None,
         FormatHint::IT,
         FormatHint::XM,
         FormatHint::S3M,
         FormatHint::MOD,
         FormatHint::UMX,
+        FormatHint::MPTM,
     ];
 }
 
@@ -148,15 +150,6 @@ impl Into<Option<String>> for FormatHint {
         }
     }
 }
-
-// impl Into<Option<String>> for &FormatHint {
-//     fn into(self) -> Option<String> {
-//         match self {
-//             FormatHint::None => None,
-//             hint => Some(hint.to_string().to_lowercase()),
-//         }
-//     }
-// }
 
 impl std::fmt::Display for FormatHint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -170,6 +163,7 @@ impl std::fmt::Display for FormatHint {
                 FormatHint::S3M => "S3M",
                 FormatHint::MOD => "MOD",
                 FormatHint::UMX => "UMX",
+                FormatHint::MPTM => "MPTM",
             }
         )
     }

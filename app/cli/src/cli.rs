@@ -50,7 +50,7 @@ pub struct Cli {
     pub info: bool,
 
     #[arg(help = "Hint XMODITS to load a particular format first.")]
-    #[arg(value_parser=["it", "xm", "s3m", "mod", "umx"])]
+    #[arg(value_parser=["it", "xm", "s3m", "mod", "umx", "mptm"])]
     #[arg(long)]
     pub hint: Option<String>,
     // #[cfg(feature = "advanced")]

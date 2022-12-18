@@ -11,6 +11,8 @@ https://github.com/OpenMPT/openmpt/blob/master/soundlib/Load_mod.cpp
 https://github.com/milkytracker/MilkyTracker/blob/master/src/milkyplay/LoaderMOD.cpp // milkyplay is BSD licensed
 */
 
+use std::borrow::Cow;
+
 use crate::utils::signed::make_signed_u8_checked;
 use crate::{
     dword, utils::prelude::*, word, TrackerDumper, TrackerModule, TrackerSample, XmoditsError,
@@ -105,9 +107,9 @@ impl TrackerDumper for MODFile {
         }))
     }
 
-    fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
+    fn pcm(&mut self, index: usize) -> Result<Cow<[u8]>, XmoditsError> {
         let smp = &mut self.smp_data[index];
-        Ok(make_signed_u8_checked(&mut self.buf, smp))
+        Ok(Cow::Borrowed(make_signed_u8_checked(&mut self.buf, smp)))
     }
 
     fn number_of_samples(&self) -> usize {

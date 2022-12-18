@@ -142,7 +142,7 @@ impl TrackerDumper for UMXFile {
     fn list_sample_data(&self) -> &[crate::TrackerSample] {
         unimplemented!()
     }
-    fn pcm(&mut self, _: usize) -> Result<&[u8], Error> {
+    fn pcm(&mut self, _: usize) -> Result<Cow<[u8]>, XmoditsError> {
         unimplemented!()
     }
     fn format(&self) -> &str {

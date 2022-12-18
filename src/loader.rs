@@ -33,6 +33,7 @@ pub static LOADERS: phf::OrderedMap<&str, (ModValidatorFunc, ModLoaderFunc)> = p
     "xm" => (validate::<XMFile>, load::<XMFile>),
     "s3m" => (validate::<S3MFile>, load::<S3MFile>),
     "umx" => (validate::<UMXFile>, load::<UMXFile>),
+    "mptm" => (validate::<ITFile>, load::<ITFile>),
     // MOD has the least validations, so we put this last.
     // This is why we made it an ordered hashmap.
     "mod" => (validate::<MODFile>, load::<MODFile>),
@@ -83,9 +84,11 @@ where
     // If validation fails, hold the original error so that we may return it if all else fails.
     // Iterate through all the (validator, loaders) in hashmap and attempt to load it.
     // 
-    // We exclude "mod" because it has little to no validation.
+    // Exclude the current extension to prevent an infinite loop.
+    // Exclude "mod" because it has little to no validation. Might be removed in future.
+    // Exclude "mptm" becaues it's identical to "it".
     for (_, (validator_bak, loader_bak)) in
-        LOADERS.entries().filter(|(k, _)| !["mod", ext].contains(k))
+        LOADERS.entries().filter(|(k, _)| !["mptm", "mod", ext].contains(k))
     {
         if validator_bak(&buf).is_ok() {
             return loader_bak(buf);

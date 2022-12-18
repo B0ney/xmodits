@@ -4,6 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+use std::borrow::Cow;
+
 use crate::{
     dword,
     utils::{prelude::*, signed::make_signed_u16_checked},
@@ -61,13 +63,13 @@ impl TrackerDumper for S3MFile {
         }))
     }
 
-    fn pcm(&mut self, index: usize) -> Result<&[u8], Error> {
+    fn pcm(&mut self, index: usize) -> Result<Cow<[u8]>, XmoditsError> {
         let smp = &mut self.smp_data[index];
 
-        Ok(match smp.bits {
+        Ok(Cow::Borrowed(match smp.bits {
             8 => &self.buf[smp.ptr_range()],
             _ => make_signed_u16_checked(&mut self.buf, smp),
-        })
+        }))
     }
 
     fn number_of_samples(&self) -> usize {

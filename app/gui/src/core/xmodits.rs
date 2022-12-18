@@ -32,6 +32,7 @@ pub enum DownloadMessage {
         progress: f32,
         result: Result<(), (PathBuf, String)>,
     },
+    Info(Option<String>),
 }
 
 /// Messages emitted by thread
@@ -41,6 +42,7 @@ enum ThreadMsg {
     Ok,
     Failed((PathBuf, String)),
     Done,
+    Info(Option<String>),
 }
 
 /// The subscription will emit messages when:
@@ -112,6 +114,14 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
                     progress,
                 },
             ),
+            Some(ThreadMsg::Info(info)) => (
+                Some(DownloadMessage::Info(info)),
+                State::Ripping {
+                    ripping_msg,
+                    total,
+                    progress,
+                },
+            ),
             _ => (Some(DownloadMessage::Done), State::Init),
         },
     }
@@ -135,6 +145,10 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
                 folders.push(i)
             }
         }
+
+        tx.blocking_send(ThreadMsg::Info(Some("Traversing folders...".into())))
+            .expect("Channel closed prematurely");
+
         // Can use a lot of memory if max_depth is too high
         let expanded_folders = folders.into_iter().flat_map(move |f| {
             WalkDir::new(f)
@@ -162,6 +176,12 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
 
         tx.blocking_send(ThreadMsg::SetTotal(expanded_paths.len()))
             .expect("Channel closed prematurely");
+
+        tx.blocking_send(ThreadMsg::Info(Some(format!(
+            "Ripping {} files...",
+            expanded_paths.len()
+        ))))
+        .expect("Channel closed prematurely");
 
         let namer = &config.naming.build_func();
         let hint = config.hint.into();
