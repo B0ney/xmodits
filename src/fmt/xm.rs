@@ -118,7 +118,7 @@ fn skip_pat_header(buf: &[u8], patnum: usize, hdr_size: u32) -> Result<usize, Er
         offset += (pat_hdr_len + pat_data_size) as usize;
     }
 
-    Ok(offset as usize)
+    Ok(offset)
 }
 
 /* Needs refactoring, it works but looks horrible. */

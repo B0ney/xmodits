@@ -105,7 +105,7 @@ impl button::StyleSheet for Theme {
             },
             ..active
         };
-
+        
         match style {
             // Button::RestorePackage => disabled_appearance(p.normal.primary, Some(p.bright.primary)),
             // Button::UninstallPackage => disabled_appearance(p.bright.error, None),

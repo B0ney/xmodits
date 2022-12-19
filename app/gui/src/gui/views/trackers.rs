@@ -125,7 +125,7 @@ impl Trackers {
         if matches!(self.state, State::Ripping(_)) {
             return;
         }
-        if !self.paths.iter().any(|x| &x.path == &path) {
+        if !self.paths.iter().any(|x| x.path == path) {
             self.paths.push(Entry::new(path));
         }
         if self.state != State::None {
@@ -411,7 +411,7 @@ impl Trackers {
                     // TODO: maybe display the first 150 errors?
                     text("Unfortunatley, it's not possible to produce an error log:")
                         .font(JETBRAINS_MONO),
-                    text(format!("{}", error))
+                    text(error)
                         .font(JETBRAINS_MONO)
                         .horizontal_alignment(Horizontal::Center)
                 ]
@@ -455,8 +455,8 @@ impl Trackers {
             Space::with_width(Length::Fill),
             button("Delete Selected")
                 .padding(10)
-                .on_press(Message::DeleteSelected)
-                .style(style::button::Button::Delete),
+                .on_press(Message::DeleteSelected),
+                // .style(style::button::Button::Delete),
             button("Clear").padding(10).on_press(Message::Clear),
         ]
         .spacing(10)

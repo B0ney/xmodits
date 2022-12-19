@@ -3,14 +3,14 @@ use iced::{color, Background, Color};
 
 use super::Theme;
 
-impl svg::StyleSheet for Theme {
-    type Style = ();
+// impl svg::StyleSheet for Theme {
+//     type Style = ();
 
-    fn appearance(&self, style: &Self::Style) -> svg::Appearance {
-        let p = self.palette();
+//     fn appearance(&self, style: &Self::Style) -> svg::Appearance {
+//         let p = self.palette();
 
-        svg::Appearance {
-            color: Some(color!(0xffffff)),
-        }
-    }
-}
+//         svg::Appearance {
+//             color: Some(color!(0xffffff)),
+//         }
+//     }
+// }

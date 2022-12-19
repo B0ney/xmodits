@@ -1,4 +1,4 @@
-use crate::gui::icons::{github_icon, gpl3_icon};
+use crate::gui::icons::{github_icon};
 use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
 use iced::widget::{button, column, container, row, text};
@@ -25,7 +25,7 @@ pub fn view() -> Element<'static, Message, Renderer<Theme>> {
     let about = text("A tool to rip samples from various tracker modules.")
         .font(JETBRAINS_MONO)
         .horizontal_alignment(Horizontal::Center);
-    let repo = button(text(format!("{}", env!("CARGO_PKG_REPOSITORY"))).font(JETBRAINS_MONO))
+    let repo = button(text(env!("CARGO_PKG_REPOSITORY")).font(JETBRAINS_MONO))
         .style(style::button::Button::Hyperlink)
         .on_press(Message::GH);
     let version: _ = text(format!("version: {}", env!("CARGO_PKG_VERSION"))).font(JETBRAINS_MONO);
@@ -36,7 +36,7 @@ pub fn view() -> Element<'static, Message, Renderer<Theme>> {
             version,
             about,
             repo,
-            gpl3_icon().width(Length::Units(150))
+            // gpl3_icon().width(Length::Units(150))
         ]
         .align_items(Alignment::Center)
         .spacing(5),
