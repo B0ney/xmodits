@@ -1,9 +1,11 @@
 [package]
 name = "xmodits"
 authors = ["B0ney - https://github.com/B0ney"]
+description = "Xmodits CLI application"
 version = "0.9.7"
 edition = "2021"
-
+license = "LGPLv3"
+repository = "https://github.com/B0ney/xmodits"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

@@ -1,7 +1,12 @@
 [package]
 name = "xmodits_py"
+authors = ["B0ney - https://github.com/B0ney"]
+description = "Extract samples from tracker modules. Supports IT, XM, S3M, MOD, UMX, MPTM"
 version = "0.1.3"
 edition = "2021"
+license = "LGPLv3"
+readme = "README.md"
+repository = "https://github.com/B0ney/xmodits"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]

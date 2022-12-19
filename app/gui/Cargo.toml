@@ -1,10 +1,11 @@
 [package]
 name = "xmodits-gui"
 authors = ["B0ney <https://github.com/B0ney>"]
+description = "XMODITS graphical application"
 version = "0.9.8"
 edition = "2021"
 build = "build.rs"
-license = "gpl3"
+license = "GPLv3"
 repository = "https://github.com/B0ney/xmodits"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

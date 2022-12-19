@@ -10,3 +10,14 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
+
+dynamic = [
+    "authors",
+    "description",
+    "license",
+    "readme",
+    "version"
+]
+
+[project.urls]
+"Source Code" = "https://github.com/B0ney/xmodits"

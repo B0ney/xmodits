@@ -1,45 +1,70 @@
 # XMODITS python library
 
-## development:
-https://docs.python.org/3/library/venv.html
-
-Create a python virtual environment in this directory:
-
-```python -m venv dev```
-
-activate virtual environment:
-
-```source ./dev/bin/activate```
-
-install [maturin (crates.io)](https://crates.io/crates/maturin) or from [pipi](https://pypi.org/project/maturin/)
-
-run test library:
-
-```maturin develop```
-
-
-# API (In progress)
-
-### Dump samples to a folder
-
+Supported formats:
+* Impulse Tracker .IT
+* Extended Module .XM
+* Scream Tracker .S3M
+* Amiga Pro Tracker .MOD
+* Open ModPlug Tracker .MPTM (Sample wise, it is identical to Impulse Tracker)
+* Unreal Music Container .UMX (Containing the above formats)
+# How to use
 ```python
 import xmodits
 
-# dump samples to "samples/" 
-tracker = "mods/music.xm"
-folder  = "samples/"
+file = "~/Downloads/music.xm"
+folder = "~/Music/samples/"
 
-xmodits.dump(tracker, folder)
-```
-This produces the following output in folder **"samples"**:
+# Rip samples to folder
+xmodits.dump(file, folder)
 
 ```
-01 - hihat.wav
-02 - kick.wav
-03 - snare.wav
-04 - toms.wav
-...
-15 - vocal.wav
+# Required Arguments
+|Argument| Meaning|
+| --- | --- |
+| ```Path``` | Path to a tracker module |
+| ```Destination``` | Destination folder for dumped samples |
+
+
+# Additional Arguments
+
+|Argument| Definition|
+| --- | --- |
+| ```with_folder``` | Create a new folder for ripped samples.<br> **e.g.** When set to ```True```, ```"drums.it"``` will create ```"drums_it"``` in the destination folder and place those samples there. |
+| ```index_padding``` | Set padding.<br > **e.g.** ```"01 - kick.wav"``` --> ```"1 - kick.wav"``` |
+| ```index_only``` | Only name samples with a number.<br> **e.g.** ```"09 - HiHat.wav"``` --> ```"09.wav"``` |
+| ```index_raw``` | Preserves the internal sample indexing  |
+| ```hint``` | Hint XMODITS to load a particular format first.<br> ```["it", "xm", "s3m", "mod", "umx", "mptm ]```  |
+| ```upper``` | Name samples in upper case |
+| ```lower``` | Name samples in lower case |
+
+
+# Exceptions
+They're pretty much self explanitory.
+
+|Exception| Meaning|
+| --- | --- |
+|```SampleExtractionError```| Xmodits could not rip a sample.|
+| ```UnsupportedFormatError```  | The provided file extension is not recognised |
+| ```InvalidModuleError``` | The file is not a valid, tracker module  |
+| ```EmptyModuleError``` | The tracker module is valid but it has no samples! |
+
+
+# Additional Examples
+### Dump multiple trackers
+```python
+import xmodits
+import os
+import glob
+
+folder = "~/Downloads/mods/it/"
+destination = "~/Music/Samples/"
+
+xmodits.dump_multiple(
+    glob.glob(folder +  "*b*"),
+    destination,
+    with_folder=True
+)
+
 ```
 
 ### Dump samples without names
@@ -78,10 +103,10 @@ folder  = "samples/"
 xmodits.dump(
     tracker,
     folder,
-
-    index_padding=0         # or 1, both have the same effect
+    index_padding=0 # or 1, both have the same effect
 )
 ```
+
 Output:
 ```
 1 - hihat.wav
@@ -98,7 +123,7 @@ Samples stored in tracker modules can have an arbitary index. If you prefer to u
 index_raw=True
 ```
 
-If you're dumping from multiple modulse to the same folder, you're guaranteed to have collisions. 
+If you're dumping from multiple modules to the same folder, you're guaranteed to have collisions. 
 
 You should include the parameter:
 
@@ -106,31 +131,24 @@ You should include the parameter:
 with_folder=True
 ```
 
-It will produce a new folder within the destination folder
-
-# Required Arguments
-|Argument| Meaning|
-| --- | --- |
-| ```Path``` | Path to a tracker module |
-| ```Destination``` | Destination folder for dumped samples |
-
-# Additional Arguments
-
-|Argument| Meaning|
-| --- | --- |
-| ```with_folder``` | Create a new folder for ripped samples.<br> **e.g.** When set to ```True```, ```"drums.it"``` will create ```"drums_it"``` in the destination folder and place those samples there. |
-| ```index_padding``` | Set padding.<br > **e.g.** ```"01 - kick.wav"``` --> ```"1 - kick.wav"``` |
-| ```index_only``` | Only name samples with a number.<br> **e.g.** ```"09 - HiHat.wav"``` --> ```"09.wav"``` |
-| ```index_raw``` | Sample number will be identical  |
 
 
+## development:
+https://docs.python.org/3/library/venv.html
 
-# Exceptions
-They're pretty much self explanitory.
+Create a python virtual environment in this directory:
 
-|Exception| Meaning|
-| --- | --- |
-|```SampleExtractionError```| xmodits could not rip a sample.|
-| ```UnsupportedFormatError```  | |
-| ```InvalidModuleError``` | |
-| ```EmptyModuleError``` | The tracker module is valid but it has no samples! |
+```python -m venv dev```
+
+activate virtual environment:
+
+```source ./dev/bin/activate```
+
+install [maturin (crates.io)](https://crates.io/crates/maturin) or from [pipi](https://pypi.org/project/maturin/)
+
+run test library:
+
+```maturin develop```
+
+# License
+The xmodits python library is licensed under the LGPLv3
