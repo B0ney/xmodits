@@ -130,6 +130,20 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
 fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
     std::thread::spawn(move || {
         let (paths, config) = config;
+
+        let dest_dir = config.destination;
+
+        if !dest_dir.is_dir() {
+            if let Err(e) = std::fs::create_dir(&dest_dir) {
+                tx.blocking_send(ThreadMsg::Failed((dest_dir, e.to_string())))
+                    .expect("Channel closed prematurely");
+
+                tx.blocking_send(ThreadMsg::Done)
+                    .expect("Channel closed prematurely");
+                return;
+            };
+        }
+
         let scan_depth = match config.folder_recursion_depth {
             0 => 1,
             d => d,
@@ -154,25 +168,14 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
             WalkDir::new(f)
                 .max_depth(scan_depth as usize)
                 .into_iter()
-                .filter_map(|f| f.ok())
-                .map(|f| f.into_path())
-                .filter(|f| f.is_file())
+                .filter_map(|f| match f.ok() {
+                    Some(d) if d.path().is_file() => Some(d.into_path()),
+                    _ => None,
+                })
         });
 
+        // Collect because we should inform the user how many files it's ripping
         let expanded_paths: Vec<PathBuf> = files.into_iter().chain(expanded_folders).collect();
-
-        let dest_dir = config.destination;
-
-        if !dest_dir.is_dir() {
-            if let Err(e) = std::fs::create_dir(&dest_dir) {
-                tx.blocking_send(ThreadMsg::Failed((dest_dir, e.to_string())))
-                    .expect("Channel closed prematurely");
-
-                tx.blocking_send(ThreadMsg::Done)
-                    .expect("Channel closed prematurely");
-                return;
-            };
-        }
 
         tx.blocking_send(ThreadMsg::SetTotal(expanded_paths.len()))
             .expect("Channel closed prematurely");
@@ -183,7 +186,7 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
         ))))
         .expect("Channel closed prematurely");
 
-        let namer = &config.naming.build_func();
+        let namer = config.naming.build_func();
         let hint = config.hint.into();
 
         for path in expanded_paths {
@@ -191,7 +194,7 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
                 match xmodits_common::dump_samples_advanced(
                     &path,
                     folder(&dest_dir, &path, !config.no_folder),
-                    namer,
+                    &namer,
                     !config.no_folder,
                     &hint,
                     config.embed_loop_points,

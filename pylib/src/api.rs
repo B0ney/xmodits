@@ -32,7 +32,7 @@ pub fn rip_multiple(
         .map(|path| {
             dump_samples_advanced(
                 &path,
-                &folder(&destination, &path, create_if_absent),
+                folder(&destination, &path, create_if_absent),
                 &sample_namer_func,
                 create_if_absent,
                 &hint,
