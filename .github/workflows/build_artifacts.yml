@@ -20,6 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target
 
       - name: install lib alsa
         if: matrix.os == 'ubuntu-latest'
@@ -60,8 +68,8 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           # TODO
-          name: xmodits$-{{ matrix.build_target }}
-          path: bin/*/*
+          name: xmodits-${{ matrix.build_target }}
+          path: bin/*
 
 
 # xmodits-gui-linux.tar.gz
