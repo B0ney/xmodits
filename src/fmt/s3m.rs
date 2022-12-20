@@ -33,7 +33,7 @@ impl TrackerDumper for S3MFile {
             || &buf[dword!(0x002c)] != S3M_HEADER_ID
         {
             return Err(XmoditsError::invalid(
-                "File is not a valid Scream Tracker Module",
+                "File is not a valid Scream Tracker module",
             ));
         }
         Ok(())

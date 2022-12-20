@@ -39,7 +39,7 @@ pub struct MODFile {
 impl TrackerDumper for MODFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 1085 {
-            return Err(XmoditsError::invalid("Not a valid MOD file"));
+            return Err(XmoditsError::invalid("Not a valid Amiga ProTracker Module"));
         }
         if &buf[dword!(0x0000)] == MOD_XPK_MAGIC {
             return Err(XmoditsError::unsupported(

@@ -268,7 +268,7 @@ impl XmoditsGui {
 
 fn icon() -> Icon {
     let image =
-        image::load_from_memory(include_bytes!("../../../../extras/logos/png/icon3.png")).unwrap();
+        image::load_from_memory(include_bytes!("../../res/img/logo/icon3.png")).unwrap();
     let (w, h) = image.dimensions();
     Icon::from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
 }
