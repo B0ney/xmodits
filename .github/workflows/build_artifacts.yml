@@ -36,42 +36,44 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt install libasound2-dev 
         
-      - name: Building        
-        run: cargo build -p xmodits -p xmodits-gui --release
-      
-      - name: Creating ./bin directory
+      - name: Building CLI
+        if: matrix.app_type = 'cli'       
+        run: |
+          cargo build -p xmodits --release
+
+      - name: Building GUI
+        if: matrix.app_type = 'gui'       
+        run: cargo build -p xmodits-gui --release
+
+      - name: Create ./bin directory
         run: |
           mkdir -p bin
           
-      - name: Move binaries [Windows]
-        if: matrix.os == 'windows-latest'
-        run: | # rename xmodits-gui to just xmodits for windows
-          mv target/release/xmodits.exe bin/xmodits-cli.exe
-          mv target/release/xmodits-gui.exe bin/xmodits.exe
-      
-      - name: Move binaries [linux]
-        if: matrix.os != 'windows-latest'
+      - name: Tarbell Linux CLI binary
+        if: matrix.os != 'windows-latest' && matrix.app_type == 'cli'
         run: |
-          mv target/release/xmodits bin/xmodits
-          mv target/release/xmodits-gui bin/xmodits-gui
-      
-      - name: Tarbell Linux binary
-        if: matrix.os != 'windows-latest'
-        run: |
-          tar -czf bin/xmodits bin/xmodits-cli-${{matrix.build_target}}.tar.gz
-          tar -czf bin/xmodits-gui bin/xmodits-gui-${{matrix.build_target}}.tar.gz
+          tar -czf target/release/xmodits bin/xmodits-cli-${{matrix.build_target}}.tar.gz
 
-      - name: Zip Windows binary
-        if: matrix.os == 'windows-latest'
+      - name: Zip Windows CLI binary
+        if: matrix.os == 'windows-latest' && matrix.app_type == 'cli'
+        run: | # On Windows, add cli suffix
+          mv target/release/xmodits.exe target/release/xmodits-cli.exe
+          Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{matrix.build_target}}.zip
+
+      - name: Tarbell Linux GUI binary
+        if: matrix.os != 'windows-latest' && matrix.app_type == 'gui'
         run: |
-          Compress-Archive bin/xmodits.exe bin/xmodits-gui-${{matrix.build_target}}.zip
-          Compress-Archive bin/xmodits-cli.exe bin/xmodits-cli-${{matrix.build_target}}.zip
-          
+          tar -czf target/release/xmodits bin/xmodits-gui-${{matrix.build_target}}.tar.gz
+
+      - name: Zip Windows GUI binary
+        if: matrix.os == 'windows-latest' && matrix.app_type == 'gui'
+        run: | # On Windows, remove gui suffix
+          mv target/release/xmodits-gui.exe target/release/xmodits.exe
+          Compress-Archive target/release/xmodits.exe bin/xmodits-gui-${{matrix.build_target}}.zip
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: xmodits-${{ matrix.app_type }}-${{ matrix.build_target }}
           path: |
-            bin/xmodits-${{ matrix.app_type }}-${{ matrix.build_target }}.zip
-            bin/xmodits-${{ matrix.app_type }}-${{ matrix.build_target }}.tar.gz
-
+            bin/xmodits-${{ matrix.app_type }}-${{ matrix.build_target }}.*
