@@ -67,12 +67,8 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          # TODO
           name: xmodits-${{ matrix.build_target }}
-          path: bin/*
+          path: |
+            bin/*.zip
+            bin/*.tar.gz
 
-
-# xmodits-gui-linux.tar.gz
-# xmodits-cli-linux.tar.gz
-# xmodits-gui-windows.zip
-# xmodits-cli-windows.zip
