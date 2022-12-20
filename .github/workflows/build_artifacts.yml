@@ -37,12 +37,12 @@ jobs:
         run: sudo apt install libasound2-dev 
         
       - name: Building CLI
-        if: matrix.app_type = 'cli'       
+        if: matrix.app_type == 'cli'       
         run: |
           cargo build -p xmodits --release
 
       - name: Building GUI
-        if: matrix.app_type = 'gui'       
+        if: matrix.app_type == 'gui'       
         run: cargo build -p xmodits-gui --release
 
       - name: Create ./bin directory
