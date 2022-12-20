@@ -21,7 +21,11 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Building
+      - name: install lib alsa
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt install libasound2-dev 
+        
+      - name: Building        
         run: cargo build -p xmodits -p xmodits-gui --release
       
       - name: Creating ./bin directory
