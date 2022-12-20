@@ -28,6 +28,8 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target
+          key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.OS }}-release-
 
       - name: install lib alsa
         if: matrix.os == 'ubuntu-latest'
