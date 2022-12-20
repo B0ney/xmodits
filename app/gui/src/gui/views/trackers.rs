@@ -143,6 +143,7 @@ impl Trackers {
     // TODO: explore draining iterator
     pub fn delete_selected(&mut self) {
         if self.paths.len() == self.total_selected() {
+            self.all_selected = false;
             self.paths.clear();
             self.current = None;
             return;
@@ -211,6 +212,7 @@ impl Trackers {
             Message::Clear => {
                 self.paths.clear();
                 self.current = None;
+                self.all_selected = false;
 
                 if !matches!(self.state, State::None | State::Ripping(_)) {
                     self.state = State::None;
@@ -223,8 +225,11 @@ impl Trackers {
                 }
             }
             Message::SelectAll(b) => {
-                self.all_selected = b;
-                self.paths.iter_mut().for_each(|f| f.selected = b)
+                if !self.paths.is_empty() {
+                    self.all_selected = b;
+                    self.paths.iter_mut().for_each(|f| f.selected = b)
+                }
+                
             }
             Message::DeleteSelected => self.delete_selected(),
             Message::TrackerInfo(module) => {
