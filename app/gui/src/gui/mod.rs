@@ -4,7 +4,7 @@ pub mod views;
 use crate::core::{
     cfg::Config,
     font::JETBRAINS_MONO,
-    sfx::Audio,
+    // sfx::Audio,
     xmodits::{xmodits_subscription, DownloadMessage},
 };
 use iced::keyboard::{Event as KeyboardEvent, KeyCode};
@@ -59,7 +59,7 @@ pub enum Message {
 pub struct XmoditsGui {
     view: View,
     config: Config,
-    audio: Audio,
+    // audio: Audio,
     tracker: Trackers,
 }
 
@@ -132,7 +132,7 @@ impl Application for XmoditsGui {
                 if let Err(e) = self.config.save() {
                     warn!("{}", e);
                 };
-                self.audio.play("sfx_1");
+                // self.audio.play("sfx_1");
             }
             Message::WindowEvent(e) => match e {
                 Event::Keyboard(KeyboardEvent::KeyPressed { key_code, .. })

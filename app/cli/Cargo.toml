@@ -2,7 +2,7 @@
 name = "xmodits"
 authors = ["B0ney - https://github.com/B0ney"]
 description = "Xmodits CLI application"
-version = "0.9.7"
+version = "0.9.8"
 edition = "2021"
 license = "LGPLv3"
 repository = "https://github.com/B0ney/xmodits"

@@ -9,7 +9,7 @@ pub enum Button {
     Primary,
     Hyperlink,
     Unavailable,
-    NormalPackage,
+    Entry,
     Start,
     Delete,
     // SelectedPackage,
@@ -38,7 +38,7 @@ impl button::StyleSheet for Theme {
         match style {
             Button::Primary => active_appearance(None, p.bright.primary),
             Button::Unavailable => active_appearance(None, p.bright.error),
-            Button::NormalPackage => button::Appearance {
+            Button::Entry => button::Appearance {
                 background: Some(Background::Color(p.base.foreground)),
                 text_color: p.bright.surface,
                 border_radius: 5.0,
@@ -83,7 +83,7 @@ impl button::StyleSheet for Theme {
         match style {
             Button::Primary => hover_appearance(p.bright.primary, Some(p.bright.surface)),
             Button::Unavailable => hover_appearance(p.bright.error, None),
-            Button::NormalPackage => hover_appearance(p.normal.primary, Some(p.bright.surface)),
+            Button::Entry => hover_appearance(p.bright.primary, Some(p.bright.surface)),
             Button::Hyperlink => button::Appearance {
                 background: None,
                 ..hover_appearance(p.bright.primary, None)

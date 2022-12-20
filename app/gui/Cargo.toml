@@ -10,7 +10,7 @@ repository = "https://github.com/B0ney/xmodits"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [target.'cfg(windows)'.build-dependencies]
-winres = "0.1"
+winres = "0.1.12"
 
 [dependencies]
 xmodits-lib = { path = "../../", features=["thread"] } #
@@ -27,7 +27,7 @@ rfd = { version = "0.10.0", default-features = false, features = ["xdg-portal"] 
 native-dialog = { version="0.6.3", features = ["windows_dpi_awareness", "windows_visual_styles"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.2.0"
-open = "3.0.3"
+open = "3.2.0"
 walkdir = "2.3.2"
 rand = "0.8.5"
 
@@ -49,6 +49,7 @@ lto = true          # Enable Link Time Optimization
 codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 
 [package.metadata.winres]
+OriginalFilename = "XMODITS.EXE"
 FileDescription = "Rip samples from tracker music with speed!"
 Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
 

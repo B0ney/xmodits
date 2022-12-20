@@ -331,7 +331,7 @@ impl Trackers {
                                 .width(Length::Fill)
                                 .on_press(Message::Probe(idx))
                                 .padding(4)
-                                .style(style::button::Button::NormalPackage),
+                                .style(style::button::Button::Entry),
                                 Space::with_width(Length::Units(15))
                             ])
                         },
