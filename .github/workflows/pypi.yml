@@ -20,7 +20,7 @@ jobs:
         # https://github.com/messense/maturin-action/issues/23
         args: --release -m pylib/Cargo.toml --sdist -o dist --find-interpreter
     - name: Upload wheels
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: wheels
         path: dist
@@ -41,7 +41,7 @@ jobs:
         command: build
         args: --release -m pylib/Cargo.toml --sdist -o dist --find-interpreter # https://github.com/messense/maturin-action/issues/23
     - name: Upload wheels
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: wheels
         path: dist
@@ -55,7 +55,7 @@ jobs:
         command: build
         args: --release -m pylib/Cargo.toml --sdist -o dist --find-interpreter
     - name: Upload wheels
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: wheels
         path: dist
@@ -83,7 +83,7 @@ jobs:
     needs: [ linux, windows, linux-cross ]
 
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: wheels
       - name: Publish to PyPI

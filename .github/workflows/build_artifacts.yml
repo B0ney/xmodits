@@ -1,0 +1,66 @@
+name: Build artifacts
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  
+jobs:
+  build:
+    name: Building ${{ matrix.build_target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build_target: [linux, windows]
+        include:
+        - build_target: linux
+          os: ubuntu-latest
+        - build_target: windows
+          os: windows-latest
+          
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Building
+        run: cargo build -p xmodits -p xmodits-gui --release
+      
+      - name: Creating ./bin directory
+        run: |
+          mkdir -p bin
+          
+      - name: Move binaries [Windows]
+        if: matrix.os == 'windows-latest'
+        run: | # rename xmodits-gui to just xmodits for windows
+          mv target/release/xmodits.exe bin/xmodits-cli.exe
+          mv target/release/xmodits-gui.exe bin/xmodits.exe
+      
+      - name: Move binaries [linux]
+        if: matrix.os != 'windows-latest'
+        run: |
+          mv target/release/xmodits bin/xmodits
+          mv target/release/xmodits-gui bin/xmodits-gui
+      
+      - name: Tarbell Linux binary
+        if: matrix.os != 'windows-latest'
+        run: |
+          tar -czf bin/xmodits{-${{matrix.build_target}}.tar.gz,}
+          tar -czf bin/xmodits-gui{-${{matrix.build_target}}.tar.gz,}
+
+      - name: Zip Windows binary
+        if: matrix.os == 'windows-latest'
+        run: |
+          Compress-Archive bin/xmodits.exe bin/xmodits-${{matrix.build_target}}.zip
+          Compress-Archive bin/xmodits-cli.exe bin/xmodits-cli-${{matrix.build_target}}.zip
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          # TODO
+          name: xmodits$-{{ matrix.build_target }}
+          path: bin/*/*
+
+
+# xmodits-gui-linux.tar.gz
+# xmodits-cli-linux.tar.gz
+# xmodits-gui-windows.zip
+# xmodits-cli-windows.zip
