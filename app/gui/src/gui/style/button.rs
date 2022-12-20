@@ -89,7 +89,7 @@ impl button::StyleSheet for Theme {
                 ..hover_appearance(p.bright.primary, None)
             },
             Button::Start => hover_appearance(p.bright.secondary, Some(p.bright.surface)),
-            Button::Delete =>  hover_appearance(p.bright.error, Some(p.bright.surface)),
+            Button::Delete => hover_appearance(p.bright.error, Some(p.bright.surface)),
         }
     }
 
@@ -105,7 +105,7 @@ impl button::StyleSheet for Theme {
             },
             ..active
         };
-        
+
         match style {
             // Button::RestorePackage => disabled_appearance(p.normal.primary, Some(p.bright.primary)),
             // Button::UninstallPackage => disabled_appearance(p.bright.error, None),

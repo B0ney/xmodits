@@ -1,4 +1,4 @@
-use crate::gui::icons::{github_icon};
+use crate::gui::icons::github_icon;
 use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
 use iced::widget::{button, column, container, row, text};
@@ -32,10 +32,7 @@ pub fn view() -> Element<'static, Message, Renderer<Theme>> {
     // let gh: _ = button(github_icon()).on_press(Message::GH);
     let about: _ = container(
         column![
-            title,
-            version,
-            about,
-            repo,
+            title, version, about, repo,
             // gpl3_icon().width(Length::Units(150))
         ]
         .align_items(Alignment::Center)

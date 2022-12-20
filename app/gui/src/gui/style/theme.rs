@@ -1,21 +1,5 @@
 use iced::{color, Color};
 
-// #[derive(Default, Debug, PartialEq, Eq, Copy, Clone)]
-// pub enum Theme {
-//     #[default]
-//     Dynasty,
-//     DynastyLight
-// }
-
-// pub struct Base {
-//     pub fg: Color,
-//     pub bg: Color,
-// }
-
-// impl Theme {
-
-// }
-
 #[derive(Default, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Theme {
     #[default]

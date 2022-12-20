@@ -49,7 +49,7 @@ jobs:
         run: |
           mkdir -p bin
           
-      - name: Tarbell Linux CLI binary
+      - name: Tarball Linux CLI binary
         if: matrix.os != 'windows-latest' && matrix.app_type == 'cli'
         run: |
           tar -czf bin/xmodits-cli-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits
@@ -60,7 +60,7 @@ jobs:
           mv target/release/xmodits.exe target/release/xmodits-cli.exe
           Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{ matrix.build_target }}.zip
 
-      - name: Tarbell Linux GUI binary
+      - name: Tarball Linux GUI binary
         if: matrix.os != 'windows-latest' && matrix.app_type == 'gui'
         run: |
           tar -czf bin/xmodits-gui-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits-gui

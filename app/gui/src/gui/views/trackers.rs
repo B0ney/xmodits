@@ -26,6 +26,7 @@ pub enum Message {
     AddFolderDialog,
     SubscriptionMessage(DownloadMessage),
     SetState(State),
+    Open(PathBuf),
 }
 
 #[derive(Debug, Clone)]
@@ -276,6 +277,9 @@ impl Trackers {
                 }
             },
             Message::SetState(state) => self.state = state,
+            Message::Open(log) => {
+                let _ = open::that(log);
+            }
         }
         Command::none()
     }
@@ -395,9 +399,15 @@ impl Trackers {
                     text("Done...").font(JETBRAINS_MONO),
                     text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
                     text("Check the logs at:").font(JETBRAINS_MONO),
-                    text(format!("{}", error_log.display()))
-                        .font(JETBRAINS_MONO)
-                        .horizontal_alignment(Horizontal::Center)
+                    button(
+                        text(error_log.display())
+                            .font(JETBRAINS_MONO)
+                            .horizontal_alignment(Horizontal::Center)
+                    )
+                    .width(Length::Fill)
+                    .padding(0)
+                    .on_press(Message::Open(error_log.to_owned()))
+                    .style(style::button::Button::Hyperlink)
                 ]
                 .padding(4)
                 .spacing(5),
@@ -430,7 +440,7 @@ impl Trackers {
                     Space::with_width(Length::Fill),
                     // checkbox is 5 units taller than the other elements
                     checkbox("Select all", self.all_selected, Message::SelectAll)
-                        .style(style::checkbox::CheckBox::Disabled),
+                        .style(style::checkbox::CheckBox::Inverted),
                 ]
                 .spacing(15)
                 .align_items(Alignment::Center),
@@ -456,7 +466,7 @@ impl Trackers {
             button("Delete Selected")
                 .padding(10)
                 .on_press(Message::DeleteSelected),
-                // .style(style::button::Button::Delete),
+            // .style(style::button::Button::Delete),
             button("Clear").padding(10).on_press(Message::Clear),
         ]
         .spacing(10)

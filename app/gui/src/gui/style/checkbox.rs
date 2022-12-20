@@ -5,8 +5,8 @@ use iced::{color, Background};
 #[derive(Default, Debug, Clone, Copy)]
 pub enum CheckBox {
     #[default]
-    Enabled,
-    Disabled,
+    Normal,
+    Inverted,
 }
 
 impl checkbox::StyleSheet for Theme {
@@ -14,7 +14,7 @@ impl checkbox::StyleSheet for Theme {
 
     fn active(&self, style: &Self::Style, _is_checked: bool) -> checkbox::Appearance {
         let default = checkbox::Appearance {
-            background: Background::Color(self.palette().base.background),
+            background: self.palette().base.background.into(),
             checkmark_color: self.palette().bright.primary,
             border_radius: 5.0,
             border_width: 1.2,
@@ -22,17 +22,17 @@ impl checkbox::StyleSheet for Theme {
             text_color: Some(self.palette().bright.surface),
         };
         match style {
-            CheckBox::Enabled => default,
-            CheckBox::Disabled => checkbox::Appearance {
-                background: Background::Color(self.palette().base.foreground),
+            CheckBox::Normal => default,
+            CheckBox::Inverted => checkbox::Appearance {
+                background: self.palette().base.foreground.into(),
                 ..default
             },
         }
     }
 
     fn hovered(&self, style: &Self::Style, is_checked: bool) -> checkbox::Appearance {
-        let from_appearance = || checkbox::Appearance {
-            background: Background::Color(self.palette().base.background),
+        let from_appearance = checkbox::Appearance {
+            background: self.palette().base.background.into(),
             checkmark_color: self.palette().bright.primary,
             border_radius: 5.0,
             border_width: 2.0,
@@ -41,8 +41,11 @@ impl checkbox::StyleSheet for Theme {
         };
 
         match style {
-            CheckBox::Enabled => from_appearance(),
-            CheckBox::Disabled => self.active(style, is_checked),
+            CheckBox::Normal => from_appearance,
+            CheckBox::Inverted => checkbox::Appearance {
+                background: self.palette().base.foreground.into(),
+                ..from_appearance
+            },
         }
     }
 }

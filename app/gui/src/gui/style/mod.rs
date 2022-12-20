@@ -81,11 +81,15 @@ impl menu::StyleSheet for Theme {
         menu::Appearance {
             text_color: p.bright.surface,
             background: p.base.background.into(),
-            border_width: 1.0,
-            border_radius: 2.0,
-            border_color: self.palette().normal.primary,
+            border_width: 1.2,
+            border_radius: 5.0,
+            border_color: color!(0x474747),
             selected_text_color: p.bright.surface,
-            selected_background: p.normal.primary.into(),
+            selected_background: Color {
+                a: 0.25,
+                ..p.bright.primary
+            }
+            .into(),
         }
     }
 }
@@ -97,12 +101,9 @@ impl pick_list::StyleSheet for Theme {
         pick_list::Appearance {
             text_color: self.palette().bright.surface,
             background: self.palette().base.background.into(),
-            border_width: 1.0,
-            border_color: Color {
-                // a: 0.5,
-                ..self.palette().normal.primary
-            },
-            border_radius: 2.0,
+            border_width: 1.2,
+            border_color: color!(0x474747),
+            border_radius: 5.0,
             icon_size: 0.5,
             placeholder_color: self.palette().bright.surface,
         }
@@ -111,7 +112,8 @@ impl pick_list::StyleSheet for Theme {
     fn hovered(&self, style: &()) -> pick_list::Appearance {
         let active = self.active(style);
         pick_list::Appearance {
-            border_color: self.palette().normal.primary,
+            border_color: self.palette().bright.primary,
+            border_width: 2.0,
             ..active
         }
     }
