@@ -52,7 +52,7 @@ jobs:
       - name: Tarbell Linux CLI binary
         if: matrix.os != 'windows-latest' && matrix.app_type == 'cli'
         run: |
-          tar -czf target/release/xmodits bin/xmodits-cli-${{matrix.build_target}}.tar.gz
+          tar -czf bin/xmodits-cli-${{matrix.build_target}}.tar.gz target/release/xmodits
 
       - name: Zip Windows CLI binary
         if: matrix.os == 'windows-latest' && matrix.app_type == 'cli'
@@ -63,7 +63,7 @@ jobs:
       - name: Tarbell Linux GUI binary
         if: matrix.os != 'windows-latest' && matrix.app_type == 'gui'
         run: |
-          tar -czf target/release/xmodits bin/xmodits-gui-${{matrix.build_target}}.tar.gz
+          tar -czf bin/xmodits-gui-${{matrix.build_target}}.tar.gz target/release/xmodits-gui
 
       - name: Zip Windows GUI binary
         if: matrix.os == 'windows-latest' && matrix.app_type == 'gui'
