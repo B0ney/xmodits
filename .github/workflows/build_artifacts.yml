@@ -52,24 +52,24 @@ jobs:
       - name: Tarbell Linux CLI binary
         if: matrix.os != 'windows-latest' && matrix.app_type == 'cli'
         run: |
-          tar -czf bin/xmodits-cli-${{matrix.build_target}}.tar.gz target/release/xmodits
+          tar -czf bin/xmodits-cli-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits
 
       - name: Zip Windows CLI binary
         if: matrix.os == 'windows-latest' && matrix.app_type == 'cli'
         run: | # On Windows, add cli suffix
           mv target/release/xmodits.exe target/release/xmodits-cli.exe
-          Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{matrix.build_target}}.zip
+          Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{ matrix.build_target }}.zip
 
       - name: Tarbell Linux GUI binary
         if: matrix.os != 'windows-latest' && matrix.app_type == 'gui'
         run: |
-          tar -czf bin/xmodits-gui-${{matrix.build_target}}.tar.gz target/release/xmodits-gui
+          tar -czf bin/xmodits-gui-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits-gui
 
       - name: Zip Windows GUI binary
         if: matrix.os == 'windows-latest' && matrix.app_type == 'gui'
         run: | # On Windows, remove gui suffix
           mv target/release/xmodits-gui.exe target/release/xmodits.exe
-          Compress-Archive target/release/xmodits.exe bin/xmodits-gui-${{matrix.build_target}}.zip
+          Compress-Archive target/release/xmodits.exe bin/xmodits-gui-${{ matrix.build_target }}.zip
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
