@@ -1,4 +1,4 @@
-name: Build artifacts
+name: Build GUI Artifacts
 
 on:
   workflow_dispatch:
@@ -43,7 +43,7 @@ jobs:
           tar -czf bin/xmodits-gui-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits-gui
 
       - name: Zip Windows GUI binary
-        if: matrix.os == 'windows-latest
+        if: matrix.os == 'windows-latest'
         run: | # On Windows, remove gui suffix
           mv target/release/xmodits-gui.exe target/release/xmodits.exe
           Compress-Archive target/release/xmodits.exe bin/xmodits-gui-${{ matrix.build_target }}.zip
