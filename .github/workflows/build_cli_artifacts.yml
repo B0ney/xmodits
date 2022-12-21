@@ -45,7 +45,6 @@ jobs:
       - name: Zip Windows CLI binary
         if: matrix.os == 'windows-latest'
         run: | # On Windows, add cli suffix
-          rm target/release/xmodits-cli.exe
           mv target/release/xmodits.exe target/release/xmodits-cli.exe
           Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{ matrix.build_target }}.zip
 
