@@ -6,12 +6,11 @@ on:
   
 jobs:
   build:
-    name: Building ${{ matrix.build_target }} ${{ matrix.app_type }}  
+    name: Building ${{ matrix.build_target }} 
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         build_target: [linux, windows]
-        app_type: [gui, cli]
         include:
         - build_target: linux
           os: ubuntu-latest
@@ -32,41 +31,19 @@ jobs:
           key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.OS }}-release-
 
-      - name: install lib alsa
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt install libasound2-dev 
-        
-      - name: Building CLI
-        if: matrix.app_type == 'cli'       
-        run: |
-          cargo build -p xmodits --release
-
-      - name: Building GUI
-        if: matrix.app_type == 'gui'       
+      - name: Building GUI      
         run: cargo build -p xmodits-gui --release
 
       - name: Create ./bin directory
-        run: |
-          mkdir -p bin
+        run: mkdir -p bin
           
-      - name: Tarball Linux CLI binary
-        if: matrix.os != 'windows-latest' && matrix.app_type == 'cli'
-        run: |
-          tar -czf bin/xmodits-cli-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits
-
-      - name: Zip Windows CLI binary
-        if: matrix.os == 'windows-latest' && matrix.app_type == 'cli'
-        run: | # On Windows, add cli suffix
-          mv target/release/xmodits.exe target/release/xmodits-cli.exe
-          Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{ matrix.build_target }}.zip
-
       - name: Tarball Linux GUI binary
-        if: matrix.os != 'windows-latest' && matrix.app_type == 'gui'
+        if: matrix.os != 'windows-latest'
         run: |
           tar -czf bin/xmodits-gui-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits-gui
 
       - name: Zip Windows GUI binary
-        if: matrix.os == 'windows-latest' && matrix.app_type == 'gui'
+        if: matrix.os == 'windows-latest
         run: | # On Windows, remove gui suffix
           mv target/release/xmodits-gui.exe target/release/xmodits.exe
           Compress-Archive target/release/xmodits.exe bin/xmodits-gui-${{ matrix.build_target }}.zip
@@ -74,6 +51,6 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: xmodits-${{ matrix.app_type }}-${{ matrix.build_target }}
+          name: xmodits-gui-${{ matrix.build_target }}
           path: |
-            bin/xmodits-${{ matrix.app_type }}-${{ matrix.build_target }}.*
+            bin/xmodits-gui-${{ matrix.build_target }}.*
