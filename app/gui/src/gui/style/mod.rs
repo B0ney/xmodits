@@ -9,7 +9,7 @@ pub mod text_input;
 use iced::overlay::menu;
 use iced::widget::{container, pick_list, rule};
 
-use iced::{application, color, Background, Color};
+use iced::{application, Background, Color};
 mod theme;
 pub use theme::Theme;
 
@@ -47,17 +47,17 @@ impl container::StyleSheet for Theme {
             Container::Frame => container::Appearance {
                 background: Some(Background::Color(self.palette().base.foreground)),
                 text_color: Some(self.palette().bright.surface),
-                border_color: color!(0x474747),
+                border_color: self.palette().base.border,
                 border_radius: 5.0,
                 border_width: 1.2,
                 // ..container::Appearance::default()
             },
             Container::Black => container::Appearance {
-                background: Some(Background::Color(color!(0x151515))),
+                background: Some(self.palette().base.dark.into()),
                 text_color: Some(self.palette().bright.surface),
                 border_radius: 5.0,
                 border_width: 1.2,
-                border_color: color!(0x474747),
+                border_color: self.palette().base.border,
                 // ..container::Appearance::default()
 
                 // border_color: self.palette().normal.error,
@@ -83,7 +83,7 @@ impl menu::StyleSheet for Theme {
             background: p.base.background.into(),
             border_width: 1.2,
             border_radius: 5.0,
-            border_color: color!(0x474747),
+            border_color: self.palette().base.border,
             selected_text_color: p.bright.surface,
             selected_background: Color {
                 a: 0.25,
@@ -102,7 +102,7 @@ impl pick_list::StyleSheet for Theme {
             text_color: self.palette().bright.surface,
             background: self.palette().base.background.into(),
             border_width: 1.2,
-            border_color: color!(0x474747),
+            border_color: self.palette().base.border,
             border_radius: 5.0,
             icon_size: 0.5,
             placeholder_color: self.palette().bright.surface,

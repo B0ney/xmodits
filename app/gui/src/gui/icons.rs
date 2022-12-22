@@ -1,6 +1,6 @@
 use crate::core::font::ICONS;
 use crate::gui::style::Theme;
-use iced::widget::{svg, text, Text};
+use iced::widget::{text, Text};
 use iced::{alignment, Length, Renderer};
 
 // static FOLDER: &[u8] = include_bytes!("../../res/img/svg/folder.svg");
@@ -46,25 +46,25 @@ use iced::{alignment, Length, Renderer};
 //         .width(Length::Units(25))
 //         .height(Length::Units(25))
 // }
-pub fn delete_icon() -> Text<'static, Renderer<Theme>> {
-    icon('\u{F1F8}')
-}
+// pub fn delete_icon() -> Text<'static, Renderer<Theme>> {
+//     icon('\u{F1F8}')
+// }
 
-pub fn github_icon() -> Text<'static, Renderer<Theme>> {
-    icon('\u{f345}')
-}
+// pub fn github_icon() -> Text<'static, Renderer<Theme>> {
+//     icon('\u{f345}')
+// }
 
 pub fn folder_icon() -> Text<'static, Renderer<Theme>> {
     icon('\u{f228}')
 }
 
-pub fn folder_line_icon() -> Text<'static, Renderer<Theme>> {
-    icon('\u{f224}')
-}
+// pub fn folder_line_icon() -> Text<'static, Renderer<Theme>> {
+//     icon('\u{f224}')
+// }
 
-pub fn add_file_icon() -> Text<'static, Renderer<Theme>> {
-    icon('\u{f221}')
-}
+// pub fn add_file_icon() -> Text<'static, Renderer<Theme>> {
+//     icon('\u{f221}')
+// }
 
 pub fn download_icon() -> Text<'static, Renderer<Theme>> {
     icon('\u{f220}')

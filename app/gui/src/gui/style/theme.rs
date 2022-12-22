@@ -4,13 +4,14 @@ use iced::{color, Color};
 pub enum Theme {
     #[default]
     Dark,
-    Light,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct BaseColors {
     pub background: Color,
     pub foreground: Color,
+    pub dark: Color, // TODO: sort
+    pub border: Color, // TODO: sort
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -37,14 +38,15 @@ pub struct ColorPalette {
 }
 
 impl Theme {
-    pub const ALL: [Self; 2] = [Self::Dark, Self::Light];
+    pub const ALL: [Self; 1] = [Self::Dark];
     pub fn palette(&self) -> ColorPalette {
         match self {
             Self::Dark => ColorPalette {
                 base: BaseColors {
                     background: color!(0x272727),
-                    // foreground: color!(0x323232),
                     foreground: color!(0x353535),
+                    dark: color!(0x151515),
+                    border: color!(0x474747),
                 },
                 normal: NormalColors {
                     primary: color!(0x5E4266),
@@ -59,24 +61,6 @@ impl Theme {
                     error: color!(0xa37777),
                 },
             },
-            Self::Light => ColorPalette {
-                base: BaseColors {
-                    background: color!(0xEEEEEE),
-                    foreground: color!(0xE0E0E0),
-                },
-                normal: NormalColors {
-                    primary: color!(0x230F08),
-                    secondary: color!(0xF9D659),
-                    surface: color!(0x818181),
-                    error: color!(0x992B2B),
-                },
-                bright: BrightColors {
-                    primary: color!(0x673AB7),
-                    secondary: color!(0x3797A4),
-                    surface: color!(0x000000),
-                    error: color!(0xC13047),
-                },
-            },
         }
     }
 }
@@ -88,7 +72,6 @@ impl std::fmt::Display for Theme {
             "{}",
             match self {
                 Theme::Dark => "Dark",
-                Theme::Light => "Light",
             }
         )
     }

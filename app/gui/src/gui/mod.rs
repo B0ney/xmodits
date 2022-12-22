@@ -31,7 +31,7 @@ pub enum View {
     Configure,
     // Settings,
     About,
-    Help,
+    // Help,
 }
 
 #[derive(Debug, Clone)]
@@ -39,7 +39,7 @@ pub enum Message {
     ConfigurePressed,
     // SettingsPressed,
     AboutPressed,
-    HelpPressed,
+    // HelpPressed,
     Tracker(TrackerMessage),
     SetCfg(ConfigMessage),
     SetRipCfg(ConfigRippingMessage),
@@ -90,7 +90,7 @@ impl Application for XmoditsGui {
             Message::ConfigurePressed => self.view = View::Configure,
             // Message::SettingsPressed => self.view = View::Settings,
             Message::AboutPressed => self.view = View::About,
-            Message::HelpPressed => self.view = View::Help,
+            // Message::HelpPressed => self.view = View::Help,
             Message::Tracker(msg) => return self.tracker.update(msg).map(Message::Tracker),
             Message::SetCfg(msg) => self.config.ripping.naming.update(msg),
             Message::SetRipCfg(msg) => match msg {
@@ -215,7 +215,7 @@ impl Application for XmoditsGui {
             .into(),
             // View::Settings => self.config.general.view().map(Message::ChangeSetting),
             View::About => views::about::view().map(Message::About),
-            View::Help => views::help::view().map(|_| Message::Ignore),
+            // View::Help => views::help::view().map(|_| Message::Ignore),
         };
 
         let main: _ = row![

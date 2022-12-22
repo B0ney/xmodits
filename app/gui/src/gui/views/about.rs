@@ -1,7 +1,7 @@
-use crate::gui::icons::github_icon;
+// use crate::gui::icons::github_icon;
 use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
-use iced::widget::{button, column, container, row, text};
+use iced::widget::{button, column, container, text};
 use iced::{alignment::Horizontal, Alignment, Element, Length, Renderer};
 // use tracing::warn;
 

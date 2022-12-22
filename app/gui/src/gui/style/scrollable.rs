@@ -22,7 +22,7 @@ impl scrollable::StyleSheet for Theme {
                 color: d,
                 border_radius: 5.0,
                 border_width: 1.0,
-                border_color: color!(0x474747),
+                border_color: self.palette().base.border,
             },
         };
         //
