@@ -16,10 +16,10 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   build-gui:
-    uses: ./.github/workflws/build_gui_artifacts.yml
+    uses: ./.github/workflows/build_gui_artifacts.yml
 
-  build-cli:
-    uses: ./.github/workflws/build_cli_artifacts.yml
+  build-cli: 
+    uses: ./.github/workflows/build_cli_artifacts.yml
 
   release:
     runs-on: ubuntu-latest

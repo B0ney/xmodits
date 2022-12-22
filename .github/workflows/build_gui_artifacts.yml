@@ -45,6 +45,7 @@ jobs:
       - name: Zip Windows GUI binary
         if: matrix.os == 'windows-latest'
         run: | # On Windows, remove gui suffix
+          rm target/release/*xmodits.exe
           mv target/release/xmodits-gui.exe target/release/xmodits.exe
           Compress-Archive target/release/xmodits.exe bin/xmodits-gui-${{ matrix.build_target }}.zip
 
