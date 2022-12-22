@@ -5,7 +5,7 @@ use crate::dialog::{
 };
 use std::cmp::Ordering;
 use std::path::PathBuf;
-use xmodits_common::folder;
+use xmodits_lib::common::{folder, dump_samples_advanced};
 use xmodits_lib::XmoditsError;
 
 pub fn rip(paths: Vec<PathBuf>) {
@@ -25,7 +25,7 @@ pub fn rip(paths: Vec<PathBuf>) {
     let mut errors: Vec<(PathBuf, XmoditsError)> = paths
         .into_iter()
         .filter_map(|mod_path| {
-            match xmodits_common::dump_samples_advanced(
+            match dump_samples_advanced(
                 &mod_path,
                 folder(&config.destination, &mod_path, !config.no_folder),
                 &namer,

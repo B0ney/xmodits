@@ -9,8 +9,7 @@ repository = "https://github.com/B0ney/xmodits"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-xmodits-lib = { path = "../../" } #, features=["thread"]
-xmodits-common = { path = "../xmodits_common/" }
+xmodits-lib = { path = "../../", features = ["common"] }
 clap = { version = "4.0.23", features = ["derive", "cargo", "wrap_help"] }
 
 [profile.release]

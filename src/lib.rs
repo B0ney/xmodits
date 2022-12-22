@@ -9,6 +9,8 @@ mod fmt;
 mod interface;
 mod loader;
 mod utils;
+#[cfg(feature = "common")]
+pub mod common;
 
 pub use error::XmoditsError;
 pub use interface::SampleNamerFunc;

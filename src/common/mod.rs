@@ -1,47 +1,16 @@
 /*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- */
+* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0. If a copy of the MPL was not distributed with this
+* file, You can obtain one at https://mozilla.org/MPL/2.0/.
+*/
 
 use std::path::{Path, PathBuf};
-use xmodits_lib::{SampleNamerFunc, XmoditsError};
+use crate::{SampleNamerFunc, XmoditsError, load_module, load_from_ext};
 
-/// Checks if the last element in paths is a folder that exists.
-///
-/// If not, it will create that folder.
-///
-/// If the last element is a file, the destination directory is the
-/// current working directory.
-pub fn destination_dir(paths: &mut Vec<PathBuf>) -> Result<PathBuf, String> {
-    let cwd =
-        || Ok(std::env::current_dir().expect("xmodits needs a current working directory. (>_<)"));
-
-    let Some(path) = paths.last() else {
-        return cwd();
-    };
-
-    // Make sure path is NOT a file, and the length is over 1
-    if path.is_file() || paths.len() <= 1 {
-        return cwd();
-    }
-
-    let folder = paths.pop().unwrap();
-
-    if !folder.is_dir() {
-        if let Err(e) = std::fs::create_dir(&folder) {
-            return Err(format!(
-                "Error: Could not create destination folder \"{}\": {}",
-                folder.display(),
-                e
-            ));
-        };
-    }
-
-    Ok(folder)
-}
-
-pub fn mod_name<P: AsRef<Path>>(mod_path: P) -> String {
+pub fn mod_name<P>(mod_path: P) -> String 
+where 
+    P: AsRef<Path>
+{
     mod_path
         .as_ref()
         .file_name()
@@ -51,8 +20,13 @@ pub fn mod_name<P: AsRef<Path>>(mod_path: P) -> String {
         .replace('.', "_")
 }
 
-pub fn filename(path: &Path) -> String {
-    path.file_name()
+pub fn filename<P>(path: P) -> String 
+where
+    P: AsRef<Path>
+{
+    path
+        .as_ref()
+        .file_name()
         .map(|f| f.to_string_lossy().to_string())
         .unwrap_or_default()
 }
@@ -73,12 +47,15 @@ where
     }
 }
 
-pub fn total_size_megabytes(paths: &[PathBuf]) -> f64 {
+pub fn total_size_megabytes<P>(paths: &[P]) -> f64 
+where 
+    P: AsRef<Path>
+{
     paths
         .iter()
-        .map(|e| match e.metadata() {
-            Ok(m) => m.len() as f64,
-            _ => 0.0,
+        .filter_map(|e| match e.as_ref().metadata().ok() {
+            Some(meta) => Some(meta.len() as f64),
+            _ => None
         })
         .sum::<f64>()
         / (1024.0 * 1024.0)
@@ -98,7 +75,7 @@ where
         )));
     }
 
-    xmodits_lib::load_module(mod_path)?.dump(&folder, true)
+    load_module(mod_path)?.dump(&folder, true)
 }
 
 pub fn dump_samples_advanced<T, U>(
@@ -121,8 +98,8 @@ where
     }
 
     let mut tracker = match hint {
-        Some(hint) => xmodits_lib::load_from_ext(mod_path, hint)?,
-        None => xmodits_lib::load_module(mod_path)?,
+        Some(hint) => load_from_ext(mod_path, hint)?,
+        None => load_module(mod_path)?,
     };
 
     tracker.dump_advanced(&dest_dir, sample_namer, with_folder, with_loop_points)

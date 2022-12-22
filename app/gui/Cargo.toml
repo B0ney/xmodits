@@ -13,15 +13,13 @@ repository = "https://github.com/B0ney/xmodits"
 winres = "0.1.12"
 
 [dependencies]
-xmodits-lib = { path = "../../", features=["thread"] } #
-xmodits-common = { path = "../xmodits_common"}
+xmodits-lib = { path = "../../", features=["thread", "common"] }
 anyhow = "1.0.66"
 toml = "0.5.10"
 dirs = "4.0.0"
 once_cell = "1.15.0"
 serde = { version = "1.0.147", features = ["derive"] }
 tokio = { version = "1.21.2", features = ["sync", "fs"] }
-# rodio = { version = "0.16.0", default-features = false, features = ["symphonia-wav"] }
 image = { version = "0.24.4", default-features = false, features = ["ico"] }
 rfd = { version = "0.10.0", default-features = false, features = ["xdg-portal"] }
 native-dialog = { version="0.6.3", features = ["windows_dpi_awareness", "windows_visual_styles"] }
@@ -33,7 +31,6 @@ rand = "0.8.5"
 
 [dependencies.iced]
 version = "0.6.0"
-# git = "https://github.com/iced-rs/iced"
 features = [
     # "svg",
     "glow", 
@@ -50,7 +47,7 @@ codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 
 [package.metadata.winres]
 OriginalFilename = "XMODITS.EXE"
-FileDescription = "Rip samples from tracker music with speed!"
+FileDescription = "A tool to extract samples from tracker modules. https://github.com/B0ney/xmodits/ - GPLv3"
 Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
 
 [profile.dev]

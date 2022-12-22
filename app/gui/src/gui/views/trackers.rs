@@ -10,7 +10,7 @@ use iced::{alignment::Horizontal, Alignment, Command, Element, Length, Renderer}
 use std::path::{Path, PathBuf};
 use tokio::sync::mpsc::Sender;
 use tracing::{info, warn};
-use xmodits_common::filename;
+use xmodits_lib::common::filename;
 use xmodits_lib::{load_from_ext, load_module, TrackerModule};
 
 #[derive(Debug, Clone)]

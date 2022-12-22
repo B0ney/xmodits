@@ -1,8 +1,9 @@
 use iced::{subscription, Subscription};
+use xmodits_lib::common::dump_samples_advanced;
 use std::path::PathBuf;
 use tokio::sync::mpsc::{self, Receiver, Sender};
 use walkdir::WalkDir;
-use xmodits_common::folder;
+use xmodits_lib::common::folder;
 
 use super::cfg::SampleRippingConfig;
 pub type StartSignal = (Vec<PathBuf>, SampleRippingConfig);
@@ -191,7 +192,7 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
 
         for path in expanded_paths {
             tx.blocking_send(
-                match xmodits_common::dump_samples_advanced(
+                match dump_samples_advanced(
                     &path,
                     folder(&dest_dir, &path, !config.no_folder),
                     &namer,

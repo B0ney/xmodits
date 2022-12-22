@@ -1,6 +1,6 @@
 use std::path::Path;
-use xmodits_common::{dump_samples_advanced, folder};
 use xmodits_lib::{SampleNamer, SampleNamerFunc, XmoditsError};
+use xmodits_lib::common::{dump_samples_advanced, folder};
 
 pub fn rip_multiple(
     paths: Vec<String>,

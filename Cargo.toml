@@ -22,7 +22,7 @@ rand = "0.8.5"
 [workspace]
 members = [
     "app/*",
-    "pylib"
+    "pylib",
 ]
 
 [profile.release]
@@ -34,6 +34,7 @@ codegen-units = 1   # Reduce number of codegen units to increase optimizations.
 
 [features]
 thread = []
+common = []
 
 [profile.test]
 opt-level = 1

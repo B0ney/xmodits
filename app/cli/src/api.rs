@@ -1,6 +1,6 @@
 use crate::Cli;
 use std::path::{Path, PathBuf};
-use xmodits_common::{dump_samples_advanced, folder, total_size_megabytes};
+use xmodits_lib::common::{dump_samples_advanced, folder, total_size_megabytes};
 use xmodits_lib::{SampleNamer, SampleNamerFunc};
 
 pub fn build_namer(cli: &Cli) -> Box<SampleNamerFunc> {

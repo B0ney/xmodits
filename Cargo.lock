@@ -4120,14 +4120,6 @@ name = "xmodits"
 version = "0.9.8"
 dependencies = [
  "clap",
- "xmodits-common",
- "xmodits-lib",
-]
-
-[[package]]
-name = "xmodits-common"
-version = "0.1.0"
-dependencies = [
  "xmodits-lib",
 ]
 
@@ -4151,7 +4143,6 @@ dependencies = [
  "tracing-subscriber",
  "walkdir",
  "winres",
- "xmodits-common",
  "xmodits-lib",
 ]
 
@@ -4171,7 +4162,6 @@ name = "xmodits_py"
 version = "0.1.3"
 dependencies = [
  "pyo3",
- "xmodits-common",
  "xmodits-lib",
 ]
 

@@ -6,27 +6,28 @@
 [![unit_testing](https://github.com/B0ney/xmodits/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/B0ney/xmodits/actions/workflows/rust.yml)
 
 
-## Download
+## Supported Formats (upcoming)
+| Extension | Format |
+| --- | --- |
+| IT | Impulse Tracker |
+| XM | Extended Module | 
+| S3M | Scream Tracker 3 |
+| MOD | Amiga Pro Tracker |
+| MPTM | ModPlug Tracker module |
+| UMX | Unreal Music Package (Containing above) |
+
+## Screenshots (GUI)
+![xmodits gui](./extras/screenshots/Screenshot_1.png)
+![xmodits gui](./extras/screenshots/Screenshot_2.png)
+
+<!-- ## Download
 You can download builds for xmodits [here](https://github.com/B0ney/xmodits/releases).
 
-If you wish to build from source, go to [building](#building).
+If you wish to build from source, go to [building](#building). -->
 
-## Supported Formats:
-
-|Format| 8-bit| 16-bit| compression|Stereo|
-| --- | --- | --- | --- | --- |
-|IT| ✓|✓|✓|⏳|
-| XM  | ✓| ✓| N/A| N/A|
-| S3M | ✓| ✓| N/A| ⏳|
-| MOD | ✓| N/A| N/A| N/A|
-
-|Key| Meaning|
-|---|---|
-|**✓** | Fully supported with little or no bugs|
-| **~** | Sorta works |
-| **n/a** | Format doesn't support it|
-| ⏳ | In progress|
-| 🚧 | Part of roadmap |
+## Other projects:
+* xmodits cli application
+* xmodits python library
 
 ## How to Use
 
@@ -75,44 +76,24 @@ If you want to customize how ripped samples are named, the following arguments c
 |-c| --with-comment |Include embedded text from tracker (if it exists) 🚧|
 |-k |--parallel| Rip samples in parallel (Requires compiling with **``features="advanced"``**) | -->
 
-## Note
+<!-- ## Note
 The purpose of this tool (the core) is to dump samples that's it.
 
 You'll notice some dumped samples may not sound identical to what's heard in a tracker module. 
 
 This is because the tracker authour has applied effects such as pitch increase, vibrato.
 
-Replicating these effects is not a top priority. 
+Replicating these effects is not a top priority.  -->
 
 ## Resources
 The resources that made this project possible can be found [here](./resources/).
-## Goals
-* Fully Support Listed formats.
-* Easy to use.
-* Simple codebase with very few dependencies. 
-* Well documented (self documented code preferred)
-* Hackable: Contributors can implement obscure tracker formats. 
 
 ---
 ## Building
-Requirements: 
-* Rust: https://www.rust-lang.org/learn/get-started
+Requirements:
+* Rust compiler: https://www.rust-lang.org/tools/install
+* Minimum rust version 1.65
 
-The easiest way to compile xmodits is through this command.
-
-The binary size should be acceptable (<1MB)
-
-```
-cargo build -p xmodits --release
-```
-
-windows
-
-```
-
-cargo build --release -p xmodits --bin xmodits
-
-```
 
 ## Licenses (Upcoming)
 The xmodits project has multiple programs. Each with their own licenses.
