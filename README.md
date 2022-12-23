@@ -17,7 +17,7 @@
 | MPTM | ModPlug Tracker module |
 | UMX | Unreal Music Package (Containing above) |
 
-## GUI Screenshot <a href="https://github.com/iced-rs/iced"><img src="https://raw.githubusercontent.com/iced-rs/iced/master/docs/logo.svg" width="30px" align="center" /></a>
+## GUI Screenshot
 ![xmodits gui](./extras/screenshots/Screenshot_1.png) 
 <!-- ![xmodits gui](./extras/screenshots/Screenshot_2.png) -->
 
@@ -146,4 +146,5 @@ The xmodits project has multiple programs. Each with their own licenses.
 |XMODITS-LIB | MPLv2 |
 
 ## Special Thanks
+- The GUI was made with [Iced](https://github.com/iced-rs/iced)
 - [@0x192](https://github.com/0x192) (and contributers) for their [Universal Android Debloat tool](https://github.com/0x192/universal-android-debloater/). I've learned a lot of gui stuff from that project.
