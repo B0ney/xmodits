@@ -1,12 +1,13 @@
-<p align="center">
-    <img alt="XMODITS Logo" src="icon.png">
-</p>
+<div align="center">
 
-# XMODITS - A fast & lightweight tool to rip samples from tracker music.
+<img alt="XMODITS Logo" src="icon.png"> 
+<!-- I could do with an improved logo tbh -->
+
+# XMODITS - A fast & lightweight tool to extract samples from tracker music.
 <!-- [![unit_testing](https://github.com/B0ney/xmodits/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/B0ney/xmodits/actions/workflows/rust.yml) -->
+</div>
 
-
-## Supported Formats (upcoming)
+## Supported Formats
 | Extension | Format |
 | --- | --- |
 | IT | Impulse Tracker |
@@ -16,11 +17,11 @@
 | MPTM | ModPlug Tracker module |
 | UMX | Unreal Music Package (Containing above) |
 
-## Screenshot (GUI)
-![xmodits gui](./extras/screenshots/Screenshot_1.png)
+## GUI Screenshot <a href="https://github.com/iced-rs/iced"><img src="https://raw.githubusercontent.com/iced-rs/iced/master/docs/logo.svg" width="30px" align="center" /></a>
+![xmodits gui](./extras/screenshots/Screenshot_1.png) 
 <!-- ![xmodits gui](./extras/screenshots/Screenshot_2.png) -->
 
-## Screenshot (CLI)
+## CLI Screenshot
 Soon
 
 ## Download
@@ -74,7 +75,7 @@ Linux:
 
 
 ## How to Use (CLI version)
-Note: On Windows, the CLI binary has been renamed to "xmodits-cli"
+Note: On Windows, the CLI binary has been renamed to "xmodits-cli.exe"
 
 ```
 xmodits <module path> [destination folder]
@@ -120,7 +121,6 @@ Replicating these effects is not a top priority.  -->
 ## Resources
 The resources that made this project possible can be found [here](./resources/).
 
----
 ## Building
 Requirements:
 * Rust compiler: https://www.rust-lang.org/tools/install
@@ -144,3 +144,6 @@ The xmodits project has multiple programs. Each with their own licenses.
 |[XMODITS-CLI](app/cli/) (App) | LGPLv3 |
 |[XMODITS-PY](pylib/) (basically xmodits-cli)| LGPLv3 |
 |XMODITS-LIB | MPLv2 |
+
+## Special Thanks
+- [@0x192](https://github.com/0x192) (and contributers) for their [Universal Android Debloat tool](https://github.com/0x192/universal-android-debloater/). I've learned a lot of gui stuff from that project.

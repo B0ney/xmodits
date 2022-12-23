@@ -297,7 +297,7 @@ impl Trackers {
         let tracker_list: _ = match self.state {
             State::None => {
                 if self.paths.is_empty() {
-                    container(text("Drag and drop").font(JETBRAINS_MONO))
+                    container(text("Drag and Drop").font(JETBRAINS_MONO))
                         .width(Length::Fill)
                         .height(Length::Fill)
                         .center_x()
@@ -360,7 +360,7 @@ impl Trackers {
             State::Done => container(
                 column![
                     text("Done! \\(^_^)/").font(JETBRAINS_MONO),
-                    text("Drag and drop").font(JETBRAINS_MONO)
+                    text("Drag and Drop").font(JETBRAINS_MONO)
                 ]
                 .align_items(Alignment::Center),
             )
@@ -409,16 +409,18 @@ impl Trackers {
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center)
                     )
-                    .width(Length::Fill)
                     .padding(0)
                     .on_press(Message::Open(error_log.to_owned()))
                     .style(style::button::Button::Hyperlink)
                 ]
+                .align_items(Alignment::Center)
                 .padding(4)
                 .spacing(5),
             )
             .width(Length::Fill)
-            .height(Length::Fill),
+            .height(Length::Fill)
+            .center_x()
+            .center_y(),
             State::DoneWithTooMuchErrorsNoLog(ref error) => container(
                 column![
                     text("Done...").font(JETBRAINS_MONO),
@@ -430,11 +432,14 @@ impl Trackers {
                         .font(JETBRAINS_MONO)
                         .horizontal_alignment(Horizontal::Center)
                 ]
+                .align_items(Alignment::Center)
                 .padding(4)
                 .spacing(5),
             )
             .width(Length::Fill)
-            .height(Length::Fill),
+            .height(Length::Fill)
+            .center_x()
+            .center_y(),
         };
 
         container(
