@@ -11,6 +11,7 @@ repository = "https://github.com/B0ney/xmodits"
 [dependencies]
 xmodits-lib = { path = "../../", features = ["common"] }
 clap = { version = "4.0.23", features = ["derive", "cargo", "wrap_help"] }
+# shellexpand = "3.0.0"
 
 [profile.release]
 strip = true

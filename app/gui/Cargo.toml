@@ -28,6 +28,7 @@ tracing-subscriber = "0.2.0"
 open = "3.2.0"
 walkdir = "2.3.2"
 rand = "0.8.5"
+# shellexpand = "3.0.0"
 
 [dependencies.iced]
 version = "0.6.0"

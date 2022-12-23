@@ -22,7 +22,7 @@ pub struct Cli {
     #[arg(short = 'r', long)]
     pub index_raw: bool,
 
-    #[arg(help = "Pad index with preceding 0s. E.g. 001, or 0001")]
+    #[arg(help = "Pad index with preceding zeros. E.g. 001, or 0001")]
     #[arg(default_value_t = 2, short='p', long="index-padding", value_parser=0..=5)]
     pub index_padding: i64,
 
@@ -33,11 +33,11 @@ pub struct Cli {
     // #[arg(help="Include embedded text from tracker (if it exists)")]
     // #[arg(short='c', long)]
     // with_comment: bool,
-    #[arg(help = "Don't create a new folder for samples. This can overwrite data, BE CAREFUL!")]
+    #[arg(help = "Do not create a new folder for samples. This can overwrite data, BE CAREFUL!")]
     #[arg(short, long)]
     pub no_folder: bool,
 
-    #[arg(help = "Name samples in UPPER CASE")]
+    #[arg(help = "Name samples in upper case")]
     #[arg(short, long = "upper", conflicts_with = "lower_case")]
     pub upper_case: bool,
 
@@ -45,11 +45,11 @@ pub struct Cli {
     #[arg(short, long = "lower", conflicts_with = "upper_case")]
     pub lower_case: bool,
 
-    #[arg(help = "Print information about tracker")]
+    #[arg(help = "Print information about a tracker module")]
     #[arg(long)]
     pub info: bool,
 
-    #[arg(help = "Hint XMODITS to load a particular format first.")]
+    #[arg(help = "Hint xmodits to load a particular format first.")]
     #[arg(value_parser=["it", "xm", "s3m", "mod", "umx", "mptm"])]
     #[arg(long)]
     pub hint: Option<String>,

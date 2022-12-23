@@ -1,7 +1,7 @@
-// #![windows_subsystem = "windows"] // Will this make logging impossible?
+#![windows_subsystem = "windows"] // Will this make logging impossible?
 mod core;
 mod dialog;
-// #[allow(unused)]
+#[allow(unused)]
 mod gui;
 mod simple;
 use std::{env, path::PathBuf};

@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        build_target: [linux, windows]
+        build_target: [linux, windows] # TODO: add more platforms
         include:
         - build_target: linux
           os: ubuntu-latest
