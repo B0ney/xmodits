@@ -27,10 +27,10 @@ Soon
 ## Download
 Soon
 
-<!-- ## Download
+## Download
 You can download builds for xmodits [here](https://github.com/B0ney/xmodits/releases).
 
-If you wish to build from source, go to [building](#building). -->
+If you wish to build from source, go to [building](#building).
 
 <!-- ## Other projects:
 * xmodits cli application
