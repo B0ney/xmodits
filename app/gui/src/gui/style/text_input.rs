@@ -16,7 +16,7 @@ impl text_input::StyleSheet for Theme {
             background: Background::Color(self.palette().base.foreground),
             border_radius: 8.0,
             border_width: 1.2,
-            border_color: color!(0x474747),
+            border_color: self.palette().base.border,
         }
     }
 

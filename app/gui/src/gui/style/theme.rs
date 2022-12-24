@@ -4,6 +4,8 @@ use iced::{color, Color};
 pub enum Theme {
     #[default]
     Dark,
+    Dracula,
+    Nord,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -61,6 +63,46 @@ impl Theme {
                     error: color!(0xa37777),
                 },
             },
+            Self::Dracula => ColorPalette {
+                base: BaseColors {
+                    background: color!(0x282a36),
+                    foreground: color!(0x44475a),
+                    dark: color!(0x1D1E26),
+                    border: color!(0x44475a),
+                },
+                normal: NormalColors {
+                    primary: color!(0xff79c6),
+                    secondary: color!(0x50fa7b),
+                    surface: color!(0xf8f8f2),
+                    error: color!(0xff5555),
+                },
+                bright: BrightColors {
+                    primary: color!(0xff79c6),
+                    secondary: color!(0x50fa7b),
+                    surface: color!(0xf8f8f2),
+                    error: color!(0xff5555),
+                },
+            },
+            Self::Nord => ColorPalette {
+                base: BaseColors {
+                    background: color!(0x3b4252),
+                    foreground: color!(0x434c5e),
+                    dark: color!(0x2e3440),
+                    border: color!(0x4c566a),
+                },
+                normal: NormalColors {
+                    primary: color!(0x88c0d0),
+                    secondary: color!(0xa3be8c),
+                    surface: color!(0xe5e9f0),
+                    error: color!(0xff5555),
+                },
+                bright: BrightColors {
+                    primary: color!(0x88c0d0),
+                    secondary: color!(0xa3be8c),
+                    surface: color!(0xe5e9f0),
+                    error: color!(0xff5555),
+                },
+            },
         }
     }
 }
@@ -71,7 +113,10 @@ impl std::fmt::Display for Theme {
             f,
             "{}",
             match self {
-                Theme::Dark => "Dark",
+                Theme::Dark=>"Dark",
+                Theme::Dracula => "Dracula", 
+                Theme::Nord => "Nord", 
+
             }
         )
     }
