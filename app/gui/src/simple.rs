@@ -5,7 +5,7 @@ use crate::dialog::{
 };
 use std::cmp::Ordering;
 use std::path::PathBuf;
-use xmodits_lib::common::{folder, dump_samples_advanced};
+use xmodits_lib::common::{dump_samples_advanced, folder};
 use xmodits_lib::XmoditsError;
 
 pub fn rip(paths: Vec<PathBuf>) {

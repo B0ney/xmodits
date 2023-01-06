@@ -53,10 +53,12 @@ where
 {
     paths
         .iter()
-        .filter_map(|e| match e.as_ref().metadata().ok() {
-            Some(meta) => Some(meta.len() as f64),
-            _ => None
-        })
+        .filter_map(|path| path
+            .as_ref()
+            .metadata()
+            .ok()
+            .map(|meta| meta.len() as f64)
+        )
         .sum::<f64>()
         / (1024.0 * 1024.0)
 }

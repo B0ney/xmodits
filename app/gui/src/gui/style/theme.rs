@@ -12,7 +12,7 @@ pub enum Theme {
 pub struct BaseColors {
     pub background: Color,
     pub foreground: Color,
-    pub dark: Color, // TODO: sort
+    pub dark: Color,   // TODO: sort
     pub border: Color, // TODO: sort
 }
 
@@ -113,10 +113,9 @@ impl std::fmt::Display for Theme {
             f,
             "{}",
             match self {
-                Theme::Dark=>"Dark",
-                Theme::Dracula => "Dracula", 
-                Theme::Nord => "Nord", 
-
+                Theme::Dark => "Dark",
+                Theme::Dracula => "Dracula",
+                Theme::Nord => "Nord",
             }
         )
     }

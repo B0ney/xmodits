@@ -172,24 +172,26 @@ impl Trackers {
         self.paths.iter().filter(|f| f.selected).count()
     }
     pub fn start_rip(&mut self, cfg: &SampleRippingConfig) {
-        let total_modules = self.total_modules() > 0;
-        if let Some(tx) = &mut self.sender {
-            if total_modules {
-                let _ = tx.try_send((
-                    {
-                        self.log_path = cfg.destination.to_owned();
-                        self.progress = 0.0;
-                        self.current = None;
-                        std::mem::take(&mut self.paths)
-                            .into_iter()
-                            .map(|f| f.path)
-                            .collect()
-                    },
-                    cfg.to_owned(),
-                ));
-                self.state = State::Ripping(None);
-            }
+        if self.total_modules() < 1 {
+            return;
         }
+        let Some(tx) = &self.sender.to_owned() else {
+            return;
+        };
+        tx.try_send(self.bulid_start_signal(cfg.to_owned()));
+        self.state = State::Ripping(None);
+    }
+    pub fn bulid_start_signal(&mut self, cfg: SampleRippingConfig) -> StartSignal {
+        self.log_path = cfg.destination.to_owned(); // TODO: change to config's logging path.
+        self.progress = 0.0;
+        self.current = None;
+
+        let paths: Vec<PathBuf> = std::mem::take(&mut self.paths)
+            .into_iter()
+            .map(|f| f.path)
+            .collect();
+
+        (paths, cfg)
     }
     pub fn update(&mut self, msg: Message) -> Command<Message> {
         match msg {
@@ -229,7 +231,6 @@ impl Trackers {
                     self.all_selected = b;
                     self.paths.iter_mut().for_each(|f| f.selected = b)
                 }
-                
             }
             Message::DeleteSelected => self.delete_selected(),
             Message::TrackerInfo(module) => {
