@@ -104,7 +104,7 @@ impl pick_list::StyleSheet for Theme {
             border_width: 1.2,
             border_color: self.palette().base.border,
             border_radius: 5.0,
-            icon_size: 0.5,
+            handle_color: self.palette().bright.surface,
             placeholder_color: self.palette().bright.surface,
         }
     }
