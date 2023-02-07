@@ -2,7 +2,7 @@
 name = "xmodits-lib"
 authors = ["B0ney <https://github.com/B0ney>"]
 description = "XMODITS core librabry"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 repository = "https://github.com/B0ney/xmodits"
 license = "MPLv2"

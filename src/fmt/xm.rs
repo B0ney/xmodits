@@ -31,18 +31,18 @@ pub struct XMFile {
 impl TrackerDumper for XMFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
         if buf.len() < 60
-            || read_slice(buf, 0x0000, 17) != XM_HEADER_ID
+            || read_slice(buf, 0x0000, 17)? != XM_HEADER_ID
             || buf[0x0025] != XM_MAGIC_NUM
         {
             return Err(XmoditsError::invalid("Not a valid Extended Module"));
         }
-        if read_slice(buf, 0x0026, 20) == MOD_PLUGIN_PACKED {
+        if read_slice(buf, 0x0026, 20)? == MOD_PLUGIN_PACKED {
             return Err(XmoditsError::unsupported(
                 "Unsupported XM: Uses 'MOD plugin packed'",
             ));
         }
 
-        let version: u16 = read_u16_le(buf, 0x003A);
+        let version: u16 = read_u16_le(buf, 0x003A)?;
 
         if version < XM_MIN_VER {
             return Err(XmoditsError::unsupported(
@@ -54,10 +54,10 @@ impl TrackerDumper for XMFile {
     }
 
     fn load_from_buf_unchecked(buf: Vec<u8>) -> Result<TrackerModule, Error> {
-        let module_name: String = read_string(&buf, 0x0011, 20);
-        let header_size: u32 = read_u32_le(&buf, 0x003c);
-        let patnum: u16 = read_u16_le(&buf, 0x0046);
-        let insnum: u16 = read_u16_le(&buf, 0x0048);
+        let module_name: String = read_string(&buf, 0x0011, 20)?;
+        let header_size: u32 = read_u32_le(&buf, 0x003c)?;
+        let patnum: u16 = read_u16_le(&buf, 0x0046)?;
+        let insnum: u16 = read_u16_le(&buf, 0x0048)?;
         let ins_offset: usize = skip_pat_header(&buf, patnum as usize, header_size)?;
         let samples: Vec<XMSample> = build_samples(&buf, ins_offset, insnum as usize)?
             .into_iter()
@@ -113,8 +113,8 @@ fn skip_pat_header(buf: &[u8], patnum: usize, hdr_size: u32) -> Result<usize, Er
     }
 
     for _ in 0..patnum {
-        pat_hdr_len = read_u32_le(buf, offset);
-        pat_data_size = read_u16_le(buf, 0x0007 + offset) as u32;
+        pat_hdr_len = read_u32_le(buf, offset)?;
+        pat_data_size = read_u16_le(buf, 0x0007 + offset)? as u32;
         offset += (pat_hdr_len + pat_data_size) as usize;
     }
 
@@ -135,8 +135,8 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
     }
 
     for _ in 0..ins_num {
-        ins_hdr_size = read_u32_le(buf, offset);
-        ins_smp_num = read_u16_le(buf, 0x001b + offset);
+        ins_hdr_size = read_u32_le(buf, offset)?;
+        ins_smp_num = read_u16_le(buf, 0x001b + offset)?;
 
         if ins_hdr_size == 0 || ins_hdr_size > XM_INS_SIZE {
             ins_hdr_size = XM_INS_SIZE;
@@ -152,7 +152,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
         let mut smp_len_cumulative: usize = 0;
 
         for _ in 0..ins_smp_num {
-            let len: usize = read_u32_le(buf, offset) as usize;
+            let len: usize = read_u32_le(buf, offset)? as usize;
 
             // break out of loop if offset leads to overflow panic
             if 0x0010 + offset > buf.len() || start_smp_hdr + total_smp_hdr_size + len > buf.len() {
@@ -160,7 +160,7 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
             }
 
             let ptr: usize = start_smp_hdr + total_smp_hdr_size + smp_len_cumulative;
-            let name: String = read_string(buf, 0x0012 + offset, 22);
+            let name: String = read_string(buf, 0x0012 + offset, 22)?;
             let flags: u8 = buf[0x000e + offset];
             let bits: u8 = (((flags & MASK_SMP_BITS) >> 4) + 1) * 8;
             let finetune: i8 = buf[0x000d + offset] as i8;
@@ -168,8 +168,8 @@ fn build_samples(buf: &[u8], ins_offset: usize, ins_num: usize) -> Result<Vec<XM
 
             let period: f32 = 7680.0 - ((48.0 + notenum as f32) * 64.0) - (finetune as f32 / 2.0);
             let rate: u32 = (8363.0 * 2.0_f32.powf((4608.0 - period) / 768.0)) as u32;
-            let loop_start: u32 = read_u32_le(buf, 0x0004 + offset);
-            let loop_end: u32 = loop_start + read_u32_le(buf, 0x0008 + offset);
+            let loop_start: u32 = read_u32_le(buf, 0x0004 + offset)?;
+            let loop_end: u32 = loop_start + read_u32_le(buf, 0x0008 + offset)?;
 
             samples.push(XMSample {
                 filename: name.clone(),

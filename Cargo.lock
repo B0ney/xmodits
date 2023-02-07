@@ -3297,9 +3297,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.23.1"
+version = "1.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38a54aca0c15d014013256222ba0ebed095673f89345dd79119d912eb561b7a8"
+checksum = "c8e00990ebabbe4c14c08aca901caed183ecd5c09562a12c824bb53d3c3fd3af"
 dependencies = [
  "autocfg",
  "num_cpus",
@@ -4126,7 +4126,7 @@ dependencies = [
 
 [[package]]
 name = "xmodits-gui"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "anyhow",
  "dirs",
@@ -4149,7 +4149,7 @@ dependencies = [
 
 [[package]]
 name = "xmodits-lib"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "byteorder",
  "phf",

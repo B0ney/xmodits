@@ -40,9 +40,9 @@ impl TrackerDumper for S3MFile {
     }
 
     fn load_from_buf_unchecked(buf: Vec<u8>) -> Result<TrackerModule, Error> {
-        let title: String = read_string(&buf, 0x0000, 28);
-        let ord_count: u16 = read_u16_le(&buf, 0x0020);
-        let ins_count: u16 = read_u16_le(&buf, 0x0022);
+        let title: String = read_string(&buf, 0x0000, 28)?;
+        let ord_count: u16 = read_u16_le(&buf, 0x0020)?;
+        let ins_count: u16 = read_u16_le(&buf, 0x0022)?;
         let ins_ptr_list: u16 = 0x0060 + ord_count;
 
         let mut ins_ptrs: Vec<usize> = Vec::with_capacity(ins_count as usize);
@@ -51,10 +51,10 @@ impl TrackerDumper for S3MFile {
             let index: u16 = ins_ptr_list + (i * 2);
             // convert parameter to byte-level offset by << 4
             // cast to usize to avoid potential overflow
-            ins_ptrs.push((read_u16_le(&buf, index as usize) as usize) << 4)
+            ins_ptrs.push((read_u16_le(&buf, index as usize)? as usize) << 4)
         }
 
-        let smp_data: Vec<S3MSample> = build_samples(&buf, ins_ptrs);
+        let smp_data: Vec<S3MSample> = build_samples(&buf, ins_ptrs)?;
 
         Ok(Box::new(Self {
             title,
@@ -89,7 +89,7 @@ impl TrackerDumper for S3MFile {
     }
 }
 
-fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
+fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Result<Vec<S3MSample>, Error> {
     let mut samples: Vec<S3MSample> = Vec::with_capacity(ins_ptr.len());
 
     for (index, i) in ins_ptr.iter().enumerate() {
@@ -97,14 +97,14 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
             continue;
         } // if it's not a PCM instrument, skip
         let offset: usize = *i + INS_HEAD_LENGTH; // skip instrument header (13 bytes)
-        let len: u32 = read_u32_le(buf, 0x0003 + offset) & 0xffff;
+        let len: u32 = read_u32_le(buf, 0x0003 + offset)? & 0xffff;
 
         if len == 0 {
             continue;
         }
 
         let hi_ptr: u8 = buf[offset];
-        let lo_ptr: u16 = read_u16_le(buf, 0x0001 + offset);
+        let lo_ptr: u16 = read_u16_le(buf, 0x0001 + offset)?;
         let ptr: u32 = (hi_ptr as u32) >> 16 | (lo_ptr as u32) << 4;
         let flags: u8 = buf[0x0012 + offset];
         // let is_stereo: bool = (flags & SMP_MASK_STEREO) >> 1 == 1;
@@ -120,10 +120,10 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
             break;
         } // break out of loop if we get a funky offset
 
-        let name: String = read_string(buf, 0x0023 + offset, 28);
-        let rate: u32 = read_u32_le(buf, 0x0013 + offset);
-        let loop_start: u32 = read_u32_le(buf, 0x0007 + offset);
-        let loop_end: u32 = read_u32_le(buf, 0x000b + offset);
+        let name: String = read_string(buf, 0x0023 + offset, 28)?;
+        let rate: u32 = read_u32_le(buf, 0x0013 + offset)?;
+        let loop_start: u32 = read_u32_le(buf, 0x0007 + offset)?;
+        let loop_end: u32 = read_u32_le(buf, 0x000b + offset)?;
 
         samples.push(S3MSample {
             filename: name.clone(),
@@ -141,5 +141,5 @@ fn build_samples(buf: &[u8], ins_ptr: Vec<usize>) -> Vec<S3MSample> {
         })
     }
 
-    samples
+    Ok(samples)
 }

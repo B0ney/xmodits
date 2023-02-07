@@ -21,11 +21,11 @@ pub struct UMXFile(DontUseMe);
 
 impl TrackerDumper for UMXFile {
     fn validate(buf: &[u8]) -> Result<(), Error> {
-        if buf.len() < UPKG_HEADER_SIZE || read_u32_le(buf, 0x0000) != UPKG_MAGIC {
+        if buf.len() < UPKG_HEADER_SIZE || read_u32_le(buf, 0x0000)? != UPKG_MAGIC {
             return Err(XmoditsError::invalid("Not a valid Unreal package"));
         }
 
-        let version = read_u32_le(buf, 0x0004);
+        let version = read_u32_le(buf, 0x0004)?;
 
         if version < 61 {
             return Err(XmoditsError::unsupported(
@@ -41,8 +41,8 @@ impl TrackerDumper for UMXFile {
         //     ));
         // }
 
-        let name_count: usize = read_u32_le(buf, 0x000C) as usize;
-        let name_offset: usize = read_u32_le(buf, 0x0010) as usize;
+        let name_count: usize = read_u32_le(buf, 0x000C)? as usize;
+        let name_offset: usize = read_u32_le(buf, 0x0010)? as usize;
 
         let mut name_table: Vec<Cow<str>> = Vec::with_capacity(name_count);
 
@@ -56,14 +56,14 @@ impl TrackerDumper for UMXFile {
                     length += 1;
                 }
 
-                let name = read_str(buf, offset, length);
+                let name = read_str(buf, offset, length)?;
                 offset += length;
                 name
             } else {
                 let length: usize = buf[offset] as usize - 1; // length of string inc \0, -1 to remove null
                 offset += 1; // skip size field
 
-                let name = read_str(buf, offset, length);
+                let name = read_str(buf, offset, length)?;
                 offset += length;
                 name
             });
@@ -82,8 +82,8 @@ impl TrackerDumper for UMXFile {
     }
 
     fn load_from_buf_unchecked(mut buf: Vec<u8>) -> Result<TrackerModule, Error> {
-        let version = read_u32_le(&buf, 0x0004);
-        let export_offset: usize = read_u32_le(&buf, 0x0018) as usize;
+        let version = read_u32_le(&buf, 0x0004)?;
+        let export_offset: usize = read_u32_le(&buf, 0x0018)? as usize;
         let mut offset: usize = export_offset;
 
         // Export table

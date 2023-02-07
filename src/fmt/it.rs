@@ -52,20 +52,20 @@ impl TrackerDumper for ITFile {
     }
 
     fn load_from_buf_unchecked(buf: Vec<u8>) -> Result<TrackerModule, Error> {
-        let title: String = read_string(&buf, 0x0004, 26);
-        let ord_num: u16 = read_u16_le(&buf, 0x0020);
-        let ins_num: u16 = read_u16_le(&buf, 0x0022);
-        let smp_num: u16 = read_u16_le(&buf, 0x0024);
-        let compat_ver: u16 = read_u16_le(&buf, 0x002A);
+        let title: String = read_string(&buf, 0x0004, 26)?;
+        let ord_num: u16 = read_u16_le(&buf, 0x0020)?;
+        let ins_num: u16 = read_u16_le(&buf, 0x0022)?;
+        let smp_num: u16 = read_u16_le(&buf, 0x0024)?;
+        let compat_ver: u16 = read_u16_le(&buf, 0x002A)?;
         let smp_ptr_list: u16 = 0x00c0 + ord_num + (ins_num * 4);
         let mut smp_ptrs: Vec<u32> = Vec::with_capacity(smp_num as usize);
 
         for i in 0..smp_num {
             let index = smp_ptr_list + (i * 4);
-            smp_ptrs.push(read_u32_le(&buf, index as usize));
+            smp_ptrs.push(read_u32_le(&buf, index as usize)?);
         }
 
-        let smp_data: Vec<ITSample> = build_samples(&buf, smp_ptrs);
+        let smp_data: Vec<ITSample> = build_samples(&buf, smp_ptrs)?;
         let smp_num: u16 = smp_data.len() as u16;
 
         Ok(Box::new(Self {
@@ -112,17 +112,17 @@ impl TrackerDumper for ITFile {
     }
 }
 
-fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
+fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Result<Vec<ITSample>, Error> {
     let mut sample_data: Vec<ITSample> = Vec::with_capacity(smp_ptrs.len());
 
     for (index, i) in smp_ptrs.iter().enumerate() {
         let offset: usize = *i as usize;
-        let len: u32 = read_u32_le(buf, 0x0030 + offset);
+        let len: u32 = read_u32_le(buf, 0x0030 + offset)?;
         if len == 0 {
             continue;
         }
 
-        let ptr: u32 = read_u32_le(buf, 0x0048 + offset);
+        let ptr: u32 = read_u32_le(buf, 0x0048 + offset)?;
         let flags: u8 = buf[0x012 + offset];
         let bits: u8 = (((flags & MASK_SMP_BITS) >> 1) + 1) * 8;
         let is_compressed: bool = ((flags & MASK_SMP_COMP) >> 3) == 1;
@@ -138,11 +138,11 @@ fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
             break;
         }
 
-        let filename: String = read_string(buf, 0x0004 + offset, 12);
-        let name: String = read_string(buf, 0x0014 + offset, 26);
-        let rate: u32 = read_u32_le(buf, 0x003C + offset);
-        let loop_start: u32 = read_u32_le(buf, 0x0034 + offset);
-        let loop_end: u32 = read_u32_le(buf, 0x0038 + offset);
+        let filename: String = read_string(buf, 0x0004 + offset, 12)?;
+        let name: String = read_string(buf, 0x0014 + offset, 26)?;
+        let rate: u32 = read_u32_le(buf, 0x003C + offset)?;
+        let loop_start: u32 = read_u32_le(buf, 0x0034 + offset)?;
+        let loop_end: u32 = read_u32_le(buf, 0x0038 + offset)?;
 
         sample_data.push(ITSample {
             name,
@@ -161,5 +161,5 @@ fn build_samples(buf: &[u8], smp_ptrs: Vec<u32>) -> Vec<ITSample> {
         })
     }
 
-    sample_data
+    Ok(sample_data)
 }

@@ -42,9 +42,9 @@ impl<'a> BitReader<'a> {
         }
     }
 
-    fn read_next_block(&mut self) {
+    fn read_next_block(&mut self) -> Result<(), Error>{
         // First 2 bytes combined to u16 (LE). Tells us size of compressed block.
-        let block_size: u16 = read_u16_le(self.buf, self.block_offset);
+        let block_size: u16 = read_u16_le(self.buf, self.block_offset)?;
 
         // Set to 2 to skip length field
         self.blk_index = 2 + self.block_offset;
@@ -54,6 +54,7 @@ impl<'a> BitReader<'a> {
         self.bitbuf = self.buf[self.blk_index] as u32;
         self.bitnum = 8;
         self.block_offset += block_size as usize + 2;
+        Ok(())
     }
 
     fn read_bits_u16(&mut self, n: u8) -> u16 {
@@ -103,7 +104,7 @@ fn decompress_8bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error> 
     // Unpack data
     while len != 0 {
         // Read new block, reset variables
-        bitreader.read_next_block();
+        bitreader.read_next_block()?;
 
         // Make sure block len won't exceed len.
         blklen = if len < 0x8000 { len as u16 } else { 0x8000 };

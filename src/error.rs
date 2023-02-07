@@ -31,6 +31,9 @@ pub enum XmoditsError {
 
     #[error("Multiple Errors")]
     MultipleErrors(Vec<XmoditsError>),
+
+    #[error("This module has caused an out of bounds error. This is a bug. Please add this module to your bug report.")]
+    OutOfBounds
 }
 
 impl XmoditsError {
@@ -44,6 +47,9 @@ impl XmoditsError {
 
     pub fn file(e: &str) -> Self {
         Self::FileError(e.to_owned())
+    }
+    pub fn out_of_bounds() -> Self {
+        Self::OutOfBounds
     }
 }
 

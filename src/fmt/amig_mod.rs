@@ -80,7 +80,7 @@ impl TrackerDumper for MODFile {
     }
 
     fn load_from_buf_unchecked(buf: Vec<u8>) -> Result<TrackerModule, Error> {
-        let title: String = read_string(&buf, 0x0000, 20);
+        let title: String = read_string(&buf, 0x0000, 20)?;
         // let alt_finetune: bool = ALT_FINETUNE.contains(&&buf[dword!(0x0438)]);
 
         // if it contains any non-ascii, it was probably made with ultimate sound tracker
@@ -184,11 +184,11 @@ fn build_samples(
 
         // let finetune: u8 = buf[0x0018 + offset];
 
-        let name = read_string(buf, offset, 22);
-        let loop_start: u32 = read_u16_le(buf, 0x001A + offset) as u32 * 16;
+        let name = read_string(buf, offset, 22)?;
+        let loop_start: u32 = read_u16_le(buf, 0x001A + offset)? as u32 * 16;
         // loop length in words, 1 word = 2 bytes
         // if 1, looping is disabled
-        let loop_end: u32 = match read_u16_le(buf, 0x001C + offset) {
+        let loop_end: u32 = match read_u16_le(buf, 0x001C + offset)? {
             1 => 0, // TODO
             length => loop_start + (length as u32 * 16),
         };
