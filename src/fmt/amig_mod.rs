@@ -25,6 +25,11 @@ const MOD_SMP_START: usize = 0x0014; // offset where title ends & smp data begin
 const MOD_SMP_LEN: usize = 0x1e;
 const PAT_META: usize = 0x3b8;
 
+const FINETUNE: [u32; 16] = [
+    8363, 8413, 8463, 8529, 8581, 8651, 8723, 8757, 
+    7895, 7941, 7985, 8046, 8107, 8169, 8232, 8280,
+];
+
 type MODSample = TrackerSample;
 
 /// This format has the least checks, use with caution.
@@ -182,7 +187,7 @@ fn build_samples(
             break;
         }
 
-        // let finetune: u8 = buf[0x0018 + offset];
+        let finetune: u8 = buf[0x0018 + offset];
 
         let name = read_string(buf, offset, 22)?;
         let loop_start: u32 = read_u16_le(buf, 0x001A + offset)? as u32 * 16;
@@ -200,7 +205,7 @@ fn build_samples(
             len: len as usize,
             ptr: smp_pcm_stream_index,
             bits: 8,
-            rate: 8363,
+            rate: FINETUNE[(finetune & 15) as usize],
             loop_start,
             loop_end,
             ..Default::default()
