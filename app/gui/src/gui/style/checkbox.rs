@@ -14,7 +14,7 @@ impl checkbox::StyleSheet for Theme {
     fn active(&self, style: &Self::Style, _is_checked: bool) -> checkbox::Appearance {
         let default = checkbox::Appearance {
             background: self.palette().base.background.into(),
-            checkmark_color: self.palette().bright.primary,
+            icon_color: self.palette().bright.primary,
             border_radius: 5.0,
             border_width: 1.2,
             border_color: self.palette().base.border,
@@ -32,7 +32,7 @@ impl checkbox::StyleSheet for Theme {
     fn hovered(&self, style: &Self::Style, _is_checked: bool) -> checkbox::Appearance {
         let from_appearance = checkbox::Appearance {
             background: self.palette().base.background.into(),
-            checkmark_color: self.palette().bright.primary,
+            icon_color: self.palette().bright.primary,
             border_radius: 5.0,
             border_width: 2.0,
             border_color: self.palette().bright.primary,

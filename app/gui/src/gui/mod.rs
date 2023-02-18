@@ -250,7 +250,7 @@ impl XmoditsGui {
                 ..iced::window::Settings::default()
             },
             // try_opengles_first: true,
-            default_text_size: 17,
+            default_text_size: 17.0,
             ..iced::Settings::default()
         };
 

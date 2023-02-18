@@ -333,7 +333,7 @@ impl Trackers {
                                 .on_press(Message::Probe(idx))
                                 .padding(4)
                                 .style(style::button::Button::Entry),
-                                Space::with_width(Length::Units(15))
+                                Space::with_width(15)
                             ])
                         },
                     )))
@@ -348,8 +348,8 @@ impl Trackers {
                     })
                     .font(JETBRAINS_MONO),
                     progress_bar(0.0..=100.0, self.progress)
-                        .height(Length::Units(5))
-                        .width(Length::Units(200))
+                        .height(5)
+                        .width(200)
                 ]
                 .spacing(5)
                 .align_items(Alignment::Center),
@@ -392,7 +392,7 @@ impl Trackers {
                                 .style(style::Container::Frame)
                                 .width(Length::Fill)
                                 .padding(4),
-                                Space::with_width(Length::Units(15))
+                                Space::with_width(15)
                             ])
                         })
                         .width(Length::Fill),

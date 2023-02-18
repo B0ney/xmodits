@@ -77,6 +77,6 @@ pub fn download_icon() -> Text<'static, Renderer<Theme>> {
 fn icon(unicode: char) -> Text<'static, Renderer<Theme>> {
     text(unicode.to_string())
         .font(ICONS)
-        .width(Length::Units(20))
+        .width(20)
         .horizontal_alignment(alignment::Horizontal::Center)
 }
