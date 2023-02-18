@@ -36,7 +36,7 @@ type MODSample = TrackerSample;
 pub struct MODFile {
     buf: Vec<u8>,
     title: String,
-    smp_num: u8,
+    // smp_num: u8,
     smp_data: Vec<MODSample>,
 }
 
@@ -136,7 +136,7 @@ impl TrackerDumper for MODFile {
 
         Ok(Box::new(Self {
             title,
-            smp_num: smp_data.len() as u8,
+            // smp_num: smp_data.len() as u8,
             smp_data,
             buf,
         }))
@@ -148,7 +148,7 @@ impl TrackerDumper for MODFile {
     }
 
     fn number_of_samples(&self) -> usize {
-        self.smp_num as usize
+        self.smp_data.len()
     }
 
     fn module_name(&self) -> &str {

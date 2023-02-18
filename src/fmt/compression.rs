@@ -203,7 +203,7 @@ fn decompress_16bit(buf: &[u8], len: u32, it215: bool) -> Result<Vec<u8>, Error>
 
     while len != 0 {
         // Read new block, reset variables
-        bitreader.read_next_block();
+        bitreader.read_next_block()?;
 
         // Make sure block len won't exceed len.
         blklen = if len < 0x4000 { len as u16 } else { 0x4000 };
@@ -303,7 +303,7 @@ fn readbit() {
         0b1100_1100,
     ];
     let mut b = BitReader::new(&buf);
-    b.read_next_block();
+    b.read_next_block().unwrap();
     b.read_bits_u16(0);
 
     // test group 1
