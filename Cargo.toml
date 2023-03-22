@@ -3,3 +3,9 @@ members = [
     "xmodits-cli",
     "xmodits-gui"
 ]
+
+[profile.release]
+strip = "debuginfo"
+opt-level = "s"
+lto = true          # Enable Link Time Optimization
+codegen-units = 1
