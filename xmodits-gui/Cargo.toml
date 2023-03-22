@@ -2,7 +2,7 @@
 name = "xmodits-gui"
 authors = ["B0ney <https://github.com/B0ney>"]
 description = "XMODITS graphical application"
-version = "0.9.9"
+version = "0.10.0"
 edition = "2021"
 build = "build.rs"
 license = "GPLv3"
@@ -13,7 +13,8 @@ repository = "https://github.com/B0ney/xmodits"
 winres = "0.1.12"
 
 [dependencies]
-xmodits-lib = { path = "../../", features=["thread", "common"] }
+# xmodits-lib-old = { path = "../../", features=["thread", "common"] }
+xmodits-lib = { git = "https://github.com/B0ney/xmodits-lib.git", features = ["rayon", "log", "serde"] }
 anyhow = "1.0.66"
 toml = "0.5.10"
 dirs = "4.0.0"
