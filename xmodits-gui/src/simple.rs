@@ -1,3 +1,8 @@
+use xmodits_lib::interface::Error;
+use xmodits_lib::{
+    common::extract, fmt::loader::load_module, interface::ripper::Ripper, SampleNamer,
+    SampleNamerTrait,
+};
 use crate::core::cfg::Config;
 use crate::core::log::write_error_log;
 use crate::dialog::{
@@ -5,8 +10,6 @@ use crate::dialog::{
 };
 use std::cmp::Ordering;
 use std::path::PathBuf;
-use xmodits_lib::common::{dump_samples_advanced, folder};
-use xmodits_lib::XmoditsError;
 
 pub fn rip(paths: Vec<PathBuf>) {
     let paths: Vec<PathBuf> = paths.into_iter().filter(|f| f.is_file()).collect();
@@ -20,18 +23,19 @@ pub fn rip(paths: Vec<PathBuf>) {
     };
     let config = &config.ripping;
     let namer = config.naming.build_func();
-    let hint = &config.hint.into();
+    // let hint = &config.hint.into();
+    let mut ripper = Ripper::default();
+    ripper.change_namer(namer);
 
-    let mut errors: Vec<(PathBuf, XmoditsError)> = paths
+
+    let mut errors: Vec<(PathBuf, Error)> = paths
         .into_iter()
         .filter_map(|mod_path| {
-            match dump_samples_advanced(
+            match extract(
                 &mod_path,
-                folder(&config.destination, &mod_path, !config.no_folder),
-                &namer,
+                &config.destination,
+                &ripper,
                 !config.no_folder,
-                hint,
-                config.embed_loop_points,
             ) {
                 Ok(_) => None,
                 Err(error) => Some((mod_path, error)),

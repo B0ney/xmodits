@@ -2,8 +2,12 @@ use iced::{subscription, Subscription};
 use std::path::PathBuf;
 use tokio::sync::mpsc::{self, Receiver, Sender};
 use walkdir::WalkDir;
-use xmodits_lib::common::dump_samples_advanced;
-use xmodits_lib::common::folder;
+
+use xmodits_lib::{
+    common::extract, fmt::loader::load_module, interface::ripper::Ripper, SampleNamer,
+    SampleNamerTrait,
+};
+// use xmodits_lib::common::folder;
 
 use super::cfg::SampleRippingConfig;
 pub type StartSignal = (Vec<PathBuf>, SampleRippingConfig);
@@ -187,18 +191,17 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
         ))))
         .expect("Channel closed prematurely");
 
-        let namer = config.naming.build_func();
-        let hint = config.hint.into();
+        // let namer = config.naming.build_func();
+        // let hint = config.hint.into();
+        let ripper = Ripper::default();
 
         for path in expanded_paths {
             tx.blocking_send(
-                match dump_samples_advanced(
+                match extract(
                     &path,
-                    folder(&dest_dir, &path, !config.no_folder),
-                    &namer,
-                    !config.no_folder,
-                    &hint,
-                    config.embed_loop_points,
+                    &dest_dir,
+                    &ripper,
+                    !config.no_folder
                 ) {
                     Ok(_) => ThreadMsg::Ok,
                     Err(e) => ThreadMsg::Failed((path, e.to_string())),

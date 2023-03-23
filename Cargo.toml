@@ -1,11 +1,17 @@
 [workspace]
+resolver ="2"
+
 members = [
     "xmodits-cli",
     "xmodits-gui"
 ]
 
-[profile.release]
+[profile.release.package.xmodits]
 strip = "debuginfo"
 opt-level = "s"
-lto = true          # Enable Link Time Optimization
+codegen-units = 1
+
+[profile.release.package.xmodits-gui]
+strip = "debuginfo"
+opt-level = 3
 codegen-units = 1

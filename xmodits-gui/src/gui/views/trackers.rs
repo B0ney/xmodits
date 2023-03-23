@@ -7,12 +7,16 @@ use iced::widget::{
     button, checkbox, column, container, progress_bar, row, scrollable, text, Space,
 };
 use iced::{alignment::Horizontal, Alignment, Command, Element, Length, Renderer};
+use xmodits_lib::traits::Module;
 use std::path::{Path, PathBuf};
 use tokio::sync::mpsc::Sender;
 use tracing::{info, warn};
-use xmodits_lib::common::filename;
-use xmodits_lib::{load_from_ext, load_module, TrackerModule};
 
+use xmodits_lib::interface::Error;
+use xmodits_lib::{
+    common::extract, fmt::loader::load_module, interface::ripper::Ripper, SampleNamer,
+    SampleNamerTrait,
+};
 #[derive(Debug, Clone)]
 pub enum Message {
     Add(Option<Vec<PathBuf>>),
@@ -45,16 +49,16 @@ pub enum Info {
 }
 
 impl Info {
-    pub fn valid(tracker: TrackerModule, path: PathBuf) -> Self {
+    pub fn valid(tracker: Box<dyn Module>, path: PathBuf) -> Self {
         Self::Valid {
-            module_name: tracker.module_name().to_owned(),
+            module_name: tracker.name().to_owned(),
             format: tracker.format().to_owned(),
-            samples: tracker.number_of_samples(),
+            samples: tracker.total_samples(),
             path,
             total_sample_size: tracker
-                .list_sample_data()
+                .samples()
                 .iter()
-                .map(|f| f.len)
+                .map(|f| f.length as usize)
                 .sum::<usize>()
                 / 1024,
         }
@@ -537,17 +541,14 @@ impl Trackers {
 }
 
 async fn tracker_info(path: PathBuf, hint: Option<String>) -> Option<Box<Info>> {
-    let (tracker_result, path) = tokio::task::spawn_blocking(move || {
-        (
-            match hint {
-                Some(hint) => load_from_ext(&path, &hint),
-                None => load_module(&path),
-            },
-            path,
-        )
+    let path2 = path.clone();
+    
+    let (tracker_result) = tokio::task::spawn_blocking(|| {
+        let mut file = std::fs::File::open(path2)?;
+        load_module(&mut file)
     })
-    .await
-    .ok()?;
+    .await.ok()?;
+
     match tracker_result {
         Ok(tracker) => Some(Box::new(Info::valid(tracker, path))),
         Err(error) => Some(Box::new(Info::invalid(error.to_string(), path))),
@@ -561,6 +562,17 @@ fn paths(h: Option<Vec<rfd::FileHandle>>) -> Option<Vec<PathBuf>> {
             .map(|d| d.path().to_owned())
             .collect()
     })
+}
+
+pub fn filename<P>(path: P) -> String 
+where
+    P: AsRef<Path>
+{
+    path
+        .as_ref()
+        .file_name()
+        .map(|f| f.to_string_lossy().to_string())
+        .unwrap_or_default()
 }
 
 pub async fn folders_dialog() -> Option<Vec<PathBuf>> {

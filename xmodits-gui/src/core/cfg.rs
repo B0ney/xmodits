@@ -3,7 +3,7 @@ use dirs;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use toml;
-use xmodits_lib::{SampleNamer, SampleNamerFunc};
+use xmodits_lib::{SampleNamer, SampleNamerTrait};
 
 const APP_NAME: &str = "xmodits";
 const CONFIG_NAME: &str = "config.toml";
@@ -107,14 +107,15 @@ pub struct SampleNameConfig {
 }
 
 impl SampleNameConfig {
-    pub fn build_func(&self) -> Box<SampleNamerFunc> {
-        SampleNamer::build_func(
-            self.index_only,
-            Some(self.index_padding.into()),
-            self.index_raw,
-            self.lower,
-            self.upper,
-        )
+    pub fn build_func(&self) -> Box<dyn SampleNamerTrait> {
+        SampleNamer {
+            index_only: self.index_only,
+            index_padding: self.index_padding,
+            index_raw: self.index_raw,
+            lower: self.lower,
+            upper: self.upper,
+            ..Default::default()
+        }.into()
     }
 }
 #[allow(clippy::upper_case_acronyms)]
