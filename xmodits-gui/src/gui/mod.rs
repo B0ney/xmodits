@@ -70,7 +70,7 @@ impl Application for XmoditsGui {
         let config = Config::load();
         (
             Self {
-                tracker: Trackers::default().with_hint(config.ripping.hint.into()),
+                tracker: Trackers::default(),
                 config,
                 ..Default::default()
             },
@@ -91,10 +91,10 @@ impl Application for XmoditsGui {
             Message::Tracker(msg) => return self.tracker.update(msg).map(Message::Tracker),
             Message::SetCfg(msg) => self.config.ripping.naming.update(msg),
             Message::SetRipCfg(msg) => match msg {
-                ConfigRippingMessage::SetHint(hint) => {
-                    self.tracker.set_hint(hint.into());
-                    self.config.ripping.update(msg);
-                }
+                // ConfigRippingMessage::SetHint(hint) => {
+                //     self.tracker.set_hint(hint.into());
+                //     self.config.ripping.update(msg);
+                // }
                 _ => self.config.ripping.update(msg),
             },
             // Message::ChangeSetting(msg) => self.config.general.update(msg),

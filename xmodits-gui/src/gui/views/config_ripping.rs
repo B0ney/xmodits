@@ -5,11 +5,13 @@ use iced::widget::{checkbox, column, container, pick_list, row, text, text_input
 use iced::Alignment;
 use iced::{Element, Length, Renderer};
 use std::path::PathBuf;
+use xmodits_lib::exporter::AudioFormat;
 
 #[derive(Debug, Clone)]
 pub enum Message {
     SetDestination(PathBuf),
-    SetHint(FormatHint),
+    // SetHint(FormatHint),
+    SetFormat(AudioFormat),
     // ToggleEmbedLoopPoint(bool),
     ToggleNoFolder(bool),
     SetRecursionDepth(u8),
@@ -19,7 +21,7 @@ impl SampleRippingConfig {
     pub fn update(&mut self, msg: Message) {
         match msg {
             Message::SetDestination(path) => self.destination = path,
-            Message::SetHint(hint) => self.hint = hint,
+            Message::SetFormat(format) => self.exported_format = format,
             // Message::ToggleEmbedLoopPoint(toggle) => self.embed_loop_points = toggle,
             Message::ToggleNoFolder(toggle) => self.no_folder = toggle,
             Message::SetRecursionDepth(depth) => self.folder_recursion_depth = depth,
@@ -36,8 +38,8 @@ impl SampleRippingConfig {
                 //     Message::ToggleEmbedLoopPoint
                 // ),
                 row![
-                    pick_list(&FormatHint::ALL[..], Some(self.hint), Message::SetHint),
-                    text("Format Hinting"),
+                    pick_list(&AudioFormat::FORMATS[..], Some(self.exported_format), Message::SetFormat),
+                    text("Export Format"),
                 ]
                 .align_items(Alignment::Center)
                 .spacing(5),
