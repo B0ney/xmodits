@@ -3,7 +3,7 @@ use dirs;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use toml;
-use xmodits_lib::{SampleNamer, SampleNamerTrait};
+use xmodits_lib::{SampleNamer, SampleNamerTrait, exporter::AudioFormat};
 
 const APP_NAME: &str = "xmodits";
 const CONFIG_NAME: &str = "config.toml";
@@ -95,6 +95,7 @@ pub struct SampleRippingConfig {
     pub embed_loop_points: bool,
     pub folder_recursion_depth: u8,
     pub naming: SampleNameConfig,
+    // pub exported_format: AudioFormat,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -104,6 +105,8 @@ pub struct SampleNameConfig {
     pub index_padding: u8,
     pub upper: bool,
     pub lower: bool,
+    pub prefix: bool,
+    pub prefer_filename: bool
 }
 
 impl SampleNameConfig {
@@ -114,6 +117,8 @@ impl SampleNameConfig {
             index_raw: self.index_raw,
             lower: self.lower,
             upper: self.upper,
+            prefix_source: self.prefix,
+            prefer_filename: self.prefer_filename,
             ..Default::default()
         }.into()
     }

@@ -13,7 +13,7 @@ repository = "https://github.com/B0ney/xmodits"
 winres = "0.1.12"
 
 [dependencies]
-xmodits-lib = { git = "https://github.com/B0ney/xmodits-lib.git", features = ["serde"] }
+xmodits-lib = { git = "https://github.com/B0ney/xmodits-lib.git", features = ["serde", "log"] }
 anyhow = "1.0.66"
 toml = "0.5.10"
 dirs = "4.0.0"
@@ -24,11 +24,11 @@ image = { version = "0.24.4", default-features = false, features = ["ico"] }
 rfd = { version = "0.10.0", default-features = false, features = ["xdg-portal"] }
 native-dialog = { version="0.6.3", features = ["windows_dpi_awareness", "windows_visual_styles"] }
 tracing = "0.1.37"
+tracing-log = "0.1.3"
 tracing-subscriber = "0.2.0"
 open = "3.2.0"
 walkdir = "2.3.2"
 rand = "0.8.5"
-winsafe = { version = "0.0.14", features = [] }
 # shellexpand = "3.0.0"
 
 [dependencies.iced]
@@ -40,6 +40,10 @@ features = [
     "default_system_font",
     "tokio",
 ]
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3.9", features = ["shellapi", "winuser"] }
+winsafe = { version = "0.0.14", features = [] }
 
 [package.metadata.winres]
 OriginalFilename = "XMODITS.EXE"

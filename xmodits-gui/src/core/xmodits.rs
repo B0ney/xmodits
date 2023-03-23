@@ -191,9 +191,8 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
         ))))
         .expect("Channel closed prematurely");
 
-        // let namer = config.naming.build_func();
-        // let hint = config.hint.into();
-        let ripper = Ripper::default();
+        let mut ripper = Ripper::default();
+        ripper.change_namer(config.naming.build_func());
 
         for path in expanded_paths {
             tx.blocking_send(

@@ -4100,8 +4100,10 @@ dependencies = [
  "tokio",
  "toml",
  "tracing",
+ "tracing-log",
  "tracing-subscriber",
  "walkdir",
+ "winapi",
  "winres",
  "winsafe",
  "xmodits-lib",
@@ -4114,6 +4116,7 @@ source = "git+https://github.com/B0ney/xmodits-lib.git#13126a9044d09a6fa55f6971a
 dependencies = [
  "bytemuck",
  "extended",
+ "log",
  "serde",
  "thiserror",
 ]

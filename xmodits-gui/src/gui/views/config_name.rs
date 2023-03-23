@@ -10,6 +10,8 @@ pub enum Message {
     UpperCase(bool),
     LowerCase(bool),
     IndexPadding(u8),
+    PreferFilename(bool),
+    PrefixSamples(bool),
 }
 
 impl SampleNameConfig {
@@ -42,6 +44,8 @@ impl SampleNameConfig {
                 self.lower = lower;
             }
             Message::IndexPadding(padding) => self.index_padding = padding,
+            Message::PreferFilename(use_filename) => self.prefer_filename = use_filename,
+            Message::PrefixSamples(prefix) => self.prefix = prefix,
         }
     }
     pub fn view(&self) -> Element<Message, Renderer<Theme>> {
@@ -50,12 +54,14 @@ impl SampleNameConfig {
                 row![
                     column![
                         checkbox("Index Only", self.index_only, Message::IndexOnly),
-                        checkbox("Preserve Index", self.index_raw, Message::IndexRaw)
+                        checkbox("Preserve Index", self.index_raw, Message::IndexRaw),
+                        checkbox("Prefer Filename", self.prefer_filename, Message::PreferFilename),
                     ]
                     .spacing(8),
                     column![
                         checkbox("Upper Case", self.upper, Message::UpperCase),
-                        checkbox("Lower Case", self.lower, Message::LowerCase)
+                        checkbox("Lower Case", self.lower, Message::LowerCase),
+                        checkbox("Prefix Samples", self.prefix, Message::PrefixSamples),
                     ]
                     .spacing(8)
                 ]
