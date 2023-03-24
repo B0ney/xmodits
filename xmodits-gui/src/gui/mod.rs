@@ -2,7 +2,7 @@ pub mod icons;
 pub mod style;
 pub mod views;
 use crate::core::{
-    cfg::Config,
+    cfg::{Config, SampleRippingConfig, GeneralConfig},
     font::JETBRAINS_MONO,
     xmodits::{xmodits_subscription, DownloadMessage},
 };
@@ -25,6 +25,7 @@ use xmodits_lib::exporter::AudioFormat;
 // use views::settings::Message as SettingsMessage;
 use views::trackers::Message as TrackerMessage;
 use views::trackers::Trackers;
+use iced::alignment::Horizontal;
 
 #[derive(Default, Debug, Clone)]
 pub enum View {
@@ -47,7 +48,6 @@ pub enum Message {
     // ChangeSetting(SettingsMessage),
     About(AboutMessage),
     SetDestinationDialog,
-    SetDestination(Option<PathBuf>),
     SaveConfig,
     StartRip,
     Progress(DownloadMessage),
@@ -60,10 +60,22 @@ pub enum Message {
     SelectAll(bool),
     DeleteSelected,
     Probe(usize),
-    // SetDestination(PathBuf),
+    Open(PathBuf),
+
+    AddFileDialog,
+    AddFolderDialog,
+    Clear,
+
+    SetDestination(Option<PathBuf>),
     // SetFormat(AudioFormat),
     // SetNoFolderToggle(bool),
     // SetRecursionDepth(bool),
+    // SetIndexOnly(bool),
+    // SetIndexRaw(bool),
+    // SetUpperCase(bool),
+    // SetLowerCase(bool),
+    // SetIndexPadding(bool),
+    // SetPrefixSamples(bool),
 }
 
 #[derive(Default)]
@@ -153,6 +165,14 @@ impl Application for XmoditsGui {
                 _ => (),
             },
             Message::Ignore => (),
+            Message::Select { index, selected } => todo!(),
+            Message::SelectAll(_) => todo!(),
+            Message::DeleteSelected => todo!(),
+            Message::Probe(_) => todo!(),
+            Message::Open(_) => todo!(),
+            Message::AddFileDialog => todo!(),
+            Message::AddFolderDialog => todo!(),
+            Message::Clear => todo!(),
         }
         Command::none()
     }
@@ -324,6 +344,11 @@ impl Entries {
     pub fn len(&self) -> usize {
         self.paths.len()
     }
+    pub fn select(&mut self, index: usize, selected: bool) {
+        if let Some(entry) = self.paths.get_mut(index) {
+            entry.selected = selected;
+        }
+    }
 }
 
 #[derive(Default)]
@@ -365,12 +390,14 @@ impl Info {
     }
 }
 use iced::widget::Space;
+use iced::widget::progress_bar;
 
 #[derive(Default)]
-struct App {
+pub struct App {
     view: View,
     state: State,
-    config: Config,
+    general_config: GeneralConfig,
+    ripping_config: SampleRippingConfig,
     entries: Entries,
     current: Option<Info>,
     sender: Option<Sender<StartSignal>>,
@@ -384,7 +411,10 @@ impl Application for App {
     type Flags = ();
 
     fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        todo!()
+        (
+            Self::default(),
+            Command::none()
+        )
     }
 
     fn title(&self) -> String {
@@ -404,11 +434,23 @@ impl Application for App {
             Message::SaveConfig => todo!(),
             Message::StartRip => todo!(),
             Message::Progress(_) => todo!(),
-            Message::WindowEvent(_) => todo!(),
-            Message::Ignore => todo!(),
+            Message::WindowEvent(e) => match e {
+                Event::Keyboard(KeyboardEvent::KeyPressed { key_code, .. }) => match key_code {
+                    KeyCode::Delete => self.delete_selected(),
+                    _ => (),
+                }
+                Event::Window(WindowEvent::FileDropped(path)) => self.entries.add(path),
+                _ => (),
+            },
+            Message::Ignore => (),
             Message::SelectAll(selected) => self.entries.all_selected = selected,
             Message::DeleteSelected => self.delete_selected(),
-            Message::Select { index, selected } => todo!(),
+            Message::Select { index, selected } => self.entries.select(index, selected),
+            Message::Probe(_) => todo!(),
+            Message::Open(_) => todo!(),
+            Message::AddFileDialog => todo!(),
+            Message::AddFolderDialog => todo!(),
+            Message::Clear => todo!(),
         };
         Command::none()
     }
@@ -436,25 +478,62 @@ impl Application for App {
         .width(Length::FillPortion(1))
         .align_items(Alignment::Center);
         
-        let left_half: _ = match self.view {
+        let left_half_view: _ = match self.view {
             View::Configure => container(
                 column![
-                    todo!()
+                    self.view_current_tracker(),
+                    self.ripping_config.naming.view().map(Message::SetCfg),
+                    self.ripping_config.view().map(Message::SetRipCfg),
+                    self.ripping_config
+                        .view_folder_scan_depth()
+                        .map(Message::SetRipCfg),
+                    row![
+                        button("Save Configuration")
+                            .padding(10)
+                            .on_press(Message::SaveConfig),
+                        button(
+                            row![text("Start"), icons::download_icon()]
+                                .align_items(Alignment::Center)
+                        )
+                        .padding(10)
+                        .on_press(Message::StartRip)
+                        .style(style::button::Button::Start)
+                        .width(Length::Fill),
+                    ]
+                    .spacing(5)
+                    .width(Length::FillPortion(1))
+                    .align_items(Alignment::Center),
                 ]
-            ),
-            View::About => todo!(),
-        }.into();
+                .spacing(10)
+            ).into(),
+            View::About => views::about::view().map(Message::About),
+        };
 
         let left_half = column![
             menu, 
-            left_half
+            left_half_view
         ]
         .spacing(10)
         .width(Length::FillPortion(4));
 
         let right_half: _ = column![
-            set_destination, 
-            todo!()
+            set_destination,
+            self.view_entries(),
+            row![
+            button(text("Add File"))
+                .padding(10)
+                .on_press(Message::AddFileDialog),
+            button(text("Add Folder"))
+                .padding(10)
+                .on_press(Message::AddFolderDialog),
+            Space::with_width(Length::Fill),
+            button("Delete Selected")
+                .padding(10)
+                .on_press(Message::DeleteSelected),
+            // .style(style::button::Button::Delete),
+            button("Clear").padding(10).on_press(Message::Clear),
+        ]
+        .spacing(10)
         ]
         .width(Length::FillPortion(5)) //6
         .spacing(10);
@@ -534,7 +613,7 @@ impl App {
     }
 
     pub fn destination_bar(&self) -> Element<Message, Renderer<Theme>> {
-        let destination = &self.config.ripping.destination;
+        let destination = &self.ripping_config.destination;
         let input: _ = text_input(
             "Output Directory",
             &format!("{}", destination.display()),
@@ -543,6 +622,57 @@ impl App {
         .padding(10);
 
         input.into()
+    }
+
+    pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> { 
+        let content: _ = match &self.current {
+            Some(info) => match info {
+                Info::Valid {
+                    name,
+                    format,
+                    samples,
+                    total_sample_size,
+                    ..
+                } => container(
+                    column![
+                        text(format!("Module Name: {}", name)),
+                        text(format!("Format: {}", format)),
+                        text(format!("Samples: {}", samples)),
+                        text(format!("Total Sample Size: {} KiB", total_sample_size)),
+                    ]
+                    .spacing(5)
+                    .align_items(Alignment::Center)
+                    .width(Length::Fill),
+                ),
+                Info::Invalid { error, path } => container(
+                    column![
+                        text(format!("Failed to load \"{}\"", path.display()))
+                            .horizontal_alignment(Horizontal::Center),
+                        text(error).horizontal_alignment(Horizontal::Center),
+                    ]
+                    .spacing(5)
+                    .align_items(Alignment::Center)
+                    .width(Length::Fill),
+                ),
+            },
+            None => container(text("None selected").font(JETBRAINS_MONO)),
+        };
+        container(
+            column![
+                text("Current Tracker Information").font(JETBRAINS_MONO),
+                content
+                    .style(style::Container::Frame)
+                    .height(Length::Fill)
+                    .width(Length::Fill)
+                    .padding(8)
+                    .center_x()
+                    .center_y()
+            ]
+            .spacing(15),
+        )
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
     }
 
     pub fn view_entries(&self) -> Element<Message, Renderer<Theme>> {
@@ -605,12 +735,91 @@ impl App {
                     .height(Length::Fill)
                 }
             },
-            State::Ripping { message, progress } => todo!(),
-            State::Done => todo!(),
-            State::DoneWithErrors { errors } => todo!(),
-            State::DoneWithTooMuchErrors { log, errors } => todo!(),
-            State::DoneWithTooMuchErrorsNoLog { reason, errors } => todo!(),
+            State::Ripping { ref message, progress } => container(
+                column![
+                    text(match message.as_ref() {
+                        Some(info) => info,
+                        None => "Ripping...",
+                    })
+                    .font(JETBRAINS_MONO),
+                    progress_bar(0.0..=100.0, progress)
+                        .height(5)
+                        .width(200)
+                ]
+                .spacing(5)
+                .align_items(Alignment::Center),
+            )
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x()
+            .center_y(),
+            State::Done => container(
+                column![
+                    text("Done! \\(^_^)/").font(JETBRAINS_MONO),
+                    text("Drag and Drop").font(JETBRAINS_MONO)
+                ]
+                .align_items(Alignment::Center),
+            )
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x()
+            .center_y(),
+            State::DoneWithErrors { ref errors } => container(column![
+                column![
+                    text("Done... But Xmodits could not rip everything... (._.)")
+                        .font(JETBRAINS_MONO)
+                        .horizontal_alignment(Horizontal::Center)
+                ]
+                .padding(4),
+                scrollable(
+                    errors
+                        .iter()
+                        .fold(column![].spacing(10).padding(5), |t, (s, x)| {
+                            t.push(row![
+                                container(
+                                    column![
+                                        text("todo!()"), //filename
+                                        text(x).horizontal_alignment(Horizontal::Center)
+                                    ]
+                                    .width(Length::Fill)
+                                    .align_items(Alignment::Center)
+                                )
+                                .style(style::Container::Frame)
+                                .width(Length::Fill)
+                                .padding(4),
+                                Space::with_width(15)
+                            ])
+                        })
+                        .width(Length::Fill),
+                ),
+            ])
+            .width(Length::Fill)
+            .height(Length::Fill),
+            State::DoneWithTooMuchErrors { ref log, ref errors } =>  container(
+                column![
+                    text("Done...").font(JETBRAINS_MONO),
+                    text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
+                    text("Check the logs at:").font(JETBRAINS_MONO),
+                    button(
+                        text(log.display())
+                            .font(JETBRAINS_MONO)
+                            .horizontal_alignment(Horizontal::Center)
+                    )
+                    .padding(0)
+                    .on_press(Message::Open(log.to_owned()))
+                    .style(style::button::Button::Hyperlink)
+                ]
+                .align_items(Alignment::Center)
+                .padding(4)
+                .spacing(5),
+            )
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x()
+            .center_y(),
+            State::DoneWithTooMuchErrorsNoLog { ref reason, ref errors } => todo!(),
         };
+
         container(
             column![
                 row![

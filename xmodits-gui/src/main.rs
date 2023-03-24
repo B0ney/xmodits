@@ -26,7 +26,7 @@ fn main() {
     // The user may want to just drag and drop a module without any thought
     if args.is_empty() {
         info!("Starting gui");
-        gui::XmoditsGui::start();
+        gui::App::start();
     } else {
         simple::rip(args);
     }
