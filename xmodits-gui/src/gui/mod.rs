@@ -6,7 +6,7 @@ use crate::core::{
     font::JETBRAINS_MONO,
     xmodits::{xmodits_subscription, DownloadMessage},
 };
-use iced::keyboard::{Event as KeyboardEvent, KeyCode};
+use iced::{keyboard::{Event as KeyboardEvent, KeyCode}, widget::{text_input, scrollable, checkbox}};
 use iced::widget::{button, column, container, row, text, Column, Container};
 use iced::window::{Event as WindowEvent, Icon};
 use iced::{
@@ -14,12 +14,14 @@ use iced::{
     Settings, Subscription,
 };
 use image::{self, GenericImageView};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use style::Theme;
+use tokio::sync::mpsc::Sender;
 use tracing::warn;
 use views::about::Message as AboutMessage;
 use views::config_name::Message as ConfigMessage;
 use views::config_ripping::Message as ConfigRippingMessage;
+use xmodits_lib::exporter::AudioFormat;
 // use views::settings::Message as SettingsMessage;
 use views::trackers::Message as TrackerMessage;
 use views::trackers::Trackers;
@@ -51,6 +53,17 @@ pub enum Message {
     Progress(DownloadMessage),
     WindowEvent(Event),
     Ignore,
+    Select {
+        index: usize,
+        selected: bool,
+    },
+    SelectAll(bool),
+    DeleteSelected,
+    Probe(usize),
+    // SetDestination(PathBuf),
+    // SetFormat(AudioFormat),
+    // SetNoFolderToggle(bool),
+    // SetRecursionDepth(bool),
 }
 
 #[derive(Default)]
@@ -255,6 +268,370 @@ impl XmoditsGui {
         };
 
         let _ = Self::run(settings);
+    }
+}
+
+struct StartSignal;
+
+#[derive(Default)]
+pub enum State {
+    #[default]
+    Idle,
+    Ripping {
+        message: Option<String>,
+        progress: f32,
+    },
+    Done,
+    DoneWithErrors {
+        errors: Vec<(PathBuf, String)>,
+    },
+    DoneWithTooMuchErrors {
+        log: PathBuf,
+        errors: Vec<(PathBuf, String)>,
+    },
+    DoneWithTooMuchErrorsNoLog {
+        reason: String,
+        errors: Vec<(PathBuf, String)>,
+    },
+}
+
+#[derive(Default)]
+pub struct Entries {
+    pub all_selected: bool,
+    pub paths: Vec<Entry>,
+}
+
+impl Entries {
+    pub fn contains(&self, path: &Path) -> bool {
+        self.paths.iter().any(|x| x.path == path)
+    }
+    pub fn add(&mut self, path: PathBuf) {
+        self.paths.push(Entry {
+            path,
+            selected: false,
+        })
+    }
+
+    pub fn total_selected(&self) -> usize {
+        self.paths.iter().map(|f| f.selected).count()
+    }
+
+    pub fn clear(&mut self) {
+        self.all_selected = false;
+        self.paths.clear();
+    }
+
+    pub fn len(&self) -> usize {
+        self.paths.len()
+    }
+}
+
+#[derive(Default)]
+pub struct Entry {
+    pub path: PathBuf,
+    pub selected: bool,
+}
+
+impl Entry {
+    pub fn is_dir(&self) -> bool {
+        self.path.is_dir()
+    }
+    pub fn filename(&self) -> String {
+        todo!()
+    }
+}
+
+pub enum Info {
+    Valid {
+        path: PathBuf,
+        name: String,
+        format: String,
+        samples: usize,
+        total_sample_size: usize,
+    },
+    Invalid {
+        path: PathBuf,
+        error: String,
+    },
+}
+
+impl Info {
+    pub fn matches(&self, other: &Path) -> bool {
+        matches!(
+            self,
+            Self::Invalid { path, .. } |
+            Self::Valid { path, ..} if path == other
+        )
+    }
+}
+use iced::widget::Space;
+
+#[derive(Default)]
+struct App {
+    view: View,
+    state: State,
+    config: Config,
+    entries: Entries,
+    current: Option<Info>,
+    sender: Option<Sender<StartSignal>>,
+    // history: Vec<usize>,
+}
+
+impl Application for App {
+    type Executor = iced::executor::Default;
+    type Message = Message;
+    type Theme = Theme;
+    type Flags = ();
+
+    fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
+        todo!()
+    }
+
+    fn title(&self) -> String {
+        String::from("XMODITS")
+    }
+
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+        match message {
+            Message::ConfigurePressed => self.view = View::Configure,
+            Message::AboutPressed => self.view = View::About,
+            Message::Tracker(_) => todo!(),
+            Message::SetCfg(_) => todo!(),
+            Message::SetRipCfg(_) => todo!(),
+            Message::About(_) => todo!(),
+            Message::SetDestinationDialog => todo!(),
+            Message::SetDestination(_) => todo!(),
+            Message::SaveConfig => todo!(),
+            Message::StartRip => todo!(),
+            Message::Progress(_) => todo!(),
+            Message::WindowEvent(_) => todo!(),
+            Message::Ignore => todo!(),
+            Message::SelectAll(selected) => self.entries.all_selected = selected,
+            Message::DeleteSelected => self.delete_selected(),
+            Message::Select { index, selected } => todo!(),
+        };
+        Command::none()
+    }
+
+    fn view(&self) -> Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
+        let set_destination: _ = row![
+            self.destination_bar(),
+            button("Select")
+                .on_press(Message::SetDestinationDialog)
+                .padding(10),
+        ]
+        .spacing(5)
+        .width(Length::FillPortion(1));
+
+        let menu: _ = row![
+            button("Configure")
+                .on_press(Message::ConfigurePressed)
+                .padding(10),
+
+            button("About")
+                .on_press(Message::AboutPressed)
+                .padding(10),
+        ]
+        .spacing(5)
+        .width(Length::FillPortion(1))
+        .align_items(Alignment::Center);
+        
+        let left_half: _ = match self.view {
+            View::Configure => container(
+                column![
+                    todo!()
+                ]
+            ),
+            View::About => todo!(),
+        }.into();
+
+        let left_half = column![
+            menu, 
+            left_half
+        ]
+        .spacing(10)
+        .width(Length::FillPortion(4));
+
+        let right_half: _ = column![
+            set_destination, 
+            todo!()
+        ]
+        .width(Length::FillPortion(5)) //6
+        .spacing(10);
+
+        let main: _ = row![
+            left_half,
+            right_half            
+        ]
+        .spacing(10);
+
+        let main: _ = Column::new()
+            .spacing(15)
+            .height(Length::Fill)
+            .push(main);
+
+        Container::new(main)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .padding(15)
+            .into()
+    }
+}
+
+impl App {
+    pub fn start() {
+        let settings: Settings<()> = Settings {
+            window: Window {
+                size: (780, 640),
+                resizable: true,
+                decorations: true,
+                icon: Some(icon()),
+                ..iced::window::Settings::default()
+            },
+            // try_opengles_first: true,
+            default_text_size: 17.0,
+            ..iced::Settings::default()
+        };
+
+        let _ = Self::run(settings);
+    }
+
+    pub fn add(&mut self, path: PathBuf) {
+        // If the application is currently ripping, ignore
+        if matches!(self.state, State::Ripping { .. }) {
+            return;
+        }
+        // Only add the path if it doesn't exist
+        if !self.entries.contains(&path) {
+            self.entries.add(path)
+        }
+        // Set the state to idle if not...
+        self.state = State::Idle;
+    }
+
+    pub fn delete_selected(&mut self) {
+        // clear the entries if everything is selected
+        if self.entries.all_selected || self.entries.total_selected() == self.entries.len() {
+            self.entries.clear();
+            self.current = None;
+            return;
+        }
+
+        let mut i = 0;
+
+        while i < self.entries.len() {
+            let path = &self.entries.paths[i];
+            if path.selected {
+                if matches!(&self.current, Some(e) if e.matches(&path.path)) {
+                    self.current = None;
+                }
+                let _ = self.entries.paths.remove(i);
+            } else {
+                i += 1;
+            }
+        }
+        self.entries.all_selected = false;
+    }
+
+    pub fn destination_bar(&self) -> Element<Message, Renderer<Theme>> {
+        let destination = &self.config.ripping.destination;
+        let input: _ = text_input(
+            "Output Directory",
+            &format!("{}", destination.display()),
+            |s| Message::SetDestination(Some(PathBuf::new().join(s))),
+        )
+        .padding(10);
+
+        input.into()
+    }
+
+    pub fn view_entries(&self) -> Element<Message, Renderer<Theme>> {
+        let total_modules: _ =
+            text(format!("Modules: {}", self.entries.len())).font(JETBRAINS_MONO);
+        
+        let total_selected: _ =
+            text(format!("Selected: {}", self.entries.total_selected())).font(JETBRAINS_MONO);
+
+        let display: _ = match self.state {
+            State::Idle => {
+                if self.entries.len() == 0 {
+                    container(text("Drag and Drop").font(JETBRAINS_MONO))
+                        .width(Length::Fill)
+                        .height(Length::Fill)
+                        .center_x()
+                        .center_y()
+                } else {
+                    container(scrollable(self.entries.paths.iter().enumerate().fold(
+                        column![].spacing(10).padding(5),
+                        |s, (idx, gs)| {
+                            s.push(row![
+                                button(if gs.is_dir() {
+                                    row![
+                                        checkbox("", gs.selected, move |b| Message::Select{
+                                            index: idx,
+                                            selected: b,
+                                        }),
+                                        text(&gs.filename()),
+                                        Space::with_width(Length::Fill),
+                                        icons::folder_icon()
+                                    ]
+                                    .spacing(1)
+                                    .align_items(Alignment::Center)
+                                } else {
+                                    row![
+                                        checkbox("", {
+                                            // todo
+                                            match self.entries.all_selected {
+                                            true => true,
+                                            false => gs.selected
+                                        }
+                                        }, move |b| Message::Select{
+                                            index: idx,
+                                            selected: b,
+                                        }),
+                                        text(&gs.filename()),
+                                    ]
+                                    .spacing(1)
+                                    .align_items(Alignment::Center)
+                                })
+                                .width(Length::Fill)
+                                .on_press(Message::Probe(idx))
+                                .padding(4)
+                                .style(style::button::Button::Entry),
+                                Space::with_width(15)
+                            ])
+                        },
+                    )))
+                    .height(Length::Fill)
+                }
+            },
+            State::Ripping { message, progress } => todo!(),
+            State::Done => todo!(),
+            State::DoneWithErrors { errors } => todo!(),
+            State::DoneWithTooMuchErrors { log, errors } => todo!(),
+            State::DoneWithTooMuchErrorsNoLog { reason, errors } => todo!(),
+        };
+        container(
+            column![
+                row![
+                    total_modules,
+                    total_selected,
+                    Space::with_width(Length::Fill),
+                    // checkbox is 5 units taller than the other elements
+                    checkbox("Select all", self.entries.all_selected, Message::SelectAll)
+                        .style(style::checkbox::CheckBox::Inverted),
+                ]
+                .spacing(15)
+                .align_items(Alignment::Center),
+                display
+                    .padding(5)
+                    .style(style::Container::Black)
+                    .width(Length::Fill),
+            ]
+            .spacing(10),
+        )
+        .height(Length::Fill)
+        .into()
     }
 }
 
