@@ -2,13 +2,16 @@ pub mod icons;
 pub mod style;
 pub mod views;
 use crate::core::{
-    cfg::{Config, SampleRippingConfig, GeneralConfig},
+    cfg::{Config, GeneralConfig, SampleRippingConfig},
     font::JETBRAINS_MONO,
     xmodits::{xmodits_subscription, DownloadMessage},
 };
-use iced::{keyboard::{Event as KeyboardEvent, KeyCode}, widget::{text_input, scrollable, checkbox}};
 use iced::widget::{button, column, container, row, text, Column, Container};
 use iced::window::{Event as WindowEvent, Icon};
+use iced::{
+    keyboard::{Event as KeyboardEvent, KeyCode},
+    widget::{checkbox, scrollable, text_input},
+};
 use iced::{
     window::Settings as Window, Alignment, Application, Command, Element, Event, Length, Renderer,
     Settings, Subscription,
@@ -21,11 +24,11 @@ use tracing::warn;
 use views::about::Message as AboutMessage;
 use views::config_name::Message as ConfigMessage;
 use views::config_ripping::Message as ConfigRippingMessage;
-use xmodits_lib::exporter::AudioFormat;
+use xmodits_lib::{exporter::AudioFormat, traits::Module};
 // use views::settings::Message as SettingsMessage;
+use iced::alignment::Horizontal;
 use views::trackers::Message as TrackerMessage;
 use views::trackers::Trackers;
-use iced::alignment::Horizontal;
 
 #[derive(Default, Debug, Clone)]
 pub enum View {
@@ -53,10 +56,7 @@ pub enum Message {
     Progress(DownloadMessage),
     WindowEvent(Event),
     Ignore,
-    Select {
-        index: usize,
-        selected: bool,
-    },
+    Select { index: usize, selected: bool },
     SelectAll(bool),
     DeleteSelected,
     Probe(usize),
@@ -65,6 +65,8 @@ pub enum Message {
     AddFileDialog,
     AddFolderDialog,
     Clear,
+    TrackerInfo(Option<Info>),
+    Add(Option<Vec<PathBuf>>),
 
     SetDestination(Option<PathBuf>),
     // SetFormat(AudioFormat),
@@ -173,6 +175,8 @@ impl Application for XmoditsGui {
             Message::AddFileDialog => todo!(),
             Message::AddFolderDialog => todo!(),
             Message::Clear => todo!(),
+            Message::TrackerInfo(module) => todo!(),
+            Message::Add(_) => todo!(),
         }
         Command::none()
     }
@@ -325,6 +329,7 @@ impl Entries {
     pub fn contains(&self, path: &Path) -> bool {
         self.paths.iter().any(|x| x.path == path)
     }
+
     pub fn add(&mut self, path: PathBuf) {
         self.paths.push(Entry {
             path,
@@ -333,7 +338,7 @@ impl Entries {
     }
 
     pub fn total_selected(&self) -> usize {
-        self.paths.iter().map(|f| f.selected).count()
+        self.paths.iter().filter(|f| f.selected).count()
     }
 
     pub fn clear(&mut self) {
@@ -361,11 +366,19 @@ impl Entry {
     pub fn is_dir(&self) -> bool {
         self.path.is_dir()
     }
+    pub fn is_file(&self) -> bool {
+        self.path.is_file()
+    }
     pub fn filename(&self) -> String {
-        todo!()
+        self.path
+            .file_name()
+            .map(|f| f.to_string_lossy())
+            .unwrap_or_default()
+            .into()
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum Info {
     Valid {
         path: PathBuf,
@@ -388,9 +401,31 @@ impl Info {
             Self::Valid { path, ..} if path == other
         )
     }
+    pub fn path(&self) -> &Path {
+        match self {
+            Self::Invalid { path, .. } | Self::Valid { path, .. } => path,
+        }
+    }
+    pub fn valid(tracker: Box<dyn Module>, path: PathBuf) -> Self {
+        Self::Valid {
+            name: tracker.name().to_owned(),
+            format: tracker.format().to_owned(),
+            samples: tracker.total_samples(),
+            path,
+            total_sample_size: tracker
+                .samples()
+                .iter()
+                .map(|f| f.length as usize)
+                .sum::<usize>()
+                / 1024,
+        }
+    }
+    pub fn invalid(error: String, path: PathBuf) -> Self {
+        Self::Invalid { error, path }
+    }
 }
-use iced::widget::Space;
 use iced::widget::progress_bar;
+use iced::widget::Space;
 
 #[derive(Default)]
 pub struct App {
@@ -411,10 +446,7 @@ impl Application for App {
     type Flags = ();
 
     fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        (
-            Self::default(),
-            Command::none()
-        )
+        (Self::default(), Command::none())
     }
 
     fn title(&self) -> String {
@@ -426,31 +458,88 @@ impl Application for App {
             Message::ConfigurePressed => self.view = View::Configure,
             Message::AboutPressed => self.view = View::About,
             Message::Tracker(_) => todo!(),
-            Message::SetCfg(_) => todo!(),
-            Message::SetRipCfg(_) => todo!(),
+            Message::SetCfg(msg) => self.ripping_config.naming.update(msg),
+            Message::SetRipCfg(msg) => self.ripping_config.update(msg),
             Message::About(_) => todo!(),
-            Message::SetDestinationDialog => todo!(),
-            Message::SetDestination(_) => todo!(),
+            Message::SetDestinationDialog => {
+                return Command::perform(
+                    async {
+                        rfd::AsyncFileDialog::new()
+                            .pick_folder()
+                            .await
+                            .map(|f| f.path().to_owned())
+                    },
+                    Message::SetDestination,
+                )
+            }
+            Message::SetDestination(destination) => {
+                if let Some(s) = destination {
+                    self.ripping_config.destination = s
+                }
+            }
             Message::SaveConfig => todo!(),
             Message::StartRip => todo!(),
-            Message::Progress(_) => todo!(),
+            Message::Progress(m) => match m {
+                DownloadMessage::Ready(_) => todo!(),
+                DownloadMessage::Done => todo!(),
+                DownloadMessage::Progress { progress, result } => {
+                    let state = std::mem::take(&mut self.state);
+                    // self.state = State::Ripping {  progress, ..state }
+                    match state {
+                        State::Ripping { message, .. } => {
+                            self.state = State::Ripping { message, progress }
+                        }
+                        _ => (),
+                    }
+                }
+                DownloadMessage::Info(s) => todo!(),
+            },
             Message::WindowEvent(e) => match e {
                 Event::Keyboard(KeyboardEvent::KeyPressed { key_code, .. }) => match key_code {
                     KeyCode::Delete => self.delete_selected(),
                     _ => (),
-                }
-                Event::Window(WindowEvent::FileDropped(path)) => self.entries.add(path),
+                },
+                Event::Window(WindowEvent::FileDropped(path)) => self.add(path),
                 _ => (),
             },
             Message::Ignore => (),
             Message::SelectAll(selected) => self.entries.all_selected = selected,
             Message::DeleteSelected => self.delete_selected(),
             Message::Select { index, selected } => self.entries.select(index, selected),
-            Message::Probe(_) => todo!(),
+            Message::Probe(index) => {
+                let path = &self.entries.paths[index];
+
+                if path.is_file() {
+                    let command =
+                        Command::perform(tracker_info(path.path.to_owned()), Message::TrackerInfo);
+
+                    match self.current {
+                        None => return command,
+                        Some(ref info) if info.path() != path.path => {
+                            return command;
+                        }
+                        _ => (),
+                    }
+                }
+            }
             Message::Open(_) => todo!(),
-            Message::AddFileDialog => todo!(),
-            Message::AddFolderDialog => todo!(),
-            Message::Clear => todo!(),
+            Message::AddFileDialog => {
+                return Command::perform(files_dialog(), Message::Add);
+            }
+            Message::AddFolderDialog => {
+                return Command::perform(folders_dialog(), Message::Add);
+            }
+            Message::Clear => self.clear_entries(),
+            Message::TrackerInfo(module) => {
+                if module.is_some() {
+                    self.current = module
+                }
+            }
+            Message::Add(paths) => {
+                if let Some(paths) = paths {
+                    paths.into_iter().for_each(|path| self.add(path))
+                }
+            }
         };
         Command::none()
     }
@@ -469,15 +558,12 @@ impl Application for App {
             button("Configure")
                 .on_press(Message::ConfigurePressed)
                 .padding(10),
-
-            button("About")
-                .on_press(Message::AboutPressed)
-                .padding(10),
+            button("About").on_press(Message::AboutPressed).padding(10),
         ]
         .spacing(5)
         .width(Length::FillPortion(1))
         .align_items(Alignment::Center);
-        
+
         let left_half_view: _ = match self.view {
             View::Configure => container(
                 column![
@@ -504,56 +590,53 @@ impl Application for App {
                     .width(Length::FillPortion(1))
                     .align_items(Alignment::Center),
                 ]
-                .spacing(10)
-            ).into(),
+                .spacing(10),
+            )
+            .into(),
             View::About => views::about::view().map(Message::About),
         };
 
-        let left_half = column![
-            menu, 
-            left_half_view
-        ]
-        .spacing(10)
-        .width(Length::FillPortion(4));
+        let left_half = column![menu, left_half_view]
+            .spacing(10)
+            .width(Length::FillPortion(4));
 
         let right_half: _ = column![
             set_destination,
             self.view_entries(),
             row![
-            button(text("Add File"))
-                .padding(10)
-                .on_press(Message::AddFileDialog),
-            button(text("Add Folder"))
-                .padding(10)
-                .on_press(Message::AddFolderDialog),
-            Space::with_width(Length::Fill),
-            button("Delete Selected")
-                .padding(10)
-                .on_press(Message::DeleteSelected),
-            // .style(style::button::Button::Delete),
-            button("Clear").padding(10).on_press(Message::Clear),
-        ]
-        .spacing(10)
+                button(text("Add File"))
+                    .padding(10)
+                    .on_press(Message::AddFileDialog),
+                button(text("Add Folder"))
+                    .padding(10)
+                    .on_press(Message::AddFolderDialog),
+                Space::with_width(Length::Fill),
+                button("Delete Selected")
+                    .padding(10)
+                    .on_press(Message::DeleteSelected),
+                // .style(style::button::Button::Delete),
+                button("Clear").padding(10).on_press(Message::Clear),
+            ]
+            .spacing(10)
         ]
         .width(Length::FillPortion(5)) //6
         .spacing(10);
 
-        let main: _ = row![
-            left_half,
-            right_half            
-        ]
-        .spacing(10);
+        let main: _ = row![left_half, right_half].spacing(10);
 
-        let main: _ = Column::new()
-            .spacing(15)
-            .height(Length::Fill)
-            .push(main);
+        let main: _ = Column::new().spacing(15).height(Length::Fill).push(main);
 
         Container::new(main)
             .width(Length::Fill)
             .height(Length::Fill)
             .padding(15)
             .into()
+    }
+    fn subscription(&self) -> Subscription<Message> {
+        iced::Subscription::batch([
+            iced::subscription::events().map(Message::WindowEvent),
+            // xmodits_subscription().map(Message::Progress),
+        ])
     }
 }
 
@@ -567,7 +650,7 @@ impl App {
                 icon: Some(icon()),
                 ..iced::window::Settings::default()
             },
-            // try_opengles_first: true,
+            try_opengles_first: true,
             default_text_size: 17.0,
             ..iced::Settings::default()
         };
@@ -586,6 +669,15 @@ impl App {
         }
         // Set the state to idle if not...
         self.state = State::Idle;
+    }
+
+    pub fn clear_entries(&mut self) {
+        self.entries.clear();
+        self.current = None;
+
+        if !matches!(self.state, State::Idle | State::Ripping { .. }) {
+            self.state = State::Idle;
+        };
     }
 
     pub fn delete_selected(&mut self) {
@@ -624,7 +716,7 @@ impl App {
         input.into()
     }
 
-    pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> { 
+    pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> {
         let content: _ = match &self.current {
             Some(info) => match info {
                 Info::Valid {
@@ -678,7 +770,7 @@ impl App {
     pub fn view_entries(&self) -> Element<Message, Renderer<Theme>> {
         let total_modules: _ =
             text(format!("Modules: {}", self.entries.len())).font(JETBRAINS_MONO);
-        
+
         let total_selected: _ =
             text(format!("Selected: {}", self.entries.total_selected())).font(JETBRAINS_MONO);
 
@@ -697,7 +789,7 @@ impl App {
                             s.push(row![
                                 button(if gs.is_dir() {
                                     row![
-                                        checkbox("", gs.selected, move |b| Message::Select{
+                                        checkbox("", gs.selected, move |b| Message::Select {
                                             index: idx,
                                             selected: b,
                                         }),
@@ -709,16 +801,17 @@ impl App {
                                     .align_items(Alignment::Center)
                                 } else {
                                     row![
-                                        checkbox("", {
-                                            // todo
+                                        checkbox(
+                                            "",
                                             match self.entries.all_selected {
-                                            true => true,
-                                            false => gs.selected
-                                        }
-                                        }, move |b| Message::Select{
-                                            index: idx,
-                                            selected: b,
-                                        }),
+                                                true => true,
+                                                false => gs.selected,
+                                            },
+                                            move |b| Message::Select {
+                                                index: idx,
+                                                selected: b,
+                                            }
+                                        ),
                                         text(&gs.filename()),
                                     ]
                                     .spacing(1)
@@ -734,17 +827,18 @@ impl App {
                     )))
                     .height(Length::Fill)
                 }
-            },
-            State::Ripping { ref message, progress } => container(
+            }
+            State::Ripping {
+                ref message,
+                progress,
+            } => container(
                 column![
                     text(match message.as_ref() {
                         Some(info) => info,
                         None => "Ripping...",
                     })
                     .font(JETBRAINS_MONO),
-                    progress_bar(0.0..=100.0, progress)
-                        .height(5)
-                        .width(200)
+                    progress_bar(0.0..=100.0, progress).height(5).width(200)
                 ]
                 .spacing(5)
                 .align_items(Alignment::Center),
@@ -795,7 +889,10 @@ impl App {
             ])
             .width(Length::Fill)
             .height(Length::Fill),
-            State::DoneWithTooMuchErrors { ref log, ref errors } =>  container(
+            State::DoneWithTooMuchErrors {
+                ref log,
+                ref errors,
+            } => container(
                 column![
                     text("Done...").font(JETBRAINS_MONO),
                     text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
@@ -817,7 +914,10 @@ impl App {
             .height(Length::Fill)
             .center_x()
             .center_y(),
-            State::DoneWithTooMuchErrorsNoLog { ref reason, ref errors } => todo!(),
+            State::DoneWithTooMuchErrorsNoLog {
+                ref reason,
+                ref errors,
+            } => todo!(),
         };
 
         container(
@@ -844,6 +944,38 @@ impl App {
     }
 }
 
+async fn tracker_info(path: PathBuf) -> Option<Info> {
+    let path2 = path.clone();
+
+    let (tracker_result) = tokio::task::spawn_blocking(|| {
+        let mut file = std::fs::File::open(path2)?;
+        xmodits_lib::fmt::loader::load_module(&mut file)
+    })
+    .await
+    .ok()?;
+
+    match tracker_result {
+        Ok(tracker) => Some(Info::valid(tracker, path)),
+        Err(error) => Some(Info::invalid(error.to_string(), path)),
+    }
+}
+
+pub async fn folders_dialog() -> Option<Vec<PathBuf>> {
+    paths(rfd::AsyncFileDialog::new().pick_folders().await)
+}
+
+pub async fn files_dialog() -> Option<Vec<PathBuf>> {
+    paths(rfd::AsyncFileDialog::new().pick_files().await)
+}
+
+fn paths(h: Option<Vec<rfd::FileHandle>>) -> Option<Vec<PathBuf>> {
+    h.map(|filehandles| {
+        filehandles
+            .into_iter()
+            .map(|d| d.path().to_owned())
+            .collect()
+    })
+}
 fn icon() -> Icon {
     let image = image::load_from_memory(include_bytes!("../../res/img/logo/icon3.png")).unwrap();
     let (w, h) = image.dimensions();
