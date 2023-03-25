@@ -1,4 +1,4 @@
-// #![windows_subsystem = "windows"] // Will this make logging impossible?
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // show logs when debugging
 mod core;
 mod dialog;
 // #[allow(unused)]

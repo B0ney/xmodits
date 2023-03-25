@@ -59,7 +59,7 @@ impl Config {
         };
         use std::io::prelude::*;
         let mut a = fs::File::create(Self::path())?;
-        a.write_all(&toml::to_vec(&self)?)?;
+        a.write_all(toml::to_string_pretty(&self)?.as_bytes())?;
         Ok(())
     }
 

@@ -38,7 +38,7 @@ impl SampleRippingConfig {
                 //     Message::ToggleEmbedLoopPoint
                 // ),
                 row![
-                    pick_list(&AudioFormat::FORMATS[..], Some(self.exported_format), Message::SetFormat),
+                    pick_list(&AudioFormat::ALL[..], Some(self.exported_format), Message::SetFormat),
                     text("Export Format"),
                 ]
                 .align_items(Alignment::Center)
