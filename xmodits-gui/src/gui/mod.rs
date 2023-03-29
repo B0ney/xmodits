@@ -9,6 +9,7 @@ use crate::core::{
     log::async_write_error_log,
     xmodits::{xmodits_subscription, DownloadMessage, StartSignal},
 };
+use chrono::Utc;
 use iced::widget::{button, column, container, row, text, Column, Container};
 use iced::window::{Event as WindowEvent, Icon};
 use iced::{
@@ -315,6 +316,17 @@ impl State {
 }
 
 #[derive(Default)]
+pub struct History {
+    history_entry: HistoryEntry
+}
+
+#[derive(Default)]
+pub struct HistoryEntry {
+    timestamp: chrono::DateTime<Utc>,
+    entries: Entries,
+}
+
+#[derive(Default)]
 pub struct Entries {
     pub all_selected: bool,
     pub paths: Vec<Entry>,
@@ -437,7 +449,7 @@ pub struct App {
     current: Option<Info>,
     sender: Option<Sender<StartSignal>>,
     errors: Vec<(PathBuf, String)>, // for now
-                                    // history: Vec<usize>,
+    history: History, 
 }
 
 impl Application for App {
