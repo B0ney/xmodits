@@ -95,7 +95,7 @@ pub struct SampleRippingConfig {
     pub folder_recursion_depth: u8,
     pub exported_format: AudioFormat,
     pub naming: SampleNameConfig,
-    
+    pub strict: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
