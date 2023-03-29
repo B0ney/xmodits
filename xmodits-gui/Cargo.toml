@@ -30,6 +30,8 @@ open = "3.2.0"
 walkdir = "2.3.3"
 rand = "0.8.5"
 # shellexpand = "3.0.0"
+cosmic-time = "0.1.2"
+iced_aw = "0.4.1"
 
 [dependencies.iced]
 version = "0.8.0"
