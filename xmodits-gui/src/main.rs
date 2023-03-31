@@ -1,12 +1,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // show logs when debugging
 mod core;
-mod dialog;
 // #[allow(unused)]
 mod gui;
 mod simple;
 use std::{env, path::PathBuf};
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
+use crate::core::dialog;
 
 fn main() {
     set_panic_hook();

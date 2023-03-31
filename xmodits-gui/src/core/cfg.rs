@@ -93,9 +93,10 @@ pub struct SampleRippingConfig {
     pub no_folder: bool,
     pub embed_loop_points: bool,
     pub folder_recursion_depth: u8,
-    pub exported_format: AudioFormat,
-    pub naming: SampleNameConfig,
     pub strict: bool,
+    pub exported_format: AudioFormat,
+    // must be placed at the bottom
+    pub naming: SampleNameConfig,   
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
@@ -123,55 +124,3 @@ impl SampleNameConfig {
         }.into()
     }
 }
-
-// #[allow(clippy::upper_case_acronyms)]
-// #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-// pub enum FormatHint {
-//     #[default]
-//     None,
-//     IT,
-//     XM,
-//     S3M,
-//     MOD,
-//     UMX,
-//     MPTM,
-// }
-
-// impl FormatHint {
-//     pub const ALL: [FormatHint; 7] = [
-//         FormatHint::None,
-//         FormatHint::IT,
-//         FormatHint::XM,
-//         FormatHint::S3M,
-//         FormatHint::MOD,
-//         FormatHint::UMX,
-//         FormatHint::MPTM,
-//     ];
-// }
-
-// impl Into<Option<String>> for FormatHint {
-//     fn into(self) -> Option<String> {
-//         match self {
-//             FormatHint::None => None,
-//             hint => Some(hint.to_string().to_lowercase()),
-//         }
-//     }
-// }
-
-// impl std::fmt::Display for FormatHint {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(
-//             f,
-//             "{}",
-//             match self {
-//                 FormatHint::None => "None",
-//                 FormatHint::IT => "IT",
-//                 FormatHint::XM => "XM",
-//                 FormatHint::S3M => "S3M",
-//                 FormatHint::MOD => "MOD",
-//                 FormatHint::UMX => "UMX",
-//                 FormatHint::MPTM => "MPTM",
-//             }
-//         )
-//     }
-// }

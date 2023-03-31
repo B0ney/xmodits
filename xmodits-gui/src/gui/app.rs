@@ -21,9 +21,9 @@ use style::Theme;
 use tokio::sync::mpsc::Sender;
 use tracing::warn;
 use crate::gui::utils::file_name;
+use crate::gui::font::JETBRAINS_MONO;
 use crate::core::{
     cfg::{Config, GeneralConfig, SampleRippingConfig},
-    font::JETBRAINS_MONO,
     xmodits::{xmodits_subscription, DownloadMessage},
 };
 use iced::widget::progress_bar;

@@ -1,4 +1,4 @@
-use crate::core::font::ICONS;
+use crate::gui::font::ICONS;
 use crate::gui::style::Theme;
 use iced::widget::{text, Text};
 use iced::{alignment, Length, Renderer};

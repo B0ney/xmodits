@@ -3,9 +3,10 @@ pub mod icons;
 pub mod style;
 mod utils;
 pub mod views;
+pub mod font;
+use font::JETBRAINS_MONO;
 use crate::core::{
     cfg::{Config, GeneralConfig, SampleRippingConfig},
-    font::JETBRAINS_MONO,
     log::async_write_error_log,
     xmodits::{xmodits_subscription, DownloadMessage, StartSignal},
 };
