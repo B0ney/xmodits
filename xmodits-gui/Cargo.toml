@@ -56,7 +56,7 @@ walkdir = "2.3.3"
 rand = "0.8.5"
 
 # # Expand tilde '~'
-# shellexpand = "3.0.0"
+shellexpand = "3.0.0"
 
 # Support for animation for Iced
 cosmic-time = "0.1.2"
