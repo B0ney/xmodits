@@ -1,3 +1,4 @@
+use crate::core::cfg::{SampleNameConfig, SampleRippingConfig};
 use parking_lot::Mutex;
 use std::borrow::Cow;
 use std::path::Path;
@@ -8,11 +9,43 @@ use std::{
     io::{BufRead, BufReader, Seek, Write},
     path::PathBuf,
 };
+use xmodits_lib::interface::ripper::Ripper;
 
 use walkdir::WalkDir;
 
-fn a(dirs: Vec<String>) {
-    let mut file = traverse(dirs);
+pub fn rip(paths: Vec<PathBuf>, cfg: SampleRippingConfig) {
+    // split files and folders
+    let mut files: Vec<PathBuf> = Vec::new();
+    let mut folders: Vec<PathBuf> = Vec::new();
+
+    for i in paths {
+        if i.is_file() {
+            files.push(i)
+        } else if i.is_dir() {
+            folders.push(i)
+        }
+    }
+
+    let max_depth = match cfg.folder_recursion_depth {
+        0 => 1,
+        d => d,
+    };
+
+    let ripper = Arc::new(Ripper::new(
+        cfg.naming.build_func(),
+        cfg.exported_format.into(),
+    ));
+
+    stage_1(files);
+    stage_2(folders);
+}
+
+fn stage_1(files: Vec<PathBuf>) {}
+/// todo add documentation
+fn stage_2(folders: Vec<PathBuf>) {}
+
+fn a(dirs: Vec<PathBuf>) {
+    let mut file = traverse(dirs, 7, |_| true);
     let mut batcher = Batcher::new(&mut file, 2048);
     batcher.start();
     dbg!(batcher.batch_number);
@@ -24,7 +57,11 @@ fn a(dirs: Vec<String>) {
 /// For that reason we write the output to a file
 ///
 /// Todo: make this async?
-pub fn traverse(dirs: Vec<String>) -> BufReader<File> {
+pub fn traverse(
+    dirs: Vec<PathBuf>,
+    max_depth: u8,
+    filter: impl Fn(&Path) -> bool,
+) -> BufReader<File> {
     // create a file in read-write mode
     let mut file: File = OpenOptions::new()
         .read(true)
@@ -34,13 +71,12 @@ pub fn traverse(dirs: Vec<String>) -> BufReader<File> {
         .unwrap();
 
     // traverse list of directories, output to a file
-    let max_depth = 7;
     dirs.into_iter().for_each(|f| {
-        WalkDir::new(shellexpand::tilde(&f).as_ref())
-            .max_depth(max_depth)
+        WalkDir::new(f)
+            .max_depth(max_depth as usize)
             .into_iter()
             .filter_map(|f| f.ok())
-            .filter(|f| f.path().is_file())
+            .filter(|f| f.path().is_file() && filter(f.path()))
             .for_each(|f| {
                 file.write_fmt(format_args!("{}\n", f.path().display()))
                     .unwrap()
@@ -157,9 +193,9 @@ impl<'io> Batcher<'io> {
 
         // Clear the buffer.
         buffer.clear();
-        
+
         // Store the read lines into the buffer.
-        // The buffer has a batch_size capacity so 
+        // The buffer has a batch_size capacity so
         // it won't re-allocate
         self.file
             .lines()
@@ -225,10 +261,6 @@ enum CurrentBatch {
 }
 
 impl CurrentBatch {
-    pub fn current(self) -> Self {
-        self
-    }
-
     pub fn next(self) -> Self {
         match self {
             Self::Batch1 => Self::Batch2,

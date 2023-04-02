@@ -91,7 +91,6 @@ pub struct GeneralConfig {
 pub struct SampleRippingConfig {
     pub destination: PathBuf,
     pub no_folder: bool,
-    pub embed_loop_points: bool,
     pub folder_recursion_depth: u8,
     pub strict: bool,
     pub exported_format: AudioFormat,
@@ -99,7 +98,7 @@ pub struct SampleRippingConfig {
     pub naming: SampleNameConfig,   
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, Default)]
 pub struct SampleNameConfig {
     pub index_raw: bool,
     pub index_only: bool,
