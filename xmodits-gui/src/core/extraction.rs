@@ -11,13 +11,20 @@ use std::{
 
 use walkdir::WalkDir;
 
+fn a(dirs: Vec<String>) {
+    let mut file = traverse(dirs);
+    let mut batcher = Batcher::new(&mut file, 2048);
+    batcher.start();
+    dbg!(batcher.batch_number);
+    // batcher.handle.unwrap().join();
+}
+
 /// Traversing deeply nested directories can use a lot of memory.
 ///
 /// For that reason we write the output to a file
 ///
 /// Todo: make this async?
-/// Todo: expand tilde
-pub fn traverse(dirs: Vec<String>) {
+pub fn traverse(dirs: Vec<String>) -> BufReader<File> {
     // create a file in read-write mode
     let mut file: File = OpenOptions::new()
         .read(true)
@@ -27,7 +34,7 @@ pub fn traverse(dirs: Vec<String>) {
         .unwrap();
 
     // traverse list of directories, output to a file
-    let max_depth = 5;
+    let max_depth = 7;
     dirs.into_iter().for_each(|f| {
         WalkDir::new(shellexpand::tilde(&f).as_ref())
             .max_depth(max_depth)
@@ -40,20 +47,17 @@ pub fn traverse(dirs: Vec<String>) {
             })
     });
 
-    // rewind cursor to beginning
+    // Rewind cursor to beginning
     file.rewind().unwrap();
 
-    // wrap file to bufreader
-    let mut file = BufReader::new(file);
-
-    let mut batcher = Batcher::new(&mut file, 2048);
-    batcher.start();
-    dbg!(batcher.batch_number);
-    // batcher.handle.unwrap().join();
+    // Wrap file in bufreader
+    BufReader::new(file)
 }
 
 pub type Batch<T> = Arc<Mutex<Vec<T>>>;
 
+///
+///
 struct Batcher<'io> {
     file: &'io mut BufReader<File>,
     batch_size: usize,
@@ -63,7 +67,7 @@ struct Batcher<'io> {
     buf_2: Batch<String>,
     sender: Sender<Batch<String>>,
     recv: Receiver<Msg>,
-    pub handle: Option<std::thread::JoinHandle<()>>,
+    // pub handle: Option<std::thread::JoinHandle<()>>,
 }
 
 enum Msg {
@@ -85,85 +89,91 @@ impl<'io> Batcher<'io> {
             buf_2: Self::alloc(batch_size),
             sender: tx,
             recv: w_rx,
-            handle: None,
+            // handle: None,
         };
 
         batcher.load();
-        batcher.handle = Some(spawn_worker_thread(rx, w_tx));
+        // batcher.handle = Some(spawn_worker_thread(rx, w_tx));
+        spawn_worker_thread(rx, w_tx);
 
         batcher
     }
 
-    // pub fn resume(file: &'io mut BufReader<File>, batch_size: usize, batch_number: usize) -> Self {
-    //     let _ = file.lines().nth(batch_number * batch_size);
-    //     Self::new(file, batch_size, batch_number)
-    // }
+    pub fn resume(file: &'io mut BufReader<File>, batch_size: usize, batch_number: usize) -> Self {
+        let _ = file.lines().nth(batch_number * batch_size);
+
+        Self::new(file, batch_size)
+    }
 
     pub fn start(&mut self) {
-        let mut is_last = false;
+        let mut is_last_batch = false;
 
         while !self.state.complete {
-            // If this is the last batch, set the state to complete 
+            // If this is the last batch, set the state to complete
             // and send the last batch. When complete this loop terminates.
-            if is_last {
+            if is_last_batch {
                 self.state.complete = true;
             }
 
             // Send the current batch to the worker thread
-            self.sender.send(self.get_batch_current()).unwrap();
+            self.sender.send(self.get_current_batch()).unwrap();
 
             // While the worker thread is dealing with the first batch,
-            // prepare the next batch. 
-            is_last = self.load_next_batch();
+            // prepare the next batch. Ping-pong buffering ftw.
+            is_last_batch = self.load_next_batch();
 
             // wait for the worker to finish, then loop
             match self.recv.recv() {
                 Ok(msg) => match msg {
                     Msg::Next => continue,
                 },
-                Err(_) => {
-                    dbg!(":(");
-                    break
-                },
+                Err(_) => break, // TODO
             }
         }
     }
 
-    pub fn get_batch_current(&self) -> Batch<String> {
+    pub fn get_current_batch(&self) -> Batch<String> {
         match self.state.batch {
             CurrentBatch::Batch1 => self.buf_1.clone(),
             CurrentBatch::Batch2 => self.buf_2.clone(),
         }
     }
 
+    /// Load the next batch of lines
     pub fn load_next_batch(&mut self) -> bool {
         self.state.batch.switch();
         self.load()
     }
 
-    pub fn load(&mut self)  -> bool {
-        let mut is_last = false;
-
+    /// Store ``batch_size`` lines to the current buffer
+    ///
+    /// Returns true if the buffer is less than the defined batch size.
+    ///
+    /// This indicates we've reached the end of the file.
+    pub fn load(&mut self) -> bool {
         // Aquire buffer
-        let buffer = self.get_batch_current();
+        let buffer = self.get_current_batch();
         let mut buffer = buffer.lock();
 
-        // Clear it
+        // Clear the buffer.
         buffer.clear();
-
+        
+        // Store the read lines into the buffer.
+        // The buffer has a batch_size capacity so 
+        // it won't re-allocate
         self.file
             .lines()
             .take(self.batch_size)
             .filter_map(|f| f.ok())
             .for_each(|line| buffer.push(line));
 
-        // If the buffer size is less than the defined batch size then we're done
-        if buffer.len() < self.batch_size {
-            is_last = true
-        }
-
         self.batch_number += 1;
-        is_last
+
+        // Have a way of notifiying the caller that this is is the last batch,
+        // and should not be called again.
+        //
+        // TODO: improve ergonomics of this function
+        buffer.len() < self.batch_size
     }
 
     pub fn alloc(batch_size: usize) -> Batch<String> {
@@ -176,22 +186,27 @@ fn spawn_worker_thread(
     tx: Sender<Msg>,
 ) -> std::thread::JoinHandle<()> {
     use rayon::prelude::*;
-    rayon::ThreadPoolBuilder::new().num_threads(16).build_global().unwrap();
+
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(16)
+        .build()
+        .unwrap();
 
     std::thread::spawn(move || loop {
         match rx.recv() {
             Ok(batch) => {
-                batch.lock().par_iter().enumerate().for_each(|(idx, f)| {
-                    // do something expensive
-                    // println!("{} - {}", idx, f);
-                    std::thread::sleep(std::time::Duration::from_millis(2));
+                pool.install(|| {
+                    batch.lock().par_iter().enumerate().for_each(|(idx, f)| {
+                        // do something expensive
+                        // println!("{} - {}", idx, f);
+                        std::thread::sleep(std::time::Duration::from_millis(2));
+                    });
                 });
+
                 tx.send(Msg::Next).unwrap();
             }
-            Err(_) => {
-                dbg!("channel closed");
-                break
-            },
+
+            Err(_) => break,
         }
     })
 }
@@ -229,6 +244,8 @@ impl CurrentBatch {
 
 #[test]
 fn traverse_() {
-    traverse(vec!["~/Downloads/".into()]);
+    // cargo test --package xmodits-gui -- core::extraction::traverse_ --exact --nocapture
+    a(vec!["~/Downloads".into()]);
+    // panic!()
     // load();
 }
