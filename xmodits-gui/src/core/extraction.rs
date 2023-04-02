@@ -1,8 +1,8 @@
 use parking_lot::Mutex;
 use std::borrow::Cow;
 use std::path::Path;
-use std::sync::{Arc, mpsc};
-use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc::{Receiver, Sender};
+use std::sync::{mpsc, Arc};
 use std::{
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, Seek, Write},
@@ -27,7 +27,7 @@ pub fn traverse(dirs: Vec<String>) {
         .unwrap();
 
     // traverse list of directories, output to a file
-    let max_depth = 5;
+    let max_depth = 3;
     dirs.into_iter().for_each(|f| {
         WalkDir::new(shellexpand::tilde(&f).as_ref())
             .max_depth(max_depth)
@@ -44,10 +44,11 @@ pub fn traverse(dirs: Vec<String>) {
     file.rewind().unwrap();
 
     // wrap file to bufreader
-    BufReader::new(file)
-        .lines()
-        .filter_map(|f| f.ok())
-        .for_each(|f| println!("{}", f));
+    let mut file = BufReader::new(file);
+
+    let mut batcher = Batcher::new(&mut file, 2048);
+    batcher.start();
+    batcher.handle.unwrap().join();
 }
 
 pub type Batch<T> = Arc<Mutex<Vec<T>>>;
@@ -60,40 +61,42 @@ struct Batcher<'io> {
     buf_1: Batch<String>,
     buf_2: Batch<String>,
     sender: Sender<Batch<String>>,
+    recv: Receiver<Msg>,
+    pub handle: Option<std::thread::JoinHandle<()>>,
 }
 
-impl <'io>Batcher<'io> {
+enum Msg {}
+
+impl<'io> Batcher<'io> {
     pub fn new(
-        file: &'io mut BufReader<File>, 
-        batch_size: usize, 
-        batch_number: usize
+        file: &'io mut BufReader<File>,
+        batch_size: usize,
     ) -> Batcher<'io> {
         let (tx, rx) = mpsc::channel::<Batch<String>>();
+        let (w_tx, w_rx) = mpsc::channel::<Msg>();
 
         let mut batcher = Self {
             file,
             batch_size,
-            batch_number,
+            batch_number: 0,
             state: State::default(),
             buf_1: Self::alloc(batch_size),
             buf_2: Self::alloc(batch_size),
             sender: tx,
+            recv: w_rx,
+            handle: None,
         };
 
         batcher.load(CurrentBatch::Batch1);
-        spawn_worker_thread(rx);
+        batcher.handle = Some(spawn_worker_thread(rx, w_tx));
 
         batcher
     }
 
-    pub fn resume(
-        file: &'io mut BufReader<File>, 
-        batch_size: usize, 
-        batch_number: usize
-    ) -> Self {
-        let _ = file.lines().nth(batch_number * batch_size);
-        Self::new(file, batch_size, batch_number)
-    }
+    // pub fn resume(file: &'io mut BufReader<File>, batch_size: usize, batch_number: usize) -> Self {
+    //     let _ = file.lines().nth(batch_number * batch_size);
+    //     Self::new(file, batch_size, batch_number)
+    // }
 
     pub fn start(&mut self) {
         self.sender.send(self.get_batch_current()).unwrap();
@@ -133,14 +136,24 @@ impl <'io>Batcher<'io> {
 
         self.batch_number += 1;
     }
-    
+
     pub fn alloc(batch_size: usize) -> Batch<String> {
         Arc::new(Mutex::new(Vec::with_capacity(batch_size)))
     }
 }
 
-fn spawn_worker_thread(rx: Receiver<Batch<String>>) {
+fn spawn_worker_thread(rx: Receiver<Batch<String>>, tx: Sender<Msg>) -> std::thread::JoinHandle<()> {
+    use rayon::prelude::*;
 
+    std::thread::spawn(move || match rx.recv() {
+        Ok(batch) => {
+            batch.lock().par_iter().enumerate().for_each(|(idx, f)| {
+                // do something expensive
+                println!("{} - {}", idx, f);
+            })
+        }
+        Err(_) => todo!(),
+    })
 }
 
 #[derive(Default)]
@@ -148,7 +161,6 @@ struct State {
     pub complete: bool,
     pub batch: CurrentBatch,
 }
-
 
 #[derive(Default, Clone, Copy)]
 enum CurrentBatch {
@@ -173,7 +185,6 @@ impl CurrentBatch {
         *self = self.next();
     }
 }
-
 
 #[test]
 fn traverse_() {

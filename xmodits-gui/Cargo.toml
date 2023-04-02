@@ -64,6 +64,7 @@ cosmic-time = "0.1.2"
 # Additional widgets for Iced
 iced_aw = "0.4.1"
 parking_lot = "0.12.1"
+rayon = "1.7.0"
 
 # GUI library
 [dependencies.iced]
