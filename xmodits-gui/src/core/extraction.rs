@@ -27,7 +27,7 @@ pub fn traverse(dirs: Vec<String>) {
         .unwrap();
 
     // traverse list of directories, output to a file
-    let max_depth = 4;
+    let max_depth = 5;
     dirs.into_iter().for_each(|f| {
         WalkDir::new(shellexpand::tilde(&f).as_ref())
             .max_depth(max_depth)
@@ -88,7 +88,7 @@ impl<'io> Batcher<'io> {
             handle: None,
         };
 
-        batcher.load(CurrentBatch::Batch1);
+        batcher.load();
         batcher.handle = Some(spawn_worker_thread(rx, w_tx));
 
         batcher
@@ -138,17 +138,15 @@ impl<'io> Batcher<'io> {
 
     pub fn load_next_batch(&mut self) -> bool {
         self.state.batch.switch();
-        self.load(self.state.batch)
+        self.load()
     }
 
-    pub fn load(&mut self, batch: CurrentBatch)  -> bool {
+    pub fn load(&mut self)  -> bool {
         let mut is_last = false;
 
         // Aquire buffer
-        let mut buffer = match batch {
-            CurrentBatch::Batch1 => self.buf_1.lock(),
-            CurrentBatch::Batch2 => self.buf_2.lock(),
-        };
+        let buffer = self.get_batch_current();
+        let mut buffer = buffer.lock();
 
         // Clear it
         buffer.clear();
@@ -178,13 +176,15 @@ fn spawn_worker_thread(
     tx: Sender<Msg>,
 ) -> std::thread::JoinHandle<()> {
     use rayon::prelude::*;
+    rayon::ThreadPoolBuilder::new().num_threads(16).build_global().unwrap();
 
     std::thread::spawn(move || loop {
         match rx.recv() {
             Ok(batch) => {
                 batch.lock().par_iter().enumerate().for_each(|(idx, f)| {
                     // do something expensive
-                    println!("{} - {}", idx, f);
+                    // println!("{} - {}", idx, f);
+                    std::thread::sleep(std::time::Duration::from_millis(2));
                 });
                 tx.send(Msg::Next).unwrap();
             }
