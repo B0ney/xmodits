@@ -9,6 +9,7 @@ use std::{
     io::{BufRead, BufReader, Seek, Write},
     path::PathBuf,
 };
+use xmodits_lib::common::extract;
 use xmodits_lib::interface::ripper::Ripper;
 
 use walkdir::WalkDir;
@@ -92,6 +93,11 @@ pub fn traverse(
 
 pub type Batch<T> = Arc<Mutex<Vec<T>>>;
 
+enum Msg {
+    Done(Option<Vec<Failed>>),
+    // Done,
+}
+
 ///
 ///
 struct Batcher<'io> {
@@ -99,16 +105,10 @@ struct Batcher<'io> {
     batch_size: usize,
     batch_number: usize,
     state: State,
-    buf_1: Batch<String>,
-    buf_2: Batch<String>,
+    buffer: Buffer<String>,
     sender: Sender<Batch<String>>,
     recv: Receiver<Msg>,
     // pub handle: Option<std::thread::JoinHandle<()>>,
-}
-
-enum Msg {
-    Next,
-    // Done,
 }
 
 impl<'io> Batcher<'io> {
@@ -121,8 +121,7 @@ impl<'io> Batcher<'io> {
             batch_size,
             batch_number: 0,
             state: State::default(),
-            buf_1: Self::alloc(batch_size),
-            buf_2: Self::alloc(batch_size),
+            buffer: Buffer::init(batch_size),
             sender: tx,
             recv: w_rx,
             // handle: None,
@@ -143,6 +142,7 @@ impl<'io> Batcher<'io> {
 
     pub fn start(&mut self) {
         let mut is_last_batch = false;
+        let mut errors: Option<Vec<Failed>> = None;
 
         while !self.state.complete {
             // If this is the last batch, set the state to complete
@@ -152,32 +152,32 @@ impl<'io> Batcher<'io> {
             }
 
             // Send the current batch to the worker thread
-            self.sender.send(self.get_current_batch()).unwrap();
+            self.sender.send(self.buffer.current_buffer()).unwrap();
 
             // While the worker thread is dealing with the first batch,
             // prepare the next batch. Ping-pong buffering ftw.
             is_last_batch = self.load_next_batch();
 
+            // If there were any errors from the previous batch,
+            // store them to a file
+            if let Some(e) = errors.take() {}
+
             // wait for the worker to finish, then loop
             match self.recv.recv() {
                 Ok(msg) => match msg {
-                    Msg::Next => continue,
+                    Msg::Done(error) => {
+                        errors = error;
+                        continue
+                    },
                 },
                 Err(_) => break, // TODO
             }
         }
     }
 
-    pub fn get_current_batch(&self) -> Batch<String> {
-        match self.state.batch {
-            CurrentBatch::Batch1 => self.buf_1.clone(),
-            CurrentBatch::Batch2 => self.buf_2.clone(),
-        }
-    }
-
     /// Load the next batch of lines
     pub fn load_next_batch(&mut self) -> bool {
-        self.state.batch.switch();
+        self.buffer.switch();
         self.load()
     }
 
@@ -188,7 +188,7 @@ impl<'io> Batcher<'io> {
     /// This indicates we've reached the end of the file.
     pub fn load(&mut self) -> bool {
         // Aquire buffer
-        let buffer = self.get_current_batch();
+        let buffer = self.buffer.current_buffer();
         let mut buffer = buffer.lock();
 
         // Clear the buffer.
@@ -211,10 +211,6 @@ impl<'io> Batcher<'io> {
         // TODO: improve ergonomics of this function
         buffer.len() < self.batch_size
     }
-
-    pub fn alloc(batch_size: usize) -> Batch<String> {
-        Arc::new(Mutex::new(Vec::with_capacity(batch_size)))
-    }
 }
 
 fn spawn_worker_thread(
@@ -228,29 +224,52 @@ fn spawn_worker_thread(
         .build()
         .unwrap();
 
-    std::thread::spawn(move || loop {
-        match rx.recv() {
-            Ok(batch) => {
-                pool.install(|| {
-                    batch.lock().par_iter().enumerate().for_each(|(idx, f)| {
-                        // do something expensive
-                        // println!("{} - {}", idx, f);
-                        std::thread::sleep(std::time::Duration::from_millis(2));
-                    });
-                });
+    std::thread::spawn(move || {
+        pool.install(move || loop {
+            match rx.recv() {
+                Ok(batch) => {
+                    let errors: Vec<Failed> = batch
+                        .lock()
+                        .par_iter()
+                        .enumerate()
+                        .filter_map(|(idx, f)| {
+                            extract(&f, "todo!()", todo!(), todo!())
+                                .map_err(|error| Failed::new(f.to_string(), error))
+                                .err()
+                        })
+                        .collect();
 
-                tx.send(Msg::Next).unwrap();
+                    let errors = match errors.len() {
+                        0 => None,
+                        _ => Some(errors),
+                    };
+
+                    tx.send(Msg::Done(errors)).unwrap();
+                }
+
+                Err(_) => break,
             }
-
-            Err(_) => break,
-        }
+        })
     })
 }
 
 #[derive(Default)]
 struct State {
     pub complete: bool,
-    pub batch: CurrentBatch,
+    // pub batch: CurrentBatch,
+}
+struct Failed {
+    path: PathBuf,
+    reason: String,
+}
+
+impl Failed {
+    pub fn new(path: String, error: xmodits_lib::interface::Error) -> Self {
+        Self {
+            path: path.into(),
+            reason: error.to_string(),
+        }
+    }
 }
 
 #[derive(Default, Clone, Copy)]
@@ -271,6 +290,37 @@ impl CurrentBatch {
     pub fn switch(&mut self) {
         println!("---------- SWITCHING ----------");
         *self = self.next();
+    }
+}
+
+struct Buffer<T> {
+    current: CurrentBatch,
+    buf_1: Batch<T>,
+    buf_2: Batch<T>,
+}
+
+impl<T> Buffer<T> {
+    pub fn init(batch_size: usize) -> Self {
+        Self {
+            current: CurrentBatch::Batch1,
+            buf_1: Self::alloc(batch_size),
+            buf_2: Self::alloc(batch_size),
+        }
+    }
+
+    pub fn current_buffer(&self) -> Batch<T> {
+        match self.current {
+            CurrentBatch::Batch1 => self.buf_1.clone(),
+            CurrentBatch::Batch2 => self.buf_2.clone(),
+        }
+    }
+
+    pub fn switch(&mut self) {
+        self.current.switch()
+    }
+
+    fn alloc(batch_size: usize) -> Batch<T> {
+        Arc::new(Mutex::new(Vec::with_capacity(batch_size)))
     }
 }
 
