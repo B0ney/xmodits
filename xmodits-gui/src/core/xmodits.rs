@@ -94,15 +94,9 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
             Some(ThreadMsg::Progress) => {
                 progress += 1;
                 let percentage: f32 = (progress as f32 / total as f32) * 100.0;
-                // let result = match result {
-                //     ThreadMsg::Ok => Ok(()),
-                //     ThreadMsg::Failed(err) => Err(err),
-                //     _ => unreachable!(),
-                // };
                 (
                     Some(DownloadMessage::Progress {
                         progress: percentage,
-                        // result,
                     }),
                     State::Ripping {
                         ripping_msg,
@@ -116,7 +110,7 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
                 State::Ripping {
                     ripping_msg,
                     total,
-                    progress,
+                    progress: 0,
                 },
             ),
             Some(ThreadMsg::Info(info)) => (
@@ -136,84 +130,5 @@ fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
     std::thread::spawn(move || {
         let (paths, config) = config;
         super::extraction::rip(tx, paths, config);
-
-        // let dest_dir = config.destination;
-
-        // if !dest_dir.is_dir() {
-        //     if let Err(e) = std::fs::create_dir(&dest_dir) {
-        //         tx.blocking_send(ThreadMsg::Failed((dest_dir, e.to_string())))
-        //             .expect("Channel closed prematurely");
-
-        //         tx.blocking_send(ThreadMsg::Done)
-        //             .expect("Channel closed prematurely");
-        //         return;
-        //     };
-        // }
-
-        // let scan_depth = match config.folder_max_depth {
-        //     0 => 1,
-        //     d => d,
-        // };
-
-        // let mut files: Vec<PathBuf> = Vec::new();
-        // let mut folders: Vec<PathBuf> = Vec::new();
-
-        // for i in paths {
-        //     if i.is_file() {
-        //         files.push(i)
-        //     } else if i.is_dir() {
-        //         folders.push(i)
-        //     }
-        // }
-
-        // tx.blocking_send(ThreadMsg::Info(Some("Traversing folders...".into())))
-        //     .expect("Channel closed prematurely");
-
-        // // Can use a lot of memory if max_depth is too high
-        // let expanded_folders = folders.into_iter().flat_map(move |f| {
-        //     WalkDir::new(f)
-        //         .max_depth(scan_depth as usize)
-        //         .into_iter()
-        //         .filter_map(|f| match f.ok() {
-        //             Some(d) if d.path().is_file() => Some(d.into_path()),
-        //             _ => None,
-        //         })
-        // });
-
-        // // Collect because we should inform the user how many files it's ripping
-        // let expanded_paths: Vec<PathBuf> = files.into_iter().chain(expanded_folders).collect();
-
-        // tx.blocking_send(ThreadMsg::SetTotal(expanded_paths.len()))
-        //     .expect("Channel closed prematurely");
-
-        // tx.blocking_send(ThreadMsg::Info(Some(format!(
-        //     "Ripping {} files...",
-        //     expanded_paths.len()
-        // ))))
-        // .expect("Channel closed prematurely");
-
-        // let ripper = Ripper::new(
-        //     config.naming.build_func(),
-        //     config.exported_format.into(),
-        // );
-        // // ripper.change_namer(config.naming.build_func());
-
-        // for path in expanded_paths {
-        //     tx.blocking_send(
-        //         match extract(
-        //             &path,
-        //             &dest_dir,
-        //             &ripper,
-        //             !config.self_contained
-        //         ) {
-        //             Ok(_) => ThreadMsg::Ok,
-        //             Err(e) => ThreadMsg::Failed((path, e.to_string())),
-        //         },
-        //     )
-        //     .expect("Channel closed prematurely");
-        // }
-
-        // tx.blocking_send(ThreadMsg::Done)
-        //     .expect("Channel closed prematurely");
     });
 }

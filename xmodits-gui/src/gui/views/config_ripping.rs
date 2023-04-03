@@ -10,7 +10,7 @@ use xmodits_lib::exporter::AudioFormat;
 pub enum Message {
     SetFormat(AudioFormat),
     ToggleSelfContained(bool),
-    // ToggleStrictLoad(bool),
+    ToggleStrictLoad(bool),
     SetRecursionDepth(u8),
 }
 
@@ -20,7 +20,7 @@ impl SampleRippingConfig {
             Message::SetFormat(format) => self.exported_format = format,
             Message::ToggleSelfContained(toggle) => self.self_contained = toggle,
             Message::SetRecursionDepth(depth) => self.folder_max_depth = depth,
-            // Message::ToggleStrictLoad(strict) => self.strict = strict,
+            Message::ToggleStrictLoad(strict) => self.strict = strict,
         }
     }
 
@@ -28,7 +28,7 @@ impl SampleRippingConfig {
         let settings: _ = container(
             row![column![
                 checkbox("Self Contained", self.self_contained, Message::ToggleSelfContained),
-                // checkbox("Strict Loading", self.strict, Message::ToggleStrictLoad),
+                checkbox("Strict Loading", self.strict, Message::ToggleStrictLoad),
                 row![
                     pick_list(
                         &AudioFormat::ALL[..],
@@ -56,7 +56,7 @@ impl SampleRippingConfig {
         let settings: _ = container(
             row![
                 pick_list(
-                    (1..4).collect::<Vec<u8>>(),
+                    (1..=5).collect::<Vec<u8>>(),
                     Some(self.folder_max_depth),
                     Message::SetRecursionDepth
                 ),

@@ -58,13 +58,24 @@ pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippi
     tx.blocking_send(ThreadMsg::Done).unwrap();
 }
 
-fn stage_1(subscr_tx: AsyncSender<ThreadMsg>, files: Vec<PathBuf>, ripper: Arc<Ripper>, cfg: &SampleRippingConfig) {
+fn stage_1(
+    subscr_tx: AsyncSender<ThreadMsg>,
+    files: Vec<PathBuf>,
+    ripper: Arc<Ripper>,
+    cfg: &SampleRippingConfig,
+) {
     if files.is_empty() {
         return;
     }
-    subscr_tx.blocking_send(ThreadMsg::SetTotal(files.len())).unwrap();
+    subscr_tx
+        .blocking_send(ThreadMsg::SetTotal(files.len()))
+        .unwrap();
 
-    subscr_tx.blocking_send(ThreadMsg::Info(Some(format!("Stage 1: Ripping {} files...", files.len()))))
+    subscr_tx
+        .blocking_send(ThreadMsg::Info(Some(format!(
+            "Stage 1: Ripping {} files...",
+            files.len()
+        ))))
         .unwrap();
 
     files.into_iter().for_each(|file| {
@@ -84,25 +95,23 @@ fn stage_2(
     if folders.is_empty() {
         return;
     }
-    subscr_tx.blocking_send(ThreadMsg::info("Traversing Directories..."))
+    let selected_dirs = folders.len();
+    subscr_tx
+        .blocking_send(ThreadMsg::info("Traversing Directories..."))
         .unwrap();
 
     let (mut file, lines) = traverse(folders, cfg.folder_max_depth);
     subscr_tx.blocking_send(ThreadMsg::SetTotal(lines)).unwrap();
 
-    subscr_tx.blocking_send(ThreadMsg::Info(Some(format!("Stage 2: Ripping {} files...", lines))))
+    subscr_tx
+        .blocking_send(ThreadMsg::Info(Some(format!(
+            "Stage 2: Ripping {} file from {} folder(s)...",
+            lines, selected_dirs
+        ))))
         .unwrap();
 
     let mut batcher = Batcher::new(&mut file, batch_size(lines), ripper, cfg, subscr_tx.clone());
     batcher.start();
-}
-
-fn a(dirs: Vec<PathBuf>) {
-    // let mut file = traverse(dirs, 7, |_| true);
-    // let mut batcher = Batcher::new(&mut file, 2048);
-    // batcher.start();
-    // dbg!(batcher.batch_number);
-    // batcher.handle.unwrap().join();
 }
 
 fn batch_size(lines: usize) -> usize {
@@ -199,7 +208,7 @@ impl<'io> Batcher<'io> {
             worker_rx,
             // handle: None,
         };
-        
+
         // load first buffer
         batcher.load();
 
@@ -307,7 +316,7 @@ fn spawn_workers(
     use rayon::prelude::*;
 
     let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(8)
+        .num_threads(0)
         .build()
         .unwrap();
 
@@ -376,7 +385,7 @@ impl CurrentBatch {
     }
 
     pub fn switch(&mut self) {
-        println!("---------- SWITCHING ----------");
+        // println!("---------- SWITCHING ----------");
         *self = self.next();
     }
 }
@@ -410,12 +419,4 @@ impl<T> Buffer<T> {
     fn alloc(batch_size: usize) -> Batch<T> {
         Arc::new(Mutex::new(Vec::with_capacity(batch_size)))
     }
-}
-
-#[test]
-fn traverse_() {
-    // cargo test --package xmodits-gui -- core::extraction::traverse_ --exact --nocapture
-    a(vec![shellexpand::tilde("~/Downloads").as_ref().into()]);
-    // panic!()
-    // load();
 }

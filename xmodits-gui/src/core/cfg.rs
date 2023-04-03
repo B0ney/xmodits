@@ -108,6 +108,7 @@ impl Default for SampleRippingConfig {
             exported_format: Default::default(),
             naming: SampleNameConfig {
                 index_padding: 2,
+                prefer_filename: true,
                 ..Default::default()
             },
         }

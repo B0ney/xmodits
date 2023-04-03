@@ -1,4 +1,4 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // show logs when debugging
+// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // show logs when debugging
 mod core;
 // #[allow(unused)]
 mod gui;
