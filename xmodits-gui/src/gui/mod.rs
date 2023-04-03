@@ -332,12 +332,12 @@ impl Application for App {
                         Message::SetState,
                     );
                 }
-                DownloadMessage::Progress { progress, result } => {
+                DownloadMessage::Progress { progress,  } => {
                     self.state.progress(progress);
 
-                    if let Err(error) = result {
-                        self.errors.push(error);
-                    }
+                    // if let Err(error) = result {
+                    //     self.errors.push(error);
+                    // }
                 }
                 DownloadMessage::Info(info) => self.state.message(info),
             },

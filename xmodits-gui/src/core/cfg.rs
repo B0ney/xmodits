@@ -3,7 +3,7 @@ use dirs;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use toml;
-use xmodits_lib::{SampleNamer, SampleNamerTrait, exporter::AudioFormat};
+use xmodits_lib::{exporter::AudioFormat, SampleNamer, SampleNamerTrait};
 
 const APP_NAME: &str = "xmodits";
 const CONFIG_NAME: &str = "config.toml";
@@ -30,7 +30,7 @@ impl Default for Config {
             general: Default::default(),
             ripping: SampleRippingConfig {
                 destination: dirs::download_dir().expect("Expected Downloads folder"),
-                folder_recursion_depth: 1,
+                folder_max_depth: 1,
                 naming: SampleNameConfig {
                     index_padding: 2,
                     ..Default::default()
@@ -87,15 +87,31 @@ pub struct GeneralConfig {
 // Warning, due to the limitations of the toml format,
 // the order of these properties matter.
 // Structs are treated as tables, and so must be placed at the bottom.
-#[derive(Default, Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SampleRippingConfig {
     pub destination: PathBuf,
-    pub no_folder: bool,
-    pub folder_recursion_depth: u8,
+    pub self_contained: bool,
+    pub folder_max_depth: u8,
     pub strict: bool,
     pub exported_format: AudioFormat,
     // must be placed at the bottom
-    pub naming: SampleNameConfig,   
+    pub naming: SampleNameConfig,
+}
+
+impl Default for SampleRippingConfig {
+    fn default() -> Self {
+        Self {
+            destination: dirs::download_dir().expect("Expected Downloads folder"),
+            self_contained: true,
+            folder_max_depth: 1,
+            strict: true,
+            exported_format: Default::default(),
+            naming: SampleNameConfig {
+                index_padding: 2,
+                ..Default::default()
+            },
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Default)]
@@ -106,7 +122,7 @@ pub struct SampleNameConfig {
     pub upper: bool,
     pub lower: bool,
     pub prefix: bool,
-    pub prefer_filename: bool
+    pub prefer_filename: bool,
 }
 
 impl SampleNameConfig {
@@ -120,6 +136,7 @@ impl SampleNameConfig {
             prefix_source: self.prefix,
             prefer_filename: self.prefer_filename,
             ..Default::default()
-        }.into()
+        }
+        .into()
     }
 }

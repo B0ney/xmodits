@@ -9,7 +9,7 @@ use xmodits_lib::exporter::AudioFormat;
 #[derive(Debug, Clone)]
 pub enum Message {
     SetFormat(AudioFormat),
-    ToggleNoFolder(bool),
+    ToggleSelfContained(bool),
     // ToggleStrictLoad(bool),
     SetRecursionDepth(u8),
 }
@@ -18,8 +18,8 @@ impl SampleRippingConfig {
     pub fn update(&mut self, msg: Message) {
         match msg {
             Message::SetFormat(format) => self.exported_format = format,
-            Message::ToggleNoFolder(toggle) => self.no_folder = toggle,
-            Message::SetRecursionDepth(depth) => self.folder_recursion_depth = depth,
+            Message::ToggleSelfContained(toggle) => self.self_contained = toggle,
+            Message::SetRecursionDepth(depth) => self.folder_max_depth = depth,
             // Message::ToggleStrictLoad(strict) => self.strict = strict,
         }
     }
@@ -27,7 +27,7 @@ impl SampleRippingConfig {
     pub fn view(&self) -> Element<Message, Renderer<Theme>> {
         let settings: _ = container(
             row![column![
-                checkbox("No Folder", self.no_folder, Message::ToggleNoFolder),
+                checkbox("Self Contained", self.self_contained, Message::ToggleSelfContained),
                 // checkbox("Strict Loading", self.strict, Message::ToggleStrictLoad),
                 row![
                     pick_list(
@@ -57,7 +57,7 @@ impl SampleRippingConfig {
             row![
                 pick_list(
                     (1..4).collect::<Vec<u8>>(),
-                    Some(self.folder_recursion_depth),
+                    Some(self.folder_max_depth),
                     Message::SetRecursionDepth
                 ),
                 text("Folder Scan Depth "),

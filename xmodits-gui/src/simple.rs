@@ -35,7 +35,7 @@ pub fn rip(paths: Vec<PathBuf>) {
                 &mod_path,
                 &config.destination,
                 &ripper,
-                !config.no_folder,
+                config.self_contained,
             ) {
                 Ok(_) => None,
                 Err(error) => Some((mod_path, error)),

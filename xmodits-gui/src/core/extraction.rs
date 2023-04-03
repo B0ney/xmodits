@@ -14,7 +14,22 @@ use xmodits_lib::interface::ripper::Ripper;
 
 use walkdir::WalkDir;
 
-pub fn rip(paths: Vec<PathBuf>, cfg: SampleRippingConfig) {
+#[derive(Debug)]
+pub enum ThreadMsg {
+    SetTotal(usize),
+    Info(Option<String>),
+    Progress,
+    Done,
+}
+
+impl ThreadMsg {
+    pub fn info(str: &str) -> Self {
+        Self::Info(Some(str.to_owned()))
+    }
+}
+use tokio::sync::mpsc::Sender as AsyncSender;
+
+pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippingConfig) {
     // split files and folders
     let mut files: Vec<PathBuf> = Vec::new();
     let mut folders: Vec<PathBuf> = Vec::new();
@@ -27,7 +42,7 @@ pub fn rip(paths: Vec<PathBuf>, cfg: SampleRippingConfig) {
         }
     }
 
-    let max_depth = match cfg.folder_recursion_depth {
+    cfg.folder_max_depth = match cfg.folder_max_depth {
         0 => 1,
         d => d,
     };
@@ -37,20 +52,68 @@ pub fn rip(paths: Vec<PathBuf>, cfg: SampleRippingConfig) {
         cfg.exported_format.into(),
     ));
 
-    stage_1(files);
-    stage_2(folders);
+    stage_1(tx.clone(), files, ripper.clone(), &cfg);
+    stage_2(tx.clone(), folders, ripper.clone(), cfg);
+
+    tx.blocking_send(ThreadMsg::Done).unwrap();
 }
 
-fn stage_1(files: Vec<PathBuf>) {}
+fn stage_1(subscr_tx: AsyncSender<ThreadMsg>, files: Vec<PathBuf>, ripper: Arc<Ripper>, cfg: &SampleRippingConfig) {
+    if files.is_empty() {
+        return;
+    }
+    subscr_tx.blocking_send(ThreadMsg::SetTotal(files.len())).unwrap();
+
+    subscr_tx.blocking_send(ThreadMsg::Info(Some(format!("Stage 1: Ripping {} files...", files.len()))))
+        .unwrap();
+
+    files.into_iter().for_each(|file| {
+        let e = extract(file, &cfg.destination, ripper.as_ref(), cfg.self_contained);
+        subscr_tx.blocking_send(ThreadMsg::Progress).unwrap();
+    });
+}
+
 /// todo add documentation
-fn stage_2(folders: Vec<PathBuf>) {}
+///
+fn stage_2(
+    subscr_tx: AsyncSender<ThreadMsg>,
+    folders: Vec<PathBuf>,
+    ripper: Arc<Ripper>,
+    cfg: SampleRippingConfig,
+) {
+    if folders.is_empty() {
+        return;
+    }
+    subscr_tx.blocking_send(ThreadMsg::info("Traversing Directories..."))
+        .unwrap();
+
+    let (mut file, lines) = traverse(folders, cfg.folder_max_depth);
+    subscr_tx.blocking_send(ThreadMsg::SetTotal(lines)).unwrap();
+
+    subscr_tx.blocking_send(ThreadMsg::Info(Some(format!("Stage 2: Ripping {} files...", lines))))
+        .unwrap();
+
+    let mut batcher = Batcher::new(&mut file, batch_size(lines), ripper, cfg, subscr_tx.clone());
+    batcher.start();
+}
 
 fn a(dirs: Vec<PathBuf>) {
-    let mut file = traverse(dirs, 7, |_| true);
-    let mut batcher = Batcher::new(&mut file, 2048);
-    batcher.start();
-    dbg!(batcher.batch_number);
+    // let mut file = traverse(dirs, 7, |_| true);
+    // let mut batcher = Batcher::new(&mut file, 2048);
+    // batcher.start();
+    // dbg!(batcher.batch_number);
     // batcher.handle.unwrap().join();
+}
+
+fn batch_size(lines: usize) -> usize {
+    match lines {
+        x if x <= 128 => 64,
+        x if x <= 256 => 128,
+        x if x <= 512 => 256,
+        x if x <= 1024 => 512,
+        x if x <= 2048 => 1024,
+        _ => 2048,
+    }
 }
 
 /// Traversing deeply nested directories can use a lot of memory.
@@ -61,8 +124,8 @@ fn a(dirs: Vec<PathBuf>) {
 pub fn traverse(
     dirs: Vec<PathBuf>,
     max_depth: u8,
-    filter: impl Fn(&Path) -> bool,
-) -> BufReader<File> {
+    // filter: impl Fn(&Path) -> bool,
+) -> (BufReader<File>, usize) {
     // create a file in read-write mode
     let mut file: File = OpenOptions::new()
         .read(true)
@@ -71,14 +134,18 @@ pub fn traverse(
         .open("./test.txt")
         .unwrap();
 
+    // store the number of entries
+    let mut lines: usize = 0;
+
     // traverse list of directories, output to a file
     dirs.into_iter().for_each(|f| {
         WalkDir::new(f)
             .max_depth(max_depth as usize)
             .into_iter()
             .filter_map(|f| f.ok())
-            .filter(|f| f.path().is_file() && filter(f.path()))
+            .filter(|f| f.path().is_file())
             .for_each(|f| {
+                lines += 1;
                 file.write_fmt(format_args!("{}\n", f.path().display()))
                     .unwrap()
             })
@@ -87,8 +154,8 @@ pub fn traverse(
     // Rewind cursor to beginning
     file.rewind().unwrap();
 
-    // Wrap file in bufreader
-    BufReader::new(file)
+    // Wrap file in bufreader and return
+    (BufReader::new(file), lines)
 }
 
 pub type Batch<T> = Arc<Mutex<Vec<T>>>;
@@ -106,15 +173,21 @@ struct Batcher<'io> {
     batch_number: usize,
     state: State,
     buffer: Buffer<String>,
-    sender: Sender<Batch<String>>,
-    recv: Receiver<Msg>,
+    batch_tx: Sender<Batch<String>>,
+    worker_rx: Receiver<Msg>,
     // pub handle: Option<std::thread::JoinHandle<()>>,
 }
 
 impl<'io> Batcher<'io> {
-    pub fn new(file: &'io mut BufReader<File>, batch_size: usize) -> Batcher<'io> {
-        let (tx, rx) = mpsc::channel::<Batch<String>>();
-        let (w_tx, w_rx) = mpsc::channel::<Msg>();
+    pub fn new(
+        file: &'io mut BufReader<File>,
+        batch_size: usize,
+        ripper: Arc<Ripper>,
+        cfg: SampleRippingConfig,
+        subscr_tx: AsyncSender<ThreadMsg>,
+    ) -> Batcher<'io> {
+        let (batch_tx, batch_rx) = mpsc::channel::<Batch<String>>();
+        let (worker_tx, worker_rx) = mpsc::channel::<Msg>();
 
         let mut batcher = Self {
             file,
@@ -122,23 +195,31 @@ impl<'io> Batcher<'io> {
             batch_number: 0,
             state: State::default(),
             buffer: Buffer::init(batch_size),
-            sender: tx,
-            recv: w_rx,
+            batch_tx,
+            worker_rx,
             // handle: None,
         };
-
+        
+        // load first buffer
         batcher.load();
-        // batcher.handle = Some(spawn_worker_thread(rx, w_tx));
-        spawn_worker_thread(rx, w_tx);
+
+        spawn_workers(
+            batch_rx,
+            worker_tx,
+            subscr_tx,
+            ripper,
+            cfg.destination,
+            cfg.self_contained,
+        );
 
         batcher
     }
 
-    pub fn resume(file: &'io mut BufReader<File>, batch_size: usize, batch_number: usize) -> Self {
-        let _ = file.lines().nth(batch_number * batch_size);
+    // pub fn resume(file: &'io mut BufReader<File>, batch_size: usize, batch_number: usize) -> Self {
+    //     let _ = file.lines().nth(batch_number * batch_size);
 
-        Self::new(file, batch_size)
-    }
+    //     Self::new(file, batch_size)
+    // }
 
     pub fn start(&mut self) {
         let mut is_last_batch = false;
@@ -152,7 +233,7 @@ impl<'io> Batcher<'io> {
             }
 
             // Send the current batch to the worker thread
-            self.sender.send(self.buffer.current_buffer()).unwrap();
+            self.batch_tx.send(self.buffer.current_buffer()).unwrap();
 
             // While the worker thread is dealing with the first batch,
             // prepare the next batch. Ping-pong buffering ftw.
@@ -160,15 +241,17 @@ impl<'io> Batcher<'io> {
 
             // If there were any errors from the previous batch,
             // store them to a file
-            if let Some(e) = errors.take() {}
+            if let Some(e) = errors.take() {
+                println!("writing {} errors...", e.len())
+            }
 
             // wait for the worker to finish, then loop
-            match self.recv.recv() {
+            match self.worker_rx.recv() {
                 Ok(msg) => match msg {
                     Msg::Done(error) => {
                         errors = error;
-                        continue
-                    },
+                        continue;
+                    }
                 },
                 Err(_) => break, // TODO
             }
@@ -213,44 +296,49 @@ impl<'io> Batcher<'io> {
     }
 }
 
-fn spawn_worker_thread(
-    rx: Receiver<Batch<String>>,
-    tx: Sender<Msg>,
-) -> std::thread::JoinHandle<()> {
+fn spawn_workers(
+    batch_rx: Receiver<Batch<String>>,
+    worker_tx: Sender<Msg>,
+    subscr_tx: AsyncSender<ThreadMsg>,
+    ripper: Arc<Ripper>,
+    destination: PathBuf,
+    self_contained: bool,
+) {
     use rayon::prelude::*;
 
     let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(16)
+        .num_threads(8)
         .build()
         .unwrap();
 
-    std::thread::spawn(move || {
-        pool.install(move || loop {
-            match rx.recv() {
-                Ok(batch) => {
-                    let errors: Vec<Failed> = batch
-                        .lock()
-                        .par_iter()
-                        .enumerate()
-                        .filter_map(|(idx, f)| {
-                            extract(&f, "todo!()", todo!(), todo!())
-                                .map_err(|error| Failed::new(f.to_string(), error))
-                                .err()
-                        })
-                        .collect();
+    pool.spawn(move || loop {
+        match batch_rx.recv() {
+            Ok(batch) => {
+                let errors: Vec<Failed> = batch
+                    .lock()
+                    .par_iter()
+                    .enumerate()
+                    .filter_map(|(idx, f)| {
+                        let result = extract(&f, &destination, ripper.as_ref(), self_contained);
+                        subscr_tx.blocking_send(ThreadMsg::Progress).unwrap();
 
-                    let errors = match errors.len() {
-                        0 => None,
-                        _ => Some(errors),
-                    };
+                        result
+                            .map_err(|error| Failed::new(f.to_string(), error))
+                            .err()
+                    })
+                    .collect();
 
-                    tx.send(Msg::Done(errors)).unwrap();
-                }
+                let errors = match errors.len() {
+                    0 => None,
+                    _ => Some(errors),
+                };
 
-                Err(_) => break,
+                worker_tx.send(Msg::Done(errors)).unwrap();
             }
-        })
-    })
+
+            Err(_) => break,
+        }
+    });
 }
 
 #[derive(Default)]
@@ -300,7 +388,7 @@ struct Buffer<T> {
 }
 
 impl<T> Buffer<T> {
-    pub fn init(batch_size: usize) -> Self {
+    fn init(batch_size: usize) -> Self {
         Self {
             current: CurrentBatch::Batch1,
             buf_1: Self::alloc(batch_size),
@@ -308,14 +396,14 @@ impl<T> Buffer<T> {
         }
     }
 
-    pub fn current_buffer(&self) -> Batch<T> {
+    fn current_buffer(&self) -> Batch<T> {
         match self.current {
             CurrentBatch::Batch1 => self.buf_1.clone(),
             CurrentBatch::Batch2 => self.buf_2.clone(),
         }
     }
 
-    pub fn switch(&mut self) {
+    fn switch(&mut self) {
         self.current.switch()
     }
 
@@ -327,7 +415,7 @@ impl<T> Buffer<T> {
 #[test]
 fn traverse_() {
     // cargo test --package xmodits-gui -- core::extraction::traverse_ --exact --nocapture
-    a(vec!["~/Downloads".into()]);
+    a(vec![shellexpand::tilde("~/Downloads").as_ref().into()]);
     // panic!()
     // load();
 }

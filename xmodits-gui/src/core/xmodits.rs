@@ -35,20 +35,20 @@ pub enum DownloadMessage {
     Done,
     Progress {
         progress: f32,
-        result: Result<(), (PathBuf, String)>,
+        // result: Result<(), (PathBuf, String)>,
     },
     Info(Option<String>),
 }
-
+use super::extraction::ThreadMsg;
 /// Messages emitted by thread
-#[derive(Debug)]
-enum ThreadMsg {
-    SetTotal(usize),
-    Ok,
-    Failed((PathBuf, String)),
-    Done,
-    Info(Option<String>),
-}
+// #[derive(Debug)]
+// enum ThreadMsg {
+//     SetTotal(usize),
+//     Ok,
+//     Failed((PathBuf, String)),
+//     Done,
+//     Info(Option<String>),
+// }
 
 /// The subscription will emit messages when:
 /// * The sample extraction has completed
@@ -91,18 +91,18 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
             total,
             mut progress,
         } => match ripping_msg.recv().await {
-            Some(result @ (ThreadMsg::Ok | ThreadMsg::Failed(_))) => {
+            Some(ThreadMsg::Progress) => {
                 progress += 1;
                 let percentage: f32 = (progress as f32 / total as f32) * 100.0;
-                let result = match result {
-                    ThreadMsg::Ok => Ok(()),
-                    ThreadMsg::Failed(err) => Err(err),
-                    _ => unreachable!(),
-                };
+                // let result = match result {
+                //     ThreadMsg::Ok => Ok(()),
+                //     ThreadMsg::Failed(err) => Err(err),
+                //     _ => unreachable!(),
+                // };
                 (
                     Some(DownloadMessage::Progress {
                         progress: percentage,
-                        result,
+                        // result,
                     }),
                     State::Ripping {
                         ripping_msg,
@@ -135,84 +135,85 @@ async fn rip(state: State) -> (Option<DownloadMessage>, State) {
 fn spawn_thread(tx: Sender<ThreadMsg>, config: StartSignal) {
     std::thread::spawn(move || {
         let (paths, config) = config;
+        super::extraction::rip(tx, paths, config);
 
-        let dest_dir = config.destination;
+        // let dest_dir = config.destination;
 
-        if !dest_dir.is_dir() {
-            if let Err(e) = std::fs::create_dir(&dest_dir) {
-                tx.blocking_send(ThreadMsg::Failed((dest_dir, e.to_string())))
-                    .expect("Channel closed prematurely");
+        // if !dest_dir.is_dir() {
+        //     if let Err(e) = std::fs::create_dir(&dest_dir) {
+        //         tx.blocking_send(ThreadMsg::Failed((dest_dir, e.to_string())))
+        //             .expect("Channel closed prematurely");
 
-                tx.blocking_send(ThreadMsg::Done)
-                    .expect("Channel closed prematurely");
-                return;
-            };
-        }
+        //         tx.blocking_send(ThreadMsg::Done)
+        //             .expect("Channel closed prematurely");
+        //         return;
+        //     };
+        // }
 
-        let scan_depth = match config.folder_recursion_depth {
-            0 => 1,
-            d => d,
-        };
+        // let scan_depth = match config.folder_max_depth {
+        //     0 => 1,
+        //     d => d,
+        // };
 
-        let mut files: Vec<PathBuf> = Vec::new();
-        let mut folders: Vec<PathBuf> = Vec::new();
+        // let mut files: Vec<PathBuf> = Vec::new();
+        // let mut folders: Vec<PathBuf> = Vec::new();
 
-        for i in paths {
-            if i.is_file() {
-                files.push(i)
-            } else if i.is_dir() {
-                folders.push(i)
-            }
-        }
+        // for i in paths {
+        //     if i.is_file() {
+        //         files.push(i)
+        //     } else if i.is_dir() {
+        //         folders.push(i)
+        //     }
+        // }
 
-        tx.blocking_send(ThreadMsg::Info(Some("Traversing folders...".into())))
-            .expect("Channel closed prematurely");
+        // tx.blocking_send(ThreadMsg::Info(Some("Traversing folders...".into())))
+        //     .expect("Channel closed prematurely");
 
-        // Can use a lot of memory if max_depth is too high
-        let expanded_folders = folders.into_iter().flat_map(move |f| {
-            WalkDir::new(f)
-                .max_depth(scan_depth as usize)
-                .into_iter()
-                .filter_map(|f| match f.ok() {
-                    Some(d) if d.path().is_file() => Some(d.into_path()),
-                    _ => None,
-                })
-        });
+        // // Can use a lot of memory if max_depth is too high
+        // let expanded_folders = folders.into_iter().flat_map(move |f| {
+        //     WalkDir::new(f)
+        //         .max_depth(scan_depth as usize)
+        //         .into_iter()
+        //         .filter_map(|f| match f.ok() {
+        //             Some(d) if d.path().is_file() => Some(d.into_path()),
+        //             _ => None,
+        //         })
+        // });
 
-        // Collect because we should inform the user how many files it's ripping
-        let expanded_paths: Vec<PathBuf> = files.into_iter().chain(expanded_folders).collect();
+        // // Collect because we should inform the user how many files it's ripping
+        // let expanded_paths: Vec<PathBuf> = files.into_iter().chain(expanded_folders).collect();
 
-        tx.blocking_send(ThreadMsg::SetTotal(expanded_paths.len()))
-            .expect("Channel closed prematurely");
+        // tx.blocking_send(ThreadMsg::SetTotal(expanded_paths.len()))
+        //     .expect("Channel closed prematurely");
 
-        tx.blocking_send(ThreadMsg::Info(Some(format!(
-            "Ripping {} files...",
-            expanded_paths.len()
-        ))))
-        .expect("Channel closed prematurely");
+        // tx.blocking_send(ThreadMsg::Info(Some(format!(
+        //     "Ripping {} files...",
+        //     expanded_paths.len()
+        // ))))
+        // .expect("Channel closed prematurely");
 
-        let ripper = Ripper::new(
-            config.naming.build_func(),
-            config.exported_format.into(),
-        );
-        // ripper.change_namer(config.naming.build_func());
+        // let ripper = Ripper::new(
+        //     config.naming.build_func(),
+        //     config.exported_format.into(),
+        // );
+        // // ripper.change_namer(config.naming.build_func());
 
-        for path in expanded_paths {
-            tx.blocking_send(
-                match extract(
-                    &path,
-                    &dest_dir,
-                    &ripper,
-                    !config.no_folder
-                ) {
-                    Ok(_) => ThreadMsg::Ok,
-                    Err(e) => ThreadMsg::Failed((path, e.to_string())),
-                },
-            )
-            .expect("Channel closed prematurely");
-        }
+        // for path in expanded_paths {
+        //     tx.blocking_send(
+        //         match extract(
+        //             &path,
+        //             &dest_dir,
+        //             &ripper,
+        //             !config.self_contained
+        //         ) {
+        //             Ok(_) => ThreadMsg::Ok,
+        //             Err(e) => ThreadMsg::Failed((path, e.to_string())),
+        //         },
+        //     )
+        //     .expect("Channel closed prematurely");
+        // }
 
-        tx.blocking_send(ThreadMsg::Done)
-            .expect("Channel closed prematurely");
+        // tx.blocking_send(ThreadMsg::Done)
+        //     .expect("Channel closed prematurely");
     });
 }
