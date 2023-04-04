@@ -1,7 +1,5 @@
 use crate::core::cfg::{SampleNameConfig, SampleRippingConfig};
 use parking_lot::Mutex;
-use std::borrow::Cow;
-use std::path::Path;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{mpsc, Arc};
 use std::{
@@ -18,7 +16,7 @@ use walkdir::WalkDir;
 pub enum ThreadMsg {
     SetTotal(usize),
     Info(Option<String>),
-    Progress,
+    Progress(Option<Failed>),
     Done,
 }
 
@@ -27,7 +25,8 @@ impl ThreadMsg {
         Self::Info(Some(str.to_owned()))
     }
 }
-use tokio::sync::mpsc::Sender as AsyncSender;
+
+use tokio::sync::mpsc::UnboundedSender as AsyncSender;
 
 pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippingConfig) {
     // split files and folders
@@ -55,7 +54,7 @@ pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippi
     stage_1(tx.clone(), files, ripper.clone(), &cfg);
     stage_2(tx.clone(), folders, ripper.clone(), cfg);
 
-    tx.blocking_send(ThreadMsg::Done).unwrap();
+    tx.send(ThreadMsg::Done).unwrap();
 }
 
 fn stage_1(
@@ -67,12 +66,10 @@ fn stage_1(
     if files.is_empty() {
         return;
     }
-    subscr_tx
-        .blocking_send(ThreadMsg::SetTotal(files.len()))
-        .unwrap();
+    subscr_tx.send(ThreadMsg::SetTotal(files.len())).unwrap();
 
     subscr_tx
-        .blocking_send(ThreadMsg::Info(Some(format!(
+        .send(ThreadMsg::Info(Some(format!(
             "Stage 1: Ripping {} files...",
             files.len()
         ))))
@@ -80,7 +77,7 @@ fn stage_1(
 
     files.into_iter().for_each(|file| {
         let e = extract(file, &cfg.destination, ripper.as_ref(), cfg.self_contained);
-        subscr_tx.blocking_send(ThreadMsg::Progress).unwrap();
+        subscr_tx.send(ThreadMsg::Progress(None)).unwrap();
     });
 }
 
@@ -97,14 +94,14 @@ fn stage_2(
     }
     let selected_dirs = folders.len();
     subscr_tx
-        .blocking_send(ThreadMsg::info("Traversing Directories..."))
+        .send(ThreadMsg::info("Traversing Directories..."))
         .unwrap();
 
     let (mut file, lines) = traverse(folders, cfg.folder_max_depth);
-    subscr_tx.blocking_send(ThreadMsg::SetTotal(lines)).unwrap();
+    subscr_tx.send(ThreadMsg::SetTotal(lines)).unwrap();
 
     subscr_tx
-        .blocking_send(ThreadMsg::Info(Some(format!(
+        .send(ThreadMsg::Info(Some(format!(
             "Stage 2: Ripping {} file from {} folder(s)...",
             lines, selected_dirs
         ))))
@@ -169,10 +166,8 @@ pub fn traverse(
 
 pub type Batch<T> = Arc<Mutex<Vec<T>>>;
 
-enum Msg {
-    Done(Option<Vec<Failed>>),
-    // Done,
-}
+#[derive(Copy, Clone)]
+struct NextBatch;
 
 ///
 ///
@@ -183,7 +178,7 @@ struct Batcher<'io> {
     state: State,
     buffer: Buffer<String>,
     batch_tx: Sender<Batch<String>>,
-    worker_rx: Receiver<Msg>,
+    worker_rx: Receiver<NextBatch>,
     // pub handle: Option<std::thread::JoinHandle<()>>,
 }
 
@@ -196,7 +191,7 @@ impl<'io> Batcher<'io> {
         subscr_tx: AsyncSender<ThreadMsg>,
     ) -> Batcher<'io> {
         let (batch_tx, batch_rx) = mpsc::channel::<Batch<String>>();
-        let (worker_tx, worker_rx) = mpsc::channel::<Msg>();
+        let (worker_tx, worker_rx) = mpsc::channel::<NextBatch>();
 
         let mut batcher = Self {
             file,
@@ -232,7 +227,6 @@ impl<'io> Batcher<'io> {
 
     pub fn start(&mut self) {
         let mut is_last_batch = false;
-        let mut errors: Option<Vec<Failed>> = None;
 
         while !self.state.complete {
             // If this is the last batch, set the state to complete
@@ -248,20 +242,9 @@ impl<'io> Batcher<'io> {
             // prepare the next batch. Ping-pong buffering ftw.
             is_last_batch = self.load_next_batch();
 
-            // If there were any errors from the previous batch,
-            // store them to a file
-            if let Some(e) = errors.take() {
-                println!("writing {} errors...", e.len())
-            }
-
             // wait for the worker to finish, then loop
             match self.worker_rx.recv() {
-                Ok(msg) => match msg {
-                    Msg::Done(error) => {
-                        errors = error;
-                        continue;
-                    }
-                },
+                Ok(_) => continue,
                 Err(_) => break, // TODO
             }
         }
@@ -307,7 +290,7 @@ impl<'io> Batcher<'io> {
 
 fn spawn_workers(
     batch_rx: Receiver<Batch<String>>,
-    worker_tx: Sender<Msg>,
+    worker_tx: Sender<NextBatch>,
     subscr_tx: AsyncSender<ThreadMsg>,
     ripper: Arc<Ripper>,
     destination: PathBuf,
@@ -323,26 +306,20 @@ fn spawn_workers(
     pool.spawn(move || loop {
         match batch_rx.recv() {
             Ok(batch) => {
-                let errors: Vec<Failed> = batch
-                    .lock()
-                    .par_iter()
-                    .enumerate()
-                    .filter_map(|(idx, f)| {
-                        let result = extract(&f, &destination, ripper.as_ref(), self_contained);
-                        subscr_tx.blocking_send(ThreadMsg::Progress).unwrap();
+                batch.lock().par_iter().for_each(|file| {
+                    let progress = ThreadMsg::Progress(
+                        match extract(&file, &destination, ripper.as_ref(), self_contained) {
+                            Ok(()) => None,
+                            Err(error) => Some(Failed::new(file.into(), error)),
+                        },
+                    );
 
-                        result
-                            .map_err(|error| Failed::new(f.to_string(), error))
-                            .err()
-                    })
-                    .collect();
+                    // Send and update to the subscription
+                    subscr_tx.send(progress).unwrap()
+                });
 
-                let errors = match errors.len() {
-                    0 => None,
-                    _ => Some(errors),
-                };
-
-                worker_tx.send(Msg::Done(errors)).unwrap();
+                // Tell the batcher we're done so that it can send the next round
+                worker_tx.send(NextBatch).unwrap();
             }
 
             Err(_) => break,
@@ -353,18 +330,19 @@ fn spawn_workers(
 #[derive(Default)]
 struct State {
     pub complete: bool,
-    // pub batch: CurrentBatch,
 }
-struct Failed {
+
+#[derive(Debug, Clone)]
+pub struct Failed {
     path: PathBuf,
-    reason: String,
+    reason: Box<str>,
 }
 
 impl Failed {
     pub fn new(path: String, error: xmodits_lib::interface::Error) -> Self {
         Self {
             path: path.into(),
-            reason: error.to_string(),
+            reason: error.to_string().into(),
         }
     }
 }

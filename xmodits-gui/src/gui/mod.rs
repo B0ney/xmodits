@@ -25,7 +25,7 @@ use image::{self, GenericImageView};
 use std::path::{Path, PathBuf};
 use style::Theme;
 use tokio::sync::mpsc::Sender;
-use tracing::warn;
+use tracing::{warn, info};
 use views::about::Message as AboutMessage;
 use views::config_name::Message as ConfigMessage;
 use views::config_ripping::Message as ConfigRippingMessage;
@@ -332,12 +332,13 @@ impl Application for App {
                         Message::SetState,
                     );
                 }
-                DownloadMessage::Progress { progress,  } => {
+                DownloadMessage::Progress { progress, error } => {
                     self.state.progress(progress);
 
-                    // if let Err(error) = result {
-                    //     self.errors.push(error);
-                    // }
+                    if let Some(error) = error {
+                        info!("{:?}", error);
+                        // self.errors.push(error);
+                    }
                 }
                 DownloadMessage::Info(info) => self.state.message(info),
             },
