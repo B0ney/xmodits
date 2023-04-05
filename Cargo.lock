@@ -4365,13 +4365,13 @@ dependencies = [
  "walkdir",
  "winapi",
  "winres",
- "xmodits-lib 0.6.0 (git+https://github.com/B0ney/xmodits-lib.git?rev=16cc1175f19f9726fd3d7765b948318dbc4d7795)",
+ "xmodits-lib 0.6.0 (git+https://github.com/B0ney/xmodits-lib.git?rev=6e3fa9f82c68c83e77ed9f9b3d9069c98e5bddc3)",
 ]
 
 [[package]]
 name = "xmodits-lib"
 version = "0.6.0"
-source = "git+https://github.com/B0ney/xmodits-lib.git?rev=16cc1175f19f9726fd3d7765b948318dbc4d7795#16cc1175f19f9726fd3d7765b948318dbc4d7795"
+source = "git+https://github.com/B0ney/xmodits-lib.git?rev=6e3fa9f82c68c83e77ed9f9b3d9069c98e5bddc3#6e3fa9f82c68c83e77ed9f9b3d9069c98e5bddc3"
 dependencies = [
  "bytemuck",
  "extended",
