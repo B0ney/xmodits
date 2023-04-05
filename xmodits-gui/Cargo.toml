@@ -30,7 +30,7 @@ serde = { version = "1.0.0", features = ["derive"] }
 toml = "0.7.3"
 
 # Async
-tokio = { version = "1.26.0", features = ["sync", "fs"] }
+tokio = { version = "1.26.0", features = ["sync", "fs", "io-util"] }
 
 # To load icons
 image = { version = "0.24.6", default-features = false, features = ["ico"] }
