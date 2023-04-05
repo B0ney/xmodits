@@ -318,7 +318,6 @@ impl Application for App {
                 }
             }
             Message::Open(link) => {
-                // todo: is this blocking?
                 let _ = open::that(link);
             }
             Message::AddFileDialog => {
@@ -418,7 +417,6 @@ impl Application for App {
                 button("Delete Selected")
                     .padding(10)
                     .on_press(Message::DeleteSelected),
-                // .style(style::button::Button::Delete),
                 button("Clear").padding(10).on_press(Message::Clear),
             ]
             .spacing(10)

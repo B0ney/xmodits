@@ -274,7 +274,7 @@ impl App {
                 .center_y(),
                 CompleteState::SomeErrors(ref errors) => container(column![
                     column![
-                        text("Done... But Xmodits could not rip everything... (._.)")
+                        text("Done... But xmodits could not rip everything... (._.)")
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center)
                     ]
@@ -305,7 +305,7 @@ impl App {
                 .width(Length::Fill)
                 .height(Length::Fill),
 
-                CompleteState::TooMuchErrors { ref log, total } => container(
+                CompleteState::TooMuchErrors { log, total } => container(
                     column![
                         text("Done...").font(JETBRAINS_MONO),
                         text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
@@ -317,11 +317,14 @@ impl App {
                         )
                         .padding(0)
                         .on_press(Message::Open(log.to_owned()))
-                        .style(style::button::Button::Hyperlink)
+                        .style(style::button::Button::HyperlinkInverted),
+                        text(format!("({} errors written)", total))
+                            .font(JETBRAINS_MONO)
+                            .horizontal_alignment(Horizontal::Center),
                     ]
                     .align_items(Alignment::Center)
                     .padding(4)
-                    .spacing(5),
+                    .spacing(6),
                 )
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -332,7 +335,34 @@ impl App {
                     ref reason,
                     ref errors,
                     discarded,
-                } => todo!(),
+                } => container(
+                    column![
+                        text("Done...").font(JETBRAINS_MONO),
+                        text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
+                        text("...and I can't store them to a file either:").font(JETBRAINS_MONO),
+                        text(format!("\"{}\"", reason))
+                            .font(JETBRAINS_MONO),
+                        text(format!("({} stored errors)", errors.len()))
+                            .font(JETBRAINS_MONO)
+                            .horizontal_alignment(Horizontal::Center),
+                        text(match discarded {
+                            0 => format!("No errors were discarded."),
+                            n => format!(
+                                "{} error(s) was discarded to save memory. >_<",
+                                n
+                            ),
+                        })
+                        .font(JETBRAINS_MONO)
+                        .horizontal_alignment(Horizontal::Center),
+                    ]
+                    .align_items(Alignment::Center)
+                    .padding(4)
+                    .spacing(6),
+                )
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .center_x()
+                .center_y(),
             },
         };
 

@@ -56,7 +56,7 @@ impl SampleRippingConfig {
         let settings: _ = container(
             row![
                 pick_list(
-                    (1..=5).collect::<Vec<u8>>(),
+                    (1..=7).collect::<Vec<u8>>(),
                     Some(self.folder_max_depth),
                     Message::SetRecursionDepth
                 ),

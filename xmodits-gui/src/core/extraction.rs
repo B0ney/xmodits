@@ -49,6 +49,9 @@ pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippi
         cfg.naming.build_func(),
         cfg.exported_format.into(),
     ));
+    
+    // Create the destination folder if it doesn't exist
+    let _ = std::fs::create_dir(&cfg.destination);
 
     stage_1(tx.clone(), files, ripper.clone(), &cfg);
     stage_2(tx.clone(), folders, ripper, cfg);
@@ -104,7 +107,7 @@ fn stage_2(
 
     subscr_tx
         .send(ThreadMsg::Info(Some(format!(
-            "Stage 2: Ripping {} file from {} folder(s)...",
+            "Stage 2: Ripping {} files from {} folder(s)...",
             lines, selected_dirs
         ))))
         .unwrap();

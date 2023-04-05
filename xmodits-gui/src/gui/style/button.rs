@@ -8,6 +8,7 @@ pub enum Button {
     #[default]
     Primary,
     Hyperlink,
+    HyperlinkInverted,
     Unavailable,
     Entry,
     Start,
@@ -66,6 +67,14 @@ impl button::StyleSheet for Theme {
             },
             Button::Start => active_appearance(None, p.bright.secondary),
             Button::Delete => active_appearance(None, p.bright.error),
+
+            Button::HyperlinkInverted =>  button::Appearance {
+                background: None,
+                text_color: p.bright.primary,
+
+                // text_color: ,
+                ..appearance
+            },
         }
     }
 
@@ -90,6 +99,11 @@ impl button::StyleSheet for Theme {
             },
             Button::Start => hover_appearance(p.bright.secondary, Some(p.bright.surface)),
             Button::Delete => hover_appearance(p.bright.error, Some(p.bright.surface)),
+            Button::HyperlinkInverted => button::Appearance {
+                background: None,
+                text_color: p.bright.surface,
+                ..hover_appearance(p.bright.primary, None)
+            },
         }
     }
 

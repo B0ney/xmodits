@@ -54,7 +54,10 @@ pub enum CompleteState {
 impl From<Error> for CompleteState {
     fn from(value: Error) -> Self {
         match value {
-            Error::Mem { errors, .. } => Self::SomeErrors(errors),
+            Error::Mem { errors, .. } => match errors.len() > 0 {
+                true => Self::SomeErrors(errors),
+                false => Self::NoErrors,
+            },
             Error::File { total, path, .. } => Self::TooMuchErrors { log: path, total },
             Error::FailedFile {
                 reason,
