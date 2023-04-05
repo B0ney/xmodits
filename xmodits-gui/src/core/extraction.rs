@@ -52,7 +52,7 @@ pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippi
     ));
 
     stage_1(tx.clone(), files, ripper.clone(), &cfg);
-    stage_2(tx.clone(), folders, ripper.clone(), cfg);
+    stage_2(tx.clone(), folders, ripper, cfg);
 
     tx.send(ThreadMsg::Done).unwrap();
 }
@@ -231,9 +231,7 @@ impl<'io> Batcher<'io> {
         while !self.state.complete {
             // If this is the last batch, set the state to complete
             // and send the last batch. When complete this loop terminates.
-            if is_last_batch {
-                self.state.complete = true;
-            }
+            self.state.complete = is_last_batch;
 
             // Send the current batch to the worker thread
             self.batch_tx.send(self.buffer.current_buffer()).unwrap();
@@ -304,26 +302,24 @@ fn spawn_workers(
         .unwrap();
 
     pool.spawn(move || loop {
-        match batch_rx.recv() {
-            Ok(batch) => {
-                batch.lock().par_iter().for_each(|file| {
-                    let progress = ThreadMsg::Progress(
-                        match extract(&file, &destination, ripper.as_ref(), self_contained) {
-                            Ok(()) => None,
-                            Err(error) => Some(Failed::new(file.into(), error)),
-                        },
-                    );
+        let Ok(batch) = batch_rx.recv() else {
+            break;
+        };
 
-                    // Send and update to the subscription
-                    subscr_tx.send(progress).unwrap()
-                });
+        batch.lock().par_iter().for_each(|file| {
+            let progress = ThreadMsg::Progress(
+                match extract(&file, &destination, ripper.as_ref(), self_contained) {
+                    Ok(()) => None,
+                    Err(error) => Some(Failed::new(file.into(), error)),
+                },
+            );
 
-                // Tell the batcher we're done so that it can send the next round
-                worker_tx.send(NextBatch).unwrap();
-            }
+            // Send an update to the subscription
+            subscr_tx.send(progress).unwrap()
+        });
 
-            Err(_) => break,
-        }
+        // Tell the batcher we're done so that it can send the next round
+        worker_tx.send(NextBatch).unwrap();
     });
 }
 
@@ -334,8 +330,8 @@ struct State {
 
 #[derive(Debug, Clone)]
 pub struct Failed {
-    path: PathBuf,
-    reason: Box<str>,
+    pub path: PathBuf,
+    pub reason: Box<str>,
 }
 
 impl Failed {
