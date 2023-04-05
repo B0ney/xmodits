@@ -1,37 +1,30 @@
+#![allow(clippy::let_with_type_underscore)]
 pub mod app;
+pub mod font;
 pub mod icons;
 pub mod style;
-mod utils;
+pub mod utils;
 pub mod views;
-pub mod font;
+
+use crate::core::cfg::{Config, GeneralConfig, SampleRippingConfig};
+use crate::core::xmodits::{xmodits_subscription, CompleteState, ExtractionMessage, StartSignal};
+
+use iced::keyboard::{Event as KeyboardEvent, KeyCode};
+use iced::widget::{button, column, container, progress_bar, row, text, Column, Container, Space};
+use iced::window::Event as WindowEvent;
+use iced::{Alignment, Application, Command, Element, Event, Length, Renderer, Subscription};
+
 use font::JETBRAINS_MONO;
-use crate::core::{
-    cfg::{Config, GeneralConfig, SampleRippingConfig},
-    log::async_write_error_log,
-    xmodits::{xmodits_subscription, DownloadMessage, StartSignal},
-};
-use chrono::Utc;
-use iced::widget::{button, column, container, row, text, Column, Container};
-use iced::window::{Event as WindowEvent, Icon};
-use iced::{
-    keyboard::{Event as KeyboardEvent, KeyCode},
-    widget::{checkbox, scrollable, text_input},
-};
-use iced::{
-    window::Settings as Window, Alignment, Application, Command, Element, Event, Length, Renderer,
-    Settings, Subscription,
-};
-use image::{self, GenericImageView};
 use std::path::{Path, PathBuf};
 use style::Theme;
-use tokio::sync::mpsc::Sender;
-use tracing::{warn, info};
 use views::about::Message as AboutMessage;
 use views::config_name::Message as ConfigMessage;
 use views::config_ripping::Message as ConfigRippingMessage;
-use xmodits_lib::{exporter::AudioFormat, traits::Module};
 // use views::settings::Message as SettingsMessage;
-use iced::alignment::Horizontal;
+
+use chrono::Utc;
+use tokio::sync::mpsc::Sender;
+use xmodits_lib::traits::Module;
 
 #[derive(Default, Debug, Clone)]
 pub enum View {
@@ -50,13 +43,13 @@ pub enum Message {
     HelpPressed,
     SetCfg(ConfigMessage),
     SetRipCfg(ConfigRippingMessage),
-    SetState(State),
+    // SetState(State),
     // ChangeSetting(SettingsMessage),
     About(AboutMessage),
     SetDestinationDialog,
     SaveConfig,
     StartRip,
-    Progress(DownloadMessage),
+    Subscription(ExtractionMessage),
     WindowEvent(Event),
     Ignore,
     Select { index: usize, selected: bool },
@@ -81,44 +74,34 @@ pub enum State {
     Ripping {
         message: Option<String>,
         progress: f32,
+        total_errors: usize,
     },
-    Done,
-    DoneWithErrors {
-        errors: Vec<(PathBuf, String)>,
-    },
-    DoneWithTooMuchErrors {
-        log: PathBuf,
-        errors: Vec<(PathBuf, String)>,
-    },
-    DoneWithTooMuchErrorsNoLog {
-        reason: String,
-        errors: Vec<(PathBuf, String)>,
-    },
+    Done(CompleteState),
 }
 
 impl State {
-    fn progress(&mut self, progress_update: f32) {
-        match self {
-            Self::Ripping { progress, .. } => {
-                *progress = progress_update;
-            }
-            _ => (),
+    fn progress(&mut self, progress_update: f32, errors: usize) {
+        if let Self::Ripping {
+            progress,
+            total_errors,
+            ..
+        } = self
+        {
+            *progress = progress_update;
+            *total_errors = errors
         }
     }
 
     fn message(&mut self, message_update: Option<String>) {
-        match self {
-            Self::Ripping { message, .. } => {
-                *message = message_update;
-            }
-            _ => (),
+        if let Self::Ripping { message, .. } = self {
+            *message = message_update;
         }
     }
 }
 
 #[derive(Default)]
 pub struct History {
-    history_entry: HistoryEntry
+    history_entry: HistoryEntry,
 }
 
 #[derive(Default)]
@@ -235,8 +218,6 @@ impl Info {
         Self::Invalid { error, path }
     }
 }
-use iced::widget::progress_bar;
-use iced::widget::Space;
 
 use self::utils::{files_dialog, folder_dialog, folders_dialog, tracker_info};
 
@@ -249,8 +230,7 @@ pub struct App {
     entries: Entries,
     current: Option<Info>,
     sender: Option<Sender<StartSignal>>,
-    errors: Vec<(PathBuf, String)>, // for now
-    history: History, 
+    history: History,
 }
 
 impl Application for App {
@@ -294,53 +274,20 @@ impl Application for App {
             }
             Message::SaveConfig => todo!(),
             Message::StartRip => self.start_ripping(),
-            Message::Progress(m) => match m {
-                DownloadMessage::Ready(start_signal) => {
+            Message::Subscription(m) => match m {
+                ExtractionMessage::Ready(start_signal) => {
                     self.sender = Some(start_signal);
                 }
-                DownloadMessage::Done => {
-                    let errors = std::mem::take(&mut self.errors);
-                    let log_path = self.ripping_config.destination.to_owned();
-
-                    const MAX_ERRORS: usize = 150;
-
-                    return Command::perform(
-                        async move {
-                            match errors.len() {
-                                0 => State::Done,
-                                1..=MAX_ERRORS => State::DoneWithErrors { errors },
-                                _ => {
-                                    // display the first 100 errors
-
-                                    // we then output the errors to the file
-                                    let mut errors_to_write = errors;
-                                    let some_errs = errors_to_write.drain(..30).collect();
-
-                                    match async_write_error_log(log_path, errors_to_write).await {
-                                        Ok(log) => State::DoneWithTooMuchErrors {
-                                            log,
-                                            errors: some_errs,
-                                        },
-                                        Err(e) => State::DoneWithTooMuchErrorsNoLog {
-                                            reason: e.to_string(),
-                                            errors: some_errs,
-                                        },
-                                    }
-                                }
-                            }
-                        },
-                        Message::SetState,
-                    );
+                ExtractionMessage::Done(completed_state) => {
+                    self.state = State::Done(completed_state)
                 }
-                DownloadMessage::Progress { progress, error } => {
-                    self.state.progress(progress);
-
-                    if let Some(error) = error {
-                        info!("{:?}", error);
-                        // self.errors.push(error);
-                    }
+                ExtractionMessage::Progress {
+                    progress,
+                    total_errors,
+                } => {
+                    self.state.progress(progress, total_errors);
                 }
-                DownloadMessage::Info(info) => self.state.message(info),
+                ExtractionMessage::Info(info) => self.state.message(info),
             },
             Message::WindowEvent(e) => match e {
                 Event::Keyboard(KeyboardEvent::KeyPressed { key_code, .. }) => match key_code {
@@ -390,8 +337,7 @@ impl Application for App {
                 if let Some(paths) = paths {
                     paths.into_iter().for_each(|path| self.add(path))
                 }
-            }
-            Message::SetState(state) => self.state = state,
+            } // Message::SetState(state) => self.state = state,
         };
         Command::none()
     }
@@ -413,12 +359,8 @@ impl Application for App {
             button("Settings")
                 .on_press(Message::SettingsPressed)
                 .padding(10),
-            button("Help")
-                .on_press(Message::HelpPressed)
-                .padding(10),
-            button("About")
-                .on_press(Message::AboutPressed)
-                .padding(10),
+            button("Help").on_press(Message::HelpPressed).padding(10),
+            button("About").on_press(Message::AboutPressed).padding(10),
         ]
         .spacing(5)
         .width(Length::FillPortion(1))
@@ -497,7 +439,7 @@ impl Application for App {
     fn subscription(&self) -> Subscription<Message> {
         iced::Subscription::batch([
             iced::subscription::events().map(Message::WindowEvent),
-            xmodits_subscription().map(Message::Progress),
+            xmodits_subscription().map(Message::Subscription),
         ])
     }
 }

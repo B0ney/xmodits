@@ -4,13 +4,6 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-/// Async wrapper over ```write_error_log()```
-pub async fn async_write_error_log(
-    log_path: PathBuf,
-    errors: Vec<(PathBuf, String)>,
-) -> Result<PathBuf> {
-    tokio::task::spawn_blocking(move || write_error_log(&log_path, errors)).await?
-}
 
 /// Writes Vec<(Path, Errors)> to a file.
 ///

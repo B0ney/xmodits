@@ -1,16 +1,17 @@
-use crate::core::cfg::{SampleNameConfig, SampleRippingConfig};
-use parking_lot::Mutex;
+use crate::core::cfg::SampleRippingConfig;
+use crate::gui::utils::file_name;
+
+use std::fs::{File, OpenOptions};
+use std::io::{BufRead, BufReader, Seek, Write};
+use std::path::PathBuf;
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{mpsc, Arc};
-use std::{
-    fs::{File, OpenOptions},
-    io::{BufRead, BufReader, Seek, Write},
-    path::PathBuf,
-};
+
+use parking_lot::Mutex;
+use tokio::sync::mpsc::UnboundedSender as AsyncSender;
+use walkdir::WalkDir;
 use xmodits_lib::common::extract;
 use xmodits_lib::interface::ripper::Ripper;
-
-use walkdir::WalkDir;
 
 #[derive(Debug)]
 pub enum ThreadMsg {
@@ -25,8 +26,6 @@ impl ThreadMsg {
         Self::Info(Some(str.to_owned()))
     }
 }
-
-use tokio::sync::mpsc::UnboundedSender as AsyncSender;
 
 pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippingConfig) {
     // split files and folders
@@ -76,8 +75,11 @@ fn stage_1(
         .unwrap();
 
     files.into_iter().for_each(|file| {
-        let e = extract(file, &cfg.destination, ripper.as_ref(), cfg.self_contained);
-        subscr_tx.send(ThreadMsg::Progress(None)).unwrap();
+        let progress = match extract(&file, &cfg.destination, ripper.as_ref(), cfg.self_contained) {
+            Ok(()) => None,
+            Err(error) => Some(Failed::new(file.display().to_string(), error)),
+        };
+        subscr_tx.send(ThreadMsg::Progress(progress)).unwrap();
     });
 }
 
@@ -107,7 +109,7 @@ fn stage_2(
         ))))
         .unwrap();
 
-    let mut batcher = Batcher::new(&mut file, batch_size(lines), ripper, cfg, subscr_tx.clone());
+    let mut batcher = Batcher::new(&mut file, batch_size(lines), ripper, cfg, subscr_tx);
     batcher.start();
 }
 
@@ -137,7 +139,7 @@ pub fn traverse(
         .read(true)
         .write(true)
         .create(true)
-        .open("./test.txt")
+        .open("./test.txt") // todo
         .unwrap();
 
     // store the number of entries
@@ -308,7 +310,7 @@ fn spawn_workers(
 
         batch.lock().par_iter().for_each(|file| {
             let progress = ThreadMsg::Progress(
-                match extract(&file, &destination, ripper.as_ref(), self_contained) {
+                match extract(file, &destination, ripper.as_ref(), self_contained) {
                     Ok(()) => None,
                     Err(error) => Some(Failed::new(file.into(), error)),
                 },
@@ -332,14 +334,32 @@ struct State {
 pub struct Failed {
     pub path: PathBuf,
     pub reason: Box<str>,
+    filename: Box<str>,
+}
+
+impl std::fmt::Display for Failed {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Failed: {}, reason: {}",
+            self.path.display(),
+            &self.reason
+        )
+    }
 }
 
 impl Failed {
     pub fn new(path: String, error: xmodits_lib::interface::Error) -> Self {
+        let path: PathBuf = path.into();
         Self {
-            path: path.into(),
+            filename: file_name(&path).into(),
+            path,
             reason: error.to_string().into(),
         }
+    }
+
+    pub fn filename(&self) -> &str {
+        &self.filename
     }
 }
 

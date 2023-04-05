@@ -1,9 +1,14 @@
+use super::cfg::SampleRippingConfig;
+use super::extraction::{Failed, ThreadMsg};
 use iced::{subscription, Subscription};
 use std::path::PathBuf;
-use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver, UnboundedSender};
+use tokio::io::AsyncWriteExt;
+use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
+use tracing::info;
 
-use super::cfg::{self, Config, SampleRippingConfig};
 pub type StartSignal = (Vec<PathBuf>, SampleRippingConfig);
+use rand::Rng;
+
 const ID: &str = "XMODITS_RIPPING";
 
 /// State of subscription
@@ -17,35 +22,66 @@ enum State {
         total: usize,
         progress: usize,
         error_handler: Error,
-        errors: usize,
+        total_errors: usize,
     },
 }
 
 /// Messages emitted by subscription
 #[derive(Clone, Debug)]
-pub enum DownloadMessage {
+pub enum ExtractionMessage {
     Ready(Sender<StartSignal>),
-    Done,
-    Progress {
-        progress: f32,
-        errors: usize,
-        // error: Option<Failed>,
-    },
+    Done(CompleteState),
+    Progress { progress: f32, total_errors: usize },
     Info(Option<String>),
 }
 
-use super::extraction::{Failed, ThreadMsg};
+#[derive(Default, Debug, Clone)]
+pub enum CompleteState {
+    #[default]
+    NoErrors,
+    SomeErrors(Vec<Failed>),
+    TooMuchErrors {
+        log: PathBuf,
+        total: usize,
+    },
+    TooMuchErrorsNoLog {
+        reason: String,
+        errors: Vec<Failed>,
+        discarded: usize,
+    },
+}
+
+impl From<Error> for CompleteState {
+    fn from(value: Error) -> Self {
+        match value {
+            Error::Mem { errors, .. } => Self::SomeErrors(errors),
+            Error::File { total, path, .. } => Self::TooMuchErrors { log: path, total },
+            Error::FailedFile {
+                reason,
+                errors,
+                discarded,
+            } => Self::TooMuchErrorsNoLog {
+                reason,
+                errors,
+                discarded,
+            },
+        }
+    }
+}
 
 /// The subscription will emit messages when:
 /// * The sample extraction has completed
 /// * A module has been ripped (can be used to track progress)
 /// * A module cannot be ripped
-pub fn xmodits_subscription() -> Subscription<DownloadMessage> {
+pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
     subscription::unfold(ID, State::Init, |state| async move {
         match state {
             State::Init => {
                 let (sender, receiver) = mpsc::channel::<StartSignal>(1);
-                (Some(DownloadMessage::Ready(sender)), State::Idle(receiver))
+                (
+                    Some(ExtractionMessage::Ready(sender)),
+                    State::Idle(receiver),
+                )
             }
             State::Idle(mut start_msg) => match start_msg.recv().await {
                 Some(config) => {
@@ -64,7 +100,7 @@ pub fn xmodits_subscription() -> Subscription<DownloadMessage> {
                             total,
                             progress: 0,
                             error_handler: Error::default(),
-                            errors: 0,
+                            total_errors: 0,
                         },
                     )
                 }
@@ -75,28 +111,29 @@ pub fn xmodits_subscription() -> Subscription<DownloadMessage> {
                 total,
                 mut progress,
                 mut error_handler,
-                mut errors,
+                mut total_errors,
             } => match ripping_msg.recv().await {
                 Some(ThreadMsg::Progress(error)) => {
                     progress += 1;
                     let percentage: f32 = (progress as f32 / total as f32) * 100.0;
 
                     if let Some(failed) = error {
-                        errors += 1;
+                        info!("{}", &failed);
+                        total_errors += 1;
                         error_handler.push(failed).await;
                     }
 
                     (
-                        Some(DownloadMessage::Progress {
+                        Some(ExtractionMessage::Progress {
                             progress: percentage,
-                            errors,
+                            total_errors,
                         }),
                         State::Ripping {
                             ripping_msg,
                             total,
                             progress,
                             error_handler,
-                            errors,
+                            total_errors,
                         },
                     )
                 }
@@ -107,24 +144,23 @@ pub fn xmodits_subscription() -> Subscription<DownloadMessage> {
                         total,
                         progress: 0,
                         error_handler,
-                        errors,
+                        total_errors,
                     },
                 ),
                 Some(ThreadMsg::Info(info)) => (
-                    Some(DownloadMessage::Info(info)),
+                    Some(ExtractionMessage::Info(info)),
                     State::Ripping {
                         ripping_msg,
                         total,
                         progress,
                         error_handler,
-                        errors,
+                        total_errors,
                     },
                 ),
-                Some(ThreadMsg::Done) => {
-                    (Some(DownloadMessage::Done), State::Init)
-                }
-                // None => todo!(),
-                _ => (Some(DownloadMessage::Done), State::Init),
+                _ => (
+                    Some(ExtractionMessage::Done(CompleteState::from(error_handler))),
+                    State::Init,
+                ),
             },
         }
     })
@@ -134,13 +170,13 @@ const MAX: usize = 150;
 const ABS_LIMIT: usize = MAX * 10;
 
 #[derive(Debug)]
-pub enum Error {
+enum Error {
     Mem {
         errors: Vec<Failed>,
-        delegate: PathBuf,
+        log_dir: PathBuf,
     },
     File {
-        lines: usize,
+        total: usize,
         path: PathBuf,
         file: Box<tokio::fs::File>,
     },
@@ -155,33 +191,35 @@ impl Default for Error {
     fn default() -> Self {
         Self::Mem {
             errors: Vec::new(),
-            delegate: dirs::download_dir().expect("downloads folder"),
+            log_dir: dirs::download_dir().expect("downloads folder"),
         }
     }
 }
-use tokio::io::AsyncWriteExt;
 
 impl Error {
     async fn push(&mut self, error: Failed) {
         match self {
-            Error::Mem { errors, delegate } => {
+            Error::Mem { errors, log_dir } => {
                 if errors.len() < MAX {
                     errors.push(error);
                     return;
                 }
 
                 let mut errors = std::mem::take(errors);
-                let mut folder = std::mem::take(delegate);
+                let mut log_path = std::mem::take(log_dir);
 
                 errors.push(error);
-                folder.push("xmodits-error-log.txt");
+                log_path.push(format!(
+                    "xmodits-error-log-{:04X}.txt",
+                    rand::thread_rng().gen::<u16>()
+                ));
 
                 *self = match tokio::fs::OpenOptions::new()
                     .write(true)
                     .create_new(true)
-                    .open(&folder)
+                    .open(&log_path)
                     .await
-                    .map(|f| Box::new(f))
+                    .map(Box::new)
                 {
                     Ok(mut file) => {
                         let lines = errors.len();
@@ -191,8 +229,8 @@ impl Error {
                         }
 
                         Self::File {
-                            lines,
-                            path: folder,
+                            total: lines,
+                            path: log_path,
                             file,
                         }
                     }
@@ -205,7 +243,9 @@ impl Error {
                 };
             }
 
-            Error::File { lines, file, .. } => {
+            Error::File {
+                total: lines, file, ..
+            } => {
                 Self::write_error(file, error).await;
                 *lines += 1;
             }
@@ -227,6 +267,6 @@ impl Error {
         let _ = file.write_all(failed_file.as_bytes()).await;
         let _ = file.write_all(b"\n     ").await;
         let _ = file.write_all(error.reason.as_bytes()).await;
-        let _ = file.write_all(b"\n").await;
+        let _ = file.write_all(b"\n\n").await;
     }
 }

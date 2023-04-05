@@ -14,7 +14,7 @@ winres = "0.1.12"
 
 [dependencies]
 # xmodits core library.
-xmodits-lib = { git = "https://github.com/B0ney/xmodits-lib.git", features = ["serde", "log"] }
+xmodits-lib = { git = "https://github.com/B0ney/xmodits-lib.git", rev = "16cc1175f19f9726fd3d7765b948318dbc4d7795", features = ["serde", "log"] }
 
 # Handle errors in a generic way
 anyhow = "1.0.0"
@@ -30,7 +30,7 @@ serde = { version = "1.0.0", features = ["derive"] }
 toml = "0.7.3"
 
 # Async
-tokio = { version = "1.26.0", features = ["sync", "fs", "io-util"] }
+tokio = { version = "1.26.0", features = ["sync", "fs", "io-util", "parking_lot"] }
 
 # To load icons
 image = { version = "0.24.6", default-features = false, features = ["ico"] }

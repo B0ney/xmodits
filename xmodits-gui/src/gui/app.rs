@@ -1,33 +1,19 @@
-use crate::core::xmodits::StartSignal;
+use crate::core::xmodits::{CompleteState, StartSignal};
 use crate::gui::icons;
 use crate::gui::style;
-// mod utils;
-// pub mod views;
+
 use super::{App, Info, Message, State};
-use iced::alignment::Horizontal;
-use iced::widget::{button, column, container, row, text, Column, Container};
-use iced::window::{Event as WindowEvent, Icon};
-use iced::{
-    keyboard::{Event as KeyboardEvent, KeyCode},
-    widget::{checkbox, scrollable, text_input},
-};
-use iced::{
-    window::Settings as Window, Alignment, Application, Command, Element, Event, Length, Renderer,
-    Settings, Subscription,
-};
-use image::{self, GenericImageView};
-use std::path::{Path, PathBuf};
-use style::Theme;
-use tokio::sync::mpsc::Sender;
-use tracing::warn;
-use crate::gui::utils::file_name;
 use crate::gui::font::JETBRAINS_MONO;
-use crate::core::{
-    cfg::{Config, GeneralConfig, SampleRippingConfig},
-    xmodits::{xmodits_subscription, DownloadMessage},
+use crate::gui::utils::file_name;
+use iced::alignment::Horizontal;
+use iced::widget::{
+    button, checkbox, column, container, progress_bar, row, scrollable, text, text_input, Space,
 };
-use iced::widget::progress_bar;
-use iced::widget::Space;
+use iced::window::{Icon, Settings as Window};
+use iced::{Alignment, Application, Element, Length, Renderer, Settings};
+use image::{self, GenericImageView};
+use std::path::PathBuf;
+use style::Theme;
 
 fn icon() -> Icon {
     let image = image::load_from_memory(include_bytes!("../../res/img/logo/icon3.png")).unwrap();
@@ -125,6 +111,7 @@ impl App {
         self.state = State::Ripping {
             message: None,
             progress: 0.0,
+            total_errors: 0,
         }
     }
 
@@ -255,6 +242,7 @@ impl App {
             State::Ripping {
                 ref message,
                 progress,
+                ..
             } => container(
                 column![
                     text(match message.as_ref() {
@@ -272,80 +260,80 @@ impl App {
             .center_x()
             .center_y(),
 
-            State::Done => container(
-                column![
-                    text("Done! \\(^_^)/").font(JETBRAINS_MONO),
-                    text("Drag and Drop").font(JETBRAINS_MONO)
-                ]
-                .align_items(Alignment::Center),
-            )
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center_x()
-            .center_y(),
-
-            State::DoneWithErrors { ref errors } => container(column![
-                column![
-                    text("Done... But Xmodits could not rip everything... (._.)")
-                        .font(JETBRAINS_MONO)
-                        .horizontal_alignment(Horizontal::Center)
-                ]
-                .padding(4),
-                scrollable(
-                    errors
-                        .iter()
-                        .fold(column![].spacing(10).padding(5), |t, (s, x)| {
-                            t.push(row![
-                                container(
-                                    column![
-                                        text("todo!()"), //filename
-                                        text(x).horizontal_alignment(Horizontal::Center)
-                                    ]
-                                    .width(Length::Fill)
-                                    .align_items(Alignment::Center)
-                                )
-                                .style(style::Container::Frame)
-                                .width(Length::Fill)
-                                .padding(4),
-                                Space::with_width(15)
-                            ])
-                        })
-                        .width(Length::Fill),
-                ),
-            ])
-            .width(Length::Fill)
-            .height(Length::Fill),
-
-            State::DoneWithTooMuchErrors {
-                ref log,
-                ref errors,
-            } => container(
-                column![
-                    text("Done...").font(JETBRAINS_MONO),
-                    text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
-                    text("Check the logs at:").font(JETBRAINS_MONO),
-                    button(
-                        text(log.display())
+            State::Done(ref completed_state) => match completed_state {
+                CompleteState::NoErrors => container(
+                    column![
+                        text("Done! \\(^_^)/").font(JETBRAINS_MONO),
+                        text("Drag and Drop").font(JETBRAINS_MONO)
+                    ]
+                    .align_items(Alignment::Center),
+                )
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .center_x()
+                .center_y(),
+                CompleteState::SomeErrors(ref errors) => container(column![
+                    column![
+                        text("Done... But Xmodits could not rip everything... (._.)")
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center)
-                    )
-                    .padding(0)
-                    .on_press(Message::Open(log.to_owned()))
-                    .style(style::button::Button::Hyperlink)
-                ]
-                .align_items(Alignment::Center)
-                .padding(4)
-                .spacing(5),
-            )
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center_x()
-            .center_y(),
+                    ]
+                    .padding(4),
+                    scrollable(
+                        errors
+                            .iter()
+                            .fold(column![].spacing(10).padding(5), |t, failed| {
+                                t.push(row![
+                                    container(
+                                        column![
+                                            text(failed.filename()),
+                                            text(&failed.reason)
+                                                .horizontal_alignment(Horizontal::Center)
+                                        ]
+                                        .width(Length::Fill)
+                                        .align_items(Alignment::Center)
+                                    )
+                                    .style(style::Container::Frame)
+                                    .width(Length::Fill)
+                                    .padding(4),
+                                    Space::with_width(15)
+                                ])
+                            })
+                            .width(Length::Fill),
+                    ),
+                ])
+                .width(Length::Fill)
+                .height(Length::Fill),
 
-            State::DoneWithTooMuchErrorsNoLog {
-                ref reason,
-                ref errors,
-            } => todo!(),
+                CompleteState::TooMuchErrors { ref log, total } => container(
+                    column![
+                        text("Done...").font(JETBRAINS_MONO),
+                        text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
+                        text("Check the logs at:").font(JETBRAINS_MONO),
+                        button(
+                            text(log.display())
+                                .font(JETBRAINS_MONO)
+                                .horizontal_alignment(Horizontal::Center)
+                        )
+                        .padding(0)
+                        .on_press(Message::Open(log.to_owned()))
+                        .style(style::button::Button::Hyperlink)
+                    ]
+                    .align_items(Alignment::Center)
+                    .padding(4)
+                    .spacing(5),
+                )
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .center_x()
+                .center_y(),
+
+                CompleteState::TooMuchErrorsNoLog {
+                    ref reason,
+                    ref errors,
+                    discarded,
+                } => todo!(),
+            },
         };
 
         container(
