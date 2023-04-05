@@ -7,11 +7,11 @@ members = [
 ]
 
 [profile.release.package.xmodits]
-strip = "debuginfo"
+strip = true
 opt-level = "s"
 codegen-units = 1
 
 [profile.release.package.xmodits-gui]
-strip = "debuginfo"
+strip = true 
 opt-level = 3
 codegen-units = 1
