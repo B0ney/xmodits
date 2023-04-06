@@ -13,5 +13,5 @@ codegen-units = 1
 
 [profile.release.package.xmodits-gui]
 strip = true 
-opt-level = 3
+opt-level = "s" 
 codegen-units = 1
