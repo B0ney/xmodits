@@ -1,13 +1,13 @@
 use super::cfg::SampleRippingConfig;
 use super::extraction::{Failed, ThreadMsg};
 use iced::{subscription, Subscription};
+use rand::Rng;
 use std::path::PathBuf;
 use tokio::io::{AsyncWriteExt, BufWriter};
 use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
 use tracing::info;
 
 pub type StartSignal = (Vec<PathBuf>, SampleRippingConfig);
-use rand::Rng;
 
 const ID: &str = "XMODITS_RIPPING";
 
@@ -19,10 +19,10 @@ enum State {
     Idle(Receiver<StartSignal>),
     Ripping {
         ripping_msg: UnboundedReceiver<ThreadMsg>,
-        total: usize,
-        progress: usize,
+        total: u64,
+        progress: u64,
         error_handler: Error,
-        total_errors: usize,
+        total_errors: u64,
     },
 }
 
@@ -31,7 +31,7 @@ enum State {
 pub enum ExtractionMessage {
     Ready(Sender<StartSignal>),
     Done(CompleteState),
-    Progress { progress: f32, total_errors: usize },
+    Progress { progress: f32, total_errors: u64 },
     Info(Option<String>),
 }
 
@@ -42,12 +42,12 @@ pub enum CompleteState {
     SomeErrors(Vec<Failed>),
     TooMuchErrors {
         log: PathBuf,
-        total: usize,
+        total: u64,
     },
     TooMuchErrorsNoLog {
         reason: String,
         errors: Vec<Failed>,
-        discarded: usize,
+        discarded: u64,
     },
 }
 
@@ -73,9 +73,11 @@ impl From<Error> for CompleteState {
 }
 
 /// The subscription will emit messages when:
-/// * The sample extraction has completed
-/// * A module has been ripped (can be used to track progress)
-/// * A module cannot be ripped
+///
+/// * It has been (re)initialized. This is so that the app can send the files/folders to rip and the configuration.
+/// * The worker sends custom messages to keep the user updated. E.g ``"Traversing folders..."``, ``"Ripping 100 files..."``
+/// * A module has/can't be ripped. This is also done to track progress.
+/// * The worker has finished ripping.
 pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
     subscription::unfold(ID, State::Init, |state| async move {
         match state {
@@ -88,9 +90,11 @@ pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
             }
             State::Idle(mut start_msg) => match start_msg.recv().await {
                 Some(config) => {
-                    let total = config.0.len();
+                    let total = config.0.len() as u64;
                     let (tx, rx) = mpsc::unbounded_channel();
 
+                    // The ripping process is delegated by the subscription to a separate thread.
+                    // This might not be idiomatic, but it works...
                     std::thread::spawn(move || {
                         let (paths, config) = config;
                         super::extraction::rip(tx, paths, config);
@@ -172,6 +176,14 @@ pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
 const MAX: usize = 150;
 const ABS_LIMIT: usize = MAX * 10;
 
+/// When the subscription receives errors from the workers, they're stored in this enum.
+///
+/// They're first stored in memory, but if there's too many of them to be displayed,
+/// store them in a file.
+/// At this stage, all future errors will be streamed to the file asynchronously.
+///
+/// However, if we can't create a file for some reason, we keep the errors in memory;
+/// to preserve memory at this stage, future errors will be discarded when it's reached its absolute limit.
 #[derive(Debug)]
 enum Error {
     Mem {
@@ -179,14 +191,14 @@ enum Error {
         log_dir: PathBuf,
     },
     File {
-        total: usize,
+        total: u64,
         path: PathBuf,
         file: Box<BufWriter<tokio::fs::File>>,
     },
     FailedFile {
         reason: String,
         errors: Vec<Failed>,
-        discarded: usize,
+        discarded: u64,
     },
 }
 
@@ -228,7 +240,7 @@ impl Error {
                     .map(Box::new)
                 {
                     Ok(mut file) => {
-                        let total = errors.len();
+                        let total = errors.len() as u64;
 
                         // Write stored errors to the new file
                         for error in errors {

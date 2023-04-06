@@ -1,8 +1,9 @@
 use crate::core::xmodits::{CompleteState, StartSignal};
 use crate::gui::icons;
-use crate::gui::style;
+use crate::gui;
 
-use super::{App, Info, Message, State};
+use super::{App, Info, Message, State, style};
+use crate::core::entries::{Entries, History};
 use crate::gui::font::JETBRAINS_MONO;
 use crate::gui::utils::file_name;
 use iced::alignment::Horizontal;
@@ -72,12 +73,12 @@ impl App {
         let mut i = 0;
 
         while i < self.entries.len() {
-            let path = &self.entries.paths[i];
+            let path = &self.entries.entries[i];
             if path.selected {
                 if matches!(&self.current, Some(e) if e.matches(&path.path)) {
                     self.current = None;
                 }
-                let _ = self.entries.paths.remove(i);
+                let _ = self.entries.entries.remove(i);
             } else {
                 i += 1;
             }
@@ -119,7 +120,7 @@ impl App {
         let ripping_config = self.ripping_config.to_owned();
         self.current = None;
 
-        let paths: Vec<PathBuf> = std::mem::take(&mut self.entries.paths)
+        let paths: Vec<PathBuf> = std::mem::take(&mut self.entries.entries)
             .into_iter()
             .map(|f| f.path)
             .collect();
@@ -194,7 +195,7 @@ impl App {
                         .center_x()
                         .center_y()
                 } else {
-                    container(scrollable(self.entries.paths.iter().enumerate().fold(
+                    container(scrollable(self.entries.entries.iter().enumerate().fold(
                         column![].spacing(10).padding(5),
                         |s, (idx, gs)| {
                             s.push(row![
@@ -340,17 +341,13 @@ impl App {
                         text("Done...").font(JETBRAINS_MONO),
                         text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
                         text("...and I can't store them to a file either:").font(JETBRAINS_MONO),
-                        text(format!("\"{}\"", reason))
-                            .font(JETBRAINS_MONO),
+                        text(format!("\"{}\"", reason)).font(JETBRAINS_MONO),
                         text(format!("({} stored errors)", errors.len()))
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center),
                         text(match discarded {
                             0 => format!("No errors were discarded."),
-                            n => format!(
-                                "{} error(s) was discarded to save memory. >_<",
-                                n
-                            ),
+                            n => format!("{} error(s) was discarded to save memory. >_<", n),
                         })
                         .font(JETBRAINS_MONO)
                         .horizontal_alignment(Horizontal::Center),

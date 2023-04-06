@@ -15,7 +15,7 @@ use xmodits_lib::interface::ripper::Ripper;
 
 #[derive(Debug)]
 pub enum ThreadMsg {
-    SetTotal(usize),
+    SetTotal(u64),
     Info(Option<String>),
     Progress(Option<Failed>),
     Done,
@@ -68,7 +68,7 @@ fn stage_1(
     if files.is_empty() {
         return;
     }
-    subscr_tx.send(ThreadMsg::SetTotal(files.len())).unwrap();
+    subscr_tx.send(ThreadMsg::SetTotal(files.len() as u64)).unwrap();
 
     subscr_tx
         .send(ThreadMsg::Info(Some(format!(
@@ -116,7 +116,7 @@ fn stage_2(
     batcher.start();
 }
 
-fn batch_size(lines: usize) -> usize {
+fn batch_size(lines: u64) -> usize {
     match lines {
         x if x <= 128 => 64,
         x if x <= 256 => 128,
@@ -130,14 +130,13 @@ fn batch_size(lines: usize) -> usize {
 /// Traversing deeply nested directories can use a lot of memory.
 ///
 /// For that reason we write the output to a file
-///
-/// Todo: make this async?
 pub fn traverse(
     dirs: Vec<PathBuf>,
     max_depth: u8,
     // filter: impl Fn(&Path) -> bool,
-) -> (BufReader<File>, usize) {
+) -> (BufReader<File>, u64) {
     // create a file in read-write mode
+    // TODO: make this a temporary file, but I'll also need to figure out how to resume...
     let mut file: File = OpenOptions::new()
         .read(true)
         .write(true)
@@ -146,7 +145,7 @@ pub fn traverse(
         .unwrap();
 
     // store the number of entries
-    let mut lines: usize = 0;
+    let mut lines: u64 = 0;
 
     // traverse list of directories, output to a file
     dirs.into_iter().for_each(|f| {
@@ -224,12 +223,6 @@ impl<'io> Batcher<'io> {
         batcher
     }
 
-    // pub fn resume(file: &'io mut BufReader<File>, batch_size: usize, batch_number: usize) -> Self {
-    //     let _ = file.lines().nth(batch_number * batch_size);
-
-    //     Self::new(file, batch_size)
-    // }
-
     pub fn start(&mut self) {
         let mut is_last_batch = false;
 
@@ -252,6 +245,11 @@ impl<'io> Batcher<'io> {
             }
         }
     }
+
+    // pub fn resume(file: &'io mut BufReader<File>, batch_size: usize, batch_number: usize) -> Self {
+    //     let _ = file.lines().nth(batch_number * batch_size);
+    //     Self::new(file, batch_size)
+    // }
 
     /// Load the next batch of lines
     pub fn load_next_batch(&mut self) -> bool {
@@ -285,8 +283,6 @@ impl<'io> Batcher<'io> {
 
         // Have a way of notifiying the caller that this is is the last batch,
         // and should not be called again.
-        //
-        // TODO: improve ergonomics of this function
         buffer.len() < self.batch_size
     }
 }
@@ -306,6 +302,7 @@ fn spawn_workers(
         .build()
         .unwrap();
 
+    // TODO: Figure out how handle potential panics.
     pool.spawn(move || loop {
         let Ok(batch) = batch_rx.recv() else {
             break;

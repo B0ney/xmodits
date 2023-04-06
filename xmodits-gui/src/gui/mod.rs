@@ -7,22 +7,23 @@ pub mod utils;
 pub mod views;
 
 use crate::core::cfg::{Config, GeneralConfig, SampleRippingConfig};
+use crate::core::entries::{Entries, History};
 use crate::core::xmodits::{xmodits_subscription, CompleteState, ExtractionMessage, StartSignal};
 
 use iced::keyboard::{Event as KeyboardEvent, KeyCode};
-use iced::widget::{button, column, container, progress_bar, row, text, Column, Container, Space};
+use iced::widget::{button, column, container, row, text, Column, Container, Space};
 use iced::window::Event as WindowEvent;
 use iced::{Alignment, Application, Command, Element, Event, Length, Renderer, Subscription};
 
 use font::JETBRAINS_MONO;
-use std::path::{Path, PathBuf};
 use style::Theme;
+use utils::{files_dialog, folder_dialog, folders_dialog, tracker_info};
 use views::about::Message as AboutMessage;
 use views::config_name::Message as ConfigMessage;
 use views::config_ripping::Message as ConfigRippingMessage;
 // use views::settings::Message as SettingsMessage;
 
-use chrono::Utc;
+use std::path::{Path, PathBuf};
 use tokio::sync::mpsc::Sender;
 use xmodits_lib::traits::Module;
 
@@ -43,7 +44,6 @@ pub enum Message {
     HelpPressed,
     SetCfg(ConfigMessage),
     SetRipCfg(ConfigRippingMessage),
-    // SetState(State),
     // ChangeSetting(SettingsMessage),
     About(AboutMessage),
     SetDestinationDialog,
@@ -57,13 +57,11 @@ pub enum Message {
     DeleteSelected,
     Probe(usize),
     Open(PathBuf),
-
     AddFileDialog,
     AddFolderDialog,
     Clear,
     TrackerInfo(Option<Info>),
     Add(Option<Vec<PathBuf>>),
-
     SetDestination(Option<PathBuf>),
 }
 
@@ -74,13 +72,13 @@ pub enum State {
     Ripping {
         message: Option<String>,
         progress: f32,
-        total_errors: usize,
+        total_errors: u64,
     },
     Done(CompleteState),
 }
 
 impl State {
-    fn progress(&mut self, progress_update: f32, errors: usize) {
+    fn progress(&mut self, progress_update: f32, errors: u64) {
         if let Self::Ripping {
             progress,
             total_errors,
@@ -96,79 +94,6 @@ impl State {
         if let Self::Ripping { message, .. } = self {
             *message = message_update;
         }
-    }
-}
-
-#[derive(Default)]
-pub struct History {
-    history_entry: HistoryEntry,
-}
-
-#[derive(Default)]
-pub struct HistoryEntry {
-    timestamp: chrono::DateTime<Utc>,
-    entries: Entries,
-}
-
-#[derive(Default)]
-pub struct Entries {
-    pub all_selected: bool,
-    pub paths: Vec<Entry>,
-}
-
-impl Entries {
-    pub fn contains(&self, path: &Path) -> bool {
-        self.paths.iter().any(|x| x.path == path)
-    }
-
-    pub fn add(&mut self, path: PathBuf) {
-        self.paths.push(Entry {
-            path,
-            selected: false,
-        })
-    }
-
-    pub fn total_selected(&self) -> usize {
-        self.paths.iter().filter(|f| f.selected).count()
-    }
-
-    pub fn clear(&mut self) {
-        self.all_selected = false;
-        self.paths.clear();
-    }
-
-    pub fn len(&self) -> usize {
-        self.paths.len()
-    }
-
-    pub fn select(&mut self, index: usize, selected: bool) {
-        if let Some(entry) = self.paths.get_mut(index) {
-            entry.selected = selected;
-        }
-    }
-}
-
-#[derive(Default)]
-pub struct Entry {
-    pub path: PathBuf,
-    pub selected: bool,
-}
-
-impl Entry {
-    pub fn is_dir(&self) -> bool {
-        self.path.is_dir()
-    }
-
-    pub fn is_file(&self) -> bool {
-        self.path.is_file()
-    }
-
-    pub fn filename(&self) -> String {
-        self.path
-            .file_name()
-            .map(|f| f.to_string_lossy())
-            .unwrap_or_default()
-            .into()
     }
 }
 
@@ -218,8 +143,6 @@ impl Info {
         Self::Invalid { error, path }
     }
 }
-
-use self::utils::{files_dialog, folder_dialog, folders_dialog, tracker_info};
 
 #[derive(Default)]
 pub struct App {
@@ -302,11 +225,11 @@ impl Application for App {
             Message::DeleteSelected => self.delete_selected(),
             Message::Select { index, selected } => self.entries.select(index, selected),
             Message::Probe(index) => {
-                let path = &self.entries.paths[index];
+                let path = &self.entries.entries[index];
 
                 if path.is_file() {
                     let command =
-                        Command::perform(tracker_info(path.path.to_owned()), Message::TrackerInfo);
+                        Command::perform(tracker_info(path.path.clone()), Message::TrackerInfo);
 
                     match self.current {
                         None => return command,
