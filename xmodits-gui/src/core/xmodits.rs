@@ -2,7 +2,7 @@ use super::cfg::SampleRippingConfig;
 use super::extraction::{Failed, ThreadMsg};
 use iced::{subscription, Subscription};
 use std::path::PathBuf;
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncWriteExt, BufWriter};
 use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
 use tracing::info;
 
@@ -181,7 +181,7 @@ enum Error {
     File {
         total: usize,
         path: PathBuf,
-        file: Box<tokio::fs::File>,
+        file: Box<BufWriter<tokio::fs::File>>,
     },
     FailedFile {
         reason: String,
@@ -193,7 +193,9 @@ enum Error {
 impl Default for Error {
     fn default() -> Self {
         Self::Mem {
-            errors: Vec::new(),
+            // Reserve an extra element so that pushing the last error before they're moved to a file
+            // won't allocate an extra MAX elements
+            errors: Vec::with_capacity(MAX + 1),
             log_dir: dirs::download_dir().expect("downloads folder"),
         }
     }
@@ -222,17 +224,19 @@ impl Error {
                     .create_new(true)
                     .open(&log_path)
                     .await
+                    .map(BufWriter::new)
                     .map(Box::new)
                 {
                     Ok(mut file) => {
-                        let lines = errors.len();
+                        let total = errors.len();
 
+                        // Write stored errors to the new file
                         for error in errors {
                             Self::write_error(&mut file, error).await;
                         }
 
                         Self::File {
-                            total: lines,
+                            total,
                             path: log_path,
                             file,
                         }
@@ -246,11 +250,9 @@ impl Error {
                 };
             }
 
-            Error::File {
-                total: lines, file, ..
-            } => {
+            Error::File { total, file, .. } => {
                 Self::write_error(file, error).await;
-                *lines += 1;
+                *total += 1;
             }
 
             Error::FailedFile {
@@ -265,11 +267,15 @@ impl Error {
         }
     }
 
-    async fn write_error(file: &mut tokio::fs::File, error: Failed) {
+    async fn write_error<W>(file: &mut W, error: Failed)
+    where
+        W: AsyncWriteExt + std::marker::Unpin,
+    {
         let failed_file = error.path.display().to_string();
         let _ = file.write_all(failed_file.as_bytes()).await;
         let _ = file.write_all(b"\n     ").await;
         let _ = file.write_all(error.reason.as_bytes()).await;
         let _ = file.write_all(b"\n\n").await;
+        let _ = file.flush().await;
     }
 }
