@@ -1,17 +1,20 @@
-use crate::core::xmodits::{CompleteState, StartSignal};
-use crate::gui::icons;
-use crate::gui;
+use super::icons::{FOX_IDLE, FOX_WALK};
+use super::{style, App, Info, Message, State};
 
-use super::{App, Info, Message, State, style};
 use crate::core::entries::{Entries, History};
+use crate::core::xmodits::{CompleteState, StartSignal};
 use crate::gui::font::JETBRAINS_MONO;
+use crate::gui::icons;
 use crate::gui::utils::file_name;
+
 use iced::alignment::Horizontal;
 use iced::widget::{
     button, checkbox, column, container, progress_bar, row, scrollable, text, text_input, Space,
 };
 use iced::window::{Icon, Settings as Window};
 use iced::{Alignment, Application, Element, Length, Renderer, Settings};
+use iced_gif::gif;
+
 use image::{self, GenericImageView};
 use std::path::PathBuf;
 use style::Theme;
@@ -189,11 +192,14 @@ impl App {
         let display: _ = match self.state {
             State::Idle => {
                 if self.entries.len() == 0 {
-                    container(text("Drag and Drop").font(JETBRAINS_MONO))
-                        .width(Length::Fill)
-                        .height(Length::Fill)
-                        .center_x()
-                        .center_y()
+                    container(column![
+                        text("Drag and Drop").font(JETBRAINS_MONO),
+                        gif(&FOX_IDLE)
+                    ])
+                    .width(Length::Fill)
+                    .height(Length::Fill)
+                    .center_x()
+                    .center_y()
                 } else {
                     container(scrollable(self.entries.entries.iter().enumerate().fold(
                         column![].spacing(10).padding(5),
@@ -251,9 +257,10 @@ impl App {
                         None => "Ripping...",
                     })
                     .font(JETBRAINS_MONO),
-                    progress_bar(0.0..=100.0, progress).height(5).width(200)
+                    progress_bar(0.0..=100.0, progress).height(5).width(200),
+                    gif(&FOX_WALK)
                 ]
-                .spacing(5)
+                .spacing(8)
                 .align_items(Alignment::Center),
             )
             .width(Length::Fill)

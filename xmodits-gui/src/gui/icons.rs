@@ -2,6 +2,16 @@ use crate::gui::font::ICONS;
 use crate::gui::style::Theme;
 use iced::widget::{text, Text};
 use iced::{alignment, Length, Renderer};
+use iced_gif::gif;
+use once_cell::sync::Lazy;
+
+pub static FOX_IDLE: Lazy<iced_gif::Frames> = Lazy::new(|| {
+    gif::Frames::from_bytes(include_bytes!("../../res/gif/white_lie_8fps.gif").to_vec()).unwrap()
+});
+
+pub static FOX_WALK: Lazy<iced_gif::Frames> = Lazy::new(|| {
+    gif::Frames::from_bytes(include_bytes!("../../res/gif/white_walk_8fps.gif").to_vec()).unwrap()
+});
 
 // static FOLDER: &[u8] = include_bytes!("../../res/img/svg/folder.svg");
 // static FOLDER_ADD: &[u8] = include_bytes!("../../res/img/svg/folder_add.svg");

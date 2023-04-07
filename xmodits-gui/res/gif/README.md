@@ -1,0 +1,1 @@
+Animated gifs were obtained from: https://github.com/tonybaloney/vscode-pets
