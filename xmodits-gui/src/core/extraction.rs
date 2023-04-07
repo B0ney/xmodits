@@ -49,7 +49,7 @@ pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippi
         cfg.naming.build_func(),
         cfg.exported_format.into(),
     ));
-    
+
     // Create the destination folder if it doesn't exist
     let _ = std::fs::create_dir(&cfg.destination);
 
@@ -68,7 +68,9 @@ fn stage_1(
     if files.is_empty() {
         return;
     }
-    subscr_tx.send(ThreadMsg::SetTotal(files.len() as u64)).unwrap();
+    subscr_tx
+        .send(ThreadMsg::SetTotal(files.len() as u64))
+        .unwrap();
 
     subscr_tx
         .send(ThreadMsg::Info(Some(format!(
@@ -307,18 +309,23 @@ fn spawn_workers(
         let Ok(batch) = batch_rx.recv() else {
             break;
         };
+        let batch = batch.lock();
 
-        batch.lock().par_iter().for_each(|file| {
-            let progress = ThreadMsg::Progress(
-                match extract(file, &destination, ripper.as_ref(), self_contained) {
-                    Ok(()) => None,
-                    Err(error) => Some(Failed::new(file.into(), error)),
-                },
-            );
+        for sub_batch in SubBatcher::new(&batch, 512) {
+            sub_batch.par_iter().for_each(|file| {
+                let progress = ThreadMsg::Progress(
+                    match extract(file, &destination, ripper.as_ref(), self_contained) {
+                        Ok(()) => None,
+                        Err(error) => Some(Failed::new(file.into(), error)),
+                    },
+                );
 
-            // Send an update to the subscription
-            subscr_tx.send(progress).unwrap()
-        });
+                // Send an update to the subscription
+                subscr_tx.send(progress).unwrap()
+            });
+
+            // todo: update global tracker
+        }
 
         // Tell the batcher we're done so that it can send the next round
         worker_tx.send(NextBatch).unwrap();
@@ -412,5 +419,43 @@ impl<T> Buffer<T> {
 
     fn alloc(batch_size: usize) -> Batch<T> {
         Arc::new(Mutex::new(Vec::with_capacity(batch_size)))
+    }
+}
+
+struct SubBatcher<'a, T> {
+    batch: &'a [T],
+    size: usize,
+    count: usize,
+}
+
+impl<'a, T> SubBatcher<'a, T> {
+    pub fn new(batch: &'a [T], size: usize) -> Self {
+        Self {
+            batch,
+            size,
+            count: 0,
+        }
+    }
+}
+
+impl<'a, T> Iterator for SubBatcher<'a, T> {
+    type Item = &'a [T];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let offset = self.size * self.count;
+        let len = self.batch.len();
+
+        // uses short circuiting so the order matters here
+        if len == 0 || offset > (len - 1) {
+            return None;
+        };
+
+        self.count += 1;
+        let end = offset + self.size;
+
+        match end > len {
+            true => self.batch.get(offset..),
+            false => self.batch.get(offset..end),
+        }
     }
 }
