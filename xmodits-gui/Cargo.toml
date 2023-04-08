@@ -14,7 +14,7 @@ winres = "0.1.12"
 
 [dependencies]
 # xmodits core library.
-xmodits-lib = { git = "https://github.com/B0ney/xmodits-lib.git", rev = "9144ca76d2719a74572d3ff8f8c69f742d03caec", features = ["serde"] }
+xmodits-lib = { git = "https://github.com/B0ney/xmodits-lib.git", rev = "fbaa2bd80e94150e9e8a25e4874fd52c38f785c5", features = ["serde"] }
 
 # Handle errors in a generic way
 anyhow = "1.0.0"
