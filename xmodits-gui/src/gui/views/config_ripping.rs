@@ -6,6 +6,13 @@ use iced::Alignment;
 use iced::{Element, Length, Renderer};
 use xmodits_lib::exporter::AudioFormat;
 
+const SUPPORTED_FORMATS: &[AudioFormat] = &[
+    AudioFormat::WAV,
+    AudioFormat::AIFF,
+    AudioFormat::IFF,
+    AudioFormat::RAW,
+];
+
 #[derive(Debug, Clone)]
 pub enum Message {
     SetFormat(AudioFormat),
@@ -31,7 +38,7 @@ impl SampleRippingConfig {
                 checkbox("Strict Loading", self.strict, Message::ToggleStrictLoad),
                 row![
                     pick_list(
-                        &AudioFormat::ALL[..],
+                        SUPPORTED_FORMATS,
                         Some(self.exported_format),
                         Message::SetFormat
                     ),
