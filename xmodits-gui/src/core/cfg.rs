@@ -18,28 +18,12 @@ pub fn create_config_dir() -> Result<()> {
     Ok(fs::create_dir(config_dir())?)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub general: GeneralConfig,
     pub ripping: SampleRippingConfig,
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            general: Default::default(),
-            ripping: SampleRippingConfig {
-                destination: dirs::download_dir().expect("Expected Downloads folder"),
-                folder_max_depth: 1,
-                naming: SampleNameConfig {
-                    index_padding: 2,
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-        }
-    }
-}
 impl Config {
     pub fn load() -> Self {
         let Ok(toml) = fs::read_to_string(Self::path()) else {
