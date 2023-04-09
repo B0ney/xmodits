@@ -21,6 +21,7 @@ impl SampleNameConfig {
                 if index_only {
                     self.lower = false;
                     self.upper = false;
+                    self.prefer_filename = false;
                 }
                 self.index_only = index_only;
             }
@@ -43,8 +44,13 @@ impl SampleNameConfig {
                 }
                 self.lower = lower;
             }
+            Message::PreferFilename(use_filename) => {
+                if use_filename {
+                    self.index_only = false;
+                }
+                self.prefer_filename = use_filename;
+            },
             Message::IndexPadding(padding) => self.index_padding = padding,
-            Message::PreferFilename(use_filename) => self.prefer_filename = use_filename,
             Message::PrefixSamples(prefix) => self.prefix = prefix,
         }
     }
@@ -55,13 +61,13 @@ impl SampleNameConfig {
                     column![
                         checkbox("Index Only", self.index_only, Message::IndexOnly),
                         checkbox("Preserve Index", self.index_raw, Message::IndexRaw),
-                        checkbox("Prefer Filename", self.prefer_filename, Message::PreferFilename),
+                        checkbox("Prefix Samples", self.prefix, Message::PrefixSamples),
                     ]
                     .spacing(8),
                     column![
                         checkbox("Upper Case", self.upper, Message::UpperCase),
                         checkbox("Lower Case", self.lower, Message::LowerCase),
-                        checkbox("Prefix Samples", self.prefix, Message::PrefixSamples),
+                        checkbox("Prefer Filename", self.prefer_filename, Message::PreferFilename),
                     ]
                     .spacing(8)
                 ]
