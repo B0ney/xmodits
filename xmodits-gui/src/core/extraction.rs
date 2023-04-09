@@ -1,5 +1,6 @@
 use crate::core::cfg::SampleRippingConfig;
 use crate::gui::utils::file_name;
+use crate::core::track::GLOBAL_TRACKER;
 
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Seek, Write};
@@ -28,6 +29,8 @@ impl ThreadMsg {
 }
 
 pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippingConfig) {
+    GLOBAL_TRACKER.reset();
+    
     // split files and folders
     let mut files: Vec<PathBuf> = Vec::new();
     let mut folders: Vec<PathBuf> = Vec::new();
@@ -79,12 +82,15 @@ fn stage_1(
         ))))
         .unwrap();
 
-    files.into_iter().for_each(|file| {
+    let files = GLOBAL_TRACKER.set_files(files);
+
+    files.lock().iter().for_each(|file| {
         let progress = match extract(&file, &cfg.destination, ripper.as_ref(), cfg.self_contained) {
             Ok(()) => None,
             Err(error) => Some(Failed::new(file.display().to_string(), error)),
         };
         subscr_tx.send(ThreadMsg::Progress(progress)).unwrap();
+        GLOBAL_TRACKER.incr_file();
     });
 }
 
@@ -196,6 +202,8 @@ impl<'io> Batcher<'io> {
         cfg: SampleRippingConfig,
         subscr_tx: AsyncSender<ThreadMsg>,
     ) -> Batcher<'io> {
+        GLOBAL_TRACKER.set_batch_size(batch_size);
+
         let (batch_tx, batch_rx) = mpsc::channel::<Batch<String>>();
         let (worker_tx, worker_rx) = mpsc::channel::<NextBatch>();
 
@@ -282,6 +290,7 @@ impl<'io> Batcher<'io> {
             .for_each(|line| buffer.push(line));
 
         self.batch_number += 1;
+        GLOBAL_TRACKER.incr_batch_number();
 
         // Have a way of notifiying the caller that this is is the last batch,
         // and should not be called again.
@@ -298,6 +307,9 @@ fn spawn_workers(
     self_contained: bool,
 ) {
     use rayon::prelude::*;
+    const SUB_BATCH_SIZE: usize = 576;
+
+    GLOBAL_TRACKER.set_sub_batch_size(SUB_BATCH_SIZE);
 
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(0)
@@ -311,7 +323,7 @@ fn spawn_workers(
         };
         let batch = batch.lock();
 
-        for sub_batch in SubBatcher::new(&batch, 512) {
+        for sub_batch in SubBatcher::new(&batch, SUB_BATCH_SIZE) {
             sub_batch.par_iter().for_each(|file| {
                 let progress = ThreadMsg::Progress(
                     match extract(file, &destination, ripper.as_ref(), self_contained) {
@@ -324,7 +336,7 @@ fn spawn_workers(
                 subscr_tx.send(progress).unwrap()
             });
 
-            // todo: update global tracker
+            GLOBAL_TRACKER.incr_sub_batch_number();
         }
 
         // Tell the batcher we're done so that it can send the next round
