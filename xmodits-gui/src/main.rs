@@ -3,10 +3,11 @@ mod core;
 // #[allow(unused)]
 mod gui;
 mod simple;
+use crate::core::panic_handler::panic::set_panic_hook;
 use std::{env, path::PathBuf};
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
-use crate::core::dialog;
+// use crate::core::dialog;
 
 fn main() {
     set_panic_hook();
@@ -32,31 +33,3 @@ fn main() {
     }
 }
 
-pub fn set_panic_hook() {
-    std::panic::set_hook(Box::new(|panic_info| {
-        // let backtrace = std::backtrace::Backtrace::force_capture();
-        // println!("{}", backtrace.to_string());
-        // std::thread::park();
-        let info = match panic_info.location() {
-            Some(location) => format!(
-                "Panic occurred in file '{}' at line {}",
-                location.file(),
-                location.line()
-            ),
-            None => String::from("Panic occurred but can't get location information..."),
-        };
-
-        let message = match (
-            panic_info.payload().downcast_ref::<String>(),
-            panic_info.payload().downcast_ref::<&str>(),
-        ) {
-            (Some(e), None) => e.as_str(),
-            (None, Some(e)) => e,
-            _ => "Panic occured",
-        };
-
-        dialog::critical_error(&format!("{}\n{:?}", info, message));
-
-        std::process::exit(1)
-    }));
-}

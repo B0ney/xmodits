@@ -5,7 +5,7 @@ use xmodits_lib::{
 };
 use crate::core::cfg::Config;
 use crate::core::log::write_error_log;
-use crate::dialog::{
+use crate::core::dialog::{
     failed_single, show_help_box, success, success_partial, success_partial_no_log,
 };
 use std::cmp::Ordering;
