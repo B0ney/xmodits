@@ -1,4 +1,4 @@
-use super::icons::{FOX_IDLE, FOX_WALK};
+use super::icons::GIF;
 use super::{style, App, Info, Message, State};
 
 use crate::core::entries::{Entries, History};
@@ -40,7 +40,7 @@ impl App {
             default_text_size: 17.0,
             ..iced::Settings::default()
         };
-
+        GIF.init_lazy();
         let _ = Self::run(settings);
     }
 
@@ -196,8 +196,8 @@ impl App {
                 if self.entries.len() == 0 {
                     container(column![
                         text("Drag and Drop").font(JETBRAINS_MONO),
-                        gif(&FOX_IDLE)
-                    ])
+                        gif(&GIF.idle)
+                    ].align_items(Alignment::Center))
                     .width(Length::Fill)
                     .height(Length::Fill)
                     .center_x()
@@ -258,9 +258,9 @@ impl App {
                         Some(info) => info,
                         None => "Ripping...",
                     })
-                    .font(JETBRAINS_MONO),
+                    .font(JETBRAINS_MONO).horizontal_alignment(Horizontal::Center),
                     progress_bar(0.0..=100.0, progress).height(5).width(200),
-                    gif(&FOX_WALK)
+                    gif(&GIF.ripping)
                 ]
                 .spacing(8)
                 .align_items(Alignment::Center),

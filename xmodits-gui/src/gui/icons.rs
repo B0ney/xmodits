@@ -1,17 +1,62 @@
+use crate::core::cfg::config_dir;
 use crate::gui::font::ICONS;
 use crate::gui::style::Theme;
+
 use iced::widget::{text, Text};
-use iced::{alignment, Length, Renderer};
+use iced::{alignment, Renderer};
 use iced_gif::gif;
 use once_cell::sync::Lazy;
+use std::path::Path;
+use tracing::{error, info};
 
-pub static FOX_IDLE: Lazy<iced_gif::Frames> = Lazy::new(|| {
-    gif::Frames::from_bytes(include_bytes!("../../res/gif/white_lie_8fps.gif").to_vec()).unwrap()
-});
+pub static GIF: Lazy<Animation> = Lazy::new(|| Animation::new());
 
-pub static FOX_WALK: Lazy<iced_gif::Frames> = Lazy::new(|| {
-    gif::Frames::from_bytes(include_bytes!("../../res/gif/white_walk_8fps.gif").to_vec()).unwrap()
-});
+pub struct Animation {
+    pub idle: iced_gif::Frames,
+    pub ripping: iced_gif::Frames,
+}
+
+impl Animation {
+    pub fn init_lazy(&self) {}
+
+    /// Allow loading custom animations
+    pub fn new() -> Self {
+        let idle_gif = config_dir().join("idle.gif");
+        let ripping_gif = config_dir().join("ripping.gif");
+
+        let idle = Self::load(idle_gif).unwrap_or_else(|_| Self::default_idle());
+
+        let ripping = Self::load(ripping_gif).unwrap_or_else(|_| Self::default_ripping());
+
+        Self { idle, ripping }
+    }
+
+    fn load(path: impl AsRef<Path>) -> anyhow::Result<iced_gif::Frames> {
+        if std::fs::metadata(path.as_ref())?.len() > (1.5 * 1024.0 * 1024.0) as u64 {
+            error!("Custom animation is over 2MB");
+            anyhow::bail!("")
+        }
+
+        let result = gif::Frames::from_bytes(std::fs::read(path.as_ref())?);
+
+        match result.as_ref().err() {
+            None => info!("Loaded custom animation!"),
+            Some(e) => error!("Failed to load custom animation: {}", e),
+        };
+
+        Ok(result?)
+    }
+
+    fn default_idle() -> iced_gif::Frames {
+        gif::Frames::from_bytes(include_bytes!("../../res/gif/white_lie_8fps.gif").to_vec())
+            .unwrap()
+    }
+
+    fn default_ripping() -> iced_gif::Frames {
+        gif::Frames::from_bytes(include_bytes!("../../res/gif/white_walk_8fps.gif").to_vec())
+            .unwrap()
+    }
+}
 
 // static FOLDER: &[u8] = include_bytes!("../../res/img/svg/folder.svg");
 // static FOLDER_ADD: &[u8] = include_bytes!("../../res/img/svg/folder_add.svg");
