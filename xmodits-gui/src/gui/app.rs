@@ -112,6 +112,7 @@ impl App {
         };
 
         let _ = sender.try_send(self.bulid_start_signal());
+        self.time.start();
 
         self.state = State::Ripping {
             message: None,
@@ -272,8 +273,9 @@ impl App {
             State::Done(ref completed_state) => match completed_state {
                 CompleteState::NoErrors => container(
                     column![
-                        text("Done! \\(^_^)/").font(JETBRAINS_MONO),
-                        text("Drag and Drop").font(JETBRAINS_MONO)
+                        text("Done! \\(^_^)/").font(JETBRAINS_MONO),                      
+                        text("Drag and Drop").font(JETBRAINS_MONO),
+                        text(&self.time).font(JETBRAINS_MONO),
                     ]
                     .align_items(Alignment::Center),
                 )
@@ -285,9 +287,12 @@ impl App {
                     column![
                         text("Done... But xmodits could not rip everything... (._.)")
                             .font(JETBRAINS_MONO)
-                            .horizontal_alignment(Horizontal::Center)
+                            .horizontal_alignment(Horizontal::Center),
+                        text(&self.time)
+                            .font(JETBRAINS_MONO)
                     ]
-                    .padding(4),
+                    .padding(4)
+                    .align_items(Alignment::Center),
                     scrollable(
                         errors
                             .iter()
@@ -327,7 +332,10 @@ impl App {
                         .padding(0)
                         .on_press(Message::Open(log.to_owned()))
                         .style(style::button::Button::HyperlinkInverted),
-                        text(format!("({} errors written)", total))
+                        text(format!("{} errors written", total))
+                            .font(JETBRAINS_MONO)
+                            .horizontal_alignment(Horizontal::Center),
+                        text(&self.time)
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center),
                     ]
@@ -350,7 +358,7 @@ impl App {
                         text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
                         text("...and I can't store them to a file either:").font(JETBRAINS_MONO),
                         text(format!("\"{}\"", reason)).font(JETBRAINS_MONO),
-                        text(format!("({} stored errors)", errors.len()))
+                        text(format!("{} stored errors", errors.len()))
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center),
                         text(match discarded {
@@ -359,6 +367,9 @@ impl App {
                         })
                         .font(JETBRAINS_MONO)
                         .horizontal_alignment(Horizontal::Center),
+                        text(&self.time)
+                            .font(JETBRAINS_MONO)
+                            .horizontal_alignment(Horizontal::Center),
                     ]
                     .align_items(Alignment::Center)
                     .padding(4)
