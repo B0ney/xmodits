@@ -2,6 +2,7 @@ use anyhow::Result;
 use dirs;
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
+use tokio::io::AsyncWriteExt;
 use toml;
 use xmodits_lib::{exporter::AudioFormat, SampleNamer, SampleNamerTrait};
 
@@ -12,10 +13,6 @@ pub fn config_dir() -> PathBuf {
     dirs::config_dir()
         .expect("There should be a config directory")
         .join(APP_NAME)
-}
-
-pub fn create_config_dir() -> Result<()> {
-    Ok(fs::create_dir(config_dir())?)
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone)]
@@ -30,23 +27,30 @@ impl Config {
             return Self::default();
         };
 
-        let Ok(config) = toml::from_str::<Self>(&toml) else {
+        let Ok(config) = toml::from_str(&toml) else {
             return Self::default();
         };
 
         config
     }
 
-    pub fn save(&self) -> Result<()> {
+    pub async fn save(&self) -> Result<()> {
         if !config_dir().exists() {
-            create_config_dir()?;
+            tokio::fs::create_dir(config_dir()).await?;
         };
-        use std::io::prelude::*;
-        let mut a = fs::File::create(Self::path())?;
-        a.write_all(toml::to_string_pretty(&self)?.as_bytes())?;
+
+        let mut file = tokio::fs::OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(Self::path())
+            .await?;
+
+        file.write_all(toml::to_string_pretty(&self)?.as_bytes())
+            .await?;
+
         Ok(())
     }
-
     pub fn filename() -> &'static str {
         CONFIG_NAME
     }
@@ -54,10 +58,6 @@ impl Config {
     pub fn path() -> PathBuf {
         config_dir().join(Self::filename())
     }
-
-    // pub fn exists() -> bool {
-    //     Self::path().exists()
-    // }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]

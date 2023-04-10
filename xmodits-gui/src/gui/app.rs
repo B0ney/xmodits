@@ -25,6 +25,7 @@ fn icon() -> Icon {
     Icon::from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
 }
 
+// See mod.rs for the full iced application
 impl App {
     pub fn start() {
         let settings: Settings<()> = Settings {

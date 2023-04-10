@@ -149,6 +149,7 @@ pub fn traverse(
         .read(true)
         .write(true)
         .create(true)
+        .truncate(true)
         .open("./test.txt") // todo
         .unwrap();
 
@@ -316,14 +317,13 @@ fn spawn_workers(
         .build()
         .unwrap();
 
-    // TODO: Figure out how handle potential panics.
     pool.spawn(move || loop {
         let Ok(batch) = batch_rx.recv() else {
             break;
         };
         let batch = batch.lock();
 
-        for sub_batch in SubBatcher::new(&batch, SUB_BATCH_SIZE) {
+        for sub_batch in batch.chunks(SUB_BATCH_SIZE) {
             sub_batch.par_iter().for_each(|file| {
                 let progress = ThreadMsg::Progress(
                     match extract(file, &destination, ripper.as_ref(), self_contained) {
@@ -434,40 +434,40 @@ impl<T> Buffer<T> {
     }
 }
 
-struct SubBatcher<'a, T> {
-    batch: &'a [T],
-    size: usize,
-    count: usize,
-}
+// struct SubBatcher<'a, T> {
+//     batch: &'a [T],
+//     size: usize,
+//     count: usize,
+// }
 
-impl<'a, T> SubBatcher<'a, T> {
-    pub fn new(batch: &'a [T], size: usize) -> Self {
-        Self {
-            batch,
-            size,
-            count: 0,
-        }
-    }
-}
+// impl<'a, T> SubBatcher<'a, T> {
+//     pub fn new(batch: &'a [T], size: usize) -> Self {
+//         Self {
+//             batch,
+//             size,
+//             count: 0,
+//         }
+//     }
+// }
 
-impl<'a, T> Iterator for SubBatcher<'a, T> {
-    type Item = &'a [T];
+// impl<'a, T> Iterator for SubBatcher<'a, T> {
+//     type Item = &'a [T];
 
-    fn next(&mut self) -> Option<Self::Item> {
-        let offset = self.size * self.count;
-        let len = self.batch.len();
+//     fn next(&mut self) -> Option<Self::Item> {
+//         let offset = self.size * self.count;
+//         let len = self.batch.len();
 
-        // uses short circuiting so the order matters here
-        if len == 0 || offset > (len - 1) {
-            return None;
-        };
+//         // uses short circuiting so the order matters here
+//         if len == 0 || offset > (len - 1) {
+//             return None;
+//         };
 
-        self.count += 1;
-        let end = offset + self.size;
+//         self.count += 1;
+//         let end = offset + self.size;
 
-        match end > len {
-            true => self.batch.get(offset..),
-            false => self.batch.get(offset..end),
-        }
-    }
-}
+//         match end > len {
+//             true => self.batch.get(offset..),
+//             false => self.batch.get(offset..end),
+//         }
+//     }
+// }

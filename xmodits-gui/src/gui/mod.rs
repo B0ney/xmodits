@@ -195,7 +195,15 @@ impl Application for App {
                     self.ripping_config.destination = s
                 }
             }
-            Message::SaveConfig => todo!(),
+            Message::SaveConfig => {
+                let general = self.general_config.to_owned();
+                let ripping = self.ripping_config.to_owned();
+
+                return Command::perform(
+                    async { Config { general, ripping }.save().await },
+                    |_| Message::Ignore,
+                );
+            }
             Message::StartRip => self.start_ripping(),
             Message::Subscription(m) => match m {
                 ExtractionMessage::Ready(start_signal) => {
