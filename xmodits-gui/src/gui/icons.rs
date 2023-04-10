@@ -32,7 +32,9 @@ impl Animation {
     }
 
     fn load(path: impl AsRef<Path>) -> anyhow::Result<iced_gif::Frames> {
-        if std::fs::metadata(path.as_ref())?.len() > (1.5 * 1024.0 * 1024.0) as u64 {
+        const MAX_SIZE: u64 = 2 * 1024 * 1024;
+        
+        if std::fs::metadata(path.as_ref())?.len() > MAX_SIZE {
             error!("Custom animation is over 2MB");
             anyhow::bail!("")
         }
