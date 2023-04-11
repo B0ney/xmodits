@@ -2,9 +2,10 @@ use crate::Cli;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
+use xmodits_lib::interface::Error;
 use xmodits_lib::{
-    common::extract, fmt::loader::load_module, interface::ripper::Ripper, SampleNamer,
-    SampleNamerTrait,
+    common::extract, exporter::AudioFormat, fmt::loader::load_module, interface::ripper::Ripper,
+    SampleNamer, SampleNamerTrait,
 };
 
 pub fn build_namer(cli: &Cli) -> Box<dyn SampleNamerTrait> {
@@ -14,6 +15,8 @@ pub fn build_namer(cli: &Cli) -> Box<dyn SampleNamerTrait> {
         index_raw: cli.index_raw,
         lower: cli.lower_case,
         upper: cli.upper_case,
+        prefer_filename: true,
+        prefix_source: cli.prefix,
         ..Default::default()
     }
     .into()
@@ -38,9 +41,9 @@ pub fn info(cli: Cli) {
     match tracker {
         Ok(m) => {
             println!(
-                "Module Name: {}\nSamples: {}\nApprox Total Sample Size (KiB): {}",
+                "Module Name: {}\nFormat: {}\nSamples: {}\nApprox Total Sample Size (KiB): {}",
                 m.name(),
-                // m.format(),
+                m.format(),
                 m.total_samples(),
                 m.samples().iter().map(|m| m.length as usize).sum::<usize>() / 1000,
             )
@@ -50,41 +53,56 @@ pub fn info(cli: Cli) {
 }
 
 pub fn rip(cli: Cli, destination: PathBuf) {
-    let mut ripper = Ripper::default();
-    ripper.change_namer(build_namer(&cli));
-    // let sample_namer_func: Box<SampleNamerFunc> = ;
+    let ripper = Ripper::new(build_namer(&cli), get_format(&cli.format).into());
+    let paths: Vec<PathBuf> = cli.trackers.into_iter().filter(|f| f.is_file()).collect();
+    let self_contained = !cli.no_folder;
 
-    let items = cli.trackers.iter().filter(|f| f.is_file()).count();
-
-    if items == 0 {
+    if paths.is_empty() {
         return eprintln!("There's nothing to rip!");
     }
 
-    // let total_size = total_size_megabytes(&cli.trackers);
+    println!("Ripping {} file(s)\n", paths.len());
 
-    // if total_size > 512.0 {
-    //     println!(
-    //         "Ripping {:.2} MiB worth of trackers. Please wait...",
-    //         total_size
-    //     );
-    // } else {
-    //     println!("Ripping...")
-    // }
+    let error = |path: &Path, error: Error| {
+        eprintln!("Can't rip {}:\n   \"{}\"\n", file_name(path), error);
+    };
 
-    for mod_path in cli.trackers.iter().filter(|f| f.is_file()) {
-        if let Err(error) = extract(mod_path, &destination, &ripper, !cli.no_folder)
-        // dump_samples_advanced(
-        //
-        //     &folder(, mod_path, !cli.no_folder),
-        //     &sample_namer_func,
-        //
-        //     &cli.hint,
-        //     // cli.loop_points,
-        //     false,
-        // )
-        {
-            eprintln!("Error {} <-- \"{}\"", error, file_name(mod_path))
-        }
+    let rip_file = move |path: PathBuf| {
+        extract(&path, &destination, &ripper, self_contained)
+            .unwrap_or_else(|e| error(&path, e))
+    };
+
+    #[cfg(feature = "rayon")]
+    {
+        // let Some(threads) = cli.threads else {
+        let threads = cli.threads as usize;
+        if threads == 0 {
+            paths.into_iter().for_each(rip_file);
+            println!("Done!");
+            return;
+        };
+
+        use rayon::prelude::*;
+
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(threads as usize)
+            .build()
+            .expect("Building threapool")
+            .spawn(move || paths.into_par_iter().for_each(rip_file));
     }
+
+    #[cfg(not(feature = "rayon"))]
+    paths.into_iter().for_each(rip_file);
+
     println!("Done!");
+}
+
+fn get_format(format: &str) -> AudioFormat {
+    match format {
+        "wav" => AudioFormat::WAV,
+        "aiff" => AudioFormat::AIFF,
+        "8svx" => AudioFormat::IFF,
+        "raw" => AudioFormat::RAW,
+        _ => AudioFormat::WAV,
+    }
 }

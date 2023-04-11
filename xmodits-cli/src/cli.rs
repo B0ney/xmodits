@@ -1,11 +1,11 @@
 use clap::Parser;
 use std::path::PathBuf;
 
+const ABOUT: &str = "A tool to rip samples from tracker music. Supports IT, XM, S3M, MOD and UMX formats.\nThis software is licensed under the LGPLv3, for more infomation please visit: https://github.com/B0ney/xmodits";
+
 #[derive(Parser)]
 #[command(author, version, about)]
-#[command(
-    long_about = "A tool to rip samples from tracker music. Supports IT, XM, S3M, MOD and UMX formats.\nThis software is licensed under the LGPLv3, for more infomation please visit: https://github.com/B0ney/xmodits"
-)]
+#[command(long_about = ABOUT)]
 pub struct Cli {
     #[arg(
         help = "Modules to rip, the last element can be a folder to place your rips. E.g \"./music.s3m ./music.it ./dumps/\""
@@ -26,13 +26,6 @@ pub struct Cli {
     #[arg(default_value_t = 2, short='p', long="index-padding", value_parser=0..=5)]
     pub index_padding: i64,
 
-    // #[arg(help = "Embed sample loop points in WAV")]
-    // #[arg(short, long)]
-    // pub loop_points: bool,
-
-    // #[arg(help="Include embedded text from tracker (if it exists)")]
-    // #[arg(short='c', long)]
-    // with_comment: bool,
     #[arg(help = "Do not create a new folder for samples. This can overwrite data, BE CAREFUL!")]
     #[arg(short, long)]
     pub no_folder: bool,
@@ -45,16 +38,20 @@ pub struct Cli {
     #[arg(short, long = "lower", conflicts_with = "upper_case")]
     pub lower_case: bool,
 
+    #[arg(help = "Prefix samples with the filename")]
+    #[arg(short = 'g', long)]
+    pub prefix: bool,
+
+    #[arg(help = "Export formats")]
+    #[arg(short, long = "fmt", value_parser=["wav", "aiff", "8svx", "raw"], default_value_t=String::from("wav"))]
+    pub format: String,
+
     #[arg(help = "Print information about a tracker module")]
     #[arg(long)]
     pub info: bool,
 
-    #[arg(help = "Hint xmodits to load a particular format first.")]
-    #[arg(value_parser=["it", "xm", "s3m", "mod", "umx", "mptm"])]
-    #[arg(long)]
-    pub hint: Option<String>,
-    // #[cfg(feature = "advanced")]
-    // #[arg(help = "Rip samples in parallel")]
-    // #[arg(short = 'k', long)]
-    // pub parallel: bool,
+    #[cfg(feature = "rayon")]
+    #[arg(help = "Rip samples in parallel")]
+    #[arg(short = 'k', long, default_value_t = 0)]
+    pub threads: u8,
 }
