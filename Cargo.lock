@@ -4436,7 +4436,8 @@ name = "xmodits"
 version = "0.10.0"
 dependencies = [
  "clap",
- "xmodits-lib 0.6.0 (git+https://github.com/B0ney/xmodits-lib.git)",
+ "rayon",
+ "xmodits-lib",
 ]
 
 [[package]]
@@ -4468,29 +4469,18 @@ dependencies = [
  "walkdir",
  "winapi",
  "winres",
- "xmodits-lib 0.6.0 (git+https://github.com/B0ney/xmodits-lib.git?rev=2101418bda6a7069a889ffc2d3076d963776e3b2)",
+ "xmodits-lib",
 ]
 
 [[package]]
 name = "xmodits-lib"
 version = "0.6.0"
-source = "git+https://github.com/B0ney/xmodits-lib.git?rev=2101418bda6a7069a889ffc2d3076d963776e3b2#2101418bda6a7069a889ffc2d3076d963776e3b2"
+source = "git+https://github.com/B0ney/xmodits-lib.git?rev=23465f01d9f7e034f9e4e3f4c696ed22ca628d97#23465f01d9f7e034f9e4e3f4c696ed22ca628d97"
 dependencies = [
  "bytemuck",
  "extended",
  "rubato",
  "serde",
- "thiserror",
-]
-
-[[package]]
-name = "xmodits-lib"
-version = "0.6.0"
-source = "git+https://github.com/B0ney/xmodits-lib.git#40729912172c7f2c831d9d27b69895ae0cb340e8"
-dependencies = [
- "bytemuck",
- "extended",
- "rubato",
  "thiserror",
 ]
 
