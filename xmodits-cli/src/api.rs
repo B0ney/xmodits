@@ -63,13 +63,10 @@ pub fn rip(cli: Cli, destination: PathBuf) {
 
     println!("Ripping {} file(s)\n", paths.len());
 
-    let error = |path: &Path, error: Error| {
-        eprintln!("Can't rip {}:\n   \"{}\"\n", file_name(path), error);
-    };
-
     let rip_file = move |path: PathBuf| {
-        extract(&path, &destination, &ripper, self_contained)
-            .unwrap_or_else(|e| error(&path, e))
+        extract(&path, &destination, &ripper, self_contained).unwrap_or_else(|error| {
+            eprintln!("Can't rip {}:\n   \"{}\"\n", file_name(&path), error)
+        })
     };
 
     #[cfg(feature = "rayon")]
