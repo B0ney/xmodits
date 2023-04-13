@@ -36,9 +36,14 @@ impl scrollable::StyleSheet for Theme {
         }
     }
 
-    fn hovered(&self, style: &Self::Style) -> scrollable::Scrollbar {
+    fn hovered(&self, style: &Self::Style, hovered: bool) -> scrollable::Scrollbar {
         scrollable::Scrollbar {
             scroller: scrollable::Scroller {
+                color: if hovered {
+                    self.palette().normal.primary
+                } else {
+                    self.active(style).scroller.color
+                },
                 ..self.active(style).scroller
             },
             ..self.active(style)
@@ -46,7 +51,7 @@ impl scrollable::StyleSheet for Theme {
     }
 
     fn dragging(&self, style: &Self::Style) -> scrollable::Scrollbar {
-        let hovered = self.hovered(style);
+        let hovered = self.hovered(style, true);
         scrollable::Scrollbar {
             scroller: scrollable::Scroller { ..hovered.scroller },
             ..hovered

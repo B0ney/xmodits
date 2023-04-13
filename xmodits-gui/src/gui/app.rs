@@ -11,6 +11,7 @@ use iced::alignment::Horizontal;
 use iced::widget::{
     button, checkbox, column, container, progress_bar, row, scrollable, text, text_input, Space,
 };
+use iced::window::icon::from_rgba;
 use iced::window::{Icon, Settings as Window};
 use iced::{Alignment, Application, Element, Length, Renderer, Settings};
 use iced_gif::gif;
@@ -22,7 +23,8 @@ use style::Theme;
 fn icon() -> Icon {
     let image = image::load_from_memory(include_bytes!("../../res/img/logo/icon3.png")).unwrap();
     let (w, h) = image.dimensions();
-    Icon::from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
+    
+    from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
 }
 
 // See mod.rs for the full iced application
@@ -95,9 +97,9 @@ impl App {
         let input: _ = text_input(
             "Output Directory",
             &format!("{}", destination.display()),
-            |s| Message::SetDestination(Some(PathBuf::new().join(s))),
         )
-        .padding(10);
+        .padding(10)
+        .on_input(|s| Message::SetDestination(Some(PathBuf::new().join(s))));
 
         input.into()
     }
@@ -196,7 +198,7 @@ impl App {
                 if self.entries.len() == 0 {
                     container(column![
                         text("Drag and Drop").font(JETBRAINS_MONO),
-                        gif(&GIF.idle)
+                        // gif(&GIF.idle)
                     ].align_items(Alignment::Center))
                     .width(Length::Fill)
                     .height(Length::Fill)
@@ -260,7 +262,7 @@ impl App {
                     })
                     .font(JETBRAINS_MONO).horizontal_alignment(Horizontal::Center),
                     progress_bar(0.0..=100.0, progress).height(5).width(200),
-                    gif(&GIF.ripping)
+                    // gif(&GIF.ripping)
                 ]
                 .spacing(8)
                 .align_items(Alignment::Center),

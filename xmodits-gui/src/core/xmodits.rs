@@ -1,5 +1,6 @@
 use super::cfg::SampleRippingConfig;
 use super::extraction::{Failed, ThreadMsg};
+use iced::subscription::channel;
 use iced::{subscription, Subscription};
 use rand::Rng;
 use std::path::PathBuf;
@@ -8,8 +9,6 @@ use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
 use tracing::info;
 
 pub type StartSignal = (Vec<PathBuf>, SampleRippingConfig);
-
-const ID: &str = "XMODITS_RIPPING";
 
 /// State of subscription
 #[derive(Default, Debug)]
@@ -79,96 +78,74 @@ impl From<Error> for CompleteState {
 /// * A module has/can't be ripped. This is also done to track progress.
 /// * The worker has finished ripping.
 pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
-    subscription::unfold(ID, State::Init, |state| async move {
-        match state {
-            State::Init => {
-                let (sender, receiver) = mpsc::channel::<StartSignal>(1);
-                (
-                    Some(ExtractionMessage::Ready(sender)),
-                    State::Idle(receiver),
-                )
-            }
-            State::Idle(mut start_msg) => match start_msg.recv().await {
-                Some(config) => {
-                    let total = config.0.len() as u64;
-                    let (tx, rx) = mpsc::unbounded_channel();
+    subscription::channel((), 512, |mut output| async move {
+        let mut state = State::Init;
+        loop {
+            match &mut state {
+                State::Init => {
+                    let (sender, receiver) = mpsc::channel::<StartSignal>(1);
+                    state = State::Idle(receiver);
+                    let _ = output.try_send(ExtractionMessage::Ready(sender));
+                }
+                State::Idle(start_msg) => match start_msg.recv().await {
+                    Some(config) => {
+                        let total = config.0.len() as u64;
+                        let (tx, rx) = mpsc::unbounded_channel();
 
-                    // The ripping process is delegated by the subscription to a separate thread.
-                    // This might not be idiomatic, but it works...
-                    std::thread::spawn(move || {
-                        let (paths, config) = config;
-                        super::extraction::rip(tx, paths, config);
-                    });
+                        // The ripping process is delegated by the subscription to a separate thread.
+                        // This might not be idiomatic, but it works...
+                        std::thread::spawn(move || {
+                            let (paths, config) = config;
+                            super::extraction::rip(tx, paths, config);
+                        });
 
-                    (
-                        None,
-                        State::Ripping {
+                        state = State::Ripping {
                             ripping_msg: rx,
                             total,
                             progress: 0,
                             error_handler: Error::default(),
                             total_errors: 0,
-                        },
-                    )
-                }
-                None => (None, State::Idle(start_msg)),
-            },
-            State::Ripping {
-                mut ripping_msg,
-                total,
-                mut progress,
-                mut error_handler,
-                mut total_errors,
-            } => match ripping_msg.recv().await {
-                Some(ThreadMsg::Progress(error)) => {
-                    progress += 1;
-                    let percentage: f32 = (progress as f32 / total as f32) * 100.0;
-
-                    if let Some(failed) = error {
-                        info!("{}", &failed);
-                        total_errors += 1;
-                        error_handler.push(failed).await;
+                        };
                     }
+                    None => (),
+                },
+                State::Ripping {
+                    ripping_msg,
+                    total_errors,
+                    error_handler,
+                    progress,
+                    total,
+                } => match ripping_msg.recv().await {
+                    Some(ThreadMsg::Progress(error)) => {
+                        *progress += 1;
+                        let percentage: f32 = (*progress as f32 / *total as f32) * 100.0;
 
-                    (
-                        Some(ExtractionMessage::Progress {
+                        if let Some(failed) = error {
+                            info!("{}", &failed);
+                            *total_errors += 1;
+                            error_handler.push(failed).await;
+                        }
+
+                        let _ = output.try_send(ExtractionMessage::Progress {
                             progress: percentage,
-                            total_errors,
-                        }),
-                        State::Ripping {
-                            ripping_msg,
-                            total,
-                            progress,
-                            error_handler,
-                            total_errors,
-                        },
-                    )
-                }
-                Some(ThreadMsg::SetTotal(total)) => (
-                    None,
-                    State::Ripping {
-                        ripping_msg,
-                        total,
-                        progress: 0,
-                        error_handler,
-                        total_errors,
-                    },
-                ),
-                Some(ThreadMsg::Info(info)) => (
-                    Some(ExtractionMessage::Info(info)),
-                    State::Ripping {
-                        ripping_msg,
-                        total,
-                        progress,
-                        error_handler,
-                        total_errors,
-                    },
-                ),
-                _ => (
-                    Some(ExtractionMessage::Done(CompleteState::from(error_handler))),
-                    State::Init,
-                ),
-            },
+                            total_errors: *total_errors,
+                        });
+                    }
+                    Some(ThreadMsg::SetTotal(new_total)) => {
+                        *total = new_total;
+                        *progress = 0;
+                    }
+                    Some(ThreadMsg::Info(info)) => {
+                        let _ = output.try_send(ExtractionMessage::Info(info));
+                    }
+                    _ => {
+                        let _ = output.try_send(ExtractionMessage::Done(CompleteState::from(
+                            std::mem::take(error_handler),
+                        )));
+                        state = State::Init;
+                    }
+                },
+            }
         }
     })
 }
