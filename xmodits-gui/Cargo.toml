@@ -12,63 +12,29 @@ repository = "https://github.com/B0ney/xmodits"
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1.12"
 
-[dependencies]
-# xmodits core library.
-xmodits-lib = { git = "https://github.com/B0ney/xmodits-lib.git", rev = "23465f01d9f7e034f9e4e3f4c696ed22ca628d97", features = ["serde"] }
+[dependencies.xmodits-lib]
+git = "https://github.com/B0ney/xmodits-lib.git"
+rev = "23465f01d9f7e034f9e4e3f4c696ed22ca628d97"
+features = ["serde"]
 
-# Handle errors in a generic way
-anyhow = "1.0.0"
+[dependencies.tokio]
+version = "1.27.0"
+features = ["sync", "fs", "io-util", "parking_lot"]
 
-# Platform specific directories for standard locations
-dirs = "5.0.0"
+[dependencies.image]
+version = "0.24.6"
+default-features = false
+features = ["ico"]
 
-# Date & Time
-chrono = { version = "0.4.24", features = ["serde"] }
+[dependencies.rfd]
+version = "0.11.3"
+default-features = false
+features = ["xdg-portal"]
 
-# Data serialization
-serde = { version = "1.0.0", features = ["derive"] }
-toml = "0.7.3"
+[dependencies.native-dialog]
+version="0.6.3"
+features = ["windows_dpi_awareness", "windows_visual_styles"]
 
-# Async
-tokio = { version = "1.26.0", features = ["sync", "fs", "io-util", "parking_lot"] }
-
-# To load icons
-image = { version = "0.24.6", default-features = false, features = ["ico"] }
-
-# File dialog
-rfd = { version = "0.11.3", default-features = false, features = ["xdg-portal"] }
-
-# OS-native message dialogs. Better than rfd's message dialogs imo.
-native-dialog = { version="0.6.3", features = ["windows_dpi_awareness", "windows_visual_styles"] }
-
-# Logging
-tracing = "0.1.37"
-tracing-log = "0.1.3"
-tracing-subscriber = "0.2.0"
-
-# Open Links
-open = "3.2.0"
-
-# Directory traversal
-walkdir = "2.3.3"
-
-# Random number generation
-rand = "0.8.5"
-
-# # Expand tilde '~'
-shellexpand = "3.0.0"
-
-# Support for animation for Iced
-cosmic-time = "0.1.2"
-
-# Additional widgets for Iced
-iced_aw = "0.4.1"
-parking_lot = "0.12.1"
-rayon = "1.7.0"
-once_cell = "1.17.1"
-iced_gif = "0.2.0"
-
-# GUI library
 [dependencies.iced]
 version = "0.9.0"
 features = [
@@ -78,6 +44,31 @@ features = [
     "default_system_font",
     "tokio",
 ]
+
+[dependencies]
+anyhow = "1.0.0"
+dirs = "5.0.0"
+chrono = { version = "0.4.24", features = ["serde"] }
+serde = { version = "1.0.0", features = ["derive"] }
+toml = "0.7.3"
+
+tracing = "0.1.37"
+tracing-log = "0.1.3"
+tracing-subscriber = "0.2.0"
+
+open = "3.2.0"
+walkdir = "2.3.3"
+rand = "0.8.5"
+shellexpand = "3.0.0"
+parking_lot = "0.12.1"
+rayon = "1.7.0"
+once_cell = "1.17.1"
+
+cosmic-time = "0.1.2"
+iced_aw = "0.4.1"
+iced_gif = "0.2.0"
+
+
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["shellapi", "winuser"] }
