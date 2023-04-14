@@ -1,4 +1,5 @@
 use std::{fs::File, path::{PathBuf, Path}};
+use std::hash::{Hash, Hasher};
 
 use chrono::Utc;
 use xmodits_lib::interface::Error;
@@ -36,6 +37,13 @@ impl Entry {
 
     pub fn filename(&self) -> &str {
         &self.filename
+    }
+}
+
+impl Hash for Entry {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.selected.hash(state);
+        self.path.hash(state);
     }
 }
 

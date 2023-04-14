@@ -15,6 +15,7 @@ use iced::window::icon::from_rgba;
 use iced::window::{Icon, Settings as Window};
 use iced::{Alignment, Application, Element, Length, Renderer, Settings};
 use iced_gif::gif;
+use iced_lazy::lazy;
 
 use image::{self, GenericImageView};
 use std::path::PathBuf;
@@ -23,7 +24,7 @@ use style::Theme;
 fn icon() -> Icon {
     let image = image::load_from_memory(include_bytes!("../../res/img/logo/icon3.png")).unwrap();
     let (w, h) = image.dimensions();
-    
+
     from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
 }
 
@@ -94,12 +95,9 @@ impl App {
 
     pub fn destination_bar(&self) -> Element<Message, Renderer<Theme>> {
         let destination = &self.ripping_config.destination;
-        let input: _ = text_input(
-            "Output Directory",
-            &format!("{}", destination.display()),
-        )
-        .padding(10)
-        .on_input(|s| Message::SetDestination(Some(PathBuf::new().join(s))));
+        let input: _ = text_input("Output Directory", &format!("{}", destination.display()))
+            .padding(10)
+            .on_input(|s| Message::SetDestination(Some(PathBuf::new().join(s))));
 
         input.into()
     }
@@ -196,57 +194,71 @@ impl App {
         let display: _ = match self.state {
             State::Idle => {
                 if self.entries.len() == 0 {
-                    container(column![
-                        text("Drag and Drop").font(JETBRAINS_MONO),
-                        // gif(&GIF.idle)
-                    ].align_items(Alignment::Center))
+                    container(
+                        column![
+                            text("Drag and Drop").font(JETBRAINS_MONO),
+                            // gif(&GIF.idle)
+                        ]
+                        .align_items(Alignment::Center),
+                    )
                     .width(Length::Fill)
                     .height(Length::Fill)
                     .center_x()
                     .center_y()
                 } else {
-                    container(scrollable(self.entries.entries.iter().enumerate().fold(
-                        column![].spacing(10).padding(5),
-                        |s, (idx, gs)| {
-                            s.push(row![
-                                button(if gs.is_dir() {
+                    container(scrollable(lazy(&self.entries.entries, |_| {
+                        column(
+                            self.entries
+                                .entries
+                                .iter()
+                                .enumerate()
+                                .map(|(idx, entry)| {
                                     row![
-                                        checkbox("", gs.selected, move |b| Message::Select {
-                                            index: idx,
-                                            selected: b,
-                                        }),
-                                        text(&gs.filename()),
-                                        Space::with_width(Length::Fill),
-                                        icons::folder_icon()
+                                        button(if entry.is_dir() {
+                                            row![
+                                                checkbox("", entry.selected, move |b| {
+                                                    Message::Select {
+                                                        index: idx,
+                                                        selected: b,
+                                                    }
+                                                }),
+                                                text(&entry.filename()),
+                                                Space::with_width(Length::Fill),
+                                                icons::folder_icon()
+                                            ]
+                                            .spacing(1)
+                                            .align_items(Alignment::Center)
+                                        } else {
+                                            row![
+                                                checkbox(
+                                                    "",
+                                                    match self.entries.all_selected {
+                                                        true => true,
+                                                        false => entry.selected,
+                                                    },
+                                                    move |b| Message::Select {
+                                                        index: idx,
+                                                        selected: b,
+                                                    }
+                                                ),
+                                                text(&entry.filename()),
+                                            ]
+                                            .spacing(1)
+                                            .align_items(Alignment::Center)
+                                        })
+                                        .width(Length::Fill)
+                                        .on_press(Message::Probe(idx))
+                                        .padding(4)
+                                        .style(style::button::Button::Entry),
+                                        Space::with_width(15)
                                     ]
-                                    .spacing(1)
-                                    .align_items(Alignment::Center)
-                                } else {
-                                    row![
-                                        checkbox(
-                                            "",
-                                            match self.entries.all_selected {
-                                                true => true,
-                                                false => gs.selected,
-                                            },
-                                            move |b| Message::Select {
-                                                index: idx,
-                                                selected: b,
-                                            }
-                                        ),
-                                        text(&gs.filename()),
-                                    ]
-                                    .spacing(1)
-                                    .align_items(Alignment::Center)
+                                    .into()
                                 })
-                                .width(Length::Fill)
-                                .on_press(Message::Probe(idx))
-                                .padding(4)
-                                .style(style::button::Button::Entry),
-                                Space::with_width(15)
-                            ])
-                        },
-                    )))
+                                .collect(),
+                        )
+                        .spacing(10)
+                        .padding(5)
+                    })))
                     .height(Length::Fill)
                 }
             }
@@ -260,7 +272,8 @@ impl App {
                         Some(info) => info,
                         None => "Ripping...",
                     })
-                    .font(JETBRAINS_MONO).horizontal_alignment(Horizontal::Center),
+                    .font(JETBRAINS_MONO)
+                    .horizontal_alignment(Horizontal::Center),
                     progress_bar(0.0..=100.0, progress).height(5).width(200),
                     // gif(&GIF.ripping)
                 ]
@@ -275,7 +288,7 @@ impl App {
             State::Done(ref completed_state) => match completed_state {
                 CompleteState::NoErrors => container(
                     column![
-                        text("Done! \\(^_^)/").font(JETBRAINS_MONO),                      
+                        text("Done! \\(^_^)/").font(JETBRAINS_MONO),
                         text("Drag and Drop").font(JETBRAINS_MONO),
                         text(&self.time).font(JETBRAINS_MONO),
                     ]
@@ -285,21 +298,21 @@ impl App {
                 .height(Length::Fill)
                 .center_x()
                 .center_y(),
+
                 CompleteState::SomeErrors(ref errors) => container(column![
                     column![
                         text("Done... But xmodits could not rip everything... (._.)")
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center),
-                        text(&self.time)
-                            .font(JETBRAINS_MONO)
+                        text(&self.time).font(JETBRAINS_MONO)
                     ]
                     .padding(4)
                     .align_items(Alignment::Center),
-                    scrollable(
+                    scrollable(lazy((), |_| column(
                         errors
                             .iter()
-                            .fold(column![].spacing(10).padding(5), |t, failed| {
-                                t.push(row![
+                            .map(|failed| {
+                                row![
                                     container(
                                         column![
                                             text(failed.filename()),
@@ -313,10 +326,14 @@ impl App {
                                     .width(Length::Fill)
                                     .padding(4),
                                     Space::with_width(15)
-                                ])
+                                ]
+                                .into()
                             })
-                            .width(Length::Fill),
-                    ),
+                            .collect()
+                    )
+                    .spacing(10)
+                    .padding(5)
+                    .width(Length::Fill)))
                 ])
                 .width(Length::Fill)
                 .height(Length::Fill),
