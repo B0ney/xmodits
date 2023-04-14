@@ -1843,13 +1843,13 @@ dependencies = [
 
 [[package]]
 name = "iced_gif"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b5502c5705f6f21d78ff124cc464fb3c8b37b479773ab20e891ee6af65e1354"
+checksum = "1bbfb7d0908ad83e7875b2b19c07cd706fd2934268b81fb111ba2b90b38850c4"
 dependencies = [
  "async-fs",
  "iced_futures",
- "iced_native 0.9.1",
+ "iced_native 0.10.1",
  "image",
  "thiserror",
 ]

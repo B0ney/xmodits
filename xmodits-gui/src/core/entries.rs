@@ -1,5 +1,8 @@
-use std::{fs::File, path::{PathBuf, Path}};
 use std::hash::{Hash, Hasher};
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+};
 
 use chrono::Utc;
 use xmodits_lib::interface::Error;
@@ -79,9 +82,36 @@ impl Entries {
         if let Some(entry) = self.entries.get_mut(index) {
             entry.selected = selected;
         }
+        self.all_selected = self.total_selected() == self.entries.len();
+    }
+
+    pub fn select_all(&mut self, selected: bool) {
+        self.all_selected = selected;
+        self.entries
+            .iter_mut()
+            .for_each(|entry| entry.selected = selected);
+    }
+
+    pub fn take_selected(&mut self)  -> Vec<Entry> {
+        if self.all_selected {
+            return std::mem::take(&mut self.entries);
+        }
+
+        let mut selected = Vec::with_capacity(self.total_selected());
+        let entries = &mut self.entries;
+
+        let mut i = 0;
+
+        while i < entries.len() {
+            if entries[i].selected {
+                selected.push(entries.remove(i));
+            } else {
+                i += 1;
+            }
+        };
+        selected
     }
 }
-
 
 #[derive(Default)]
 pub struct History {

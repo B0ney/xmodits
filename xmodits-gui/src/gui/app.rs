@@ -102,7 +102,7 @@ impl App {
         input.into()
     }
 
-    pub fn start_ripping(&mut self) {
+    pub fn start_ripping(&mut self, rip_selected: bool) {
         if self.entries.len() == 0 {
             return;
         }
@@ -111,7 +111,7 @@ impl App {
             return;
         };
 
-        let _ = sender.try_send(self.bulid_start_signal());
+        let _ = sender.try_send(self.bulid_start_signal(rip_selected));
         self.time.start();
 
         self.state = State::Ripping {
@@ -121,14 +121,17 @@ impl App {
         }
     }
 
-    fn bulid_start_signal(&mut self) -> StartSignal {
+    fn bulid_start_signal(&mut self, rip_selected: bool) -> StartSignal {
         let ripping_config = self.ripping_config.to_owned();
         self.current = None;
 
-        let paths: Vec<PathBuf> = std::mem::take(&mut self.entries.entries)
-            .into_iter()
-            .map(|f| f.path)
-            .collect();
+        let paths: Vec<PathBuf> = (match rip_selected {
+            true => self.entries.take_selected(),
+            false => std::mem::take(&mut self.entries.entries),
+        })
+        .into_iter()
+        .map(|f| f.path)
+        .collect();
 
         (paths, ripping_config)
     }
@@ -191,15 +194,16 @@ impl App {
         let total_selected: _ =
             text(format!("Selected: {}", self.entries.total_selected())).font(JETBRAINS_MONO);
 
+        // let OkBtn: _ = button("Ok")
+        //     .on_press(Message::SetState(State::Idle))
+        //     .padding(10);
+
         let display: _ = match self.state {
             State::Idle => {
                 if self.entries.len() == 0 {
                     container(
-                        column![
-                            text("Drag and Drop").font(JETBRAINS_MONO),
-                            // gif(&GIF.idle)
-                        ]
-                        .align_items(Alignment::Center),
+                        column![text("Drag and Drop").font(JETBRAINS_MONO), gif(&GIF.idle)]
+                            .align_items(Alignment::Center),
                     )
                     .width(Length::Fill)
                     .height(Length::Fill)
@@ -214,8 +218,8 @@ impl App {
                                 .enumerate()
                                 .map(|(idx, entry)| {
                                     row![
-                                        button(if entry.is_dir() {
-                                            row![
+                                        button({
+                                            let item = row![
                                                 checkbox("", entry.selected, move |b| {
                                                     Message::Select {
                                                         index: idx,
@@ -223,28 +227,16 @@ impl App {
                                                     }
                                                 }),
                                                 text(&entry.filename()),
-                                                Space::with_width(Length::Fill),
-                                                icons::folder_icon()
                                             ]
                                             .spacing(1)
-                                            .align_items(Alignment::Center)
-                                        } else {
-                                            row![
-                                                checkbox(
-                                                    "",
-                                                    match self.entries.all_selected {
-                                                        true => true,
-                                                        false => entry.selected,
-                                                    },
-                                                    move |b| Message::Select {
-                                                        index: idx,
-                                                        selected: b,
-                                                    }
-                                                ),
-                                                text(&entry.filename()),
-                                            ]
-                                            .spacing(1)
-                                            .align_items(Alignment::Center)
+                                            .align_items(Alignment::Center);
+
+                                            if entry.is_dir() {
+                                                item.push(Space::with_width(Length::Fill))
+                                                    .push(icons::folder_icon())
+                                            } else {
+                                                item
+                                            }
                                         })
                                         .width(Length::Fill)
                                         .on_press(Message::Probe(idx))
@@ -275,7 +267,7 @@ impl App {
                     .font(JETBRAINS_MONO)
                     .horizontal_alignment(Horizontal::Center),
                     progress_bar(0.0..=100.0, progress).height(5).width(200),
-                    // gif(&GIF.ripping)
+                    gif(&GIF.ripping)
                 ]
                 .spacing(8)
                 .align_items(Alignment::Center),
@@ -291,6 +283,7 @@ impl App {
                         text("Done! \\(^_^)/").font(JETBRAINS_MONO),
                         text("Drag and Drop").font(JETBRAINS_MONO),
                         text(&self.time).font(JETBRAINS_MONO),
+                        // OkBtn
                     ]
                     .align_items(Alignment::Center),
                 )
@@ -333,7 +326,8 @@ impl App {
                     )
                     .spacing(10)
                     .padding(5)
-                    .width(Length::Fill)))
+                    .width(Length::Fill))),
+                    // OkBtn
                 ])
                 .width(Length::Fill)
                 .height(Length::Fill),

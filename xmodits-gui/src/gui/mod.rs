@@ -49,7 +49,7 @@ pub enum Message {
     About(AboutMessage),
     SetDestinationDialog,
     SaveConfig,
-    StartRip,
+    StartRip { rip_selected: bool },
     Subscription(ExtractionMessage),
     WindowEvent(Event),
     Ignore,
@@ -64,6 +64,7 @@ pub enum Message {
     TrackerInfo(Option<Info>),
     Add(Option<Vec<PathBuf>>),
     SetDestination(Option<PathBuf>),
+    SetState(State)
 }
 
 #[derive(Default, Debug, Clone)]
@@ -245,7 +246,7 @@ impl Application for App {
                     |_| Message::Ignore,
                 );
             }
-            Message::StartRip => self.start_ripping(),
+            Message::StartRip { rip_selected } => self.start_ripping(rip_selected),
             Message::Subscription(m) => match m {
                 ExtractionMessage::Ready(start_signal) => {
                     self.sender = Some(start_signal);
@@ -271,7 +272,7 @@ impl Application for App {
                 _ => (),
             },
             Message::Ignore => (),
-            Message::SelectAll(selected) => self.entries.all_selected = selected,
+            Message::SelectAll(selected) => self.entries.select_all(selected),
             Message::DeleteSelected => self.delete_selected(),
             Message::Select { index, selected } => self.entries.select(index, selected),
             Message::Probe(index) => {
@@ -309,7 +310,8 @@ impl Application for App {
                 if let Some(paths) = paths {
                     paths.into_iter().for_each(|path| self.add(path))
                 }
-            } // Message::SetState(state) => self.state = state,
+            } 
+            Message::SetState(state) => self.state = state,
         };
         Command::none()
     }
@@ -356,9 +358,17 @@ impl Application for App {
                                 .align_items(Alignment::Center)
                         )
                         .padding(10)
-                        .on_press(Message::StartRip)
+                        .on_press(Message::StartRip { rip_selected: false })
                         .style(style::button::Button::Start)
                         .width(Length::Fill),
+                        // button(
+                        //     row![text("Start (Selected)"), icons::download_icon()]
+                        //         .align_items(Alignment::Center)
+                        // )
+                        // .padding(10)
+                        // .on_press(Message::StartRip { rip_selected: true })
+                        // .style(style::button::Button::Start)
+                        // .width(Length::Fill),
                     ]
                     .spacing(5)
                     .width(Length::FillPortion(1))
