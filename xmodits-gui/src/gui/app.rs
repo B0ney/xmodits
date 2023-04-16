@@ -31,6 +31,9 @@ fn icon() -> Icon {
 // See mod.rs for the full iced application
 impl App {
     pub fn start() {
+        tracing::info!("Starting gui");
+        GIF.init_lazy();
+        
         let settings: Settings<()> = Settings {
             window: Window {
                 size: (780, 640),
@@ -43,7 +46,7 @@ impl App {
             default_text_size: 17.0,
             ..iced::Settings::default()
         };
-        GIF.init_lazy();
+        
         let _ = Self::run(settings);
     }
 

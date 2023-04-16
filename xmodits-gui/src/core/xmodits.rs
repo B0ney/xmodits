@@ -6,7 +6,7 @@ use rand::Rng;
 use std::path::PathBuf;
 use tokio::io::{AsyncWriteExt, BufWriter};
 use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
-use tracing::info;
+use tracing::{error, info};
 
 pub type StartSignal = (Vec<PathBuf>, SampleRippingConfig);
 
@@ -91,6 +91,7 @@ pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
                     Some(config) => {
                         let total = config.0.len() as u64;
                         let (tx, rx) = mpsc::unbounded_channel();
+                        info!("Started ripping");
 
                         // The ripping process is delegated by the subscription to a separate thread.
                         // This might not be idiomatic, but it works...
@@ -121,7 +122,7 @@ pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
                         let percentage: f32 = (*progress as f32 / *total as f32) * 100.0;
 
                         if let Some(failed) = error {
-                            info!("{}", &failed);
+                            error!("{}", &failed);
                             *total_errors += 1;
                             error_handler.push(failed).await;
                         }
