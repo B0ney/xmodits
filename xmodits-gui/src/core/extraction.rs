@@ -1,6 +1,6 @@
 use crate::core::cfg::SampleRippingConfig;
-use crate::gui::utils::file_name;
 use crate::core::track::GLOBAL_TRACKER;
+use crate::gui::utils::file_name;
 
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Seek, Write};
@@ -30,7 +30,7 @@ impl ThreadMsg {
 
 pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippingConfig) {
     GLOBAL_TRACKER.reset();
-    
+
     // split files and folders
     let mut files: Vec<PathBuf> = Vec::new();
     let mut folders: Vec<PathBuf> = Vec::new();
@@ -85,11 +85,11 @@ fn stage_1(
     let files = GLOBAL_TRACKER.set_files(files);
 
     files.lock().iter().for_each(|file| {
-        let progress = match extract(&file, &cfg.destination, ripper.as_ref(), cfg.self_contained) {
-            Ok(()) => None,
-            Err(error) => Some(Failed::new(file.display().to_string(), error)),
-        };
-        subscr_tx.send(ThreadMsg::Progress(progress)).unwrap();
+        let _ = subscr_tx.send(ThreadMsg::Progress(
+            extract(&file, &cfg.destination, ripper.as_ref(), cfg.self_contained)
+                .map_err(|error| Failed::new(file.display().to_string(), error))
+                .err(),
+        ));
         GLOBAL_TRACKER.incr_file();
     });
 }
@@ -251,7 +251,7 @@ impl<'io> Batcher<'io> {
 
             // wait for the worker to finish, then loop
             match self.worker_rx.recv() {
-                Ok(_) => continue,
+                Ok(NextBatch) => continue,
                 Err(_) => break, // TODO
             }
         }
@@ -325,15 +325,12 @@ fn spawn_workers(
 
         for sub_batch in batch.chunks(SUB_BATCH_SIZE) {
             sub_batch.par_iter().for_each(|file| {
-                let progress = ThreadMsg::Progress(
-                    match extract(file, &destination, ripper.as_ref(), self_contained) {
-                        Ok(()) => None,
-                        Err(error) => Some(Failed::new(file.into(), error)),
-                    },
-                );
-
                 // Send an update to the subscription
-                subscr_tx.send(progress).unwrap()
+                let _ = subscr_tx.send(ThreadMsg::Progress(
+                    extract(&file, &destination, &ripper, self_contained)
+                        .map_err(|error| Failed::new(file.into(), error))
+                        .err(),
+                ));
             });
 
             GLOBAL_TRACKER.incr_sub_batch_number();
