@@ -6,6 +6,8 @@ use tokio::io::AsyncWriteExt;
 use toml;
 use xmodits_lib::{exporter::AudioFormat, SampleNamer, SampleNamerTrait};
 
+use crate::gui::style::Theme;
+
 const APP_NAME: &str = "xmodits";
 const CONFIG_NAME: &str = "config.toml";
 
@@ -62,6 +64,7 @@ impl Config {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct GeneralConfig {
+    pub theme: Theme,
     // pub sfx: bool,
     // pub folder_recursion_depth: u8,
     pub logging_path: Option<PathBuf>,

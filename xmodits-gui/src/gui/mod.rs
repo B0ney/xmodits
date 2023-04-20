@@ -45,7 +45,7 @@ pub enum Message {
     HelpPressed,
     SetCfg(ConfigMessage),
     SetRipCfg(ConfigRippingMessage),
-    // ChangeSetting(SettingsMessage),
+    SetTheme(Theme),
     About(AboutMessage),
     SetDestinationDialog,
     SaveConfig,
@@ -219,6 +219,9 @@ impl Application for App {
     fn title(&self) -> String {
         String::from("XMODITS")
     }
+    fn theme(&self) -> Self::Theme {
+        self.general_config.theme.clone()
+    }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
@@ -312,6 +315,7 @@ impl Application for App {
                 }
             } 
             Message::SetState(state) => self.state = state,
+            Message::SetTheme(theme) => self.general_config.theme = theme,
         };
         Command::none()
     }
@@ -378,7 +382,7 @@ impl Application for App {
             )
             .into(),
             View::About => views::about::view().map(Message::About),
-            View::Settings => views::settings::view(),
+            View::Settings => self.view_settings(),
             View::Help => views::help::view(),
         };
 

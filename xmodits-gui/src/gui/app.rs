@@ -43,6 +43,7 @@ impl App {
                 ..iced::window::Settings::default()
             },
             // try_opengles_first: true,
+            antialiasing: true,
             default_text_size: 17.0,
             ..iced::Settings::default()
         };

@@ -1,11 +1,15 @@
 use iced::{color, Color};
+use serde::{Serialize, Deserialize};
 
-#[derive(Default, Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Theme {
     #[default]
     Dark,
     Dracula,
     Nord,
+    LMMS,
+    OneShot,
+    // Custom(&'static std::path::Path),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -40,7 +44,8 @@ pub struct ColorPalette {
 }
 
 impl Theme {
-    pub const ALL: [Self; 1] = [Self::Dark];
+    pub const ALL: [Self; 5] = [Self::Dark, Self::Dracula, Self::Nord, Self::LMMS, Self::OneShot];
+
     pub fn palette(&self) -> ColorPalette {
         match self {
             Self::Dark => ColorPalette {
@@ -68,7 +73,7 @@ impl Theme {
                     background: color!(0x282a36),
                     foreground: color!(0x44475a),
                     dark: color!(0x1D1E26),
-                    border: color!(0x44475a),
+                    border: color!(0x4f5263),
                 },
                 normal: NormalColors {
                     primary: color!(0xff79c6),
@@ -83,7 +88,28 @@ impl Theme {
                     error: color!(0xff5555),
                 },
             },
-            Self::Nord => ColorPalette {
+            Self::LMMS => ColorPalette {
+                base: BaseColors {
+                    background: color!(0x26_2B_30),
+                    foreground: color!(0x3B424A), //3B424A
+                    dark: color!(0x11_13_14),
+                    border: color!(0x4C5864),
+                },
+                normal: NormalColors {
+                    primary: color!(0x309655),
+                    secondary: color!(0xa3be8c),
+                    surface: color!(0xe5e9f0),
+                    error: color!(0xff5555),
+                },
+                bright: BrightColors {
+                    primary: color!(0x0BD556),
+                    secondary: color!(0xa3be8c),
+                    surface: color!(0xe5e9f0),
+                    error: color!(0xff5555),
+                },
+            },
+            // Theme::Custom(_) => todo!(),
+            Theme::Nord => ColorPalette {
                 base: BaseColors {
                     background: color!(0x3b4252),
                     foreground: color!(0x434c5e),
@@ -103,6 +129,26 @@ impl Theme {
                     error: color!(0xff5555),
                 },
             },
+            Self::OneShot => ColorPalette {
+                base: BaseColors {
+                    background: color!(0x1A0B1D),
+                    foreground: color!(0x2B0D1A),
+                    dark: color!(0x100213),
+                    border: color!(0xFBCD5D),
+                },
+                normal: NormalColors {
+                    primary: color!(0xF48550),
+                    secondary: color!(0x80FF80),
+                    surface: color!(0xFEFECD),
+                    error: color!(0xff5555),
+                },
+                bright: BrightColors {
+                    primary: color!(0xFBCD5D),
+                    secondary: color!(0x80FF80),
+                    surface: color!(0xFEFECD),
+                    error: color!(0xff5555),
+                },
+            },
         }
     }
 }
@@ -116,6 +162,9 @@ impl std::fmt::Display for Theme {
                 Theme::Dark => "Dark",
                 Theme::Dracula => "Dracula",
                 Theme::Nord => "Nord",
+                // Theme::Custom(_) => todo!(),
+                Theme::LMMS => "LMMS",
+                Theme::OneShot => "OneShot",
             }
         )
     }
