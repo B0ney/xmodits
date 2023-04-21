@@ -6,6 +6,7 @@ pub enum Theme {
     #[default]
     Dark,
     Dracula,
+    Catppuccin,
     Nord,
     LMMS,
     OneShot,
@@ -44,7 +45,14 @@ pub struct ColorPalette {
 }
 
 impl Theme {
-    pub const ALL: [Self; 5] = [Self::Dark, Self::Dracula, Self::Nord, Self::LMMS, Self::OneShot];
+    pub const ALL: [Self; 6] = [
+        Self::Dark,
+        Self::Dracula,
+        Self::Catppuccin,
+        Self::Nord, 
+        Self::LMMS, 
+        Self::OneShot
+    ];
 
     pub fn palette(&self) -> ColorPalette {
         match self {
@@ -108,8 +116,7 @@ impl Theme {
                     error: color!(0xff5555),
                 },
             },
-            // Theme::Custom(_) => todo!(),
-            Theme::Nord => ColorPalette {
+            Self::Nord => ColorPalette {
                 base: BaseColors {
                     background: color!(0x3b4252),
                     foreground: color!(0x434c5e),
@@ -149,6 +156,26 @@ impl Theme {
                     error: color!(0xff5555),
                 },
             },
+            Self::Catppuccin => ColorPalette {
+                base: BaseColors {
+                    background: color!(0x1E1E28),
+                    foreground: color!(0x332E41),
+                    dark: color!(0x1B1923),
+                    border: color!(0x6E6C7E),
+                },
+                normal: NormalColors {
+                    primary: color!(0xC6AAE8),
+                    secondary: color!(0xB1E3AD),
+                    surface: color!(0xD7DAE0),
+                    error: color!(0xE38C8F),
+                },
+                bright: BrightColors {
+                    primary: color!(0xC6AAE8),
+                    secondary: color!(0xB1E3AD),
+                    surface: color!(0xFEFECD),
+                    error: color!(0xE38C8F),
+                },
+            },
         }
     }
 }
@@ -162,9 +189,9 @@ impl std::fmt::Display for Theme {
                 Theme::Dark => "Dark",
                 Theme::Dracula => "Dracula",
                 Theme::Nord => "Nord",
-                // Theme::Custom(_) => todo!(),
                 Theme::LMMS => "LMMS",
                 Theme::OneShot => "OneShot",
+                Theme::Catppuccin => "Catppuccin",
             }
         )
     }
