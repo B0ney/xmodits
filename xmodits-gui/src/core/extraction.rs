@@ -4,7 +4,7 @@ use crate::gui::utils::file_name;
 
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Seek, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{mpsc, Arc};
 
@@ -62,6 +62,29 @@ pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippi
     tx.send(ThreadMsg::Done).unwrap();
 }
 
+fn strict_loading(strict: bool) -> impl Fn(&Path) -> bool {
+    match strict {
+        true => move |path: &Path| {
+            const EXT: &[&str] = &[
+                "it", "xm", "s3m", "mod", "umx", "mptm", 
+                "IT", "XM", "S3M", "MOD", "UMX", "MPTM",
+            ];
+
+            let Some(ext) = path
+                .extension()
+                .map(|f| f.to_str())
+                .flatten()
+            else {
+                return false;
+            };
+
+            EXT.contains(&ext)
+        },
+
+        false => |_: &Path| true,
+    }
+}
+
 fn stage_1(
     subscr_tx: AsyncSender<ThreadMsg>,
     files: Vec<PathBuf>,
@@ -83,8 +106,9 @@ fn stage_1(
         .unwrap();
 
     let files = GLOBAL_TRACKER.set_files(files);
+    let filter = strict_loading(cfg.strict);
 
-    files.lock().iter().for_each(|file| {
+    files.lock().iter().filter(|f| filter(f)).for_each(|file| {
         let _ = subscr_tx.send(ThreadMsg::Progress(
             extract(&file, &cfg.destination, ripper.as_ref(), cfg.self_contained)
                 .map_err(|error| Failed::new(file.display().to_string(), error))
@@ -110,7 +134,9 @@ fn stage_2(
         .send(ThreadMsg::info("Traversing Directories..."))
         .unwrap();
 
-    let (mut file, lines) = traverse(folders, cfg.folder_max_depth);
+    let filter = strict_loading(cfg.strict);
+
+    let (mut file, lines) = traverse(folders, cfg.folder_max_depth, filter);
     subscr_tx.send(ThreadMsg::SetTotal(lines)).unwrap();
 
     subscr_tx
@@ -141,7 +167,7 @@ fn batch_size(lines: u64) -> usize {
 pub fn traverse(
     dirs: Vec<PathBuf>,
     max_depth: u8,
-    // filter: impl Fn(&Path) -> bool,
+    filter: impl Fn(&Path) -> bool,
 ) -> (BufReader<File>, u64) {
     // create a file in read-write mode
     // TODO: make this a temporary file, but I'll also need to figure out how to resume...
@@ -162,7 +188,7 @@ pub fn traverse(
             .max_depth(max_depth as usize)
             .into_iter()
             .filter_map(|f| f.ok())
-            .filter(|f| f.path().is_file())
+            .filter(|f| f.path().is_file() && filter(f.path()))
             .for_each(|f| {
                 lines += 1;
                 file.write_fmt(format_args!("{}\n", f.path().display()))
