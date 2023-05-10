@@ -8,21 +8,38 @@
 </div>
 
 ## Supported Formats
-| Extension | Format |
+| Extension | Format | 
 | --- | --- |
-| IT | Impulse Tracker |
+| IT | Impulse Tracker* |
 | XM | Extended Module | 
 | S3M | Scream Tracker 3 |
 | MOD | Amiga Pro Tracker |
-| MPTM | ModPlug Tracker module |
+| MPTM | ModPlug Tracker module* |
 | UMX | Unreal Music Package (Containing above) |
 
-## GUI Screenshot
-![xmodits gui](./extras/screenshots/Screenshot_1.png) 
+\* Ripping from OpenMPT trackers is not pefect [TODO]
+
+## Features
+<!-- * Sample previewing  (0.12.0)-->
+* View information about a tracker
+* Multi-threaded ripping*
+* 
+<!-- * Resuming -->
+<!-- * History -->
+
+\* xmodits will only use threads if it's ripping from a directory.
+
+## Screenshots (GUI)
+![xmodits gui](./screenshots/home.png)
+![xmodits gui](./screenshots/selection.png)
+![xmodits gui](./screenshots/ripping.png)
+
+Click [here](./screenshots/README.md) for different themes
+
 <!-- ![xmodits gui](./extras/screenshots/Screenshot_2.png) -->
 
 ## CLI Screenshot
-Soon
+--Soon--
 
 ## Download
 You can download builds for xmodits [here](https://github.com/B0ney/xmodits/releases).
@@ -57,7 +74,8 @@ If you want to simply extract samples, you can just drag and drop a module(s) on
 |||
 |--|--|
 | No Folder | Xmodits will not put samples in a self contained folder.<br>This can overwrite data so use with caution.|
-|Format Hinting| Tell xmodits which format to load first, instead of relying on the file extension.|
+| Strict Loading||
+| Export Format| |
 | Folder Scan Depth | Limit how far a folder can be traversed. |
 
 ### Saving Configuration
@@ -102,7 +120,6 @@ If you want to customize how ripped samples are named, the following arguments c
 |-n |--no-folder| Do not create a new folder for ripped samples.<br>This can overwrite data, BE CAREFUL!|
 |-u |--upper| Name samples in upper case. |
 |-l |--lower| Name samples in lower case. |
-||--hint| Hint xmodits to load a particular format first.<br>```[it, xm, s3m, mod, umx, mptm]```|
 ||--info| Print information about a tracker module. |
 
 
@@ -115,8 +132,8 @@ This is because the tracker authour has applied effects such as pitch increase, 
 
 Replicating these effects is not a top priority.  -->
 
-## Resources
-The resources that made this project possible can be found [here](./resources/).
+<!-- ## Resources
+The resources that made this project possible can be found [here](./resources/). -->
 
 ## Building
 Requirements:
@@ -135,13 +152,14 @@ cargo build -p xmodits --release
 ## Licenses
 The xmodits project has multiple programs. Each with their own licenses.
 
-|Program| License|
-|--|--|
-|[XMODITS-GUI](app/gui/) (App) | GPLv3|
-|[XMODITS-CLI](app/cli/) (App) | LGPLv3 |
-|[XMODITS-PY](pylib/) (basically xmodits-cli)| LGPLv3 |
-|XMODITS-LIB | MPLv2 |
+|Program| License|Description|
+|--|--|--|
+|[XMODITS-GUI](https://github.com/B0ney/xmodits) (App) | GPLv3| xmodits gui app|
+|[XMODITS-CLI](https://github.com/B0ney/xmodits) (App) | LGPLv3 | xmodits cli program|
+|[XMODITS-PY](https://github.com/B0ney/xmodits-lib)| LGPLv3 | xmodits Python library <br> (Mainly used for [DawVert](https://github.com/SatyrDiamond/DawVert))|
+|[XMODITS-LIB](https://github.com/B0ney/xmodits-lib) | MPLv2 | xmodits core library|
 
 ## Special Thanks
 - The GUI was made with [Iced](https://github.com/iced-rs/iced)
 - [@0x192](https://github.com/0x192) (and contributers) for their [Universal Android Debloat tool](https://github.com/0x192/universal-android-debloater/). I've learned a lot of gui stuff from that project.
+- [SatyrDiamond](https://github.com/SatyrDiamond)'s [DawVert](https://github.com/SatyrDiamond/DawVert), A program to convert different daw project files to [TODO]
