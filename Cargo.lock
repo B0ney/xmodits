@@ -4884,6 +4884,7 @@ dependencies = [
  "rfd",
  "serde",
  "shellexpand",
+ "tempfile",
  "tokio",
  "toml 0.7.3",
  "tracing",

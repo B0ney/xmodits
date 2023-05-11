@@ -66,8 +66,7 @@ fn strict_loading(strict: bool) -> impl Fn(&Path) -> bool {
     match strict {
         true => move |path: &Path| {
             const EXT: &[&str] = &[
-                "it", "xm", "s3m", "mod", "umx", "mptm", 
-                "IT", "XM", "S3M", "MOD", "UMX", "MPTM",
+                "it", "xm", "s3m", "mod", "umx", "mptm", "IT", "XM", "S3M", "MOD", "UMX", "MPTM",
             ];
 
             let Some(ext) = path
@@ -171,13 +170,15 @@ pub fn traverse(
 ) -> (BufReader<File>, u64) {
     // create a file in read-write mode
     // TODO: make this a temporary file, but I'll also need to figure out how to resume...
-    let mut file: File = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open("./test.txt") // todo
-        .unwrap();
+    // let mut file: File = OpenOptions::new()
+    //     .read(true)
+    //     .write(true)
+    //     .create(true)
+    //     .truncate(true)
+    //     .open("./test.txt") // todo
+    //     .unwrap();
+    let mut file = tempfile::tempfile_in(dirs::download_dir().unwrap()).unwrap();
+    // dbg!("{}", file.metadata());
 
     // store the number of entries
     let mut lines: u64 = 0;
@@ -343,27 +344,30 @@ fn spawn_workers(
         .build()
         .unwrap();
 
-    pool.spawn(move || loop {
-        let Ok(batch) = batch_rx.recv() else {
-            break;
-        };
-        let batch = batch.lock();
+    pool.spawn(move || {
+        while let Ok(batch) = batch_rx.recv() {
+            batch.lock().chunks(SUB_BATCH_SIZE).for_each(|sub_batch| {
 
-        for sub_batch in batch.chunks(SUB_BATCH_SIZE) {
-            sub_batch.par_iter().for_each(|file| {
-                // Send an update to the subscription
-                let _ = subscr_tx.send(ThreadMsg::Progress(
-                    extract(&file, &destination, &ripper, self_contained)
-                        .map_err(|error| Failed::new(file.into(), error))
-                        .err(),
-                ));
+                sub_batch.par_iter().for_each(|file| {
+                    let result = extract(&file, &destination, &ripper, self_contained);
+
+                    // Send an update to the subscription
+                    let _ = match result {
+                        Ok(()) => subscr_tx.send(ThreadMsg::Progress(None)),
+
+                        Err(error) => {
+                            let error = Some(Failed::new(file.into(), error));
+                            subscr_tx.send(ThreadMsg::Progress(error))
+                        }
+                    };
+                });
+
+                GLOBAL_TRACKER.incr_sub_batch_number();
             });
 
-            GLOBAL_TRACKER.incr_sub_batch_number();
+            // Tell the batcher we're done so that it can send the next round
+            worker_tx.send(NextBatch).unwrap();
         }
-
-        // Tell the batcher we're done so that it can send the next round
-        worker_tx.send(NextBatch).unwrap();
     });
 }
 

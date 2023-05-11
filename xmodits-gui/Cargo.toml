@@ -63,6 +63,7 @@ shellexpand = "3.0.0"
 parking_lot = "0.12.1"
 rayon = "1.7.0"
 once_cell = "1.17.1"
+tempfile = "3.5.0"
 
 cosmic-time = "0.1.2"
 iced_aw = "0.4.1"
