@@ -33,7 +33,7 @@ impl App {
     pub fn start() {
         tracing::info!("Starting gui");
         GIF.init_lazy();
-        
+
         let settings: Settings<()> = Settings {
             window: Window {
                 size: (780, 640),
@@ -47,7 +47,7 @@ impl App {
             default_text_size: 17.0,
             ..iced::Settings::default()
         };
-        
+
         let _ = Self::run(settings);
     }
 
@@ -129,10 +129,11 @@ impl App {
         let ripping_config = self.ripping_config.to_owned();
         self.current = None;
 
-        let paths: Vec<PathBuf> = (match rip_selected {
+        // TODO
+        let paths: Vec<PathBuf> = match self.entries.total_selected() > 0 {
             true => self.entries.take_selected(),
             false => std::mem::take(&mut self.entries.entries),
-        })
+        }
         .into_iter()
         .map(|f| f.path)
         .collect();
@@ -198,9 +199,13 @@ impl App {
         let total_selected: _ =
             text(format!("Selected: {}", self.entries.total_selected())).font(JETBRAINS_MONO);
 
-        // let OkBtn: _ = button("Ok")
-        //     .on_press(Message::SetState(State::Idle))
-        //     .padding(10);
+        let ContinueButton: _ = button("Continue")
+            .on_press(Message::SetState(State::Idle))
+            .padding(5);
+
+        let SaveErrorsButton: _ = button("Save Errors")
+            .on_press(Message::SaveErrors)
+            .padding(5);
 
         let display: _ = match self.state {
             State::Idle => {
@@ -287,7 +292,8 @@ impl App {
                         text("Done! \\(^_^)/").font(JETBRAINS_MONO),
                         text("Drag and Drop").font(JETBRAINS_MONO),
                         text(&self.time).font(JETBRAINS_MONO),
-                        // OkBtn
+                        Space::with_height(15),
+                        ContinueButton
                     ]
                     .align_items(Alignment::Center),
                 )
@@ -296,43 +302,51 @@ impl App {
                 .center_x()
                 .center_y(),
 
-                CompleteState::SomeErrors(ref errors) => container(column![
+                CompleteState::SomeErrors(ref errors) => container(
                     column![
-                        text("Done... But xmodits could not rip everything... (._.)")
-                            .font(JETBRAINS_MONO)
-                            .horizontal_alignment(Horizontal::Center),
-                        text(&self.time).font(JETBRAINS_MONO)
-                    ]
-                    .padding(4)
-                    .align_items(Alignment::Center),
-                    scrollable(lazy((), |_| column(
-                        errors
-                            .iter()
-                            .map(|failed| {
-                                row![
-                                    container(
-                                        column![
-                                            text(failed.filename()),
-                                            text(&failed.reason)
-                                                .horizontal_alignment(Horizontal::Center)
-                                        ]
+                        column![
+                            text("Done... But xmodits could not rip everything... (._.)")
+                                .font(JETBRAINS_MONO)
+                                .horizontal_alignment(Horizontal::Center),
+                            text(&self.time).font(JETBRAINS_MONO),
+                        ]
+                        .padding(4)
+                        .align_items(Alignment::Center),
+                        row![ContinueButton, SaveErrorsButton]
+                            .padding(4)
+                            .spacing(6)
+                            .align_items(Alignment::Center),
+                        scrollable(lazy((), |_| column(
+                            errors
+                                .iter()
+                                .map(|failed| {
+                                    row![
+                                        container(
+                                            column![
+                                                text(failed.filename()),
+                                                text(&failed.reason)
+                                                    .horizontal_alignment(Horizontal::Center)
+                                            ]
+                                            .width(Length::Fill)
+                                            .align_items(Alignment::Center)
+                                        )
+                                        .style(style::Container::Frame)
                                         .width(Length::Fill)
-                                        .align_items(Alignment::Center)
-                                    )
-                                    .style(style::Container::Frame)
-                                    .width(Length::Fill)
-                                    .padding(4),
-                                    Space::with_width(15)
-                                ]
-                                .into()
-                            })
-                            .collect()
-                    )
-                    .spacing(10)
-                    .padding(5)
-                    .width(Length::Fill))),
-                    // OkBtn
-                ])
+                                        .padding(4),
+                                        Space::with_width(15)
+                                    ]
+                                    .into()
+                                })
+                                .collect()
+                        )
+                        .spacing(10)
+                        .padding(5)
+                        .width(Length::Fill)))
+                        .height(Length::Fill),
+                        // space,
+                    ]
+                    .align_items(Alignment::Center),
+                )
                 .width(Length::Fill)
                 .height(Length::Fill),
 
@@ -355,6 +369,10 @@ impl App {
                         text(&self.time)
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center),
+                        // space,
+                        row![ContinueButton]
+                            .padding(4)
+                            .align_items(Alignment::Center)
                     ]
                     .align_items(Alignment::Center)
                     .padding(4)
@@ -369,24 +387,48 @@ impl App {
                     ref reason,
                     ref errors,
                     discarded,
+                    manually_saved,
                 } => container(
                     column![
                         text("Done...").font(JETBRAINS_MONO),
                         text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
                         text("...and I can't store them to a file either:").font(JETBRAINS_MONO),
-                        text(format!("\"{}\"", reason)).font(JETBRAINS_MONO),
-                        text(format!("{} stored errors", errors.len()))
+                        text(format!("\"{}\"", reason))
                             .font(JETBRAINS_MONO)
-                            .horizontal_alignment(Horizontal::Center),
-                        text(match discarded {
-                            0 => format!("No errors were discarded."),
-                            n => format!("{} error(s) was discarded to save memory. >_<", n),
-                        })
+                            .horizontal_alignment(Horizontal::Center)
+                            .style(style::text::Text::Error),
+                        match errors.len() {
+                            /*
+                                We need to std::mem::take the errors when the user is manually saving the errors
+                            */
+                            0 => match manually_saved {
+                                false => text(format!("Manually Saving errors...")),
+                                true => text(format!("Errors saved manually :D")),
+                            },
+                            n => text(format!("{} stored errors", n)),
+                        }
+                        .font(JETBRAINS_MONO)
+                        .horizontal_alignment(Horizontal::Center),
+                        match discarded {
+                            0 => text(format!("No errors were discarded.")),
+                            n => text(format!(
+                                "I had to discard {} error(s) to save memory. >_<",
+                                n
+                            ))
+                            .style(style::text::Text::Error),
+                        }
                         .font(JETBRAINS_MONO)
                         .horizontal_alignment(Horizontal::Center),
                         text(&self.time)
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center),
+                        match manually_saved {
+                            true => row![ContinueButton],
+                            false => row![ContinueButton, SaveErrorsButton],
+                        }
+                        .padding(4)
+                        .spacing(6)
+                        .align_items(Alignment::Center),
                     ]
                     .align_items(Alignment::Center)
                     .padding(4)

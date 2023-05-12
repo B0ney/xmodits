@@ -1,10 +1,9 @@
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
 use super::Info;
 
 pub fn file_name(path: impl AsRef<Path>) -> String {
-    path
-        .as_ref()
+    path.as_ref()
         .file_name()
         .map(|f| f.to_string_lossy())
         .unwrap_or_default()
@@ -24,6 +23,13 @@ pub async fn folders_dialog() -> Option<Vec<PathBuf>> {
 
 pub async fn files_dialog() -> Option<Vec<PathBuf>> {
     paths(rfd::AsyncFileDialog::new().pick_files().await)
+}
+
+pub async fn create_file() -> Option<PathBuf> {
+    rfd::AsyncFileDialog::new().add_filter("", &["txt"])
+        .save_file()
+        .await
+        .map(|handle| handle.path().to_owned())
 }
 
 fn paths(h: Option<Vec<rfd::FileHandle>>) -> Option<Vec<PathBuf>> {

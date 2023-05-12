@@ -8,7 +8,9 @@ pub mod views;
 
 use crate::core::cfg::{Config, GeneralConfig, SampleRippingConfig};
 use crate::core::entries::{Entries, History};
-use crate::core::xmodits::{xmodits_subscription, CompleteState, ExtractionMessage, StartSignal};
+use crate::core::xmodits::{
+    xmodits_subscription, CompleteState, ErrorHandler, ExtractionMessage, Failed, StartSignal,
+};
 
 use iced::keyboard::{Event as KeyboardEvent, KeyCode};
 use iced::widget::{button, column, container, row, text, Column, Container, Space};
@@ -27,6 +29,8 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc::Sender;
 use xmodits_lib::traits::Module;
+
+use self::utils::create_file;
 
 #[derive(Default, Debug, Clone)]
 pub enum View {
@@ -64,7 +68,10 @@ pub enum Message {
     TrackerInfo(Option<Info>),
     Add(Option<Vec<PathBuf>>),
     SetDestination(Option<PathBuf>),
-    SetState(State)
+    SetState(State),
+    SaveErrors,
+    SaveErrorResult(Result<(), Vec<Failed>>),
+    // SaveFile(Option<PathBuf>),
 }
 
 #[derive(Default, Debug, Clone)]
@@ -313,9 +320,45 @@ impl Application for App {
                 if let Some(paths) = paths {
                     paths.into_iter().for_each(|path| self.add(path))
                 }
-            } 
+            }
             Message::SetState(state) => self.state = state,
             Message::SetTheme(theme) => self.general_config.theme = theme,
+            Message::SaveErrors => {
+                let State::Done(errors) =  &mut self.state else {
+                    return Command::none();
+                };
+                let Some(errors) = errors.take() else {
+                    return Command::none();
+                };
+
+                return Command::perform(
+                    async {
+                        let Some(path) = create_file().await else {
+                            return Err(errors);
+                        };
+
+                        ErrorHandler::dump(errors, path).await
+                    },
+                    Message::SaveErrorResult,
+                );
+            }
+            Message::SaveErrorResult(result) => {
+                let State::Done(state) =  &mut self.state else {
+                    return Command::none();
+                };
+
+                let Err(mut returned_errors) = result else {
+                    // tell the user that they have successfully saved
+                    // state.set_manually_saved();
+                    self.state = State::Idle; // todo
+                    return Command::none();
+                };
+
+                // Store the errors back
+                if let Some(errors) = state.errors_ref_mut() {
+                    *errors = std::mem::take(&mut returned_errors);
+                };
+            },
         };
         Command::none()
     }
@@ -362,7 +405,9 @@ impl Application for App {
                                 .align_items(Alignment::Center)
                         )
                         .padding(10)
-                        .on_press(Message::StartRip { rip_selected: false })
+                        .on_press(Message::StartRip {
+                            rip_selected: false
+                        })
                         .style(style::button::Button::Start)
                         .width(Length::Fill),
                         // button(

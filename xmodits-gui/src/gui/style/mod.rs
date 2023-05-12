@@ -6,6 +6,8 @@ pub mod scrollable;
 pub mod svg;
 pub mod text;
 pub mod text_input;
+pub mod slider;
+// pub mod rule;
 use iced::overlay::menu;
 use iced::widget::{container, pick_list, rule};
 
@@ -131,9 +133,9 @@ impl rule::StyleSheet for Theme {
     fn appearance(&self, style: &Self::Style) -> rule::Appearance {
         match style {
             Rule::Default => rule::Appearance {
-                color: self.palette().bright.surface,
-                width: 2,
-                radius: 2.0,
+                color: self.palette().base.border,
+                width: 1,
+                radius: 1.0,
                 fill_mode: rule::FillMode::Full,
             },
         }

@@ -1,6 +1,5 @@
 use super::cfg::SampleRippingConfig;
-use super::extraction::{Failed, ThreadMsg};
-use iced::subscription::channel;
+pub use super::extraction::{Failed, ThreadMsg};
 use iced::{subscription, Subscription};
 use rand::Rng;
 use std::path::PathBuf;
@@ -20,7 +19,7 @@ enum State {
         ripping_msg: UnboundedReceiver<ThreadMsg>,
         total: u64,
         progress: u64,
-        error_handler: Error,
+        error_handler: ErrorHandler,
         total_errors: u64,
     },
 }
@@ -47,18 +46,38 @@ pub enum CompleteState {
         reason: String,
         errors: Vec<Failed>,
         discarded: u64,
+        manually_saved: bool,
     },
 }
+impl CompleteState {
+    pub fn take(&mut self) -> Option<Vec<Failed>> {
 
-impl From<Error> for CompleteState {
-    fn from(value: Error) -> Self {
+        Some(std::mem::take(self.errors_ref_mut()?))
+    }
+
+    pub fn errors_ref_mut(&mut self) -> Option<&mut Vec<Failed>> {
+        match self {
+            Self::SomeErrors(errors) | Self::TooMuchErrorsNoLog { errors, .. } => Some(errors),
+            _ => None,
+        }
+    }
+
+    pub fn set_manually_saved(&mut self) {
+        if let Self::TooMuchErrorsNoLog { manually_saved, .. } = self {
+            *manually_saved = true;
+        }
+    }
+}
+
+impl From<ErrorHandler> for CompleteState {
+    fn from(value: ErrorHandler) -> Self {
         match value {
-            Error::Mem { errors, .. } => match errors.len() > 0 {
+            ErrorHandler::Mem { errors, .. } => match errors.len() > 0 {
                 true => Self::SomeErrors(errors),
                 false => Self::NoErrors,
             },
-            Error::File { total, path, .. } => Self::TooMuchErrors { log: path, total },
-            Error::FailedFile {
+            ErrorHandler::File { total, path, .. } => Self::TooMuchErrors { log: path, total },
+            ErrorHandler::FailedFile {
                 reason,
                 errors,
                 discarded,
@@ -66,6 +85,7 @@ impl From<Error> for CompleteState {
                 reason,
                 errors,
                 discarded,
+                manually_saved: false,
             },
         }
     }
@@ -104,7 +124,7 @@ pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
                             ripping_msg: rx,
                             total,
                             progress: 0,
-                            error_handler: Error::default(),
+                            error_handler: ErrorHandler::default(),
                             total_errors: 0,
                         };
                     }
@@ -151,7 +171,7 @@ pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
     })
 }
 
-const MAX: usize = 150;
+const MAX: usize = 100;
 const ABS_LIMIT: usize = MAX * 10;
 
 /// When the subscription receives errors from the workers, they're stored in this enum.
@@ -163,7 +183,7 @@ const ABS_LIMIT: usize = MAX * 10;
 /// However, if we can't create a file for some reason, we keep the errors in memory;
 /// to preserve memory at this stage, future errors will be discarded when it's reached its absolute limit.
 #[derive(Debug)]
-enum Error {
+pub enum ErrorHandler {
     Mem {
         errors: Vec<Failed>,
         log_dir: PathBuf,
@@ -180,7 +200,7 @@ enum Error {
     },
 }
 
-impl Default for Error {
+impl Default for ErrorHandler {
     fn default() -> Self {
         Self::Mem {
             // Reserve an extra element so that pushing the last error before they're moved to a file
@@ -191,10 +211,10 @@ impl Default for Error {
     }
 }
 
-impl Error {
+impl ErrorHandler {
     async fn push(&mut self, error: Failed) {
         match self {
-            Error::Mem { errors, log_dir } => {
+            ErrorHandler::Mem { errors, log_dir } => {
                 if errors.len() < MAX {
                     errors.push(error);
                     return;
@@ -240,12 +260,12 @@ impl Error {
                 };
             }
 
-            Error::File { total, file, .. } => {
+            ErrorHandler::File { total, file, .. } => {
                 Self::write_error(file, error).await;
                 *total += 1;
             }
 
-            Error::FailedFile {
+            ErrorHandler::FailedFile {
                 errors, discarded, ..
             } => {
                 if errors.len() < ABS_LIMIT {
@@ -254,6 +274,29 @@ impl Error {
                 }
                 *discarded += 1;
             }
+        }
+    }
+
+    /// dump the errors to a file, will overwrite
+    pub async fn dump(errors: Vec<Failed>, path: PathBuf) -> Result<(), Vec<Failed>> {
+        match tokio::fs::OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(&path)
+            .await
+            .map(BufWriter::new)
+        {
+            Ok(mut file) => {
+                for error in errors {
+                    Self::write_error(&mut file, error).await;
+                }
+                Ok(())
+            }
+            Err(e) => {
+                dbg!(e);
+                Err(errors)
+            },
         }
     }
 

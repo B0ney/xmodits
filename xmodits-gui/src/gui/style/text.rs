@@ -6,7 +6,7 @@ use iced::Color;
 pub enum Text {
     #[default]
     Default,
-    Danger,
+    Error,
     Commentary,
     Color(Color),
 }
@@ -23,7 +23,7 @@ impl text::StyleSheet for Theme {
     fn appearance(&self, style: Self::Style) -> text::Appearance {
         match style {
             Text::Default => Default::default(),
-            Text::Danger => text::Appearance {
+            Text::Error => text::Appearance {
                 color: Some(self.palette().bright.error),
             },
             Text::Commentary => text::Appearance {

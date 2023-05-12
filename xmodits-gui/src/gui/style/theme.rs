@@ -67,13 +67,13 @@ impl Theme {
                     primary: color!(0x5E4266),
                     secondary: color!(0x386e50),
                     surface: color!(0x828282),
-                    error: color!(0x992B2B),
+                    error: color!(0xff5555),
                 },
                 bright: BrightColors {
                     primary: color!(0xBA84FC),
                     secondary: color!(0x49eb7a),
                     surface: color!(0xE0E0E0),
-                    error: color!(0xa37777),
+                    error: color!(0xff5555),
                 },
             },
             Self::Dracula => ColorPalette {
