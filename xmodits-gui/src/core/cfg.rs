@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
 use tokio::io::AsyncWriteExt;
 use toml;
+use tracing::{error, info, warn};
 use xmodits_lib::{exporter::AudioFormat, SampleNamer, SampleNamerTrait};
 
 use crate::gui::style::Theme;
@@ -26,10 +27,12 @@ pub struct Config {
 impl Config {
     pub fn load() -> Self {
         let Ok(toml) = fs::read_to_string(Self::path()) else {
+            info!("Generating Default config file. Note that this won't be saved.");
             return Self::default();
         };
 
         let Ok(config) = toml::from_str(&toml) else {
+            warn!("Could not parse config file. Perhaps an older version was loaded...");
             return Self::default();
         };
 
@@ -38,20 +41,32 @@ impl Config {
 
     pub async fn save(&self) -> Result<()> {
         if !config_dir().exists() {
+            info!("Creating config directory: {}", config_dir().display());
             tokio::fs::create_dir(config_dir()).await?;
         };
 
-        let mut file = tokio::fs::OpenOptions::new()
+        let file = tokio::fs::OpenOptions::new()
             .write(true)
             .truncate(true)
             .create(true)
             .open(Self::path())
-            .await?;
+            .await;
 
-        file.write_all(toml::to_string_pretty(&self)?.as_bytes())
-            .await?;
+        if let Err(e) = &file {
+            error!("{}", e);
+        }
 
-        Ok(())
+        let result = file?
+            .write_all(toml::to_string_pretty(&self)?.as_bytes())
+            .await;
+
+        if let Err(e) = &result {
+            error!("{}", e)
+        } else {
+            info!("Saved Configuration!");
+        }
+
+        Ok(result?)
     }
     pub fn filename() -> &'static str {
         CONFIG_NAME
@@ -64,12 +79,15 @@ impl Config {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct GeneralConfig {
+    /// Theme of the application
     pub theme: Theme,
     // pub sfx: bool,
     // pub folder_recursion_depth: u8,
     pub logging_path: Option<PathBuf>,
     pub worker_threads: usize,
-    // pub quiet_output: bool,
+    pub non_gui_quiet_output: bool,
+    /// Use the current working directory for extraction
+    pub non_gui_use_cwd: bool,
 }
 
 // Warning, due to the limitations of the toml format,
@@ -81,6 +99,7 @@ pub struct SampleRippingConfig {
     pub self_contained: bool,
     pub folder_max_depth: u8,
     pub strict: bool,
+    pub worker_threads: usize,
     pub exported_format: AudioFormat,
     // must be placed at the bottom
     pub naming: SampleNameConfig,
@@ -99,6 +118,7 @@ impl Default for SampleRippingConfig {
                 prefer_filename: true,
                 ..Default::default()
             },
+            worker_threads: 0,
         }
     }
 }

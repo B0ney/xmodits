@@ -2,6 +2,7 @@ use crate::gui::{style, JETBRAINS_MONO};
 use crate::{core::cfg::SampleNameConfig, gui::style::Theme};
 use iced::widget::{checkbox, column, container, pick_list, row, text};
 use iced::{Alignment, Element, Length, Renderer};
+use tracing::trace;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -16,6 +17,8 @@ pub enum Message {
 
 impl SampleNameConfig {
     pub fn update(&mut self, msg: Message) {
+        trace!("{:?}", &msg);
+        
         match msg {
             Message::IndexOnly(index_only) => {
                 if index_only {

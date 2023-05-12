@@ -178,7 +178,6 @@ pub fn traverse(
     //     .open("./test.txt") // todo
     //     .unwrap();
     let mut file = tempfile::tempfile_in(dirs::download_dir().unwrap()).unwrap();
-    // dbg!("{}", file.metadata());
 
     // store the number of entries
     let mut lines: u64 = 0;
@@ -219,7 +218,6 @@ struct Batcher<'io> {
     buffer: Buffer<String>,
     batch_tx: Sender<Batch<String>>,
     worker_rx: Receiver<NextBatch>,
-    // pub handle: Option<std::thread::JoinHandle<()>>,
 }
 
 impl<'io> Batcher<'io> {
@@ -256,6 +254,7 @@ impl<'io> Batcher<'io> {
             ripper,
             cfg.destination,
             cfg.self_contained,
+            cfg.worker_threads,
         );
 
         batcher
@@ -283,11 +282,6 @@ impl<'io> Batcher<'io> {
             }
         }
     }
-
-    // pub fn resume(file: &'io mut BufReader<File>, batch_size: usize, batch_number: usize) -> Self {
-    //     let _ = file.lines().nth(batch_number * batch_size);
-    //     Self::new(file, batch_size)
-    // }
 
     /// Load the next batch of lines
     pub fn load_next_batch(&mut self) -> bool {
@@ -333,6 +327,7 @@ fn spawn_workers(
     ripper: Arc<Ripper>,
     destination: PathBuf,
     self_contained: bool,
+    workers: usize,
 ) {
     use rayon::prelude::*;
     const SUB_BATCH_SIZE: usize = 576;
@@ -340,7 +335,7 @@ fn spawn_workers(
     GLOBAL_TRACKER.set_sub_batch_size(SUB_BATCH_SIZE);
 
     let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(0)
+        .num_threads(workers)
         .build()
         .unwrap();
 

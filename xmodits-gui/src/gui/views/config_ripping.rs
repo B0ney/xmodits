@@ -4,6 +4,7 @@ use crate::{core::cfg::SampleRippingConfig, gui::style::Theme};
 use iced::widget::{checkbox, column, container, pick_list, row, text, text_input, Space};
 use iced::Alignment;
 use iced::{Element, Length, Renderer};
+use tracing::trace;
 use xmodits_lib::exporter::AudioFormat;
 
 const SUPPORTED_FORMATS: &[AudioFormat] = &[
@@ -23,6 +24,8 @@ pub enum Message {
 
 impl SampleRippingConfig {
     pub fn update(&mut self, msg: Message) {
+        trace!("{:?}", &msg);
+        
         match msg {
             Message::SetFormat(format) => self.exported_format = format,
             Message::ToggleSelfContained(toggle) => self.self_contained = toggle,

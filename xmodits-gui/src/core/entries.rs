@@ -86,6 +86,9 @@ impl Entries {
     }
 
     pub fn select_all(&mut self, selected: bool) {
+        if selected && self.entries.is_empty() {
+            return;
+        }
         self.all_selected = selected;
         self.entries
             .iter_mut()

@@ -126,8 +126,11 @@ impl App {
     }
 
     fn bulid_start_signal(&mut self, rip_selected: bool) -> StartSignal {
-        let ripping_config = self.ripping_config.to_owned();
+        let mut ripping_config = self.ripping_config.to_owned();
         self.current = None;
+        
+        // todo
+        ripping_config.worker_threads = self.general_config.worker_threads;
 
         // TODO
         let paths: Vec<PathBuf> = match self.entries.total_selected() > 0 {
@@ -194,16 +197,16 @@ impl App {
 
     pub fn view_entries(&self) -> Element<Message, Renderer<Theme>> {
         let total_modules: _ =
-            text(format!("Modules: {}", self.entries.len())).font(JETBRAINS_MONO);
+            text(format!("Entries: {}", self.entries.len())).font(JETBRAINS_MONO);
 
         let total_selected: _ =
             text(format!("Selected: {}", self.entries.total_selected())).font(JETBRAINS_MONO);
 
-        let ContinueButton: _ = button("Continue")
+        let continue_button: _ = button("Continue")
             .on_press(Message::SetState(State::Idle))
             .padding(5);
 
-        let SaveErrorsButton: _ = button("Save Errors")
+        let save_errors_button: _ = button("Save Errors")
             .on_press(Message::SaveErrors)
             .padding(5);
 
@@ -293,7 +296,7 @@ impl App {
                         text("Drag and Drop").font(JETBRAINS_MONO),
                         text(&self.time).font(JETBRAINS_MONO),
                         Space::with_height(15),
-                        ContinueButton
+                        continue_button
                     ]
                     .align_items(Alignment::Center),
                 )
@@ -312,7 +315,7 @@ impl App {
                         ]
                         .padding(4)
                         .align_items(Alignment::Center),
-                        row![ContinueButton, SaveErrorsButton]
+                        row![continue_button, save_errors_button]
                             .padding(4)
                             .spacing(6)
                             .align_items(Alignment::Center),
@@ -370,7 +373,7 @@ impl App {
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center),
                         // space,
-                        row![ContinueButton]
+                        row![continue_button]
                             .padding(4)
                             .align_items(Alignment::Center)
                     ]
@@ -423,8 +426,8 @@ impl App {
                             .font(JETBRAINS_MONO)
                             .horizontal_alignment(Horizontal::Center),
                         match manually_saved {
-                            true => row![ContinueButton],
-                            false => row![ContinueButton, SaveErrorsButton],
+                            true => row![continue_button],
+                            false => row![continue_button, save_errors_button],
                         }
                         .padding(4)
                         .spacing(6)

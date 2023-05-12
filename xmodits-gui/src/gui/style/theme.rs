@@ -105,35 +105,35 @@ impl Theme {
                 },
                 normal: NormalColors {
                     primary: color!(0x309655),
-                    secondary: color!(0xa3be8c),
+                    secondary: color!(0x309655),
                     surface: color!(0xe5e9f0),
                     error: color!(0xff5555),
                 },
                 bright: BrightColors {
                     primary: color!(0x0BD556),
-                    secondary: color!(0xa3be8c),
+                    secondary: color!(0x0BD556),
                     surface: color!(0xe5e9f0),
                     error: color!(0xff5555),
                 },
             },
             Self::Nord => ColorPalette {
                 base: BaseColors {
-                    background: color!(0x3b4252),
-                    foreground: color!(0x434c5e),
-                    dark: color!(0x2e3440),
-                    border: color!(0x4c566a),
+                    background: color!(0x2e3440),
+                    foreground: color!(0x3b4252),
+                    dark: color!(0x21252d),
+                    border: color!(0x50586d),
                 },
                 normal: NormalColors {
                     primary: color!(0x88c0d0),
                     secondary: color!(0xa3be8c),
                     surface: color!(0xe5e9f0),
-                    error: color!(0xff5555),
+                    error: color!(0xbf616a),
                 },
                 bright: BrightColors {
                     primary: color!(0x88c0d0),
                     secondary: color!(0xa3be8c),
                     surface: color!(0xe5e9f0),
-                    error: color!(0xff5555),
+                    error: color!(0xbf616a),
                 },
             },
             Self::OneShot => ColorPalette {

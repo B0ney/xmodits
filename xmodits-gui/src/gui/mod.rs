@@ -21,8 +21,9 @@ use font::JETBRAINS_MONO;
 use style::Theme;
 use utils::{files_dialog, folder_dialog, folders_dialog, tracker_info};
 use views::about::Message as AboutMessage;
-use views::config_name::Message as ConfigMessage;
+use views::config_name::Message as ConfigNamingMessage;
 use views::config_ripping::Message as ConfigRippingMessage;
+use views::config_general::Message as ConfigGeneralMessage;
 // use views::settings::Message as SettingsMessage;
 
 use std::path::{Path, PathBuf};
@@ -47,8 +48,9 @@ pub enum Message {
     SettingsPressed,
     AboutPressed,
     HelpPressed,
-    SetCfg(ConfigMessage),
+    SetNameCfg(ConfigNamingMessage),
     SetRipCfg(ConfigRippingMessage),
+    SetGeneralCfg(ConfigGeneralMessage),
     SetTheme(Theme),
     About(AboutMessage),
     SetDestinationDialog,
@@ -236,7 +238,7 @@ impl Application for App {
             Message::AboutPressed => self.view = View::About,
             Message::HelpPressed => self.view = View::Help,
             Message::SettingsPressed => self.view = View::Settings,
-            Message::SetCfg(msg) => self.ripping_config.naming.update(msg),
+            Message::SetNameCfg(msg) => self.ripping_config.naming.update(msg),
             Message::SetRipCfg(msg) => self.ripping_config.update(msg),
             Message::About(msg) => views::about::update(msg),
             Message::SetDestinationDialog => {
@@ -359,6 +361,7 @@ impl Application for App {
                     *errors = std::mem::take(&mut returned_errors);
                 };
             },
+            Message::SetGeneralCfg(general_cfg) => self.general_config.update(general_cfg),
         };
         Command::none()
     }
@@ -380,7 +383,7 @@ impl Application for App {
             button("Settings")
                 .on_press(Message::SettingsPressed)
                 .padding(10),
-            button("Help").on_press(Message::HelpPressed).padding(10),
+            // button("Help").on_press(Message::HelpPressed).padding(10),
             button("About").on_press(Message::AboutPressed).padding(10),
         ]
         .spacing(5)
@@ -391,7 +394,7 @@ impl Application for App {
             View::Configure => container(
                 column![
                     self.view_current_tracker(),
-                    self.ripping_config.naming.view().map(Message::SetCfg),
+                    self.ripping_config.naming.view().map(Message::SetNameCfg),
                     self.ripping_config.view().map(Message::SetRipCfg),
                     self.ripping_config
                         .view_folder_scan_depth()
@@ -427,7 +430,7 @@ impl Application for App {
             )
             .into(),
             View::About => views::about::view().map(Message::About),
-            View::Settings => self.view_settings(),
+            View::Settings => self.general_config.view().map(Message::SetGeneralCfg),
             View::Help => views::help::view(),
         };
 
