@@ -44,7 +44,7 @@ fn paths(h: Option<Vec<rfd::FileHandle>>) -> Option<Vec<PathBuf>> {
 pub async fn tracker_info(path: PathBuf) -> Option<Info> {
     let path2 = path.clone();
 
-    let (tracker_result) = tokio::task::spawn_blocking(|| {
+    let tracker_result = tokio::task::spawn_blocking(|| {
         let mut file = std::fs::File::open(path2)?;
         xmodits_lib::fmt::loader::load_module(&mut file)
     })

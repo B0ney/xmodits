@@ -4,7 +4,7 @@ use crate::core::cfg::GeneralConfig;
 use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
 use iced::widget::{checkbox, column, pick_list, row, text};
-use iced::widget::{container, Rule};
+use iced::widget::container;
 use iced::Alignment;
 use iced::{Element, Length, Renderer};
 use tracing::trace;

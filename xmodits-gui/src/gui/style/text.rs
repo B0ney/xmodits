@@ -7,7 +7,6 @@ pub enum Text {
     #[default]
     Default,
     Error,
-    Commentary,
     Color(Color),
 }
 
@@ -25,9 +24,6 @@ impl text::StyleSheet for Theme {
             Text::Default => Default::default(),
             Text::Error => text::Appearance {
                 color: Some(self.palette().bright.error),
-            },
-            Text::Commentary => text::Appearance {
-                color: Some(self.palette().normal.surface),
             },
             Text::Color(c) => text::Appearance { color: Some(c) },
         }

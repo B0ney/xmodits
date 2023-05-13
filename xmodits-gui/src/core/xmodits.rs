@@ -62,11 +62,11 @@ impl CompleteState {
         }
     }
 
-    pub fn set_manually_saved(&mut self) {
-        if let Self::TooMuchErrorsNoLog { manually_saved, .. } = self {
-            *manually_saved = true;
-        }
-    }
+    // pub fn set_manually_saved(&mut self) {
+    //     if let Self::TooMuchErrorsNoLog { manually_saved, .. } = self {
+    //         *manually_saved = true;
+    //     }
+    // }
 }
 
 impl From<ErrorHandler> for CompleteState {

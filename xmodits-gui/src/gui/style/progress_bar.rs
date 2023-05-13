@@ -1,5 +1,5 @@
 use iced::widget::progress_bar;
-use iced::{color, Background, Color};
+use iced::Background;
 
 use super::Theme;
 

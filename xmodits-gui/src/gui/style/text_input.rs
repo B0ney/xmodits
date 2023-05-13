@@ -1,6 +1,6 @@
 use super::Theme;
 use iced::widget::text_input;
-use iced::{color, Background, Color};
+use iced::{Background, Color};
 
 #[derive(Default, Debug, Clone, Copy)]
 pub enum TextInput {
@@ -58,7 +58,7 @@ impl text_input::StyleSheet for Theme {
         self.focused(style)
     }
 
-    fn disabled_color(&self, style: &Self::Style) -> Color {
+    fn disabled_color(&self, _style: &Self::Style) -> Color {
         self.palette().normal.surface
     }
 }

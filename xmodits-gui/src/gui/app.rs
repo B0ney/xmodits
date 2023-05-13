@@ -1,7 +1,6 @@
 use super::icons::GIF;
 use super::{style, App, Info, Message, State};
 
-use crate::core::entries::{Entries, History};
 use crate::core::xmodits::{CompleteState, StartSignal};
 use crate::gui::font::JETBRAINS_MONO;
 use crate::gui::icons;
@@ -36,7 +35,7 @@ impl App {
 
         let settings: Settings<()> = Settings {
             window: Window {
-                size: (780, 640),
+                size: (780, 720),
                 resizable: true,
                 decorations: true,
                 icon: Some(icon()),
@@ -106,7 +105,7 @@ impl App {
         input.into()
     }
 
-    pub fn start_ripping(&mut self, rip_selected: bool) {
+    pub fn start_ripping(&mut self) {
         if self.entries.len() == 0 {
             return;
         }
@@ -115,7 +114,7 @@ impl App {
             return;
         };
 
-        let _ = sender.try_send(self.bulid_start_signal(rip_selected));
+        let _ = sender.try_send(self.bulid_start_signal());
         self.time.start();
 
         self.state = State::Ripping {
@@ -125,11 +124,10 @@ impl App {
         }
     }
 
-    fn bulid_start_signal(&mut self, rip_selected: bool) -> StartSignal {
+    fn bulid_start_signal(&mut self) -> StartSignal {
         let mut ripping_config = self.ripping_config.to_owned();
         self.current = None;
-        
-        // todo
+
         ripping_config.worker_threads = self.general_config.worker_threads;
 
         // TODO
@@ -212,7 +210,7 @@ impl App {
 
         let display: _ = match self.state {
             State::Idle => {
-                if self.entries.len() == 0 {
+                if self.entries.is_empty() {
                     container(
                         column![text("Drag and Drop").font(JETBRAINS_MONO), gif(&GIF.idle)]
                             .align_items(Alignment::Center),

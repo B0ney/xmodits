@@ -2,7 +2,7 @@ use crate::core::cfg::SampleRippingConfig;
 use crate::core::track::GLOBAL_TRACKER;
 use crate::gui::utils::file_name;
 
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{Receiver, Sender};
@@ -135,7 +135,12 @@ fn stage_2(
 
     let filter = strict_loading(cfg.strict);
 
-    let (mut file, lines) = traverse(folders, cfg.folder_max_depth, filter);
+    let (mut file, lines) = traverse(folders, cfg.folder_max_depth, filter, |lines| {
+        subscr_tx
+            .send(ThreadMsg::Info(Some(format!("Traversing Directories...\n({lines} filtered files)"))))
+            .unwrap()
+    });
+
     subscr_tx.send(ThreadMsg::SetTotal(lines)).unwrap();
 
     subscr_tx
@@ -167,6 +172,7 @@ pub fn traverse(
     dirs: Vec<PathBuf>,
     max_depth: u8,
     filter: impl Fn(&Path) -> bool,
+    callback: impl Fn(u64),
 ) -> (BufReader<File>, u64) {
     // create a file in read-write mode
     // TODO: make this a temporary file, but I'll also need to figure out how to resume...
@@ -191,8 +197,9 @@ pub fn traverse(
             .filter(|f| f.path().is_file() && filter(f.path()))
             .for_each(|f| {
                 lines += 1;
+                callback(lines);
                 file.write_fmt(format_args!("{}\n", f.path().display()))
-                    .unwrap()
+                    .unwrap();
             })
     });
 
@@ -342,7 +349,6 @@ fn spawn_workers(
     pool.spawn(move || {
         while let Ok(batch) = batch_rx.recv() {
             batch.lock().chunks(SUB_BATCH_SIZE).for_each(|sub_batch| {
-
                 sub_batch.par_iter().for_each(|file| {
                     let result = extract(&file, &destination, &ripper, self_contained);
 

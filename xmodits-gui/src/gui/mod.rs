@@ -19,19 +19,17 @@ use iced::{Alignment, Application, Command, Element, Event, Length, Renderer, Su
 
 use font::JETBRAINS_MONO;
 use style::Theme;
-use utils::{files_dialog, folder_dialog, folders_dialog, tracker_info};
+use utils::{create_file, files_dialog, folder_dialog, folders_dialog, tracker_info};
+
 use views::about::Message as AboutMessage;
+use views::config_general::Message as ConfigGeneralMessage;
 use views::config_name::Message as ConfigNamingMessage;
 use views::config_ripping::Message as ConfigRippingMessage;
-use views::config_general::Message as ConfigGeneralMessage;
-// use views::settings::Message as SettingsMessage;
 
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc::Sender;
 use xmodits_lib::traits::Module;
-
-use self::utils::create_file;
 
 #[derive(Default, Debug, Clone)]
 pub enum View {
@@ -51,11 +49,11 @@ pub enum Message {
     SetNameCfg(ConfigNamingMessage),
     SetRipCfg(ConfigRippingMessage),
     SetGeneralCfg(ConfigGeneralMessage),
-    SetTheme(Theme),
+    // SetTheme(Theme),
     About(AboutMessage),
     SetDestinationDialog,
     SaveConfig,
-    StartRip { rip_selected: bool },
+    StartRip,
     Subscription(ExtractionMessage),
     WindowEvent(Event),
     Ignore,
@@ -203,7 +201,7 @@ pub struct App {
     entries: Entries,
     current: Option<Info>,
     sender: Option<Sender<StartSignal>>,
-    history: History,
+    // history: History,
     time: Time,
 }
 
@@ -258,7 +256,7 @@ impl Application for App {
                     |_| Message::Ignore,
                 );
             }
-            Message::StartRip { rip_selected } => self.start_ripping(rip_selected),
+            Message::StartRip => self.start_ripping(),
             Message::Subscription(m) => match m {
                 ExtractionMessage::Ready(start_signal) => {
                     self.sender = Some(start_signal);
@@ -324,7 +322,7 @@ impl Application for App {
                 }
             }
             Message::SetState(state) => self.state = state,
-            Message::SetTheme(theme) => self.general_config.theme = theme,
+            // Message::SetTheme(theme) => self.general_config.theme = theme,
             Message::SaveErrors => {
                 let State::Done(errors) =  &mut self.state else {
                     return Command::none();
@@ -360,7 +358,7 @@ impl Application for App {
                 if let Some(errors) = state.errors_ref_mut() {
                     *errors = std::mem::take(&mut returned_errors);
                 };
-            },
+            }
             Message::SetGeneralCfg(general_cfg) => self.general_config.update(general_cfg),
         };
         Command::none()
@@ -408,19 +406,9 @@ impl Application for App {
                                 .align_items(Alignment::Center)
                         )
                         .padding(10)
-                        .on_press(Message::StartRip {
-                            rip_selected: false
-                        })
+                        .on_press(Message::StartRip)
                         .style(style::button::Button::Start)
                         .width(Length::Fill),
-                        // button(
-                        //     row![text("Start (Selected)"), icons::download_icon()]
-                        //         .align_items(Alignment::Center)
-                        // )
-                        // .padding(10)
-                        // .on_press(Message::StartRip { rip_selected: true })
-                        // .style(style::button::Button::Start)
-                        // .width(Length::Fill),
                     ]
                     .spacing(5)
                     .width(Length::FillPortion(1))

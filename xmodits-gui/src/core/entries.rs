@@ -5,7 +5,6 @@ use std::{
 };
 
 use chrono::Utc;
-use xmodits_lib::interface::Error;
 
 use super::cfg::SampleRippingConfig;
 
@@ -76,6 +75,10 @@ impl Entries {
 
     pub fn len(&self) -> usize {
         self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0 
     }
 
     pub fn select(&mut self, index: usize, selected: bool) {

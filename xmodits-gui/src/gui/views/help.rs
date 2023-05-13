@@ -1,10 +1,8 @@
 use crate::gui::icons::folder_icon;
 use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
-use iced::widget::{column, container, svg, text};
+use iced::widget::{column, container, text};
 use iced::{Element, Length, Renderer};
-
-// pub enum Message {}
 
 use crate::gui::Message;
 
