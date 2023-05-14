@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use chrono::Utc;
+// use chrono::Utc;
 
 use super::cfg::SampleRippingConfig;
 
@@ -121,7 +121,7 @@ impl Entries {
 
 #[derive(Default)]
 pub struct History {
-    timestamp: chrono::DateTime<Utc>,
+    // timestamp: chrono::DateTime<Utc>,
     entries: Entries,
     failed: Option<Failed>,
     config: SampleRippingConfig,

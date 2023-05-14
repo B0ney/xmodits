@@ -48,7 +48,7 @@ features = [
 [dependencies]
 anyhow = "1.0.0"
 dirs = "5.0.0"
-chrono = { version = "0.4.24", features = ["serde"] }
+# chrono = { version = "0.4.24", features = ["serde"] }
 serde = { version = "1.0.0", features = ["derive"] }
 toml = "0.7.3"
 
