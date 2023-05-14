@@ -8,10 +8,20 @@ const ABOUT: &str = "A tool to rip samples from tracker music. Supports IT, XM, 
 #[command(long_about = ABOUT)]
 pub struct Cli {
     #[arg(
-        help = "Modules to rip, the last element can be a folder to place your rips. E.g \"./music.s3m ./music.it ./dumps/\""
+        help = "Modules to rip, the last element can be a folder to place your ripped samples. E.g \"./music.s3m ./music.it ./dumps/\""
     )]
     #[arg(required = true)]
     pub trackers: Vec<PathBuf>,
+
+    #[arg(
+        help = "Only allow files with the supported file extensions: [it, xm, s3m, mod, umx, mptm]"
+    )]
+    #[arg(short, long, default_value_t = true)]
+    pub strict: bool,
+
+    #[arg(help = "Maximum depth of folder traversal")]
+    #[arg(short = 'd', long = "depth", default_value_t=1, value_parser=0..=7)]
+    pub folder_scan_depth: i64,
 
     #[arg(help = "Only name samples with an index. E.g. 01.wav")]
     #[arg(conflicts_with = "upper_case", conflicts_with = "lower_case")]
@@ -38,9 +48,14 @@ pub struct Cli {
     #[arg(short, long = "lower", conflicts_with = "upper_case")]
     pub lower_case: bool,
 
-    #[arg(help = "Prefix samples with the filename")]
+    #[arg(help = "Prefix samples with the tracker's filename")]
     #[arg(short = 'g', long)]
     pub prefix: bool,
+
+    #[cfg(windows)]
+    #[arg(help = "Disable 'Press Enter to continue'")]
+    #[arg(short = 'q', long)]
+    pub no_exit_prompt: bool,
 
     #[arg(help = "Export formats")]
     #[arg(short, long = "fmt", value_parser=["wav", "aiff", "8svx", "raw"], default_value_t=String::from("wav"))]

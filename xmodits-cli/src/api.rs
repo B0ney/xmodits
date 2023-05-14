@@ -2,6 +2,7 @@ use crate::Cli;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
+use walkdir::WalkDir;
 use xmodits_lib::{
     common::extract, exporter::AudioFormat, fmt::loader::load_module, interface::ripper::Ripper,
     SampleNamer, SampleNamerTrait,
@@ -53,42 +54,76 @@ pub fn info(cli: Cli) {
 
 pub fn rip(cli: Cli, destination: PathBuf) {
     let ripper = Ripper::new(build_namer(&cli), get_format(&cli.format).into());
-    let paths: Vec<PathBuf> = cli.trackers.into_iter().filter(|f| f.is_file()).collect();
+    let filter = strict_loading(cli.strict);
+
+    // split files and folders
+    let mut files: Vec<PathBuf> = Vec::new();
+    let mut folders: Vec<PathBuf> = Vec::new();
+
+    for i in cli.trackers {
+        if filter(&i) && i.is_file() {
+            files.push(i);
+        } else if i.is_dir() {
+            folders.push(i);
+        }
+    }
+
+    let max_depth = match cli.folder_scan_depth {
+        0 => 1,
+        d => d,
+    };
+
+    if !folders.is_empty() {
+        println!("Traversing directories...");
+
+        folders.into_iter().for_each(|f| {
+            WalkDir::new(f)
+                .max_depth(max_depth as usize)
+                .into_iter()
+                .filter_map(|f| f.ok())
+                .filter(|f| f.path().is_file() && filter(f.path()))
+                .for_each(|f| {
+                    files.push(f.path().to_path_buf());
+                })
+        });
+    }
+
     let self_contained = !cli.no_folder;
 
-    if paths.is_empty() {
+    if files.is_empty() {
         return eprintln!("There's nothing to rip!");
     }
 
-    println!("Ripping {} file(s)\n", paths.len());
+    println!("Ripping {} file(s)\n", files.len());
 
     let rip_file = move |path: PathBuf| {
         extract(&path, &destination, &ripper, self_contained).unwrap_or_else(|error| {
-            eprintln!("Can't rip {}:\n   \"{}\"\n", file_name(&path), error)
+            eprintln!("\x1b[31mERROR: \x1b[0m{}\n   {}\n", file_name(&path), error)
         })
     };
 
     #[cfg(feature = "rayon")]
     {
-        // let Some(threads) = cli.threads else {
         let threads = cli.threads as usize;
+
         if threads == 0 {
-            paths.into_iter().for_each(rip_file);
+            files.into_iter().for_each(rip_file);
             println!("Done!");
             return;
         };
 
         use rayon::prelude::*;
 
-        rayon::ThreadPoolBuilder::new()
+        let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(threads as usize)
             .build()
-            .expect("Building threapool")
-            .spawn(move || paths.into_par_iter().for_each(rip_file));
+            .expect("Building threapool");
+
+        pool.install(move || files.into_par_iter().for_each(rip_file));
     }
 
     #[cfg(not(feature = "rayon"))]
-    paths.into_iter().for_each(rip_file);
+    files.into_iter().for_each(rip_file);
 
     println!("Done!");
 }
@@ -100,5 +135,27 @@ fn get_format(format: &str) -> AudioFormat {
         "8svx" => AudioFormat::IFF,
         "raw" => AudioFormat::RAW,
         _ => AudioFormat::WAV,
+    }
+}
+
+fn strict_loading(strict: bool) -> impl Fn(&Path) -> bool {
+    match strict {
+        true => move |path: &Path| {
+            const EXT: &[&str] = &[
+                "it", "xm", "s3m", "mod", "umx", "mptm", "IT", "XM", "S3M", "MOD", "UMX", "MPTM",
+            ];
+
+            let Some(ext) = path
+                .extension()
+                .map(|f| f.to_str())
+                .flatten()
+            else {
+                return false;
+            };
+
+            EXT.contains(&ext)
+        },
+
+        false => |_: &Path| true,
     }
 }

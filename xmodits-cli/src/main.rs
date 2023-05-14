@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use clap::Parser;
+use std::path::PathBuf;
 mod api;
 mod cli;
 use cli::Cli;
@@ -18,10 +18,13 @@ fn main() {
         return api::info(cli);
     }
 
+    #[cfg(windows)]
+    let no_exit_prompt = cli.no_exit_prompt;
+
     api::rip(cli, destination);
 
     #[cfg(windows)]
-    {
+    if !no_exit_prompt {
         use std::io::{stdin, stdout, Write};
         let mut buf = String::new();
         print!("\nPress Enter to continue... ");
@@ -37,10 +40,11 @@ fn main() {
 ///
 /// If the last element is a file, the destination directory is the
 /// current working directory.
-/// 
 fn destination_dir(paths: &mut Vec<PathBuf>) -> Result<PathBuf, String> {
-    let cwd =
-        || Ok(std::env::current_dir().expect("xmodits needs a current working directory. (>_<)"));
+    let cwd = || {
+        let error = String::from("xmodits needs a current working directory. (>_<)");
+        Ok(std::env::current_dir().map_err(|_| error)?)
+    };
 
     let Some(path) = paths.last() else {
         return cwd();
