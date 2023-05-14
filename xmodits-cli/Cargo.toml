@@ -1,0 +1,17 @@
+[package]
+name = "xmodits"
+authors = ["B0ney - https://github.com/B0ney"]
+description = "Xmodits CLI application"
+version = "0.10.0"
+edition = "2021"
+license = "LGPLv3"
+repository = "https://github.com/B0ney/xmodits"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+xmodits-lib = { git = "https://github.com/B0ney/xmodits-lib.git", rev = "200217d1c2eebec9fc8636a657807f3a6e99b686" }
+clap = { version = "4.0.23", features = ["derive", "cargo", "wrap_help"] }
+walkdir = "2.3.3"
+# shellexpand = "3.0.0"
+rayon = { version = "1.7.0", optional = true }
+
