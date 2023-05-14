@@ -17,17 +17,16 @@
 | MPTM | ModPlug Tracker module* |
 | UMX | Unreal Music Package (Containing above) |
 
-\* Ripping from OpenMPT trackers is not pefect [TODO]
+\* Ripping from OpenMPT trackers is not pefect 
 
 ## Features
 <!-- * Sample previewing  (0.12.0)-->
 * View information about a tracker
 * Multi-threaded ripping*
-* 
 <!-- * Resuming -->
 <!-- * History -->
 
-\* xmodits will only use threads if it's ripping from a directory.
+\* xmodits will only use threads if it is ripping from a directory.
 
 ## Screenshots (GUI)
 ![xmodits gui](./screenshots/home.png)
@@ -60,22 +59,23 @@ If you want to simply extract samples, you can just drag and drop a module(s) on
 ### Sample Naming
 <!-- Configures how ripped samples are named -->
 
-|||
+|Parameter| Description|
 |--|--|
-| Index Only | Samples will only be named with an index |
-| Preserve Index | Sample index will match how it's represented internally. |
+| Index Only | Samples will only be named with an index. |
+| Preserve Index | Sample index will match how it is represented internally. |
+| Prefix Samples | Samples will be prefixed with the tracker's filename. |
 | Upper Case | Samples will be named in upper case.|
 | Lower Case | Samples will be named in lower case.|
-| Index Padding | Pad index with preceding zeros.<br>Set to 1 to remove padding.|
+| Prefer Filename | Some samples have an addition filename. If present, xmodits will name samples with that. |
+| Index Padding | Set the minimum amount of digits an index must have. Indexes will be padded with zeros to match the minimum amount of digits<br>Set to 1 to remove padding.|
 
 
 ### Ripping Configuration
 
-|||
+|Parameter| Description|
 |--|--|
-| No Folder | Xmodits will not put samples in a self contained folder.<br>This can overwrite data so use with caution.|
-| Strict Loading||
-| Export Format| |
+| Self Contained | Xmodits will put samples in a self contained folder.<br> Disabling This can overwrite data so use with caution.|
+| Export Format | Samples can be saved to the following formats: [ ``wav``, ``aiff``, ``8svx``, ``raw`` ]|
 | Folder Scan Depth | Limit how far a folder can be traversed. |
 
 ### Saving Configuration
@@ -114,12 +114,16 @@ If you want to customize how ripped samples are named, the following arguments c
 
 |short| long| Description|
 |--|--|--|
+|-s |--strict| ``Enabled by default.`` Only allow files with the supported file extensions: [it, xm, s3m, mod, umx, mptm]|
+|-d |--depth| Maximum depth a folder can be traversed.|
 |-i |--index-only| Ripped samples will only be named with an index.|
 |-r |--index-raw| Preserve internal sample indexing.|
 |-p |--index-padding| Pad sample index with preceding zeros. 0-1 will disable padding.|
 |-n |--no-folder| Do not create a new folder for ripped samples.<br>This can overwrite data, BE CAREFUL!|
 |-u |--upper| Name samples in upper case. |
 |-l |--lower| Name samples in lower case. |
+|-g |--prefix| Prefix samples with the tracker's filename. |
+|-f|--fmt| Export samples to the following formats: [ ``wav (default)``, ``aiff``, ``8svx``, ``raw`` ]|
 ||--info| Print information about a tracker module. |
 
 
@@ -162,4 +166,5 @@ The xmodits project has multiple programs. Each with their own licenses.
 ## Special Thanks
 - The GUI was made with [Iced](https://github.com/iced-rs/iced)
 - [@0x192](https://github.com/0x192) (and contributers) for their [Universal Android Debloat tool](https://github.com/0x192/universal-android-debloater/). I've learned a lot of gui stuff from that project.
-- [SatyrDiamond](https://github.com/SatyrDiamond)'s [DawVert](https://github.com/SatyrDiamond/DawVert), A program to convert different daw project files to [TODO]
+- [SatyrDiamond](https://github.com/SatyrDiamond)'s [DawVert](https://github.com/SatyrDiamond/DawVert), A program to convert different daw project files to other formats. 
+- The animated fox gif was obtained from: https://github.com/tonybaloney/vscode-pets
