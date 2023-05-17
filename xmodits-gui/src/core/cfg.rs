@@ -7,7 +7,7 @@ use toml;
 use tracing::{error, info, warn};
 use xmodits_lib::{exporter::AudioFormat, SampleNamer, SampleNamerTrait};
 
-use crate::gui::style::Theme;
+use crate::gui::style::{Themes, Theme};
 
 const APP_NAME: &str = "xmodits";
 const CONFIG_NAME: &str = "config.toml";
@@ -80,7 +80,7 @@ impl Config {
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct GeneralConfig {
     /// Theme of the application
-    pub theme: Theme,
+    pub theme: Themes,
     // pub sfx: bool,
     // pub folder_recursion_depth: u8,
     pub logging_path: Option<PathBuf>,

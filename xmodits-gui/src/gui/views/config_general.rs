@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::core::cfg::GeneralConfig;
-use crate::gui::style::{self, Theme};
+use crate::gui::style::{self, Themes, Theme};
 use crate::gui::JETBRAINS_MONO;
 use iced::widget::{checkbox, column, pick_list, row, text};
 use iced::widget::container;
@@ -11,7 +11,7 @@ use tracing::trace;
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    SetTheme(Theme),
+    SetTheme(Themes),
     SetLogDirectory(PathBuf),
     SetWorkerThreads(usize),
     NonGuiQuietOutput(bool),
@@ -35,7 +35,7 @@ impl GeneralConfig {
         let setting: _ = container(
             column![
                 row![
-                    pick_list(&Theme::ALL[..], Some(self.theme), Message::SetTheme),
+                    pick_list(&Themes::ALL[..], Some(self.theme), Message::SetTheme),
                     text("Theme"),
                 ]
                 .align_items(Alignment::Center)

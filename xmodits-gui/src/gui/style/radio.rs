@@ -1,16 +1,16 @@
-use super::Theme;
+use super::ColorPalette;
 use iced::widget::radio;
 use iced::Color;
 
-impl radio::StyleSheet for Theme {
+impl radio::StyleSheet for ColorPalette {
     type Style = ();
 
     fn active(&self, _style: &Self::Style, _is_selected: bool) -> radio::Appearance {
         radio::Appearance {
             background: Color::TRANSPARENT.into(),
-            dot_color: self.palette().bright.primary,
+            dot_color: self.bright.primary,
             border_width: 1.0,
-            border_color: self.palette().bright.primary,
+            border_color: self.bright.primary,
             text_color: None,
         }
     }
@@ -19,8 +19,8 @@ impl radio::StyleSheet for Theme {
         let active = self.active(style, true);
 
         radio::Appearance {
-            dot_color: self.palette().bright.primary,
-            border_color: self.palette().bright.primary,
+            dot_color: self.bright.primary,
+            border_color: self.bright.primary,
             border_width: 2.0,
             ..active
         }

@@ -2,7 +2,7 @@ use iced::{color, Color};
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Eq, Copy, Clone)]
-pub enum Theme {
+pub enum Themes {
     #[default]
     Dark,
     Dracula,
@@ -10,7 +10,7 @@ pub enum Theme {
     Nord,
     LMMS,
     OneShot,
-    // Custom(&'static std::path::Path),
+    // Custom(Option<Box<ColorPalette>>),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -44,7 +44,13 @@ pub struct ColorPalette {
     pub bright: BrightColors,
 }
 
-impl Theme {
+impl Default for ColorPalette {
+    fn default() -> Self {
+        Themes::default().palette()
+    }
+}
+
+impl Themes {
     pub const ALL: [Self; 6] = [
         Self::Dark,
         Self::Dracula,
@@ -176,22 +182,30 @@ impl Theme {
                     error: color!(0xE38C8F),
                 },
             },
+
+            // Self::Custom(theme) => {
+            //     match theme {
+            //         Some(theme) => theme.clone(),
+            //         None => Self::default()
+            //     }
+            // },
         }
     }
 }
 
-impl std::fmt::Display for Theme {
+impl std::fmt::Display for Themes {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
             match self {
-                Theme::Dark => "Dark",
-                Theme::Dracula => "Dracula",
-                Theme::Nord => "Nord",
-                Theme::LMMS => "LMMS",
-                Theme::OneShot => "OneShot",
-                Theme::Catppuccin => "Catppuccin",
+                Themes::Dark => "Dark",
+                Themes::Dracula => "Dracula",
+                Themes::Nord => "Nord",
+                Themes::LMMS => "LMMS",
+                Themes::OneShot => "OneShot",
+                Themes::Catppuccin => "Catppuccin",
+                // Themes::Custom() => "Custom Theme"
             }
         )
     }

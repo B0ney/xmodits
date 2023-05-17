@@ -1,7 +1,7 @@
 use iced::widget::button;
 use iced::{Background, Color};
 
-use super::Theme;
+use super::ColorPalette;
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Button {
@@ -16,11 +16,11 @@ pub enum Button {
     // SelectedPackage,
 }
 
-impl button::StyleSheet for Theme {
+impl button::StyleSheet for ColorPalette {
     type Style = Button;
 
     fn active(&self, style: &Self::Style) -> button::Appearance {
-        let p = self.palette();
+        let p = self;
 
         let appearance = button::Appearance {
             border_width: 1.0,
@@ -44,7 +44,7 @@ impl button::StyleSheet for Theme {
                 text_color: p.bright.surface,
                 border_radius: 5.0,
                 border_width: 1.0,
-                border_color: self.palette().base.border,
+                border_color: self.base.border,
                 ..appearance
             },
             // Button::SelectedPackage => button::Appearance {
@@ -80,7 +80,7 @@ impl button::StyleSheet for Theme {
 
     fn hovered(&self, style: &Self::Style) -> button::Appearance {
         let active = self.active(style);
-        let p = self.palette();
+        let p = self;
 
         let hover_appearance = |bg, tc: Option<Color>| button::Appearance {
             background: Some(Background::Color(Color { a: 0.25, ..bg })),
@@ -109,7 +109,7 @@ impl button::StyleSheet for Theme {
 
     fn disabled(&self, style: &Self::Style) -> button::Appearance {
         let active = self.active(style);
-        let p = self.palette();
+        let p = self;
 
         let disabled_appearance = |bg, tc: Option<Color>| button::Appearance {
             background: Some(Background::Color(Color { a: 0.05, ..bg })),

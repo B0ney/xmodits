@@ -227,7 +227,7 @@ impl Application for App {
         String::from("XMODITS")
     }
     fn theme(&self) -> Self::Theme {
-        self.general_config.theme.clone()
+        self.general_config.theme.palette().clone()
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {

@@ -1,5 +1,5 @@
 use iced::widget::{slider::{self, Appearance, Handle, HandleShape}, slider::Rail};
-use super::Theme;
+use super::ColorPalette;
 
 #[derive(Default)]
 pub enum Style {
@@ -7,11 +7,11 @@ pub enum Style {
     Default
 }
 
-impl slider::StyleSheet for Theme {
+impl slider::StyleSheet for ColorPalette {
     type Style = Style;
 
     fn active(&self, style: &Self::Style) -> Appearance {
-        let p = self.palette();
+        let p = self;
         Appearance {
             rail: Rail {
                 colors: (p.normal.primary, p.normal.primary),
@@ -27,7 +27,7 @@ impl slider::StyleSheet for Theme {
     }
 
     fn hovered(&self, style: &Self::Style) -> Appearance {
-        let p = self.palette();
+        let p = self;
         Appearance {
             rail: Rail {
                 colors: (p.normal.primary, p.normal.primary),
@@ -43,7 +43,7 @@ impl slider::StyleSheet for Theme {
     }
 
     fn dragging(&self, style: &Self::Style) -> Appearance {
-        let p = self.palette();
+        let p = self;
         Appearance {
             rail: Rail {
                 colors: (p.normal.primary, p.normal.primary),

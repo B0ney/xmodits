@@ -1,4 +1,4 @@
-use super::Theme;
+use super::ColorPalette;
 use iced::widget::text;
 use iced::Color;
 
@@ -16,14 +16,14 @@ impl From<Color> for Text {
     }
 }
 
-impl text::StyleSheet for Theme {
+impl text::StyleSheet for ColorPalette {
     type Style = Text;
 
     fn appearance(&self, style: Self::Style) -> text::Appearance {
         match style {
             Text::Default => Default::default(),
             Text::Error => text::Appearance {
-                color: Some(self.palette().bright.error),
+                color: Some(self.bright.error),
             },
             Text::Color(c) => text::Appearance { color: Some(c) },
         }

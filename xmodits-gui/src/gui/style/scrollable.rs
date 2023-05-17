@@ -1,4 +1,4 @@
-use super::Theme;
+use super::ColorPalette;
 use iced::widget::scrollable;
 use iced::{color, Background, Color};
 
@@ -9,7 +9,7 @@ pub enum Scrollable {
     Dark,
 }
 
-impl scrollable::StyleSheet for Theme {
+impl scrollable::StyleSheet for ColorPalette {
     type Style = Scrollable;
 
     fn active(&self, style: &Self::Style) -> scrollable::Scrollbar {
@@ -22,13 +22,13 @@ impl scrollable::StyleSheet for Theme {
                 color: d,
                 border_radius: 5.0,
                 border_width: 1.0,
-                border_color: self.palette().base.border,
+                border_color: self.base.border,
             },
         };
         //
         let color = (
-            self.palette().base.background,
-            self.palette().base.foreground,
+            self.base.background,
+            self.base.foreground,
         );
         match style {
             Scrollable::Description => from_appearance(color.0, color.1),
@@ -40,7 +40,7 @@ impl scrollable::StyleSheet for Theme {
         scrollable::Scrollbar {
             scroller: scrollable::Scroller {
                 color: if hovered {
-                    self.palette().normal.primary
+                    self.normal.primary
                 } else {
                     self.active(style).scroller.color
                 },

@@ -1,4 +1,4 @@
-use super::Theme;
+use super::ColorPalette;
 use iced::widget::text_input;
 use iced::{Background, Color};
 
@@ -8,49 +8,49 @@ pub enum TextInput {
     Default,
 }
 
-impl text_input::StyleSheet for Theme {
+impl text_input::StyleSheet for ColorPalette {
     type Style = TextInput;
 
     fn active(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
-            background: Background::Color(self.palette().base.foreground),
+            background: Background::Color(self.base.foreground),
             border_radius: 8.0,
             border_width: 1.2,
-            border_color: self.palette().base.border,
-            icon_color: self.palette().base.foreground,
+            border_color: self.base.border,
+            icon_color: self.base.foreground,
         }
     }
 
     fn focused(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
-            background: Background::Color(self.palette().base.foreground),
+            background: Background::Color(self.base.foreground),
             border_radius: 8.0,
             border_width: 1.2,
-            border_color: self.palette().bright.primary,
-            icon_color: self.palette().base.foreground,
+            border_color: self.bright.primary,
+            icon_color: self.base.foreground,
         }
     }
 
     fn disabled(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
-            background: Background::Color(self.palette().base.foreground),
+            background: Background::Color(self.base.foreground),
             border_radius: 8.0,
             border_width: 1.2,
-            border_color: self.palette().bright.primary,
-            icon_color: self.palette().base.foreground,
+            border_color: self.bright.primary,
+            icon_color: self.base.foreground,
         }
     }
 
     fn placeholder_color(&self, _style: &Self::Style) -> Color {
-        self.palette().normal.surface
+        self.normal.surface
     }
 
     fn value_color(&self, _style: &Self::Style) -> Color {
-        self.palette().bright.primary
+        self.bright.primary
     }
 
     fn selection_color(&self, _style: &Self::Style) -> Color {
-        self.palette().normal.primary
+        self.normal.primary
     }
 
     /// Produces the style of an hovered text input.
@@ -59,6 +59,6 @@ impl text_input::StyleSheet for Theme {
     }
 
     fn disabled_color(&self, _style: &Self::Style) -> Color {
-        self.palette().normal.surface
+        self.normal.surface
     }
 }

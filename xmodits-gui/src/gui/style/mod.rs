@@ -13,7 +13,9 @@ use iced::widget::{container, pick_list, rule};
 
 use iced::{application, Background, Color};
 mod theme;
-pub use theme::Theme;
+pub use theme::Themes;
+pub type Theme = ColorPalette;
+pub use theme::ColorPalette;
 
 #[derive(Default, Debug, Clone, Copy)]
 pub enum Application {
@@ -21,13 +23,13 @@ pub enum Application {
     Default,
 }
 
-impl application::StyleSheet for Theme {
+impl application::StyleSheet for ColorPalette {
     type Style = Application;
 
     fn appearance(&self, _style: &Self::Style) -> application::Appearance {
         application::Appearance {
-            background_color: self.palette().base.background,
-            text_color: self.palette().bright.surface,
+            background_color: self.base.background,
+            text_color: self.bright.surface,
         }
     }
 }
@@ -40,29 +42,29 @@ pub enum Container {
     Black,
 }
 
-impl container::StyleSheet for Theme {
+impl container::StyleSheet for ColorPalette {
     type Style = Container;
 
     fn appearance(&self, style: &Self::Style) -> container::Appearance {
         match style {
             Container::Invisible => container::Appearance::default(),
             Container::Frame => container::Appearance {
-                background: Some(Background::Color(self.palette().base.foreground)),
-                text_color: Some(self.palette().bright.surface),
-                border_color: self.palette().base.border,
+                background: Some(Background::Color(self.base.foreground)),
+                text_color: Some(self.bright.surface),
+                border_color: self.base.border,
                 border_radius: 5.0,
                 border_width: 1.2,
                 // ..container::Appearance::default()
             },
             Container::Black => container::Appearance {
-                background: Some(self.palette().base.dark.into()),
-                text_color: Some(self.palette().bright.surface),
+                background: Some(self.base.dark.into()),
+                text_color: Some(self.bright.surface),
                 border_radius: 5.0,
                 border_width: 1.2,
-                border_color: self.palette().base.border,
+                border_color: self.base.border,
                 // ..container::Appearance::default()
 
-                // border_color: self.palette().normal.error,
+                // border_color: self.normal.error,
             },
         }
     }
@@ -74,18 +76,18 @@ pub enum PickList {
     Default,
 }
 
-impl menu::StyleSheet for Theme {
+impl menu::StyleSheet for ColorPalette {
     type Style = ();
 
     fn appearance(&self, _style: &Self::Style) -> menu::Appearance {
-        let p = self.palette();
+        let p = self;
 
         menu::Appearance {
             text_color: p.bright.surface,
             background: p.base.background.into(),
             border_width: 1.2,
             border_radius: 5.0,
-            border_color: self.palette().base.border,
+            border_color: self.base.border,
             selected_text_color: p.bright.surface,
             selected_background: Color {
                 a: 0.25,
@@ -96,25 +98,25 @@ impl menu::StyleSheet for Theme {
     }
 }
 
-impl pick_list::StyleSheet for Theme {
+impl pick_list::StyleSheet for ColorPalette {
     type Style = ();
 
     fn active(&self, _style: &()) -> pick_list::Appearance {
         pick_list::Appearance {
-            text_color: self.palette().bright.surface,
-            background: self.palette().base.background.into(),
+            text_color: self.bright.surface,
+            background: self.base.background.into(),
             border_width: 1.2,
-            border_color: self.palette().base.border,
+            border_color: self.base.border,
             border_radius: 5.0,
-            handle_color: self.palette().bright.surface,
-            placeholder_color: self.palette().bright.surface,
+            handle_color: self.bright.surface,
+            placeholder_color: self.bright.surface,
         }
     }
 
     fn hovered(&self, style: &()) -> pick_list::Appearance {
         let active = self.active(style);
         pick_list::Appearance {
-            border_color: self.palette().bright.primary,
+            border_color: self.bright.primary,
             border_width: 2.0,
             ..active
         }
@@ -127,13 +129,13 @@ pub enum Rule {
     Default,
 }
 
-impl rule::StyleSheet for Theme {
+impl rule::StyleSheet for ColorPalette {
     type Style = Rule;
 
     fn appearance(&self, style: &Self::Style) -> rule::Appearance {
         match style {
             Rule::Default => rule::Appearance {
-                color: self.palette().base.border,
+                color: self.base.border,
                 width: 1,
                 radius: 1.0,
                 fill_mode: rule::FillMode::Full,
