@@ -25,7 +25,7 @@ pub enum Message {
 impl SampleRippingConfig {
     pub fn update(&mut self, msg: Message) {
         trace!("{:?}", &msg);
-        
+
         match msg {
             Message::SetFormat(format) => self.exported_format = format,
             Message::ToggleSelfContained(toggle) => self.self_contained = toggle,
@@ -37,7 +37,11 @@ impl SampleRippingConfig {
     pub fn view(&self) -> Element<Message, Renderer<Theme>> {
         let settings: _ = container(
             row![column![
-                checkbox("Self Contained", self.self_contained, Message::ToggleSelfContained),
+                checkbox(
+                    "Self Contained",
+                    self.self_contained,
+                    Message::ToggleSelfContained
+                ),
                 checkbox("Strict Loading", self.strict, Message::ToggleStrictLoad),
                 row![
                     pick_list(

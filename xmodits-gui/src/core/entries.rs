@@ -78,7 +78,7 @@ impl Entries {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.len() == 0 
+        self.len() == 0
     }
 
     pub fn select(&mut self, index: usize, selected: bool) {
@@ -98,7 +98,7 @@ impl Entries {
             .for_each(|entry| entry.selected = selected);
     }
 
-    pub fn take_selected(&mut self)  -> Vec<Entry> {
+    pub fn take_selected(&mut self) -> Vec<Entry> {
         if self.all_selected {
             return std::mem::take(&mut self.entries);
         }
@@ -114,7 +114,7 @@ impl Entries {
             } else {
                 i += 1;
             }
-        };
+        }
         selected
     }
 }

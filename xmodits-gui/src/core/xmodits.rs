@@ -51,7 +51,6 @@ pub enum CompleteState {
 }
 impl CompleteState {
     pub fn take(&mut self) -> Option<Vec<Failed>> {
-
         Some(std::mem::take(self.errors_ref_mut()?))
     }
 
@@ -296,7 +295,7 @@ impl ErrorHandler {
             Err(e) => {
                 dbg!(e);
                 Err(errors)
-            },
+            }
         }
     }
 

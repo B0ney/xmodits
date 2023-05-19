@@ -1,10 +1,13 @@
-use iced::widget::{slider::{self, Appearance, Handle, HandleShape}, slider::Rail};
 use super::ColorPalette;
+use iced::widget::{
+    slider::Rail,
+    slider::{self, Appearance, Handle, HandleShape},
+};
 
 #[derive(Default)]
 pub enum Style {
     #[default]
-    Default
+    Default,
 }
 
 impl slider::StyleSheet for ColorPalette {

@@ -1,5 +1,5 @@
 use iced::{color, Color};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Themes {
@@ -55,9 +55,9 @@ impl Themes {
         Self::Dark,
         Self::Dracula,
         Self::Catppuccin,
-        Self::Nord, 
-        Self::LMMS, 
-        Self::OneShot
+        Self::Nord,
+        Self::LMMS,
+        Self::OneShot,
     ];
 
     pub fn palette(&self) -> ColorPalette {
@@ -182,7 +182,6 @@ impl Themes {
                     error: color!(0xE38C8F),
                 },
             },
-
             // Self::Custom(theme) => {
             //     match theme {
             //         Some(theme) => theme.clone(),

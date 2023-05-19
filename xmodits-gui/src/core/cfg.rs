@@ -7,7 +7,7 @@ use toml;
 use tracing::{error, info, warn};
 use xmodits_lib::{exporter::AudioFormat, SampleNamer, SampleNamerTrait};
 
-use crate::gui::style::{Themes, Theme};
+use crate::gui::style::{Theme, Themes};
 
 const APP_NAME: &str = "xmodits";
 const CONFIG_NAME: &str = "config.toml";

@@ -26,10 +26,7 @@ impl scrollable::StyleSheet for ColorPalette {
             },
         };
         //
-        let color = (
-            self.base.background,
-            self.base.foreground,
-        );
+        let color = (self.base.background, self.base.foreground);
         match style {
             Scrollable::Description => from_appearance(color.0, color.1),
             Scrollable::Dark => from_appearance(color.1, color.0),

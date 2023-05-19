@@ -71,7 +71,7 @@ impl GlobalTracker {
     pub fn get_batch_size(&self) -> usize {
         self.batch_size.load(Ordering::Relaxed)
     }
-    
+
     pub fn get_sub_batch_number(&self) -> u64 {
         self.sub_batch_number.load(Ordering::Relaxed)
     }

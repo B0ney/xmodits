@@ -33,11 +33,10 @@ fn a() {
     let a = &GLOBAL_TRACKER;
     let batch_offset: u64 = a.get_batch_size() as u64 * a.get_batch_number();
     let sub_batch_size = a.get_sub_batch_size() as u64;
-    let sub_batch_offset: u64 =  sub_batch_size * a.get_sub_batch_number();
+    let sub_batch_offset: u64 = sub_batch_size * a.get_sub_batch_number();
 
     let offset: u64 = batch_offset + sub_batch_offset;
     let window = sub_batch_size;
-    
 }
 
 pub fn set_panic_hook() {

@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
 use crate::core::cfg::GeneralConfig;
-use crate::gui::style::{self, Themes, Theme};
+use crate::gui::style::{self, Theme, Themes};
 use crate::gui::JETBRAINS_MONO;
-use iced::widget::{checkbox, column, pick_list, row, text};
 use iced::widget::container;
+use iced::widget::{checkbox, column, pick_list, row, text};
 use iced::Alignment;
 use iced::{Element, Length, Renderer};
 use tracing::trace;
@@ -21,7 +21,7 @@ pub enum Message {
 impl GeneralConfig {
     pub fn update(&mut self, msg: Message) {
         trace!("{:?}", &msg);
-        
+
         match msg {
             Message::SetTheme(theme) => self.theme = theme,
             Message::SetWorkerThreads(workers) => self.worker_threads = workers,
@@ -42,7 +42,10 @@ impl GeneralConfig {
                 .spacing(5),
                 row![
                     pick_list(
-                        [0usize, 1, 2, 4, 6, 8, 10, 12, 16].into_iter().map(Workers).collect::<Vec<Workers>>(),
+                        [0usize, 1, 2, 4, 6, 8, 10, 12, 16]
+                            .into_iter()
+                            .map(Workers)
+                            .collect::<Vec<Workers>>(),
                         Some(Workers(self.worker_threads)),
                         |f| Message::SetWorkerThreads(f.0)
                     ),

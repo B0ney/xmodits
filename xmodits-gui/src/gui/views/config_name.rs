@@ -18,7 +18,7 @@ pub enum Message {
 impl SampleNameConfig {
     pub fn update(&mut self, msg: Message) {
         trace!("{:?}", &msg);
-        
+
         match msg {
             Message::IndexOnly(index_only) => {
                 if index_only {
@@ -52,7 +52,7 @@ impl SampleNameConfig {
                     self.index_only = false;
                 }
                 self.prefer_filename = use_filename;
-            },
+            }
             Message::IndexPadding(padding) => self.index_padding = padding,
             Message::PrefixSamples(prefix) => self.prefix = prefix,
         }
@@ -70,7 +70,11 @@ impl SampleNameConfig {
                     column![
                         checkbox("Upper Case", self.upper, Message::UpperCase),
                         checkbox("Lower Case", self.lower, Message::LowerCase),
-                        checkbox("Prefer Filename", self.prefer_filename, Message::PreferFilename),
+                        checkbox(
+                            "Prefer Filename",
+                            self.prefer_filename,
+                            Message::PreferFilename
+                        ),
                     ]
                     .spacing(8)
                 ]

@@ -68,7 +68,7 @@ impl button::StyleSheet for ColorPalette {
             Button::Start => active_appearance(None, p.bright.secondary),
             Button::Delete => active_appearance(None, p.bright.error),
 
-            Button::HyperlinkInverted =>  button::Appearance {
+            Button::HyperlinkInverted => button::Appearance {
                 background: None,
                 text_color: p.bright.primary,
 

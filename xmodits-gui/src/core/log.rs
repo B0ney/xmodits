@@ -4,7 +4,6 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-
 /// Writes Vec<(Path, Errors)> to a file.
 ///
 /// Returns the path of the log file if successful.

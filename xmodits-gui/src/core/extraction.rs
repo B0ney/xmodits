@@ -137,7 +137,9 @@ fn stage_2(
 
     let (mut file, lines) = traverse(folders, cfg.folder_max_depth, filter, |lines| {
         subscr_tx
-            .send(ThreadMsg::Info(Some(format!("Traversing Directories...\n({lines} filtered files)"))))
+            .send(ThreadMsg::Info(Some(format!(
+                "Traversing Directories...\n({lines} filtered files)"
+            ))))
             .unwrap()
     });
 

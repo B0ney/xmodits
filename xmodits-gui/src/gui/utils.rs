@@ -32,7 +32,8 @@ pub async fn create_file() -> Option<PathBuf> {
     // I find that Windows is the only platform where file filters work as intended.
     let file_dialog = file_dialog.add_filter("", &["txt"]);
 
-    file_dialog.save_file()
+    file_dialog
+        .save_file()
         .await
         .map(|handle| handle.path().to_owned())
 }
