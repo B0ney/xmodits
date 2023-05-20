@@ -143,6 +143,10 @@ impl App {
     }
 
     pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> {
+        // let view_samples_button: _ = button("View Samples")
+        //     .on_press(Message::Ignore)
+        //     .padding(5);
+
         let content: _ = match &self.current {
             Some(info) => match info {
                 Info::Valid {
@@ -153,10 +157,12 @@ impl App {
                     ..
                 } => container(
                     column![
-                        text(format!("Module Name: {}", name)),
+                        text(format!("Module Name: {}", name.trim())),
                         text(format!("Format: {}", format)),
                         text(format!("Samples: {}", samples)),
                         text(format!("Total Sample Size: {} KiB", total_sample_size)),
+                        // Space::with_width(15),
+                        // view_samples_button,
                     ]
                     .spacing(5)
                     .align_items(Alignment::Center)

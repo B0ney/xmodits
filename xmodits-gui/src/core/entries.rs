@@ -117,6 +117,10 @@ impl Entries {
         }
         selected
     }
+
+    pub fn files(&self) -> usize {
+        self.entries.iter().filter(|f| f.is_file()).count()
+    }
 }
 
 #[derive(Default)]

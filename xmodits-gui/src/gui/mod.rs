@@ -426,9 +426,19 @@ impl Application for App {
             .spacing(10)
             .width(Length::FillPortion(4));
 
-        let right_half: _ = column![
-            set_destination,
-            self.view_entries(),
+        let mut right_half: _ = column![set_destination, self.view_entries()]
+            .width(Length::FillPortion(5)) //6
+            .spacing(10);
+
+        const TOO_MUCH_FILES: usize = 200;
+
+        if self.entries.files() > TOO_MUCH_FILES {
+            let warning = format!("That's a lot of files! You REALLY should be using folders.");
+
+            right_half = right_half.push(text(warning).style(style::text::Text::Error));
+        }
+
+        right_half = right_half.push(
             row![
                 button(text("Add File"))
                     .padding(10)
@@ -442,10 +452,8 @@ impl Application for App {
                     .on_press(Message::DeleteSelected),
                 button("Clear").padding(10).on_press(Message::Clear),
             ]
-            .spacing(10)
-        ]
-        .width(Length::FillPortion(5)) //6
-        .spacing(10);
+            .spacing(10),
+        );
 
         let main: _ = row![left_half, right_half].spacing(10);
 

@@ -21,8 +21,8 @@ pub fn rip(paths: Vec<PathBuf>) {
     let use_destination = config.general.non_gui_use_cwd;
 
     let destination = match use_destination {
-        true => config.ripping.destination.clone(),
-        false => std::env::current_dir().unwrap_or(".".into()),
+        false => config.ripping.destination.clone(),
+        true => std::env::current_dir().unwrap_or(".".into()),
     };
 
     let log_path = match &config.general.logging_path {
@@ -46,9 +46,18 @@ pub fn rip(paths: Vec<PathBuf>) {
         })
         .collect();
 
+    // todo: quiet output
     match errors.len().cmp(&1) {
-        Ordering::Less => success(&config.destination),
-        Ordering::Equal => failed_single(&errors.pop().unwrap().1.to_string()),
+        Ordering::Less => {
+            if !quiet_output {
+                success(&destination)
+            }
+        }
+        Ordering::Equal => {
+            if !quiet_output {
+                failed_single(&errors.pop().unwrap().1.to_string())
+            }
+        }
         Ordering::Greater => {
             let result = write_error_log(log_path, errors);
 
