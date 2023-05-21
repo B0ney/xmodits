@@ -2301,9 +2301,9 @@ checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
 
 [[package]]
 name = "linux-raw-sys"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ece97ea872ece730aed82664c424eb4c8291e1ff2480247ccf7409044bc6479f"
+checksum = "ef53942eb7bf7ff43a617b3e2c1c4a5ecf5944a7c1bc12d7ee39bbb15e5c1519"
 
 [[package]]
 name = "lock_api"
@@ -5047,7 +5047,7 @@ dependencies = [
 [[package]]
 name = "xmodits-lib"
 version = "0.6.0"
-source = "git+https://github.com/B0ney/xmodits-lib.git?rev=200217d1c2eebec9fc8636a657807f3a6e99b686#200217d1c2eebec9fc8636a657807f3a6e99b686"
+source = "git+https://github.com/B0ney/xmodits-lib.git?rev=65deb56#65deb56f1c87174ae186f903c941d38861ccbbc0"
 dependencies = [
  "bytemuck",
  "extended",
