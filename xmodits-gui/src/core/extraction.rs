@@ -14,12 +14,15 @@ use walkdir::WalkDir;
 use xmodits_lib::common::extract;
 use xmodits_lib::interface::ripper::Ripper;
 
+use super::xmodits::cancelled;
+
 #[derive(Debug)]
 pub enum ThreadMsg {
     SetTotal(u64),
     Info(Option<String>),
     Progress(Option<Failed>),
     Done,
+    Cancelled,
 }
 
 impl ThreadMsg {
@@ -59,8 +62,11 @@ pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippi
     stage_1(tx.clone(), files, ripper.clone(), &cfg);
     stage_2(tx.clone(), folders, ripper, cfg);
 
-    tx.send(ThreadMsg::Done)
-        .expect("Informing main GUI that the extraction has completed");
+    tx.send(match cancelled() {
+        true => ThreadMsg::Cancelled,
+        false => ThreadMsg::Done,
+    })
+    .expect("Informing main GUI that the extraction has completed");
 }
 
 fn stage_1(
@@ -86,14 +92,19 @@ fn stage_1(
     let files = GLOBAL_TRACKER.set_files(files);
     let filter = strict_loading(cfg.strict);
 
-    files.lock().iter().filter(|f| filter(f)).for_each(|file| {
+    for file in files.lock().iter().filter(|f| filter(f)) {
+        if cancelled() {
+            break;
+        }
+
         let _ = subscr_tx.send(ThreadMsg::Progress(
             extract(&file, &cfg.destination, ripper.as_ref(), cfg.self_contained)
                 .map_err(|error| Failed::new(file.display().to_string(), error))
                 .err(),
         ));
+
         GLOBAL_TRACKER.incr_file();
-    });
+    }
 }
 
 /// todo add documentation
@@ -104,7 +115,7 @@ fn stage_2(
     ripper: Arc<Ripper>,
     cfg: SampleRippingConfig,
 ) {
-    if folders.is_empty() {
+    if folders.is_empty() || cancelled() {
         return;
     }
     let selected_dirs = folders.len();
@@ -130,6 +141,10 @@ fn stage_2(
             lines, selected_dirs
         ))))
         .unwrap();
+
+    if cancelled() {
+        return;
+    }
 
     Batcher::new(&mut file, batch_size(lines), ripper, cfg, subscr_tx).start();
 }
@@ -169,19 +184,24 @@ pub fn traverse(
     let mut lines: u64 = 0;
 
     // traverse list of directories, output to a file
-    dirs.into_iter().for_each(|f| {
-        WalkDir::new(f)
-            .max_depth(max_depth as usize)
-            .into_iter()
-            .filter_map(|f| f.ok())
-            .filter(|f| f.path().is_file() && filter(f.path()))
-            .for_each(|f| {
+    'traversal: for folder in dirs.into_iter() {
+        for entry in WalkDir::new(folder).max_depth(max_depth as usize).into_iter() {
+            if cancelled() {
+                break 'traversal;
+            }
+
+            let Ok(f) = entry else { 
+                continue;
+            };
+
+            if f.path().is_file() && filter(f.path()) {
                 lines += 1;
                 callback(lines);
                 file.write_fmt(format_args!("{}\n", f.path().display()))
                     .expect("Writing file entry");
-            })
-    });
+            }
+        }
+    };
 
     // Rewind cursor to beginning
     file.rewind().unwrap();
@@ -245,6 +265,10 @@ impl<'io> Batcher<'io> {
 
             let rip_parallel = move |batch: &[String]| {
                 batch.par_iter().for_each(|file| {
+                    if cancelled() {
+                        return;
+                    }
+                    
                     let result = extract(&file, &destination, &ripper, self_contained);
 
                     // Send an update to the subscription
@@ -266,13 +290,17 @@ impl<'io> Batcher<'io> {
 
             pool.spawn(move || {
                 while let Ok(batch) = batch_rx.recv() {
-                    batch.lock().chunks(SUB_BATCH_SIZE).for_each(|sub_batch| {
+                    for sub_batch in batch.lock().chunks(SUB_BATCH_SIZE) {
+                        if cancelled() {
+                            break;
+                        }
+
                         rip_parallel(sub_batch);
                         GLOBAL_TRACKER.incr_sub_batch_number();
-                    });
+                    }
 
                     // Tell the batcher we're done so that it can send the next round
-                    worker_tx.send(NextBatch).unwrap();
+                    let _ = worker_tx.send(NextBatch);
                 }
             });
         };
@@ -283,7 +311,7 @@ impl<'io> Batcher<'io> {
     pub fn start(&mut self) {
         let mut is_last_batch = false;
 
-        while !self.state.complete {
+        while !self.state.complete && !cancelled() {
             // If this is the last batch, set the state to complete
             // and send the last batch. When complete this loop terminates.
             self.state.complete = is_last_batch;

@@ -3,9 +3,16 @@ pub use super::extraction::{Failed, ThreadMsg};
 use iced::{subscription, Subscription};
 use rand::Rng;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::io::{AsyncWriteExt, BufWriter};
 use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
 use tracing::{error, info};
+
+pub static CANCELLED: AtomicBool = AtomicBool::new(false);
+
+pub fn cancelled() -> bool {
+    CANCELLED.load(Ordering::Relaxed)
+}
 
 pub type StartSignal = (Vec<PathBuf>, SampleRippingConfig);
 
@@ -35,6 +42,7 @@ pub enum ExtractionMessage {
 
 #[derive(Default, Debug, Clone)]
 pub enum CompleteState {
+    Cancelled,
     #[default]
     NoErrors,
     SomeErrors(Vec<Failed>),
@@ -161,6 +169,15 @@ pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
                     }
                     Some(ThreadMsg::Info(info)) => {
                         let _ = output.try_send(ExtractionMessage::Info(info));
+                    }
+                    Some(ThreadMsg::Cancelled) => {
+                        // let error = std::mem::take(error_handler);
+                        output
+                            .try_send(ExtractionMessage::Done(CompleteState::Cancelled))
+                            .expect("Sending 'extraction complete' message to application.");
+
+                        info!("Cancelled!");
+                        state = State::Init;
                     }
                     _ => {
                         let error = std::mem::take(error_handler);

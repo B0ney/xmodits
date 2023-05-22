@@ -214,6 +214,11 @@ impl App {
             .on_press(Message::SaveErrors)
             .padding(5);
 
+        let cancel_ripping_button: _ = button("Cancel")
+            .on_press(Message::Cancelled)
+            .style(style::button::Button::Cancel)
+            .padding(5);
+
         let display: _ = match self.state {
             State::Idle => {
                 if self.entries.is_empty() {
@@ -283,6 +288,7 @@ impl App {
                     .font(JETBRAINS_MONO)
                     .horizontal_alignment(Horizontal::Center),
                     progress_bar(0.0..=100.0, progress).height(5).width(200),
+                    cancel_ripping_button,
                     gif(&GIF.ripping)
                 ]
                 .spacing(8)
@@ -294,6 +300,21 @@ impl App {
             .center_y(),
 
             State::Done(ref completed_state) => match completed_state {
+                CompleteState::Cancelled => container(
+                    column![
+                        text("Cancelled").font(JETBRAINS_MONO),
+                        text("Drag and Drop").font(JETBRAINS_MONO),
+                        text(&self.time).font(JETBRAINS_MONO),
+                        Space::with_height(15),
+                        continue_button
+                    ]
+                    .align_items(Alignment::Center),
+                )
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .center_x()
+                .center_y(),
+
                 CompleteState::NoErrors => container(
                     column![
                         text("Done! \\(^_^)/").font(JETBRAINS_MONO),

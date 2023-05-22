@@ -9,7 +9,7 @@ pub mod views;
 use crate::core::cfg::{Config, GeneralConfig, SampleRippingConfig};
 use crate::core::entries::{Entries, History};
 use crate::core::xmodits::{
-    xmodits_subscription, CompleteState, ErrorHandler, ExtractionMessage, Failed, StartSignal,
+    xmodits_subscription, CompleteState, ErrorHandler, ExtractionMessage, Failed, StartSignal, CANCELLED,
 };
 
 use iced::keyboard::{Event as KeyboardEvent, KeyCode};
@@ -71,6 +71,7 @@ pub enum Message {
     SetState(State),
     SaveErrors,
     SaveErrorResult(Result<(), Vec<Failed>>),
+    Cancelled,
     // SaveFile(Option<PathBuf>),
 }
 
@@ -262,6 +263,7 @@ impl Application for App {
                     self.sender = Some(start_signal);
                 }
                 ExtractionMessage::Done(completed_state) => {
+                    CANCELLED.store(false, std::sync::atomic::Ordering::Relaxed);
                     self.time.stop();
                     self.state = State::Done(completed_state)
                 }
@@ -360,6 +362,10 @@ impl Application for App {
                 };
             }
             Message::SetGeneralCfg(general_cfg) => self.general_config.update(general_cfg),
+            Message::Cancelled => {
+                self.state.message(Some("Cancelling...".into()));
+                CANCELLED.store(true, std::sync::atomic::Ordering::Release)
+            },
         };
         Command::none()
     }

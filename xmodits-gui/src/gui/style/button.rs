@@ -7,6 +7,7 @@ use super::ColorPalette;
 pub enum Button {
     #[default]
     Primary,
+    Cancel,
     Hyperlink,
     HyperlinkInverted,
     Unavailable,
@@ -38,6 +39,7 @@ impl button::StyleSheet for ColorPalette {
 
         match style {
             Button::Primary => active_appearance(None, p.bright.primary),
+            Button::Cancel => active_appearance(None, p.bright.error),
             Button::Unavailable => active_appearance(None, p.bright.error),
             Button::Entry => button::Appearance {
                 background: Some(Background::Color(p.base.foreground)),
@@ -104,6 +106,7 @@ impl button::StyleSheet for ColorPalette {
                 text_color: p.bright.surface,
                 ..hover_appearance(p.bright.primary, None)
             },
+            Button::Cancel => hover_appearance(p.bright.error, Some(p.bright.surface)),
         }
     }
 
