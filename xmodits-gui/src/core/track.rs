@@ -40,51 +40,85 @@ impl GlobalTracker {
     }
 
     pub fn set_batch_size(&self, size: usize) {
-        self.batch_size.store(size, Ordering::Relaxed);
+        self.batch_size.atomic_set(size);
     }
 
     pub fn set_sub_batch_size(&self, size: usize) {
-        self.sub_batch_size.store(size, Ordering::Relaxed);
+        self.sub_batch_size.atomic_set(size);
     }
 
     pub fn incr_batch_number(&self) {
-        self.batch_number.fetch_add(1, Ordering::Relaxed);
+        self.batch_number.atomic_incr();
     }
 
     pub fn incr_sub_batch_number(&self) {
-        self.sub_batch_number.fetch_add(1, Ordering::Relaxed);
+        self.sub_batch_number.atomic_incr();
     }
 
     pub fn incr_file(&self) {
-        self.sq_idx.fetch_add(1, Ordering::Relaxed);
+        self.sq_idx.atomic_incr();
     }
 
-    pub fn get_current_path(&self) -> Option<PathBuf> {
-        let index = self.sq_idx.load(Ordering::Relaxed);
+    pub fn current_path(&self) -> Option<PathBuf> {
+        let index = self.sq_idx.atomic_get();
         self.files.lock().get(index).cloned()
     }
 
-    pub fn get_batch_number(&self) -> u64 {
-        self.batch_number.load(Ordering::Relaxed)
+    pub fn batch_number(&self) -> u64 {
+        self.batch_number.atomic_get()
     }
 
-    pub fn get_batch_size(&self) -> usize {
-        self.batch_size.load(Ordering::Relaxed)
+    pub fn batch_size(&self) -> usize {
+        self.batch_size.atomic_get()
     }
 
-    pub fn get_sub_batch_number(&self) -> u64 {
-        self.sub_batch_number.load(Ordering::Relaxed)
+    pub fn sub_batch_number(&self) -> u64 {
+        self.sub_batch_number.atomic_get()
     }
 
-    pub fn get_sub_batch_size(&self) -> usize {
-        self.sub_batch_size.load(Ordering::Relaxed)
+    pub fn sub_batch_size(&self) -> usize {
+        self.sub_batch_size.atomic_get()
     }
 
     pub fn reset(&self) {
         self.set_batch_size(0);
         self.set_sub_batch_size(0);
-        self.sq_idx.store(0, Ordering::Relaxed);
-        self.batch_number.store(0, Ordering::Relaxed);
-        self.sub_batch_number.store(0, Ordering::Relaxed);
+        self.sq_idx.atomic_reset();
+        self.batch_number.atomic_reset();
+        self.sub_batch_number.atomic_reset();
     }
 }
+
+pub trait AtomicVariable {
+    type Val;
+
+    fn atomic_get(&self) -> Self::Val;
+    fn atomic_incr(&self);
+    fn atomic_set(&self, size: Self::Val);
+    fn atomic_reset(&self);
+}
+
+macro_rules! atomic_var_impl(
+    ($atomic:ty, $value:ty) => {impl AtomicVariable for $atomic {
+        type Val = $value;
+
+        fn atomic_incr(&self) {
+            self.fetch_add(1, Ordering::Relaxed);
+        }
+
+        fn atomic_set(&self, size: Self::Val) {
+            self.store(size, Ordering::Relaxed);
+        }
+
+        fn atomic_reset(&self) {
+            self.store(0, Ordering::Relaxed);
+        }
+
+        fn atomic_get(&self) -> Self::Val {
+            self.load(Ordering::Relaxed)
+        }
+    }}
+);
+
+atomic_var_impl!(AtomicUsize, usize);
+atomic_var_impl!(AtomicU64, u64);

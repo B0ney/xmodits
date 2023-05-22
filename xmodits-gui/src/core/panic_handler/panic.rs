@@ -1,65 +1,85 @@
-use crate::core::{dialog, track::GLOBAL_TRACKER};
-use std::path::PathBuf;
+use crate::core::{
+    dialog,
+    track::{GlobalTracker, GLOBAL_TRACKER},
+};
+use std::{panic::PanicInfo, path::PathBuf};
 
-pub enum Source {
-    XmoditsLIB,
-    XmoditsGUI,
-    Other(String),
+#[derive(Default, Debug)]
+struct Dump {
+    pub current_path: Option<PathBuf>,
+    pub batch_size: usize,
+    pub batch_number: u64,
+    pub sub_batch_size: usize,
+    pub sub_batch_number: u64,
+    pub location: Option<Location>,
+    pub message: Option<String>,
 }
 
-pub struct Crash {
-    source: Source,
-    bad_module: Option<BadModule>,
-    location: Location,
+#[derive(Debug)]
+struct Location {
+    pub line: u32,
+    pub file: String,
 }
 
-enum Location {
-    Unknown,
-    Known { location: String, line: u32 },
+impl Dump {
+    fn from_panic(panic_info: &PanicInfo) -> Self {
+        let global_tracker: &GlobalTracker = &GLOBAL_TRACKER;
+
+        let location = panic_info.location().map(|file| Location {
+            line: file.line(),
+            file: file.file().to_owned(),
+        });
+
+        let message: Option<String> = match panic_info.payload().downcast_ref::<String>() {
+            Some(e) => Some(e.to_string()),
+            None => match panic_info.payload().downcast_ref::<&str>() {
+                Some(err) => Some(err.to_string()),
+                None => None,
+            },
+        };
+
+        Self {
+            location,
+            message,
+            ..Self::from(global_tracker)
+        }
+    }
 }
 
-pub enum BadModule {
-    Exact(PathBuf),
-    Suspects {
-        traversed_entries: PathBuf,
-        offset: u64,
-        window: u64,
-    },
-}
-
-impl BadModule {}
-
-fn a() {
-    let a = &GLOBAL_TRACKER;
-    let batch_offset: u64 = a.get_batch_size() as u64 * a.get_batch_number();
-    let sub_batch_size = a.get_sub_batch_size() as u64;
-    let sub_batch_offset: u64 = sub_batch_size * a.get_sub_batch_number();
-
-    let offset: u64 = batch_offset + sub_batch_offset;
-    let window = sub_batch_size;
+impl From<&GlobalTracker> for Dump {
+    fn from(value: &GlobalTracker) -> Self {
+        Self {
+            current_path: value.current_path(),
+            batch_size: value.batch_size(),
+            batch_number: value.batch_number(),
+            sub_batch_size: value.sub_batch_size(),
+            sub_batch_number: value.sub_batch_number(),
+            ..Default::default()
+        }
+    }
 }
 
 pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(|panic_info| {
-        let backtrace = std::backtrace::Backtrace::force_capture();
-        let info = match panic_info.location() {
+        let dump = Dump::from_panic(panic_info);
+
+        // let backtrace = std::backtrace::Backtrace::force_capture();
+        let info = match &dump.location {
             Some(location) => format!(
                 "Panic occurred in file '{}' at line {}",
-                location.file(),
-                location.line()
+                location.file,
+                location.line,
             ),
             None => String::from("Panic occurred but can't get location information..."),
         };
 
-        let message: String = match panic_info.payload().downcast_ref::<String>() {
+        let message: String = match &dump.message {
             Some(e) => e.into(),
-            None => match panic_info.payload().downcast_ref::<&str>() {
-                Some(err) => err.to_string(),
-                None => "Panic occured".into(),
-            },
+            None => "Panic occured".into(),
         };
 
         dialog::critical_error(&format!("{}\n{:?}", info, message));
+        dbg!("{:?}", &dump);
 
         std::process::exit(1)
     }));
