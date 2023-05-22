@@ -110,7 +110,7 @@ impl Default for SampleRippingConfig {
         Self {
             destination: dirs::download_dir().expect("Expected Downloads folder"),
             self_contained: true,
-            folder_max_depth: 1,
+            folder_max_depth: 4,
             strict: true,
             exported_format: Default::default(),
             naming: SampleNameConfig {
