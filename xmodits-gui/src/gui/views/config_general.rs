@@ -54,12 +54,12 @@ impl GeneralConfig {
                 .align_items(Alignment::Center)
                 .spacing(5),
                 checkbox(
-                    "(Non-gui) quiet output",
+                    "(non-gui) Quiet output",
                     self.non_gui_quiet_output,
                     Message::NonGuiQuietOutput
                 ),
                 checkbox(
-                    "(Non-gui) use cwd",
+                    "(non-gui) Use current working directory",
                     self.non_gui_use_cwd,
                     Message::NonGuiUseCwd
                 ),
