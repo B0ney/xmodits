@@ -97,14 +97,18 @@ impl From<ErrorHandler> for CompleteState {
 /// * A module has/can't be ripped. This is also done to track progress.
 /// * The worker has finished ripping.
 pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
-    subscription::channel((), 512, |mut output| async move {
+    subscription::channel((), 1024, |mut output| async move {
         let mut state = State::Init;
         loop {
             match &mut state {
                 State::Init => {
                     let (sender, receiver) = mpsc::channel::<StartSignal>(1);
                     state = State::Idle(receiver);
-                    let _ = output.try_send(ExtractionMessage::Ready(sender));
+
+                    // It's important that this gets delivered, otherwise the program would be in an invalid state.
+                    output
+                        .try_send(ExtractionMessage::Ready(sender))
+                        .expect("Sending a 'transmission channel' to main application.");
                 }
                 State::Idle(start_msg) => match start_msg.recv().await {
                     Some(config) => {
@@ -159,9 +163,15 @@ pub fn xmodits_subscription() -> Subscription<ExtractionMessage> {
                         let _ = output.try_send(ExtractionMessage::Info(info));
                     }
                     _ => {
-                        let _ = output.try_send(ExtractionMessage::Done(CompleteState::from(
-                            std::mem::take(error_handler),
-                        )));
+                        let error = std::mem::take(error_handler);
+                        let msg = ExtractionMessage::Done(CompleteState::from(error));
+
+                        // It's important that this gets delivered, otherwise the program would be in an invalid state.
+                        output
+                            .try_send(msg)
+                            .expect("Sending 'extraction complete' message to application.");
+
+                        info!("Done!");
                         state = State::Init;
                     }
                 },

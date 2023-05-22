@@ -59,29 +59,8 @@ pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippi
     stage_1(tx.clone(), files, ripper.clone(), &cfg);
     stage_2(tx.clone(), folders, ripper, cfg);
 
-    tx.send(ThreadMsg::Done).unwrap();
-}
-
-fn strict_loading(strict: bool) -> impl Fn(&Path) -> bool {
-    match strict {
-        true => move |path: &Path| {
-            const EXT: &[&str] = &[
-                "it", "xm", "s3m", "mod", "umx", "mptm", "IT", "XM", "S3M", "MOD", "UMX", "MPTM",
-            ];
-
-            let Some(ext) = path
-                .extension()
-                .map(|f| f.to_str())
-                .flatten()
-            else {
-                return false;
-            };
-
-            EXT.contains(&ext)
-        },
-
-        false => |_: &Path| true,
-    }
+    tx.send(ThreadMsg::Done)
+        .expect("Informing main GUI that the extraction has completed");
 }
 
 fn stage_1(
@@ -152,8 +131,7 @@ fn stage_2(
         ))))
         .unwrap();
 
-    let mut batcher = Batcher::new(&mut file, batch_size(lines), ripper, cfg, subscr_tx);
-    batcher.start();
+    Batcher::new(&mut file, batch_size(lines), ripper, cfg, subscr_tx).start();
 }
 
 fn batch_size(lines: u64) -> usize {
@@ -185,7 +163,7 @@ pub fn traverse(
     //     .truncate(true)
     //     .open("./test.txt") // todo
     //     .unwrap();
-    let mut file = tempfile::tempfile_in(dirs::download_dir().unwrap()).unwrap();
+    let mut file = tempfile::tempfile().expect("Creating a temporary file");
 
     // store the number of entries
     let mut lines: u64 = 0;
@@ -201,7 +179,7 @@ pub fn traverse(
                 lines += 1;
                 callback(lines);
                 file.write_fmt(format_args!("{}\n", f.path().display()))
-                    .unwrap();
+                    .expect("Writing file entry");
             })
     });
 
@@ -250,21 +228,54 @@ impl<'io> Batcher<'io> {
             buffer: Buffer::init(batch_size),
             batch_tx,
             worker_rx,
-            // handle: None,
         };
 
         // load first buffer
         batcher.load();
 
-        spawn_workers(
-            batch_rx,
-            worker_tx,
-            subscr_tx,
-            ripper,
-            cfg.destination,
-            cfg.self_contained,
-            cfg.worker_threads,
-        );
+        // Spawn workers
+        {
+            const SUB_BATCH_SIZE: usize = 576;
+            use rayon::prelude::*;
+
+            let destination = cfg.destination;
+            let self_contained = cfg.self_contained;
+
+            GLOBAL_TRACKER.set_sub_batch_size(SUB_BATCH_SIZE);
+
+            let rip_parallel = move |batch: &[String]| {
+                batch.par_iter().for_each(|file| {
+                    let result = extract(&file, &destination, &ripper, self_contained);
+
+                    // Send an update to the subscription
+                    let _ = match result {
+                        Ok(_) => subscr_tx.send(ThreadMsg::Progress(None)),
+
+                        Err(error) => {
+                            let error = Some(Failed::new(file.into(), error));
+                            subscr_tx.send(ThreadMsg::Progress(error))
+                        }
+                    };
+                });
+            };
+
+            let pool = rayon::ThreadPoolBuilder::new()
+                .num_threads(cfg.worker_threads)
+                .build()
+                .unwrap();
+
+            pool.spawn(move || {
+                while let Ok(batch) = batch_rx.recv() {
+                    batch.lock().chunks(SUB_BATCH_SIZE).for_each(|sub_batch| {
+                        rip_parallel(sub_batch);
+                        GLOBAL_TRACKER.incr_sub_batch_number();
+                    });
+
+                    // Tell the batcher we're done so that it can send the next round
+                    worker_tx.send(NextBatch).unwrap();
+                }
+            });
+        };
 
         batcher
     }
@@ -329,49 +340,26 @@ impl<'io> Batcher<'io> {
     }
 }
 
-fn spawn_workers(
-    batch_rx: Receiver<Batch<String>>,
-    worker_tx: Sender<NextBatch>,
-    subscr_tx: AsyncSender<ThreadMsg>,
-    ripper: Arc<Ripper>,
-    destination: PathBuf,
-    self_contained: bool,
-    workers: usize,
-) {
-    use rayon::prelude::*;
-    const SUB_BATCH_SIZE: usize = 576;
+fn strict_loading(strict: bool) -> impl Fn(&Path) -> bool {
+    match strict {
+        true => move |path: &Path| {
+            const EXT: &[&str] = &[
+                "it", "xm", "s3m", "mod", "umx", "mptm", "IT", "XM", "S3M", "MOD", "UMX", "MPTM",
+            ];
 
-    GLOBAL_TRACKER.set_sub_batch_size(SUB_BATCH_SIZE);
+            let Some(ext) = path
+                .extension()
+                .map(|f| f.to_str())
+                .flatten()
+            else {
+                return false;
+            };
 
-    let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(workers)
-        .build()
-        .unwrap();
+            EXT.contains(&ext)
+        },
 
-    pool.spawn(move || {
-        while let Ok(batch) = batch_rx.recv() {
-            batch.lock().chunks(SUB_BATCH_SIZE).for_each(|sub_batch| {
-                sub_batch.par_iter().for_each(|file| {
-                    let result = extract(&file, &destination, &ripper, self_contained);
-
-                    // Send an update to the subscription
-                    let _ = match result {
-                        Ok(()) => subscr_tx.send(ThreadMsg::Progress(None)),
-
-                        Err(error) => {
-                            let error = Some(Failed::new(file.into(), error));
-                            subscr_tx.send(ThreadMsg::Progress(error))
-                        }
-                    };
-                });
-
-                GLOBAL_TRACKER.incr_sub_batch_number();
-            });
-
-            // Tell the batcher we're done so that it can send the next round
-            worker_tx.send(NextBatch).unwrap();
-        }
-    });
+        false => |_: &Path| true,
+    }
 }
 
 #[derive(Default)]
