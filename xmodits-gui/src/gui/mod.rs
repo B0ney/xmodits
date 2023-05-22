@@ -257,7 +257,7 @@ impl Application for App {
                     |_| Message::Ignore,
                 );
             }
-            Message::StartRip => self.start_ripping(),
+            Message::StartRip => return self.start_ripping(),
             Message::Subscription(m) => match m {
                 ExtractionMessage::Ready(start_signal) => {
                     self.sender = Some(start_signal);

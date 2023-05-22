@@ -12,13 +12,17 @@ use iced::widget::{
 };
 use iced::window::icon::from_rgba;
 use iced::window::{Icon, Settings as Window};
-use iced::{Alignment, Application, Element, Length, Renderer, Settings};
+use iced::{Alignment, Application, Command, Element, Length, Renderer, Settings};
 use iced_gif::gif;
 use iced_lazy::lazy;
 
 use image::{self, GenericImageView};
-use std::path::PathBuf;
+use once_cell::sync::Lazy;
+use std::path::{Path, PathBuf};
 use style::Theme;
+use tracing::warn;
+
+static DESTINATION_ID: Lazy<text_input::Id> = Lazy::new(text_input::Id::unique);
 
 fn icon() -> Icon {
     let image = image::load_from_memory(include_bytes!("../../res/img/logo/icon3.png")).unwrap();
@@ -99,17 +103,34 @@ impl App {
     pub fn destination_bar(&self) -> Element<Message, Renderer<Theme>> {
         let destination = &self.ripping_config.destination;
         let input: _ = text_input("Output Directory", &format!("{}", destination.display()))
+            .id(DESTINATION_ID.clone())
             .padding(10)
             .on_input(|s| Message::SetDestination(Some(PathBuf::new().join(s))));
 
         input.into()
     }
 
-    pub fn start_ripping(&mut self) {
-        if self.entries.len() == 0 {
+    pub fn start_ripping(&mut self) -> Command<Message> {
+        let focus_destination = || text_input::focus(DESTINATION_ID.clone());
+
+        match self.ripping_config.destination.parent() {
+            Some(parent) => {
+                if parent == Path::new("") || !parent.exists() {
+                    warn!("Destination is either empty or the parent folder doesn't exist.");
+                    return focus_destination();
+                }
+            }
+            None => return focus_destination(),
+        };
+
+        self._start_ripping();
+        Command::none()
+    }
+
+    pub fn _start_ripping(&mut self) {
+        if self.entries.is_empty() {
             return;
         }
-
         let Some(sender) = &self.sender.to_owned() else {
             return;
         };
