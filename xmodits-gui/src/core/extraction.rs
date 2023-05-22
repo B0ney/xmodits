@@ -268,7 +268,7 @@ impl<'io> Batcher<'io> {
                     if cancelled() {
                         return;
                     }
-                    
+
                     let result = extract(&file, &destination, &ripper, self_contained);
 
                     // Send an update to the subscription
@@ -368,7 +368,7 @@ impl<'io> Batcher<'io> {
     }
 }
 
-fn strict_loading(strict: bool) -> impl Fn(&Path) -> bool {
+pub fn strict_loading(strict: bool) -> impl Fn(&Path) -> bool {
     match strict {
         true => move |path: &Path| {
             const EXT: &[&str] = &[

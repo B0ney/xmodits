@@ -1,7 +1,8 @@
 use crate::core::cfg::Config;
 use crate::core::dialog::{
-    failed_single, show_help_box, success, success_partial, success_partial_no_log,
+    failed_single, show_help_box, success, success_partial, success_partial_no_log, no_valid_modules,
 };
+use crate::core::extraction::strict_loading;
 use crate::core::log::write_error_log;
 use std::cmp::Ordering;
 use std::path::PathBuf;
@@ -9,13 +10,23 @@ use xmodits_lib::interface::Error;
 use xmodits_lib::{common::extract, interface::ripper::Ripper};
 
 pub fn rip(paths: Vec<PathBuf>) {
-    let paths: Vec<PathBuf> = paths.into_iter().filter(|f| f.is_file()).collect();
+    let mut paths: Vec<PathBuf> = paths.into_iter().filter(|f| f.is_file()).collect();
 
     if paths.is_empty() {
         return show_help_box();
     };
 
     let config = Config::load();
+
+    let filter = strict_loading(config.ripping.strict);
+    
+    if config.ripping.strict {
+        paths = paths.into_iter().filter(|f| filter(f)).collect();
+
+        if paths.is_empty() {
+            return no_valid_modules();
+        };
+    }
 
     let quiet_output = config.general.non_gui_quiet_output;
     let use_destination = config.general.non_gui_use_cwd;

@@ -30,7 +30,7 @@ pub fn success_partial<P: AsRef<Path>>(log_path: P) {
     show_dialoge(
         "Some errors have occured",
         &format!(
-            "Xmodits could not rip everything. Check the logs at: {}",
+            "xmodits could not rip everything. Check the logs at:\n{}",
             log_path.as_ref().display()
         ),
         MessageType::Warning,
@@ -41,7 +41,7 @@ pub fn success_partial_no_log(error: &str) {
     show_dialoge(
         "Some errors have occured",
         &format!(
-            "Xmodits could not rip everything. And it could not create a log file: {}",
+            "xmodits could not rip everything. And it could not create a log file: {}",
             error
         ),
         MessageType::Warning,
@@ -52,13 +52,13 @@ pub fn failed_single(error: &str) {
     show_dialoge("Cannot rip from this file", error, MessageType::Warning)
 }
 
-// pub fn no_valid_modules() {
-//     show_dialoge(
-//         "No files provided",
-//         "You haven't provided any files.\nSupported formats: IT, XM, S3M, MOD, UMX",
-//         MessageType::Error,
-//     )
-// }
+pub fn no_valid_modules() {
+    show_dialoge(
+        "No files provided",
+        "You haven't provided any valid files!\n\nAllowed extensions: .it  .xm  .s3m  .mod  .umx  .mptm\n\nHINT: You can disable this by unchecking \"Strict Loading\" from the GUI, make sure to save if you do!",
+        MessageType::Error,
+    )
+}
 
 pub fn critical_error(error: &str) {
     show_dialoge(

@@ -21,7 +21,11 @@ where
 
     let mut file = File::create(&log_path)?;
     errors.iter().for_each(|(path, error)| {
-        let _ = file.write(format!("{} <--- {}\n\n", path.as_ref().display(), error).as_bytes());
+        let _ = file.write_all(path.as_ref().display().to_string().as_bytes());
+        let _ = file.write_all(b"\n     ");
+        let _ = file.write_all(error.to_string().as_bytes());
+        let _ = file.write_all(b"\n\n");
+        let _ = file.flush();
     });
 
     Ok(log_path)
