@@ -12,32 +12,32 @@ jobs:
       matrix:
         target:
           - linux-x86_64-gnu
-          - linux-x86_64-musl
+          # - linux-x86_64-musl
 
           - linux-aarch64-gnu
-          - linux-aarch64-musl
+          # - linux-aarch64-musl
 
           - linux-armv7-gnu
-          - linux-armv7-musl
+          # - linux-armv7-musl
 
         include:
           - target: linux-x86_64-gnu
             arch: x86_64-unknown-linux-gnu
 
-          - target: linux-x86_64-musl
-            arch: x86_64-unknown-linux-musl
+          # - target: linux-x86_64-musl
+          #   arch: x86_64-unknown-linux-musl
 
           - target: linux-aarch64-gnu
             arch: aarch64-unknown-linux-gnu
 
-          - target: linux-aarch64-musl
-            arch: aarch64-unknown-linux-musl
+          # - target: linux-aarch64-musl
+          #   arch: aarch64-unknown-linux-musl
 
           - target: linux-armv7-gnu
             arch: armv7-unknown-linux-gnueabihf
 
-          - target: linux-armv7-musl
-            arch: armv7-unknown-linux-musleabihf
+          # - target: linux-armv7-musl
+          #   arch: armv7-unknown-linux-musleabihf
 
     steps:
       - uses: actions/checkout@v3
