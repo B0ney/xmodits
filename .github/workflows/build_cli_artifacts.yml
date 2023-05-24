@@ -6,20 +6,21 @@ on:
   
 jobs:
   build_cli_linux:
-    name: Building ${{ matrix.build_target }}
+    name: building cli - ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        build_target: [
-          x86_64-unknown-linux-gnu
-          x86_64-unknown-linux-musl
-
-          armv7-unknown-linux-gnueabihf # Raspberry Pi
-
-          ] # TODO: add more platforms
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+          - armv7-unknown-linux-gnueabihf
+          - armv7-unknown-linux-musleabihf
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
+
       - uses: actions/cache@v3
         with:
           path: |
@@ -29,30 +30,31 @@ jobs:
             ~/.cargo/git/db/
             target
           key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.OS }}-release-
+          restore-keys: ${{ runner.os }}-release-
         
       - name: Install cross
         run: cargo install cross
 
       - name: Build Linux CLI binaries
-        run: cross build --verbose -p xmodits --release --target ${{ matrix.build_target }}
+        run: cross build --verbose -p xmodits --release --target ${{ matrix.target }}
       
       - name: Create ./bin directory
         run: mkdir -p bin
 
       - name: Tarball Linux CLI binary
         run: |
-          tar -czf bin/xmodits-cli-${{ matrix.build_target }}.tar.gz -C target/${{matrix.build_target}}/release/ xmodits
+          tar -czf bin/xmodits-cli-${{ matrix.target }}.tar.gz -C target/${{matrix.target}}/release/ xmodits
       
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: xmodits-cli-${{ matrix.build_target }}
+          name: xmodits-cli-${{ matrix.target }}
           path: |
-            bin/xmodits-cli-${{ matrix.build_target }}.*
+            bin/xmodits-cli-${{ matrix.target }}.*
 
 
   build_cli_macos:
+    name: Building CLI for MacOS
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v3
@@ -75,11 +77,9 @@ jobs:
       run: mkdir -p bin
 
     - name: Zip macOS CLI binary 
-      run: | # add cli suffix to binary
-        rm target/release/xmodits-cli
-        mv target/release/xmodits target/release/xmodits-cli
-        chmod +x target/release/xmodits-cli
-        zip ./bin/xmodits-cli-${{ runner.os }}.zip target/release/xmodits-cli
+      run: | # todo add cli suffix to binary
+        chmod +x target/release/xmodits
+        zip ./bin/xmodits-cli-${{ runner.os }}.zip target/release/xmodits
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
@@ -90,6 +90,7 @@ jobs:
 
 
   build_cli_windows:
+    name: Building CLI for Windows
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
