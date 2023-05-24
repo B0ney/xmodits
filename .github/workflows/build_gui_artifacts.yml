@@ -6,38 +6,55 @@ on:
   
 jobs:
   build_gui_linux:
+    name: Building GUI for Linux x86_64
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target
+          key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-release-
+
+      - name: Build Linux GUI binaries
+        run: cargo build --verbose -p xmodits-gui --release
+        
+      - name: Create ./bin directory
+        run: mkdir -p bin
+
+      - name: Tarball Linux GUI binary
+        run: |
+          tar -czf bin/xmodits-gui-linux-x86_64.tar.gz -C target/release/ xmodits
+        
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: xmodits-gui-linux-x86_64
+          path: |
+            bin/xmodits-gui-linux-x86_64.*
+
+  build_gui_linux-cross:
     name: Building GUI for ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         target:
-          - linux-x86_64-gnu
-          # - linux-x86_64-musl
-
           - linux-aarch64-gnu
-          # - linux-aarch64-musl
-
           - linux-armv7-gnu
-          # - linux-armv7-musl
 
         include:
-          - target: linux-x86_64-gnu
-            arch: x86_64-unknown-linux-gnu
-
-          # - target: linux-x86_64-musl
-          #   arch: x86_64-unknown-linux-musl
-
           - target: linux-aarch64-gnu
             arch: aarch64-unknown-linux-gnu
 
-          # - target: linux-aarch64-musl
-          #   arch: aarch64-unknown-linux-musl
-
           - target: linux-armv7-gnu
             arch: armv7-unknown-linux-gnueabihf
-
-          # - target: linux-armv7-musl
-          #   arch: armv7-unknown-linux-musleabihf
 
     steps:
       - uses: actions/checkout@v3
