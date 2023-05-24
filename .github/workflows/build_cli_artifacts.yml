@@ -113,9 +113,11 @@ jobs:
       run: mkdir -p bin
 
     - name: Zip macOS CLI binary 
-      run: | # todo add cli suffix to binary
-        chmod +x target/release/xmodits
-        zip -j ./bin/xmodits-cli-${{ matrix.target }}.zip target/release/xmodits
+      run: |
+        rm target/release/*xmodits-cli
+        mv target/release/xmodits target/release/xmodits-cli
+        chmod +x target/release/xmodits-cli
+        zip -j ./bin/xmodits-cli-${{ matrix.target }}.zip target/release/xmodits-cli
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
