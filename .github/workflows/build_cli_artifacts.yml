@@ -6,7 +6,7 @@ on:
   
 jobs:
   build_cli_linux:
-    name: Building CLI - ${{ matrix.target }}
+    name: Building CLI for ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -78,9 +78,23 @@ jobs:
   build_cli_macos:
     name: Building CLI for MacOS
     runs-on: macOS-latest
+    strategy:
+      matrix:
+        target:
+          - macos-intel
+          # - macos-apple-slicon # TODO: make this a separate task?
+        include:
+          - target: macos-intel
+            arch: x86_64-apple-darwin
+          # - target: macos-apple-silicon
+          #   arch: aarch64-apple-darwin
+
     steps:
     - uses: actions/checkout@v3
     - uses: dtolnay/rust-toolchain@stable
+      with:
+        target: ${{ matrix.arch }}
+
     - uses: actions/cache@v3
       with:
         path: |
@@ -101,18 +115,18 @@ jobs:
     - name: Zip macOS CLI binary 
       run: | # todo add cli suffix to binary
         chmod +x target/release/xmodits
-        zip ./bin/xmodits-cli-${{ runner.os }}.zip target/release/xmodits
+        zip ./bin/xmodits-cli-${{ matrix.target }}.zip target/release/ xmodits
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: xmodits-cli-${{ runner.os }}
+        name: xmodits-cli-${{ matrix.target }}
         path: |
-          bin/xmodits-cli-${{ runner.os }}.*
+          bin/xmodits-cli-${{ matrix.target }}.*
 
 
   build_cli_windows:
-    name: Building CLI for Windows
+    name: Building CLI for ${{ matrix.target }}
     runs-on: windows-latest
     strategy:
       matrix:
@@ -146,7 +160,7 @@ jobs:
 
     - name: Install Windows 32 bit target
       if: matrix.arch == 'i686-pc-windows-msvc'
-      run: | 
+      run: | # Install 32-bit target and make it the default
         rustup target add i686-pc-windows-msvc && rustup default stable-i686-pc-windows-msvc
 
     - name: Build Windows CLI binary
@@ -155,75 +169,15 @@ jobs:
     - name: Create ./bin directory
       run: mkdir -p bin
 
-    - name: Zip Windows CLI binary (64 bit)
-      # if: matrix.arch == 'x86_64-pc-windows-msvc'
+    - name: Zip Windows CLI binary
       run: | # On Windows, add cli suffix
         rm target/release/*xmodits-cli.exe
         mv target/release/xmodits.exe target/release/xmodits-cli.exe
         Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{ matrix.target }}.zip
     
-    # - name: Zip Windows CLI binary (64 bit)
-    #   if: matrix.arch == 'x86_64-pc-windows-msvc'
-    #   run: | # On Windows, add cli suffix
-    #     rm target/release/*xmodits-cli.exe
-    #     mv target/release/xmodits.exe target/release/xmodits-cli.exe
-    #     Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{ matrix.target }}.zip
-
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
         name: xmodits-cli-${{ matrix.target }}
         path: |
           bin/xmodits-cli-${{ matrix.target}}.*
-
-
-  # build:
-  #   name: Building ${{ matrix.build_target }}
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       build_target: [linux, windows] # TODO: add more platforms
-  #       include:
-  #       - build_target: linux
-  #         os: ubuntu-latest
-  #       - build_target: windows
-  #         os: windows-latest
-          
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: dtolnay/rust-toolchain@stable
-  #     - uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           ~/.cargo/bin/
-  #           ~/.cargo/registry/index/
-  #           ~/.cargo/registry/cache/
-  #           ~/.cargo/git/db/
-  #           target
-  #         key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
-  #         restore-keys: ${{ runner.OS }}-release-
-        
-  #     - name: Building CLI
-  #       run: cargo build -p xmodits --release
-
-  #     - name: Create ./bin directory
-  #       run: mkdir -p bin
-          
-  #     - name: Tarball Linux CLI binary
-  #       if: matrix.os != 'windows-latest'
-  #       run: |
-  #         tar -czf bin/xmodits-cli-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits
-
-  #     - name: Zip Windows CLI binary
-  #       if: matrix.os == 'windows-latest'
-  #       run: | # On Windows, add cli suffix
-  #         rm target/release/*xmodits-cli.exe
-  #         mv target/release/xmodits.exe target/release/xmodits-cli.exe
-  #         Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{ matrix.build_target }}.zip
-
-  #     - name: Upload artifacts
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: xmodits-cli-${{ matrix.build_target }}
-  #         path: |
-  #           bin/xmodits-cli-${{ matrix.build_target }}.*
