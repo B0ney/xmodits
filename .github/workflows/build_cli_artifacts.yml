@@ -6,7 +6,7 @@ on:
   
 jobs:
   build_cli_linux:
-    name: building cli - ${{ matrix.target }}
+    name: Building CLI - ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -92,6 +92,12 @@ jobs:
   build_cli_windows:
     name: Building CLI for Windows
     runs-on: windows-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-pc-windows-msvc
+          - i686-pc-windows-msvc
+
     steps:
     - uses: actions/checkout@v3
     - uses: dtolnay/rust-toolchain@stable
@@ -104,7 +110,11 @@ jobs:
           ~/.cargo/git/db/
           target
         key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.OS }}-release-
+        restore-keys: ${{ runner.os }}-release-
+
+    - name: Install Windows 32 bit target
+      if: matrix.target == 'i686-pc-windows-msvc'
+      run: rustup target add i686-pc-windows-msvc
 
     - name: Build Windows CLI binary
       run: cargo build --verbose -p xmodits --release
@@ -121,9 +131,9 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: xmodits-cli-${{ runner.os }}
+        name: xmodits-cli-${{ matrix.target }}
         path: |
-          bin/xmodits-cli-${{ runner.os }}.*
+          bin/xmodits-cli-${{ matrix.target}}.*
 
 
   # build:
