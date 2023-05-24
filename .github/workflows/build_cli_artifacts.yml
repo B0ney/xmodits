@@ -76,7 +76,7 @@ jobs:
 
 
   build_cli_macos:
-    name: Building CLI for MacOS
+    name: Building CLI for ${{ matrix.target }}
     runs-on: macOS-latest
     strategy:
       matrix:
@@ -115,7 +115,7 @@ jobs:
     - name: Zip macOS CLI binary 
       run: | # todo add cli suffix to binary
         chmod +x target/release/xmodits
-        zip ./bin/xmodits-cli-${{ matrix.target }}.zip target/release/ xmodits
+        zip -j ./bin/xmodits-cli-${{ matrix.target }}.zip target/release/xmodits
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
