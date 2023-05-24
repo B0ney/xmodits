@@ -52,6 +52,11 @@ jobs:
             target
           key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-release-
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get install -y libxkbcommon-dev
         
       - name: Install cross
         run: cargo install cross
@@ -171,7 +176,7 @@ jobs:
       run: |
         rm target/release/*xmodits
         mv target/release/xmodits-gui target/release/xmodits
-        chmod +x target/release/xmodits-gui
+        chmod +x target/release/xmodits
         zip -j ./bin/xmodits-gui-${{ matrix.target }}.zip target/release/xmodits
 
     - name: Upload artifacts
