@@ -114,7 +114,7 @@ jobs:
 
     - name: Zip macOS CLI binary 
       run: |
-        rm target/release/*xmodits-cli
+        echo $(rm target/release/*xmodits-cli)
         mv target/release/xmodits target/release/xmodits-cli
         chmod +x target/release/xmodits-cli
         zip -j ./bin/xmodits-cli-${{ matrix.target }}.zip target/release/xmodits-cli
