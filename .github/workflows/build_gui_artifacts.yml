@@ -52,11 +52,6 @@ jobs:
             target
           key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-release-
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get -qq update
-          sudo apt install libfontconfig-dev
         
       - name: Install cross
         run: cargo install cross
