@@ -1,8 +1,8 @@
 [target.aarch64-unknown-linux-gnu]
 image = "ghcr.io/iced-rs/aarch64:latest"
 
-[target.armv7-unknown-linux-gnu]
+[target.armv7-unknown-linux-gnueabihf]
 image = "ghcr.io/iced-rs/armv7:latest"
 
 [target.x86_64-unknown-linux-gnu]
-pre-build = ["sudo apt update && sudo apt install libfontconfig-dev"]
+pre-build = ["apt install libfontconfig-dev"]
