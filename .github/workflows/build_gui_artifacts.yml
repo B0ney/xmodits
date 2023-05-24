@@ -31,7 +31,7 @@ jobs:
 
       - name: Tarball Linux GUI binary
         run: |
-          tar -czf bin/xmodits-gui-linux-x86_64.tar.gz -C target/release/ xmodits
+          tar -czf bin/xmodits-gui-linux-x86_64.tar.gz -C target/release/ xmodits-gui
         
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
@@ -81,7 +81,7 @@ jobs:
 
       - name: Tarball Linux GUI binary
         run: |
-          tar -czf bin/xmodits-gui-${{ matrix.target }}.tar.gz -C target/${{matrix.arch}}/release/ xmodits
+          tar -czf bin/xmodits-gui-${{ matrix.target }}.tar.gz -C target/${{matrix.arch}}/release/ xmodits-gui
       
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
