@@ -5,18 +5,18 @@ on:
   workflow_call:
   
 jobs:
-  build:
+  build_cli_linux:
     name: Building ${{ matrix.build_target }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        build_target: [linux, windows] # TODO: add more platforms
-        include:
-        - build_target: linux
-          os: ubuntu-latest
-        - build_target: windows
-          os: windows-latest
-          
+        build_target: [
+          x86_64-unknown-linux-gnu
+          x86_64-unknown-linux-musl
+
+          armv7-unknown-linux-gnueabihf # Raspberry Pi
+
+          ] # TODO: add more platforms
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -31,27 +31,147 @@ jobs:
           key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.OS }}-release-
         
-      - name: Building CLI
-        run: cargo build -p xmodits --release
+      - name: Install cross
+        run: cargo install cross
 
+      - name: Build Linux CLI binaries
+        run: cross build --verbose -p xmodits --release --target ${{ matrix.build_target }}
+      
       - name: Create ./bin directory
         run: mkdir -p bin
-          
+
       - name: Tarball Linux CLI binary
-        if: matrix.os != 'windows-latest'
         run: |
-          tar -czf bin/xmodits-cli-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits
-
-      - name: Zip Windows CLI binary
-        if: matrix.os == 'windows-latest'
-        run: | # On Windows, add cli suffix
-          rm target/release/*xmodits-cli.exe
-          mv target/release/xmodits.exe target/release/xmodits-cli.exe
-          Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{ matrix.build_target }}.zip
-
+          tar -czf bin/xmodits-cli-${{ matrix.build_target }}.tar.gz -C target/${{matrix.build_target}}/release/ xmodits
+      
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: xmodits-cli-${{ matrix.build_target }}
           path: |
             bin/xmodits-cli-${{ matrix.build_target }}.*
+
+
+  build_cli_macos:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target
+        key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-release-
+
+    - name: Build macOS CLI binary
+      run: cargo build --verbose -p xmodits --release
+
+    - name: Create ./bin directory
+      run: mkdir -p bin
+
+    - name: Zip macOS CLI binary 
+      run: | # add cli suffix to binary
+        rm target/release/xmodits-cli
+        mv target/release/xmodits target/release/xmodits-cli
+        chmod +x target/release/xmodits-cli
+        zip ./bin/xmodits-cli-${{ runner.os }}.zip target/release/xmodits-cli
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: xmodits-cli-${{ runner.os }}
+        path: |
+          bin/xmodits-cli-${{ runner.os }}.*
+
+
+  build_cli_windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target
+        key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.OS }}-release-
+
+    - name: Build Windows CLI binary
+      run: cargo build --verbose -p xmodits --release
+
+    - name: Create ./bin directory
+      run: mkdir -p bin
+
+    - name: Zip Windows CLI binary
+      run: | # On Windows, add cli suffix
+        rm target/release/*xmodits-cli.exe
+        mv target/release/xmodits.exe target/release/xmodits-cli.exe
+        Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{ runner.os }}.zip
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: xmodits-cli-${{ runner.os }}
+        path: |
+          bin/xmodits-cli-${{ runner.os }}.*
+
+
+  # build:
+  #   name: Building ${{ matrix.build_target }}
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       build_target: [linux, windows] # TODO: add more platforms
+  #       include:
+  #       - build_target: linux
+  #         os: ubuntu-latest
+  #       - build_target: windows
+  #         os: windows-latest
+          
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@stable
+  #     - uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.cargo/bin/
+  #           ~/.cargo/registry/index/
+  #           ~/.cargo/registry/cache/
+  #           ~/.cargo/git/db/
+  #           target
+  #         key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
+  #         restore-keys: ${{ runner.OS }}-release-
+        
+  #     - name: Building CLI
+  #       run: cargo build -p xmodits --release
+
+  #     - name: Create ./bin directory
+  #       run: mkdir -p bin
+          
+  #     - name: Tarball Linux CLI binary
+  #       if: matrix.os != 'windows-latest'
+  #       run: |
+  #         tar -czf bin/xmodits-cli-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits
+
+  #     - name: Zip Windows CLI binary
+  #       if: matrix.os == 'windows-latest'
+  #       run: | # On Windows, add cli suffix
+  #         rm target/release/*xmodits-cli.exe
+  #         mv target/release/xmodits.exe target/release/xmodits-cli.exe
+  #         Compress-Archive target/release/xmodits-cli.exe bin/xmodits-cli-${{ matrix.build_target }}.zip
+
+  #     - name: Upload artifacts
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: xmodits-cli-${{ matrix.build_target }}
+  #         path: |
+  #           bin/xmodits-cli-${{ matrix.build_target }}.*
