@@ -11,6 +11,8 @@ use crate::core::entries::{Entries, History};
 use crate::core::xmodits::{
     xmodits_subscription, CompleteState, ErrorHandler, ExtractionMessage, Failed, StartSignal, CANCELLED,
 };
+use crate::core::tracker_info::Info;
+use crate::core::time::Time;
 
 use iced::keyboard::{Event as KeyboardEvent, KeyCode};
 use iced::widget::{button, column, container, row, text, Column, Container, Space};
@@ -104,92 +106,6 @@ impl State {
         if let Self::Ripping { message, .. } = self {
             *message = message_update;
         }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum Info {
-    Valid {
-        path: PathBuf,
-        name: String,
-        format: String,
-        samples: usize,
-        total_sample_size: usize,
-    },
-    Invalid {
-        path: PathBuf,
-        error: String,
-    },
-}
-
-impl Info {
-    pub fn matches(&self, other: &Path) -> bool {
-        matches!(
-            self,
-            Self::Invalid { path, .. } |
-            Self::Valid { path, ..} if path == other
-        )
-    }
-    pub fn path(&self) -> &Path {
-        match self {
-            Self::Invalid { path, .. } | Self::Valid { path, .. } => path,
-        }
-    }
-    pub fn valid(tracker: Box<dyn Module>, path: PathBuf) -> Self {
-        Self::Valid {
-            name: tracker.name().to_owned(),
-            format: tracker.format().to_owned(),
-            samples: tracker.total_samples(),
-            path,
-            total_sample_size: tracker
-                .samples()
-                .iter()
-                .map(|f| f.length as usize)
-                .sum::<usize>()
-                / 1024,
-        }
-    }
-    pub fn invalid(error: String, path: PathBuf) -> Self {
-        Self::Invalid { error, path }
-    }
-}
-
-struct Time {
-    start: Instant,
-    duration: Duration,
-}
-
-impl Default for Time {
-    fn default() -> Self {
-        Self {
-            start: Instant::now(),
-            duration: Default::default(),
-        }
-    }
-}
-
-impl Time {
-    pub fn start(&mut self) {
-        self.start = Instant::now();
-    }
-
-    pub fn stop(&mut self) {
-        self.duration = self.start.elapsed();
-    }
-
-    pub fn elapsed(&self) -> f32 {
-        self.duration.as_secs_f32()
-    }
-}
-
-impl std::fmt::Display for Time {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = match self.duration.as_secs_f32() {
-            s if s < 60.0 => format!("{} second(s)", s),
-            s if s < 60.0 * 60.0 => format!("{} minute(s)", s / 60.0),
-            s => format!("{} hour(s)", s / (60.0 * 60.0)),
-        };
-        write!(f, "Took {}", s)
     }
 }
 

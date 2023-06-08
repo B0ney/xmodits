@@ -7,4 +7,7 @@ pub mod panic_handler;
 pub mod sfx;
 pub mod track;
 pub mod xmodits;
+pub mod time;
+pub mod audio;
+pub mod tracker_info;
 // pub use sfx::SFX;
