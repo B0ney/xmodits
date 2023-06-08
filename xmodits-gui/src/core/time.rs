@@ -1,3 +1,5 @@
+use std::time::{Duration, Instant};
+
 pub struct Time {
     start: Instant,
     duration: Duration,

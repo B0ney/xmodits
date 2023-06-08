@@ -29,7 +29,6 @@ use views::config_name::Message as ConfigNamingMessage;
 use views::config_ripping::Message as ConfigRippingMessage;
 
 use std::path::{Path, PathBuf};
-use std::time::{Duration, Instant};
 use tokio::sync::mpsc::Sender;
 use xmodits_lib::traits::Module;
 

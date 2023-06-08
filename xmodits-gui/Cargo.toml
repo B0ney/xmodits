@@ -70,6 +70,9 @@ iced_aw = "0.4.1"
 iced_gif = "0.3.0" 
 iced_lazy = "0.6.1"
 cpal = "0.15.2"
+rb = "0.4.1"
+arrayvec = "0.7.2"
+bytemuck = "1.13.1"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["shellapi", "winuser"] }

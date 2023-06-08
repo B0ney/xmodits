@@ -3645,6 +3645,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "rb"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56cf8381505b60ae18a4097f1d0be093287ca3bf4fbb23d36ac5ad3bba335daa"
+
+[[package]]
 name = "realfft"
 version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5380,6 +5386,8 @@ name = "xmodits-gui"
 version = "0.11.0"
 dependencies = [
  "anyhow",
+ "arrayvec 0.7.2",
+ "bytemuck",
  "cosmic-time",
  "cpal",
  "dirs",
@@ -5394,6 +5402,7 @@ dependencies = [
  "parking_lot 0.12.1",
  "rand",
  "rayon",
+ "rb",
  "rfd",
  "serde",
  "shellexpand",
