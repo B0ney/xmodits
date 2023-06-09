@@ -73,6 +73,7 @@ cpal = "0.15.2"
 rb = "0.4.1"
 arrayvec = "0.7.2"
 bytemuck = "1.13.1"
+ringbuf = "0.3.3"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["shellapi", "winuser"] }
