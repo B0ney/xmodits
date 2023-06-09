@@ -1,6 +1,9 @@
-use super::core::{AudioOutputDevice, Frame, PlayHandle};
+use crate::core::audio::sample::TrackerSample;
+
+use super::core::{AudioOutputDevice, Event, Frame, PlayHandle};
 use super::device;
 use ringbuf;
+use xmodits_lib::dsp::{RawSample, SampleBuffer};
 
 const BUFFER_SIZE_LATENCY: usize = 256;
 
@@ -43,7 +46,16 @@ impl AudioEngine {
             self.handles.remove(i);
         }
 
-        self.device.write(&[frame]);
+        self.device.write(&[clamp(frame)]);
+    }
+
+    pub fn handle_event(&mut self, event: Event) {
+        match event {
+            Event::RequestAudioDeviceReset => self.device.reset(),
+            Event::PushPlayHandle(play_handle) => self.handles.push(play_handle),
+            Event::PlayEvent(state) => self.state = state,
+            Event::Clear => self.handles.clear(),
+        }
     }
 }
 
@@ -82,7 +94,7 @@ impl PlayHandle for Oscillator {
 
     fn reset(&mut self) {}
 
-    fn jump(&mut self, _tick: u64) {}
+    fn jump(&mut self, _tick: usize) {}
 }
 
 pub struct Siren {
@@ -115,6 +127,7 @@ impl Siren {
         }
     }
 }
+
 impl PlayHandle for Siren {
     fn next(&mut self) -> Option<[f32; 2]> {
         // if self.duration > 44100 {
@@ -128,71 +141,72 @@ impl PlayHandle for Siren {
 
     fn reset(&mut self) {}
 
-    fn jump(&mut self, _tick: u64) {}
+    fn jump(&mut self, _tick: usize) {}
 }
 
 #[test]
 fn a() {
-    let mut engine = AudioEngine::init();
-    // engine.handles.push(Box::new(Oscillator {
-    //     sample_rate: engine.device.rate() as f32,
-    //     frame: 0,
-    //     frequency: 440.0,
-    //     duration: 0,
-    // }));
-    // engine.handles.push(Box::new(Siren {
-    //     sample_rate: engine.device.rate() as f32,
-    //     frame: 0,
-    //     high: 500.0,
-    //     low: 300.0,
-    //     rate: 10.0,
-    //     switch: true,
-    // }));
+    let (tx, rx) = std::sync::mpsc::channel::<Event>();
 
-    engine.handles.push(Box::new(Siren {
-        sample_rate: engine.device.rate() as f32,
-        frame: 0,
-        high: 700.0,
-        low: 400.0,
-        rate: 5.0,
-        switch: true,
-    }));
-    engine.handles.push(Box::new(Siren {
-        sample_rate: engine.device.rate() as f32,
-        frame: 4410,
-        high: 700.0,
-        low: 400.0,
-        rate: 5.0,
-        switch: true,
-    }));
-    // engine.handles.push(Box::new(Siren {
-    //     sample_rate: engine.device.rate() as f32,
-    //     frame: engine.device.rate() as u64 / 4,
+    let ha = std::thread::spawn(move || {
+        let mut engine = AudioEngine::init();
+        loop {
+            match rx.try_recv() {
+                Ok(event) => engine.handle_event(event),
+                Err(_) => (),
+            }
+            engine.tick();
+        }
+    });
+
+    let mut file =
+        std::io::Cursor::new(include_bytes!("../../../../test/modules/space_debris.mod"));
+
+    let module = xmodits_lib::fmt::loader::load_module(&mut file).unwrap();
+
+    let samples: Vec<TrackerSample> = module
+        .samples()
+        .iter()
+        .map(|sample| {
+            let pcm = module.pcm(sample).unwrap();
+            let mut sample = SampleBuffer::from(RawSample::from((sample, pcm)).into());
+            xmodits_lib::dsp::resampler::resample(&mut sample, 48000);
+            sample
+        })
+        .map(TrackerSample::new)
+        .collect();
+
+    // tx.send(Event::PushPlayHandle(Box::new(Siren {
+    //     sample_rate: 48000.0,
     //     high: 700.0,
     //     low: 400.0,
-    //     rate: 1.0,
+    //     frame: 0,
+    //     rate: 5.0,
     //     switch: true,
-    // }));
-    // engine.handles.push(Box::new(Siren {
-    //     sample_rate: engine.device.rate() as f32,
-    //     frame: 0,
-    //     high: 660.0,
-    //     low: 220.0,
-    //     rate: 2.0,
-    // }));
+    // })));
 
-    // engine.handles.push(Box::new(Oscillator {
-    //     sample_rate: 44800.0,
-    //     frame: 0,
-    //     frequency: 880.0,
-    //     duration: 0,
-    // }));
-
-    // std::thread::spawn(move || {
-    loop {
-        engine.tick();
-        // std::thread::sleep(std::time::Duration::from_nanos(3));
+    for sample in samples {
+        tx.send(Event::PushPlayHandle(Box::new(sample)));
+        std::thread::sleep(std::time::Duration::from_millis(1500));
     }
-    // }
-    // );
+
+    // println!("Done!");
+    // std::thread::sleep(std::time::Duration::from_millis(1500));
+    ha.join();
+}
+
+fn clamp(mut frame: [f32; 2]) -> [f32; 2] {
+    frame
+        .iter_mut()
+        .for_each(|smp| {
+            if *smp < -1.0 {
+                *smp = -1.0;
+                return;
+            }
+            if *smp > 1.0 {
+                *smp = 1.0;
+                return;
+            }
+        });
+    frame
 }

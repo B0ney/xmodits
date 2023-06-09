@@ -594,9 +594,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.3.2"
+version = "4.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "401a4694d2bf92537b6867d94de48c4842089645fdcdf6c71865b175d836e9c2"
+checksum = "ca8f255e4b8027970e78db75e78831229c9815fdbfa67eb1a1b777a62e24b4a0"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -605,9 +605,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.3.1"
+version = "4.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72394f3339a76daf211e57d4bcb374410f3965dcc606dd0e03738c7888766980"
+checksum = "acd4f3c17c83b0ba34ffbc4f8bbd74f079413f747f84a6f89292f138057e36ab"
 dependencies = [
  "anstream",
  "anstyle",
@@ -5387,7 +5387,7 @@ dependencies = [
  "clap",
  "rayon",
  "walkdir",
- "xmodits-lib",
+ "xmodits-lib 0.6.0 (git+https://github.com/B0ney/xmodits-lib.git?rev=17a55e6)",
 ]
 
 [[package]]
@@ -5425,13 +5425,27 @@ dependencies = [
  "walkdir",
  "winapi",
  "winres",
- "xmodits-lib",
+ "xmodits-lib 0.6.0 (git+https://github.com/B0ney/xmodits-lib.git?rev=8274b3c)",
 ]
 
 [[package]]
 name = "xmodits-lib"
 version = "0.6.0"
 source = "git+https://github.com/B0ney/xmodits-lib.git?rev=17a55e6#17a55e6b51a07fcecf35ac0db5fc4fa812233b2c"
+dependencies = [
+ "arrayvec 0.7.2",
+ "bytemuck",
+ "dasp",
+ "extended",
+ "hound",
+ "rubato",
+ "thiserror",
+]
+
+[[package]]
+name = "xmodits-lib"
+version = "0.6.0"
+source = "git+https://github.com/B0ney/xmodits-lib.git?rev=8274b3c#8274b3c3bc006e1a0b0e4f4118b0957d477398c1"
 dependencies = [
  "arrayvec 0.7.2",
  "bytemuck",
