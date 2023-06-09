@@ -5425,7 +5425,7 @@ dependencies = [
  "walkdir",
  "winapi",
  "winres",
- "xmodits-lib 0.6.0 (git+https://github.com/B0ney/xmodits-lib.git?rev=8274b3c)",
+ "xmodits-lib 0.6.0 (git+https://github.com/B0ney/xmodits-lib.git?rev=f50eb2b)",
 ]
 
 [[package]]
@@ -5445,7 +5445,7 @@ dependencies = [
 [[package]]
 name = "xmodits-lib"
 version = "0.6.0"
-source = "git+https://github.com/B0ney/xmodits-lib.git?rev=8274b3c#8274b3c3bc006e1a0b0e4f4118b0957d477398c1"
+source = "git+https://github.com/B0ney/xmodits-lib.git?rev=f50eb2b#f50eb2b4186f00ac31fbfdf429add9457d14d901"
 dependencies = [
  "arrayvec 0.7.2",
  "bytemuck",
