@@ -10,8 +10,9 @@ use xmodits_lib::interface::sample::{self, LoopType};
 pub struct TrackerSample {
     pub buffer: Arc<SampleBuffer>,
     frame: usize,
-    reversed: bool,
-    looping: bool,
+    is_reversed: bool,
+    is_looping: bool,
+    loop_enabled: bool,
 }
 
 impl TrackerSample {
@@ -19,46 +20,62 @@ impl TrackerSample {
         Self {
             buffer: sample.into(),
             frame: 0,
-            reversed: false,
-            looping: false,
+            is_reversed: false,
+            is_looping: false,
+            loop_enabled: false,
         }
     }
 
+    pub fn inner_sample(&self) -> &SampleBuffer {
+        &self.buffer
+    }
+
+    pub fn loop_enabled(&self) -> bool {
+        self.loop_enabled
+    }
+
     pub fn end_frame(&self) -> usize {
-        match self.buffer.loop_data.is_disabled() {
+        match self.loop_enabled() {
             true => self.buffer.duration(),
             false => self.buffer.end(),
         }
     }
 
     pub fn start_frame(&self) -> usize {
-        match self.buffer.loop_data.is_disabled() {
+        match self.loop_enabled() {
             true => 0,
             false => self.buffer.start(),
         }
     }
 
     pub fn hit_barrier(&self) -> bool {
+        // If the frame has reached the end of the sample
+        // or if the frame reached an end point.
         if self.frame >= self.buffer.duration() || self.frame >= self.end_frame() {
             return true;
         }
 
-        match self.looping {
-            false => self.frame == 0 && self.reversed,
+        // If the sample is currently playing backwards, i.e. is looping,
+        // Check if the frame is equal or below the start frame.
+        //
+        // Otherwise check if the frame is zero
+        match self.is_looping {
+            false => self.frame == 0 && self.is_reversed,
             true => self.frame <= self.start_frame(),
         }
     }
 
     pub fn reverse(&mut self) {
-        self.reversed = !self.reversed;
+        self.is_reversed = !self.is_reversed;
 
         self.frame = match self.buffer.loop_type() {
             LoopType::Forward => self.start_frame(),
-            LoopType::Backward | LoopType::PingPong => match self.reversed {
+            // LoopType::Backward | LoopType::PingPong
+            _ => match self.is_reversed {
                 true => self.end_frame() - 1,
                 false => self.start_frame(),
             },
-            _ => unreachable!(),
+            // _ => unreachable!(),
         }
     }
 
@@ -74,18 +91,22 @@ impl TrackerSample {
 impl PlayHandle for TrackerSample {
     fn next(&mut self) -> Option<[f32; 2]> {
         if self.hit_barrier() {
-            match self.buffer.loop_data.is_disabled() {
-                true => return None,
-                false => {
-                    self.looping = true;
+            match self.loop_enabled() {
+                true => {
+                    self.is_looping = true;
                     self.reverse();
                 }
+
+                false => return None,
             }
         }
 
-        let result = self.buffer.frame(self.frame).map(|f| f.get_stereo_frame());
+        let result = self
+            .buffer
+            .frame(self.frame)
+            .map(SampleFrame::get_stereo_frame);
 
-        match self.reversed {
+        match self.is_reversed {
             true => self.frame -= 1,
             false => self.frame += 1,
         };
@@ -95,7 +116,7 @@ impl PlayHandle for TrackerSample {
 
     fn reset(&mut self) {
         self.frame = 0;
-        self.looping = false;
+        self.is_looping = false;
     }
 
     fn jump(&mut self, tick: usize) {

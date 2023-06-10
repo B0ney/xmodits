@@ -21,3 +21,18 @@ pub trait PlayHandle: Send + Sync {
     fn reset(&mut self);
     fn jump(&mut self, tick: usize);
 }
+
+pub trait FrameModifier {
+    fn clamp(self) -> Self;
+    fn amplify(self, value: f32) -> Self;
+}
+
+impl FrameModifier for [f32; 2] {
+    fn clamp(self) -> Self {
+        self.map(|s| s.clamp(-1.0, 1.0))
+    }
+
+    fn amplify(self, value: f32) -> Self {
+        self.map(|s| (s * value))
+    }
+}

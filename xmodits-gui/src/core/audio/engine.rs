@@ -1,6 +1,6 @@
 use crate::core::audio::sample::TrackerSample;
 
-use super::core::{AudioOutputDevice, Event, Frame, PlayHandle};
+use super::core::{AudioOutputDevice, Event, Frame, PlayHandle, FrameModifier};
 use super::device;
 use ringbuf;
 use xmodits_lib::dsp::{RawSample, SampleBuffer};
@@ -42,11 +42,11 @@ impl AudioEngine {
             frame[1] += next_frame[1];
         }
 
+        self.device.write(&[frame.amplify(0.10).clamp()]);
+
         while let Some(i) = to_remove.pop() {
             self.handles.remove(i);
         }
-
-        self.device.write(&[clamp(frame)]);
     }
 
     pub fn handle_event(&mut self, event: Event) {
@@ -146,6 +146,9 @@ impl PlayHandle for Siren {
 
 #[test]
 fn a() {
+    /*
+        cargo test --release --package xmodits-gui --bin xmodits-gui -- core::audio::engine::a --exact --nocapture
+     */
     let (tx, rx) = std::sync::mpsc::channel::<Event>();
     const MAX_EVENTS: usize = 32;
 
@@ -160,25 +163,26 @@ fn a() {
     });
 
     let mut file =
-        std::io::Cursor::new(include_bytes!("../../../../test/modules/delamour_edit.it"));
+        std::io::Cursor::new(include_bytes!("../../../../test/modules/space_debris.mod"));
 
     let module = xmodits_lib::fmt::loader::load_module(&mut file).unwrap();
-    let smp = &module.samples()[0];
-    let pcm = module.pcm(&smp).unwrap();
-    let mut sample = SampleBuffer::from(RawSample::from((smp, pcm)).into());
-    xmodits_lib::dsp::resampler::resample(&mut sample, 48000);
-    let sample = TrackerSample::new(sample);
-    // let samples: Vec<TrackerSample> = module
-    //     .samples()
-    //     .iter()
-    //     .map(|sample| {
-    //         let pcm = module.pcm(sample).unwrap();
-    //         let mut sample = SampleBuffer::from(RawSample::from((sample, pcm)).into());
-    //         xmodits_lib::dsp::resampler::resample(&mut sample, 48000);
-    //         sample
-    //     })
-    //     .map(TrackerSample::new)
-    //     .collect();
+    // let smp = &module.samples()[3];
+    // let pcm = module.pcm(&smp).unwrap();
+    // let mut sample = SampleBuffer::from(RawSample::from((smp, pcm)).into());
+    // xmodits_lib::dsp::resampler::resample(&mut sample, 48000);
+    // let mut sample = TrackerSample::new(sample);
+    // sample.reverse();
+    let samples: Vec<TrackerSample> = module
+        .samples()
+        .iter()
+        .map(|sample| {
+            let pcm = module.pcm(sample).unwrap();
+            let mut sample = SampleBuffer::from(RawSample::from((sample, pcm)).into());
+            xmodits_lib::dsp::resampler::resample(&mut sample, 48000);
+            sample
+        })
+        .map(TrackerSample::new)
+        .collect();
 
     // tx.send(Event::PushPlayHandle(Box::new(Siren {
     //     sample_rate: 48000.0,
@@ -189,14 +193,17 @@ fn a() {
     //     switch: true,
     // })));
 
-    // for sample in samples {
-    //     tx.send(Event::PushPlayHandle(Box::new(sample)));
-    //     std::thread::sleep(std::time::Duration::from_millis(1500));
-    // }
-    let sample = sample.clone();
-    dbg!("{:?}",&sample.buffer.loop_data);
-    tx.send(Event::PushPlayHandle(Box::new(sample)));
-    std::thread::sleep(std::time::Duration::from_millis(1500));
+    for samples in samples.chunks(10) {
+        for sample in samples.iter().cloned() {
+            tx.send(Event::PushPlayHandle(Box::new(sample)));
+        }
+        
+        std::thread::sleep(std::time::Duration::from_millis(1500));
+    }
+    // let sample = sample.clone();
+    // dbg!("{:?}",&sample.buffer.loop_data);
+    // tx.send(Event::PushPlayHandle(Box::new(sample)));
+    // std::thread::sleep(std::time::Duration::from_millis(1500));
 
     println!("Done!");
     // std::thread::sleep(std::time::Duration::from_millis(1500));
