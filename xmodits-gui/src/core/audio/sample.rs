@@ -12,7 +12,7 @@ pub struct TrackerSample {
     frame: usize,
     is_reversed: bool,
     is_looping: bool,
-    loop_enabled: bool,
+    loop_force_disabled: bool,
 }
 
 impl TrackerSample {
@@ -22,7 +22,7 @@ impl TrackerSample {
             frame: 0,
             is_reversed: false,
             is_looping: false,
-            loop_enabled: false,
+            loop_force_disabled: true,
         }
     }
 
@@ -31,13 +31,17 @@ impl TrackerSample {
     }
 
     pub fn loop_enabled(&self) -> bool {
-        self.loop_enabled
+        // override loop data
+        match self.loop_force_disabled {
+            true => false,
+            false => !self.buffer.loop_data.is_disabled(),
+        }
     }
 
     pub fn end_frame(&self) -> usize {
         match self.loop_enabled() {
-            true => self.buffer.duration(),
-            false => self.buffer.end(),
+            true => self.buffer.end(),
+            false => self.buffer.duration(),
         }
     }
 
@@ -65,17 +69,18 @@ impl TrackerSample {
         }
     }
 
-    pub fn reverse(&mut self) {
-        self.is_reversed = !self.is_reversed;
-
+    fn jump_to_loop_point(&mut self) {
         self.frame = match self.buffer.loop_type() {
             LoopType::Forward => self.start_frame(),
-            // LoopType::Backward | LoopType::PingPong
-            _ => match self.is_reversed {
-                true => self.end_frame() - 1,
-                false => self.start_frame(),
-            },
-            // _ => unreachable!(),
+            LoopType::Backward | LoopType::PingPong => {
+                self.is_reversed = !self.is_reversed;
+
+                match self.is_reversed {
+                    true => self.end_frame() - 1,
+                    false => self.start_frame(),
+                }
+            }
+            _ => unreachable!(),
         }
     }
 
@@ -94,7 +99,7 @@ impl PlayHandle for TrackerSample {
             match self.loop_enabled() {
                 true => {
                     self.is_looping = true;
-                    self.reverse();
+                    self.jump_to_loop_point();
                 }
 
                 false => return None,
