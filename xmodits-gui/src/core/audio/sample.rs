@@ -6,17 +6,6 @@ use xmodits_lib::dsp::sample::{FramesIter, SampleFrame};
 use xmodits_lib::dsp::{resampler::resample, RawSample, SampleBuffer};
 use xmodits_lib::interface::sample::{self, LoopType};
 
-pub struct SampleInfo {
-    name: String,
-    filename: Option<String>,
-    buffer: Arc<SampleBuffer>,
-}
-
-pub struct AudioDevice {
-    out: Box<dyn AudioOutputDevice>,
-    cache: RwLock<HashMap<String, Weak<SampleBuffer>>>,
-}
-
 #[derive(Clone)]
 pub struct TrackerSample {
     pub buffer: Arc<SampleBuffer>,
@@ -37,7 +26,7 @@ impl TrackerSample {
 
     pub fn end_frame(&self) -> usize {
         match self.buffer.loop_data.is_disabled() {
-            true => self.buffer.duration() - 1,
+            true => self.buffer.duration(),
             false => self.buffer.end(),
         }
     }

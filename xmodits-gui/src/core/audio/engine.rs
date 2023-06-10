@@ -147,34 +147,38 @@ impl PlayHandle for Siren {
 #[test]
 fn a() {
     let (tx, rx) = std::sync::mpsc::channel::<Event>();
+    const MAX_EVENTS: usize = 32;
 
     let ha = std::thread::spawn(move || {
         let mut engine = AudioEngine::init();
         loop {
-            match rx.try_recv() {
-                Ok(event) => engine.handle_event(event),
-                Err(_) => (),
+            for event in rx.try_iter().take(MAX_EVENTS) {
+                engine.handle_event(event);
             }
             engine.tick();
         }
     });
 
     let mut file =
-        std::io::Cursor::new(include_bytes!("../../../../test/modules/space_debris.mod"));
+        std::io::Cursor::new(include_bytes!("../../../../test/modules/delamour_edit.it"));
 
     let module = xmodits_lib::fmt::loader::load_module(&mut file).unwrap();
-
-    let samples: Vec<TrackerSample> = module
-        .samples()
-        .iter()
-        .map(|sample| {
-            let pcm = module.pcm(sample).unwrap();
-            let mut sample = SampleBuffer::from(RawSample::from((sample, pcm)).into());
-            xmodits_lib::dsp::resampler::resample(&mut sample, 48000);
-            sample
-        })
-        .map(TrackerSample::new)
-        .collect();
+    let smp = &module.samples()[0];
+    let pcm = module.pcm(&smp).unwrap();
+    let mut sample = SampleBuffer::from(RawSample::from((smp, pcm)).into());
+    xmodits_lib::dsp::resampler::resample(&mut sample, 48000);
+    let sample = TrackerSample::new(sample);
+    // let samples: Vec<TrackerSample> = module
+    //     .samples()
+    //     .iter()
+    //     .map(|sample| {
+    //         let pcm = module.pcm(sample).unwrap();
+    //         let mut sample = SampleBuffer::from(RawSample::from((sample, pcm)).into());
+    //         xmodits_lib::dsp::resampler::resample(&mut sample, 48000);
+    //         sample
+    //     })
+    //     .map(TrackerSample::new)
+    //     .collect();
 
     // tx.send(Event::PushPlayHandle(Box::new(Siren {
     //     sample_rate: 48000.0,
@@ -185,12 +189,16 @@ fn a() {
     //     switch: true,
     // })));
 
-    for sample in samples {
-        tx.send(Event::PushPlayHandle(Box::new(sample)));
-        std::thread::sleep(std::time::Duration::from_millis(1500));
-    }
+    // for sample in samples {
+    //     tx.send(Event::PushPlayHandle(Box::new(sample)));
+    //     std::thread::sleep(std::time::Duration::from_millis(1500));
+    // }
+    let sample = sample.clone();
+    dbg!("{:?}",&sample.buffer.loop_data);
+    tx.send(Event::PushPlayHandle(Box::new(sample)));
+    std::thread::sleep(std::time::Duration::from_millis(1500));
 
-    // println!("Done!");
+    println!("Done!");
     // std::thread::sleep(std::time::Duration::from_millis(1500));
     ha.join();
 }
