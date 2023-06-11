@@ -1,9 +1,11 @@
 use crate::core::audio::sample::TrackerSample;
+use crate::core::audio::sample_pack::SamplePack;
 
-use super::core::{AudioOutputDevice, Event, Frame, PlayHandle, FrameModifier};
+use super::core::{AudioOutputDevice, Event, Frame, FrameModifier, PlayHandle};
 use super::device;
 use ringbuf;
-use xmodits_lib::dsp::{RawSample, SampleBuffer};
+use xmodits_lib::dsp::SampleBuffer;
+use xmodits_lib::interface::Sample;
 
 const BUFFER_SIZE_LATENCY: usize = 256;
 const MAX_EVENTS_PER_TICK: usize = 32;
@@ -20,7 +22,6 @@ pub struct AudioEngine {
     device: Box<dyn AudioOutputDevice>,
     pub handles: Vec<Box<dyn PlayHandle>>,
     state: State,
-    
     // ring_buffer: ringbuf::HeapRb<Frame>,
     // processing_buffer: Vec<Frame>,
 }
@@ -57,23 +58,23 @@ impl AudioEngine {
 
     pub fn tick(&mut self) {
         let mut frame: Frame = [0.0, 0.0];
-        let mut to_remove: Vec<usize> = Vec::new();
+        let mut index: usize = 0;
 
-        for (index, handle) in self.handles.iter_mut().enumerate() {
+        while index < self.handles.len() {
+            let handle = &mut self.handles[index];
+
             let Some(next_frame) = handle.next() else {
-                to_remove.push(index);
+                self.handles.swap_remove(index);
                 continue;
             };
 
             frame[0] += next_frame[0];
             frame[1] += next_frame[1];
+
+            index += 1;
         }
 
         self.device.write(&[frame.amplify(0.25).clamp()]);
-
-        while let Some(i) = to_remove.pop() {
-            self.handles.remove(i);
-        }
     }
 
     pub fn handle_event(&mut self, event: Event) {
@@ -97,55 +98,59 @@ impl AudioEngineHandle {
     }
 }
 
-
 #[test]
 fn a() {
     /*
         cargo test --release --package xmodits-gui --bin xmodits-gui -- core::audio::engine::a --exact --nocapture
-     */
+    */
 
     let handle: AudioEngineHandle = AudioEngine::start();
 
-    let mut file =
-        std::io::Cursor::new(include_bytes!("../../../../test/modules/enigma.mod"));
+    let mut file = std::io::Cursor::new(include_bytes!("../../../../test/modules/dnber.it"));
 
     let module = xmodits_lib::fmt::loader::load_module(&mut file).unwrap();
+    let pack = SamplePack::from_module(&module);
 
-    let samples: Vec<TrackerSample> = module
-        .samples()
-        .iter()
-        .map(|sample| {
-            let pcm = module.pcm(sample).unwrap();
-            let mut sample_buffer = SampleBuffer::from(RawSample::from((sample, pcm)).into());
-            xmodits_lib::dsp::resampler::resample(&mut sample_buffer, 48000);
-            sample_buffer
-        })
-        .map(TrackerSample::new)
-        .collect();
+    let samples: Vec<(Sample, TrackerSample)> =
+        pack.samples.into_iter().filter_map(|f| f.ok()).collect();
 
-    // handle.send(Event::PushPlayHandle(Box::new(crate::core::audio::signal::Siren {
-    //     sample_rate: 48000.0,
-    //     high: 700.0,
-    //     low: 400.0,
-    //     frame: 0,
-    //     rate: 5.0,
-    //     switch: true,
-    // })));
+    for chunk in samples.chunks(1) {
+        for (metadata, sample) in chunk {
+            dbg!(metadata);
+            handle.send(Event::PushPlayHandle(Box::new(sample.clone())));
+        }
 
-    // let mut a = samples[1].clone();
-    // tx.send(Event::PushPlayHandle(Box::new(samples[1].clone())));
-
-    for sample in samples {
-        // for sample in samples.iter().cloned() {
-            handle.send(Event::PushPlayHandle(Box::new(sample)));
-        // }
-        
-        std::thread::sleep(std::time::Duration::from_millis(1500));
+        std::thread::sleep(std::time::Duration::from_millis(500));
     }
-    // let sample = sample.clone();
-    // dbg!("{:?}",&sample.buffer.loop_data);
-    // tx.send(Event::PushPlayHandle(Box::new(sample)));
-    // std::thread::sleep(std::time::Duration::from_millis(1500));
+
+    dbg!(&samples[5].0);
+    let g = samples[5].1.clone();
+
+    // Cool beat
+
+    handle.send(Event::PushPlayHandle(Box::new(g.clone())));
+    std::thread::sleep(std::time::Duration::from_millis(250));
+
+    handle.send(Event::Clear);
+    handle.send(Event::PushPlayHandle(Box::new(g.clone())));
+    std::thread::sleep(std::time::Duration::from_millis(128));
+
+    handle.send(Event::Clear);
+    handle.send(Event::PushPlayHandle(Box::new(g.clone())));
+    std::thread::sleep(std::time::Duration::from_millis(128));
+
+    handle.send(Event::Clear);
+    handle.send(Event::PushPlayHandle(Box::new(g.clone())));
+    std::thread::sleep(std::time::Duration::from_millis(250));
+
+    handle.send(Event::Clear);
+    handle.send(Event::PushPlayHandle(Box::new(g.clone())));
+    std::thread::sleep(std::time::Duration::from_millis(250));
+
+    handle.send(Event::Clear);
+    handle.send(Event::PushPlayHandle(Box::new(g.clone())));
+    std::thread::sleep(std::time::Duration::from_millis(20000));
+    dbg!(&g.buffer.loop_data);
 
     println!("Done!");
     // std::thread::sleep(std::time::Duration::from_millis(15000));
