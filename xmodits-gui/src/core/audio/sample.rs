@@ -1,11 +1,10 @@
-use super::core::{AudioOutputDevice, PlayHandle};
-use parking_lot::RwLock;
-use std::collections::HashMap;
+use super::core::PlayHandle;
 use std::sync::{Arc, Weak};
 use xmodits_lib::dsp::sample::{FramesIter, SampleFrame};
 use xmodits_lib::dsp::{resampler::resample, RawSample, SampleBuffer};
 use xmodits_lib::interface::sample::{self, LoopType};
 
+/// Tracker sample used for playback
 #[derive(Clone)]
 pub struct TrackerSample {
     pub buffer: Arc<SampleBuffer>,

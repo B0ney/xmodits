@@ -14,7 +14,7 @@ winres = "0.1.12"
 
 [dependencies.xmodits-lib]
 git = "https://github.com/B0ney/xmodits-lib.git"
-rev = "f50eb2b"
+rev = "c6fedca"
 features = ["serde"]
 
 [dependencies.tokio]

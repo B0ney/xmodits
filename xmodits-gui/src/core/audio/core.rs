@@ -1,4 +1,5 @@
 pub type Frame = [f32; 2];
+use super::engine::AudioEngineHandle;
 
 pub const DEFAULT_RATE: u32 = 44100;
 pub const DEFAULT_BUFFER_SIZE: usize = 2048;
@@ -11,6 +12,7 @@ pub enum Event {
 }
 
 pub trait AudioOutputDevice {
+    fn init(handle: AudioEngineHandle) -> Box<Self> where Self: Sized;
     fn rate(&self) -> u32;
     fn reset(&mut self);
     fn write(&mut self, chunk: &[[f32; 2]]);
