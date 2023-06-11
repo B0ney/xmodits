@@ -46,8 +46,8 @@ impl TrackerSample {
 
     pub fn start_frame(&self) -> usize {
         match self.loop_enabled() {
-            true => 0,
-            false => self.buffer.start(),
+            true => self.buffer.start(),
+            false => 0,
         }
     }
 
