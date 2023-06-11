@@ -10,12 +10,12 @@ use super::{sample::TrackerSample, sample_cache::Cache};
 ///
 pub struct SamplePack {
     // Cache of raw samples, can be used for drawing waveforms, etc
-    sample_cache: Cache<Metadata, SampleBuffer>,
-    samples: Vec<Result<TrackerSample, Error>>,
+    pub sample_cache: Cache<Metadata, SampleBuffer>,
+    pub samples: Vec<Result<(Metadata, TrackerSample), Error>>,
 }
 
 impl SamplePack {
-    pub fn from_module(module: Box<dyn Module>) -> Self {
+    pub fn from_module(module: &Box<dyn Module>) -> Self {
         let sample_cache = Cache::new();
 
         let samples = module
@@ -29,7 +29,7 @@ impl SamplePack {
                     xmodits_lib::dsp::resampler::resample(&mut sample_buffer, 48000); // todo
                     let cached_sample = sample_cache.add(sample.clone(), sample_buffer);
 
-                    TrackerSample::new(cached_sample)
+                    (sample.clone(), TrackerSample::new(cached_sample))
                 })
             })
             .collect();
