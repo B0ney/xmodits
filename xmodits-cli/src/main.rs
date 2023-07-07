@@ -5,7 +5,7 @@ mod cli;
 use cli::Cli;
 
 fn main() {
-    let mut cli = Cli::parse();
+    let mut cli = Cli::parse_from(wild::args());
 
     let destination = match destination_dir(&mut cli.trackers) {
         Ok(path) => path,

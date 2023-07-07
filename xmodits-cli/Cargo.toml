@@ -14,4 +14,4 @@ clap = { version = "4.0.23", features = ["derive", "cargo", "wrap_help"] }
 walkdir = "2.3.3"
 # shellexpand = "3.0.0"
 rayon = { version = "1.7.0", optional = true }
-
+wild = "2.1.0"
