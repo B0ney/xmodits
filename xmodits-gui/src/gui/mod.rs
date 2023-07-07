@@ -444,6 +444,14 @@ impl Application for App {
             right_half = right_half.push(text(warning).style(style::text::Text::Error));
         }
 
+        if !self.ripping_config.self_contained 
+            && !self.ripping_config.naming.prefix 
+        {
+            let warning = format!("\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions; unless you know what you are doing.");
+
+            right_half = right_half.push(text(warning).style(style::text::Text::Error));
+        }
+
         right_half = right_half.push(
             row![
                 button(text("Add File"))
