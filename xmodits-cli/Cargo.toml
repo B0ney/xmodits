@@ -16,4 +16,6 @@ rev = "65deb56"
 clap = { version = "4.3.11", features = ["derive", "cargo", "wrap_help"] }
 rayon = { version = "1.7.0", optional = true }
 wild = "2.1.0"
+
+[target.'cfg(windows)'.dependencies]
 shellexpand = "3.0"
