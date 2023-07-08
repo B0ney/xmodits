@@ -186,7 +186,6 @@ jobs:
 
     - name: Zip macOS GUI binary 
       run: |
-        rm target/release/*xmodits
         mv target/release/xmodits-gui target/release/xmodits
         chmod +x target/release/xmodits
         zip -j ./bin/xmodits-gui-${{ matrix.target }}.zip target/release/xmodits
