@@ -19,20 +19,16 @@ pub struct Cli {
     #[arg(short, long, default_value_t = true)]
     pub strict: bool,
 
-    #[arg(help = "Maximum depth of folder traversal")]
-    #[arg(short = 'd', long = "depth", default_value_t=1, value_parser=0..=7)]
-    pub folder_scan_depth: i64,
-
     #[arg(help = "Only name samples with an index. E.g. 01.wav")]
     #[arg(conflicts_with = "upper_case", conflicts_with = "lower_case")]
     #[arg(short = 'i', long)]
     pub index_only: bool,
 
-    #[arg(help = "Preserve sample indexing")]
+    #[arg(help = "Preserve internal sample indexing")]
     #[arg(short = 'r', long)]
     pub index_raw: bool,
 
-    #[arg(help = "Pad index with preceding zeros. E.g. 001, or 0001")]
+    #[arg(help = "Minimum number of digits an index must have. E.g. 001, or 0001")]
     #[arg(default_value_t = 2, short='p', long="index-padding", value_parser=0..=5)]
     pub index_padding: i64,
 
