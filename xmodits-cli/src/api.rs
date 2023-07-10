@@ -2,7 +2,6 @@ use crate::Cli;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-use walkdir::WalkDir;
 use xmodits_lib::{
     common::extract, exporter::AudioFormat, fmt::loader::load_module, interface::ripper::Ripper,
     SampleNamer, SampleNamerTrait,
@@ -56,37 +55,12 @@ pub fn rip(cli: Cli, destination: PathBuf) {
     let ripper = Ripper::new(build_namer(&cli), get_format(&cli.format).into());
     let filter = strict_loading(cli.strict);
 
-    // split files and folders
-    let mut files: Vec<PathBuf> = Vec::new();
-    let mut folders: Vec<PathBuf> = Vec::new();
-
-    for i in cli.trackers {
-        if filter(&i) && i.is_file() {
-            files.push(i);
-        } else if i.is_dir() {
-            folders.push(i);
-        }
-    }
-
-    let max_depth = match cli.folder_scan_depth {
-        0 => 1,
-        d => d,
-    };
-
-    if !folders.is_empty() {
-        println!("Traversing directories...");
-
-        folders.into_iter().for_each(|f| {
-            WalkDir::new(f)
-                .max_depth(max_depth as usize)
-                .into_iter()
-                .filter_map(|f| f.ok())
-                .filter(|f| f.path().is_file() && filter(f.path()))
-                .for_each(|f| {
-                    files.push(f.path().to_path_buf());
-                })
-        });
-    }
+    let files: Vec<PathBuf> = cli.trackers
+        .into_iter()
+        // .map(expand_tilde) // doesn't work 
+        .filter(|f| f.is_file())
+        .filter(|f| filter(f))
+        .collect();
 
     let self_contained = !cli.no_folder;
 

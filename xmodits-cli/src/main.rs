@@ -5,7 +5,7 @@ mod cli;
 use cli::Cli;
 
 fn main() {
-    let mut cli = Cli::parse();
+    let mut cli = Cli::parse_from(wild::args());
 
     let destination = match destination_dir(&mut cli.trackers) {
         Ok(path) => path,
@@ -55,7 +55,7 @@ fn destination_dir(paths: &mut Vec<PathBuf>) -> Result<PathBuf, String> {
         return cwd();
     }
 
-    let folder = paths.pop().unwrap();
+    let folder = expand_tilde(paths.pop().unwrap());
 
     if !folder.is_dir() {
         if let Err(e) = std::fs::create_dir(&folder) {
@@ -68,4 +68,15 @@ fn destination_dir(paths: &mut Vec<PathBuf>) -> Result<PathBuf, String> {
     }
 
     Ok(folder)
+}
+
+fn expand_tilde(path: PathBuf) -> PathBuf {
+    #[cfg(not(windows))]
+    return path;
+
+    #[cfg(windows)]
+    {
+        let path = path.display().to_string();
+        PathBuf::new().join(shellexpand::tilde(&path).as_ref())
+    }
 }
