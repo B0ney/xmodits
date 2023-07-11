@@ -107,6 +107,7 @@ fn get_format(format: &str) -> AudioFormat {
         "wav" => AudioFormat::WAV,
         "aiff" => AudioFormat::AIFF,
         "8svx" => AudioFormat::IFF,
+        "its" => AudioFormat::ITS,
         "raw" => AudioFormat::RAW,
         _ => AudioFormat::WAV,
     }

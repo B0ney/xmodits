@@ -10,6 +10,7 @@ use xmodits_lib::exporter::AudioFormat;
 const SUPPORTED_FORMATS: &[AudioFormat] = &[
     AudioFormat::WAV,
     AudioFormat::AIFF,
+    AudioFormat::ITS,
     AudioFormat::IFF,
     AudioFormat::RAW,
 ];
