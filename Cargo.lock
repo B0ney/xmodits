@@ -4788,7 +4788,7 @@ dependencies = [
 [[package]]
 name = "xmodits-lib"
 version = "0.7.0"
-source = "git+https://github.com/B0ney/xmodits-lib.git?rev=8d81d0c#8d81d0c31d84d0e96d12264a33753d6d38a176eb"
+source = "git+https://github.com/B0ney/xmodits-lib.git?rev=3d1ffe8#3d1ffe85d770ecc451d8f716ac44eb90d6bd78e6"
 dependencies = [
  "bytemuck",
  "dasp",
