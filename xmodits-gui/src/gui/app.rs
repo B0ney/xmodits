@@ -178,6 +178,7 @@ impl App {
         let dummy_sample = Sample {
             filename: Some(filename.into()),
             name: name.into(),
+            index_raw: 5,
             ..Default::default()
         };
     
@@ -188,7 +189,7 @@ impl App {
             source_path: Some(&path),
         };
     
-        let sequential_index = 1;
+        let sequential_index = 0;
     
         namer_func(&dummy_sample, &context, sequential_index)
     }
@@ -268,6 +269,10 @@ impl App {
         let cancel_ripping_button: _ = button("Cancel")
             .on_press(Message::Cancelled)
             .style(style::button::Button::Cancel)
+            .padding(5);
+
+        let invert_selection_button: _ = button("Invert")
+            .on_press(Message::InvertSelection)
             .padding(5);
 
         let display: _ = match self.state {
@@ -526,6 +531,7 @@ impl App {
                     total_modules,
                     total_selected,
                     Space::with_width(Length::Fill),
+                    invert_selection_button,
                     // checkbox is 5 units taller than the other elements
                     checkbox("Select all", self.entries.all_selected, Message::SelectAll)
                         .style(style::checkbox::CheckBox::Inverted),

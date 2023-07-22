@@ -72,6 +72,7 @@ pub enum Message {
     SaveErrors,
     SaveErrorResult(Result<(), Vec<Failed>>),
     Cancelled,
+    InvertSelection,
     // SaveFile(Option<PathBuf>),
 }
 
@@ -366,6 +367,7 @@ impl Application for App {
                 self.state.message(Some("Cancelling...".into()));
                 CANCELLED.store(true, std::sync::atomic::Ordering::Release)
             },
+            Message::InvertSelection => self.entries.invert(),
         };
         Command::none()
     }
@@ -401,9 +403,6 @@ impl Application for App {
                     self.view_current_tracker(),
                     self.ripping_config.naming.view(self.preview_sample_name()).map(Message::SetNameCfg),
                     self.ripping_config.view().map(Message::SetRipCfg),
-                    self.ripping_config
-                        .view_folder_scan_depth()
-                        .map(Message::SetRipCfg),
                     row![
                         button("Save Configuration")
                             .padding(10)
@@ -448,7 +447,7 @@ impl Application for App {
         if !self.ripping_config.self_contained 
             && !self.ripping_config.naming.prefix 
         {
-            let warning = format!("\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions; unless you know what you are doing.");
+            let warning = format!("\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing.");
 
             right_half = right_half.push(text(warning).style(style::text::Text::Error));
         }

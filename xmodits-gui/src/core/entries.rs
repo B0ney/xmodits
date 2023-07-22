@@ -121,6 +121,24 @@ impl Entries {
     pub fn files(&self) -> usize {
         self.entries.iter().filter(|f| f.is_file()).count()
     }
+
+    pub fn invert(&mut self) {
+        if self.is_empty() {
+            return;
+        }
+        
+        if self.all_selected || self.non_selected() {
+            self.all_selected = !self.all_selected;
+        };
+
+        self.entries
+            .iter_mut()
+            .for_each(|f| f.selected = !f.selected)
+    }
+
+    pub fn non_selected(&self) -> bool {
+        self.total_selected() == 0
+    }
 }
 
 #[derive(Default)]

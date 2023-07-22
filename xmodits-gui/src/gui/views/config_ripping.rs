@@ -55,6 +55,17 @@ impl SampleRippingConfig {
                 ]
                 .align_items(Alignment::Center)
                 .spacing(5),
+                iced::widget::horizontal_rule(1),
+                row![
+                    pick_list(
+                        (1..=7).collect::<Vec<u8>>(),
+                        Some(self.folder_max_depth),
+                        Message::SetRecursionDepth
+                    ),
+                    text("Folder Scan Depth "),
+                ]
+                .align_items(Alignment::Center)
+                .spacing(5),
             ]
             .spacing(8),]
             .spacing(8),
@@ -66,26 +77,5 @@ impl SampleRippingConfig {
         container(column![text("Ripping Configuration").font(JETBRAINS_MONO), settings].spacing(10))
             .width(Length::Fill)
             .into()
-    }
-
-    pub fn view_folder_scan_depth(&self) -> Element<Message, Renderer<Theme>> {
-        let settings: _ = container(
-            row![
-                pick_list(
-                    (1..=7).collect::<Vec<u8>>(),
-                    Some(self.folder_max_depth),
-                    Message::SetRecursionDepth
-                ),
-                text("Folder Scan Depth "),
-            ]
-            .align_items(Alignment::Center)
-            .spacing(5),
-        )
-        .style(style::Container::Frame)
-        .padding(8)
-        .width(Length::Fill);
-
-        // container(column![text("Misc").font(JETBRAINS_MONO), settings].spacing(10))
-        container(settings).width(Length::Fill).into()
     }
 }
