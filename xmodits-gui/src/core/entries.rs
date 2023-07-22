@@ -62,6 +62,7 @@ impl Entries {
 
     pub fn add(&mut self, path: PathBuf) {
         self.entries.push(Entry::new(path));
+        self.all_selected = false;
     }
 
     pub fn total_selected(&self) -> usize {
@@ -126,7 +127,7 @@ impl Entries {
         if self.is_empty() {
             return;
         }
-        
+
         if self.all_selected || self.non_selected() {
             self.all_selected = !self.all_selected;
         };
