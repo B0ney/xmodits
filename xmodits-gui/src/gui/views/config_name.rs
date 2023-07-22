@@ -1,5 +1,6 @@
 use crate::gui::{style, JETBRAINS_MONO};
 use crate::{core::cfg::SampleNameConfig, gui::style::Theme};
+use iced::alignment::Horizontal;
 use iced::widget::{checkbox, column, container, pick_list, row, text};
 use iced::{Alignment, Element, Length, Renderer};
 use tracing::trace;
@@ -57,7 +58,8 @@ impl SampleNameConfig {
             Message::PrefixSamples(prefix) => self.prefix = prefix,
         }
     }
-    pub fn view(&self) -> Element<Message, Renderer<Theme>> {
+
+    pub fn view(&self, preview: String) -> Element<Message, Renderer<Theme>> {
         let settings: _ = container(
             column![
                 row![
@@ -89,6 +91,10 @@ impl SampleNameConfig {
                 ]
                 .align_items(Alignment::Center)
                 .spacing(5),
+                iced::widget::horizontal_rule(1),
+                column![
+                    text(preview).horizontal_alignment(Horizontal::Center)
+                ].width(Length::Fill).align_items(Alignment::Center)
             ]
             .spacing(8),
         )

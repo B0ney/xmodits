@@ -163,6 +163,36 @@ impl App {
         (paths, ripping_config)
     }
 
+    /// TODO: allow user to customise
+    pub fn preview_sample_name(&self) -> String {
+        use xmodits_lib::interface::{Sample, name::Context};
+
+        let module_name = "music.it";
+        let filename = "SNARE.WAV";
+        let name = "snare";
+        let path = Path::new("~/Downloads").join(module_name);
+    
+        let namer_func = self.ripping_config.naming.build_func();
+        let formatter = self.ripping_config.exported_format.get_impl();
+        
+        let dummy_sample = Sample {
+            filename: Some(filename.into()),
+            name: name.into(),
+            ..Default::default()
+        };
+    
+        let context = Context {
+            total: 10,
+            extension: formatter.extension(),
+            highest: 10,
+            source_path: Some(&path),
+        };
+    
+        let sequential_index = 1;
+    
+        namer_func(&dummy_sample, &context, sequential_index)
+    }
+
     pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> {
         // let view_samples_button: _ = button("View Samples")
         //     .on_press(Message::Ignore)

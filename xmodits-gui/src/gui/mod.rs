@@ -394,11 +394,12 @@ impl Application for App {
         .width(Length::FillPortion(1))
         .align_items(Alignment::Center);
 
+        
         let left_half_view: _ = match self.view {
             View::Configure => container(
                 column![
                     self.view_current_tracker(),
-                    self.ripping_config.naming.view().map(Message::SetNameCfg),
+                    self.ripping_config.naming.view(self.preview_sample_name()).map(Message::SetNameCfg),
                     self.ripping_config.view().map(Message::SetRipCfg),
                     self.ripping_config
                         .view_folder_scan_depth()

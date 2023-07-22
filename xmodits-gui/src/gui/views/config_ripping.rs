@@ -11,6 +11,7 @@ const SUPPORTED_FORMATS: &[AudioFormat] = &[
     AudioFormat::WAV,
     AudioFormat::AIFF,
     AudioFormat::ITS,
+    AudioFormat::S3I,
     AudioFormat::IFF,
     AudioFormat::RAW,
 ];
