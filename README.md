@@ -13,7 +13,7 @@
 | IT | Impulse Tracker* |
 | XM | Extended Module | 
 | S3M | Scream Tracker 3 |
-| MOD | Amiga Pro Tracker |
+| MOD | Amiga ProTracker |
 | MPTM | ModPlug Tracker module* |
 | UMX | Unreal Music Package (Containing above) |
 
@@ -28,7 +28,7 @@
 
 \* xmodits will only use threads if it is ripping from a directory.
 
-## Screenshots (GUI)
+## Screenshots
 ![xmodits gui](./screenshots/home.png)
 ![xmodits gui](./screenshots/selection.png)
 ![xmodits gui](./screenshots/ripping.png)
@@ -37,11 +37,13 @@ Click [here](./screenshots/README.md) for different themes
 
 <!-- ![xmodits gui](./extras/screenshots/Screenshot_2.png) -->
 
-## CLI Screenshot
---Soon--
+<!-- ## CLI Screenshot
+--Soon-- -->
 
 ## Download
 You can download builds for xmodits [here](https://github.com/B0ney/xmodits/releases).
+
+The command line version of xmodits can be found [here](https://github.com/B0ney/xmodits-cli)
 
 If you wish to build from source, go to [building](#building).
 
@@ -49,12 +51,8 @@ If you wish to build from source, go to [building](#building).
 * xmodits cli application
 * xmodits python library -->
 
-## How to Use (GUI)
-**Windows Only**
-
-If you want to simply extract samples, you can just drag and drop a module(s) onto the binary. Xmodits will (by default) place the samples in a self contained folder in your ```~/Downloads``` folder.
-
-**All Platforms**
+## How to Use
+(**Windows Only**) If you want to simply extract samples, you can just drag and drop a module(s) onto the binary. XMODITS will (by default) place the samples in a self contained folder in your ```~/Downloads``` folder.
 
 ### Sample Naming
 <!-- Configures how ripped samples are named -->
@@ -75,7 +73,7 @@ If you want to simply extract samples, you can just drag and drop a module(s) on
 |Parameter| Description|
 |--|--|
 | Self Contained | Xmodits will put samples in a self contained folder.<br> Disabling This can overwrite data so use with caution.|
-| Export Format | Samples can be saved to the following formats: [ ``wav``, ``aiff``, ``8svx``, ``raw`` ]|
+| Export Format | Samples can be saved to the following formats: [ ``wav``, ``aiff``, ``8svx``, ``its``, ``s3i``, ``raw`` ]|
 | Folder Scan Depth | Limit how far a folder can be traversed. |
 
 ### Saving Configuration
@@ -89,7 +87,7 @@ Linux:
 
 
 
-## How to Use (CLI version)
+<!-- ## How to Use (CLI version)
 Note: On Windows, the CLI binary has been renamed to "xmodits-cli.exe"
 
 ```
@@ -124,7 +122,7 @@ If you want to customize how ripped samples are named, the following arguments c
 |-l |--lower| Name samples in lower case. |
 |-g |--prefix| Prefix samples with the tracker's filename. |
 |-f|--fmt| Export samples to the following formats: [ ``wav (default)``, ``aiff``, ``8svx``, ``raw`` ]|
-||--info| Print information about a tracker module. |
+||--info| Print information about a tracker module. | -->
 
 
 <!-- ## Note
@@ -148,18 +146,18 @@ Requirements:
 ```
 cargo build -p xmodits-gui --release
 ```
-### Building the CLI
+<!-- ### Building the CLI
 ```
 cargo build -p xmodits --release
-```
+``` -->
 
 ## Licenses
 The xmodits project has multiple programs. Each with their own licenses.
 
 |Program| License|Description|
 |--|--|--|
-|[XMODITS-GUI](https://github.com/B0ney/xmodits) (App) | GPLv3| xmodits gui app|
-|[XMODITS-CLI](https://github.com/B0ney/xmodits) (App) | LGPLv3 | xmodits cli program|
+|[XMODITS-GUI](https://github.com/B0ney/xmodits) | GPLv3| xmodits gui app|
+|[XMODITS-CLI](https://github.com/B0ney/xmodits-cli) | LGPLv3 | xmodits cli app|
 |[XMODITS-PY](https://github.com/B0ney/xmodits-lib)| LGPLv3 | xmodits Python library <br> (Mainly used for [DawVert](https://github.com/SatyrDiamond/DawVert))|
 |[XMODITS-LIB](https://github.com/B0ney/xmodits-lib) | MPLv2 | xmodits core library|
 
