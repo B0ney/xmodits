@@ -2,14 +2,8 @@
 resolver ="2"
 
 members = [
-    "xmodits-cli",
     "xmodits-gui"
 ]
-
-[profile.release.package.xmodits]
-strip = true
-opt-level = "s"
-codegen-units = 1
 
 [profile.release.package.xmodits-gui]
 strip = true 
