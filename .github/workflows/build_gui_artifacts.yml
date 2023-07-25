@@ -97,14 +97,14 @@ jobs:
       matrix:
         target:
           - windows-64-bit
-          - windows-32-bit
+          # - windows-32-bit # disabled due to winit bug
 
         include:
           - target: windows-64-bit
             arch: x86_64-pc-windows-msvc
 
-          - target: windows-32-bit
-            arch: i686-pc-windows-msvc
+          # - target: windows-32-bit
+          #   arch: i686-pc-windows-msvc
 
     steps:
     - uses: actions/checkout@v3
