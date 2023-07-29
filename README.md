@@ -95,11 +95,11 @@ Configure how ripped samples are named.
 ### Saving Configuration
 Any changes made to the configuration **must be saved manually**.<br>The configuration file can be located at:
 
-windows:
-```%appdata%\xmodits\```
-
-Linux:
-```~/.config/xmodits/```
+|OS|Path|
+|-|-|
+|Windows|``%appdata%\xmodits\config.toml``|
+|Linux|``~/.config/xmodits/config.toml``|
+|MacOs|``~/Library/Application Support/xmodits/config.toml``|
 
 <!-- ## Resources
 The resources that made this project possible can be found [here](./resources/). -->
