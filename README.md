@@ -131,9 +131,8 @@ xmodits is licensed under the GPLv3
 
 |Program| License|Description|
 |--|--|--|
-|[XMODITS-GUI](https://github.com/B0ney/xmodits) | GPLv3| xmodits gui app|
 |[XMODITS-CLI](https://github.com/B0ney/xmodits-cli) | LGPLv3 | xmodits cli app|
-|[XMODITS-PY](https://github.com/B0ney/xmodits-py)| LGPLv3 | xmodits Python library <br> (Mainly used for [DawVert](https://github.com/SatyrDiamond/DawVert))|
+|[XMODITS-PY](https://github.com/B0ney/xmodits-py) | LGPLv3 | xmodits Python library. [PyPi link](pypi.org/project/xmodits-py/) <br> (Mainly used for [DawVert](https://github.com/SatyrDiamond/DawVert))<br> |
 |[XMODITS-LIB](https://github.com/B0ney/xmodits-lib) | MPLv2 | xmodits core library|
 
 ## Special Thanks
