@@ -40,9 +40,6 @@ If you prefer to use a minimal version of this tool, a command line version of x
 |``.8svx``| 8-Bit Sampled Voice |
 |``.raw``| Headerless pcm |
 
-\* Ripping from OpenMPT trackers is not pefect 
-
-
 ## Features
 <!-- * Sample previewing  (0.12.0)-->
 * A robust naming system for extracted samples (see [Sample Naming](#sample-naming)).
@@ -62,6 +59,7 @@ If you prefer to use a minimal version of this tool, a command line version of x
 
 ![xmodits gui](./screenshots/selection.png)
 ![xmodits gui](./screenshots/ripping.png)
+![xmodits gui](./screenshots/ripping_done.png)
 
 Click [here](./screenshots/README.md) for different themes
 
