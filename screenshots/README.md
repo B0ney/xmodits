@@ -4,7 +4,7 @@
 ![xmodits gui](./original.png)
 ### Dracula
 ![xmodits gui](./dracula.png)
-### Catppuccin
+### Catppuccin (personal favourite)
 ![xmodits gui](./catppuccin.png)
 ### LMMS 
 ![xmodits gui](./lmms.png)
