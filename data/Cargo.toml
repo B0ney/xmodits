@@ -1,0 +1,13 @@
+[package]
+name = "data"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.xmodits-lib]
+git = "https://github.com/B0ney/xmodits-lib.git"
+rev = "0cb0dad"
+features = ["serde"]
+
+[dependencies]

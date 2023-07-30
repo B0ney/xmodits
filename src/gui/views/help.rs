@@ -1,4 +1,4 @@
-use crate::gui::icons::folder_icon;
+use crate::icon::folder_icon;
 use crate::gui::style::{self, Theme};
 use crate::gui::JETBRAINS_MONO;
 use iced::widget::{column, container, text};

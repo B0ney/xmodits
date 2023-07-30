@@ -1,5 +1,5 @@
 use crate::core::cfg::config_dir;
-use crate::gui::font::ICONS;
+use crate::font::ICONS;
 use crate::gui::style::Theme;
 
 use iced::widget::{text, Text};
@@ -50,12 +50,12 @@ impl Animation {
     }
 
     fn default_idle() -> iced_gif::Frames {
-        gif::Frames::from_bytes(include_bytes!("../../res/gif/white_lie_8fps.gif").to_vec())
+        gif::Frames::from_bytes(include_bytes!("../assets/gif/white_lie_8fps.gif").to_vec())
             .unwrap()
     }
 
     fn default_ripping() -> iced_gif::Frames {
-        gif::Frames::from_bytes(include_bytes!("../../res/gif/white_walk_8fps.gif").to_vec())
+        gif::Frames::from_bytes(include_bytes!("../assets/gif/white_walk_8fps.gif").to_vec())
             .unwrap()
     }
 }

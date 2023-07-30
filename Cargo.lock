@@ -908,6 +908,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "data"
+version = "0.1.0"
+dependencies = [
+ "xmodits-lib",
+]
+
+[[package]]
 name = "derivative"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4599,6 +4606,7 @@ name = "xmodits-gui"
 version = "0.11.0"
 dependencies = [
  "anyhow",
+ "data",
  "dirs",
  "iced",
  "iced_gif",

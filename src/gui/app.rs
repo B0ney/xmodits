@@ -1,9 +1,9 @@
-use super::icons::GIF;
+use crate::icon::GIF;
 use super::{style, App, Info, Message, State};
 
 use crate::core::xmodits::{CompleteState, StartSignal};
-use crate::gui::font::JETBRAINS_MONO;
-use crate::gui::icons;
+use crate::font::JETBRAINS_MONO;
+use crate::icon;
 use crate::gui::utils::file_name;
 
 use iced::alignment::Horizontal;
@@ -25,7 +25,7 @@ use tracing::warn;
 static DESTINATION_ID: Lazy<text_input::Id> = Lazy::new(text_input::Id::unique);
 
 fn icon() -> Icon {
-    let image = image::load_from_memory(include_bytes!("../../res/img/logo/icon3.png")).unwrap();
+    let image = image::load_from_memory(include_bytes!("../../assets/img/logo/icon3.png")).unwrap();
     let (w, h) = image.dimensions();
 
     from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
@@ -310,7 +310,7 @@ impl App {
 
                                             if entry.is_dir() {
                                                 item.push(Space::with_width(Length::Fill))
-                                                    .push(icons::folder_icon())
+                                                    .push(icon::folder_icon())
                                             } else {
                                                 item
                                             }

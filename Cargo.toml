@@ -46,6 +46,8 @@ features = [
 ]
 
 [dependencies]
+data = { path = "data" }
+
 anyhow = "1.0.0"
 dirs = "5.0.0"
 # chrono = { version = "0.4.24", features = ["serde"] }
@@ -77,6 +79,11 @@ winapi = { version = "0.3.9", features = ["shellapi", "winuser"] }
 OriginalFilename = "XMODITS.EXE"
 FileDescription = "A tool to extract samples from tracker modules. https://github.com/B0ney/xmodits/ - GPLv3"
 Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
+
+[workspace]
+members = [
+    "data"
+]
 
 [profile.dev]
 split-debuginfo = "packed"

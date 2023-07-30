@@ -1,7 +1,7 @@
 #![allow(clippy::let_with_type_underscore)]
 pub mod app;
-pub mod font;
-pub mod icons;
+// pub mod font;
+// pub mod icons;
 pub mod style;
 pub mod utils;
 pub mod views;
@@ -17,7 +17,7 @@ use iced::widget::{button, column, container, row, text, Column, Container, Spac
 use iced::window::Event as WindowEvent;
 use iced::{Alignment, Application, Command, Element, Event, Length, Renderer, Subscription};
 
-use font::JETBRAINS_MONO;
+use crate::font::JETBRAINS_MONO;
 use style::Theme;
 use utils::{create_file, files_dialog, folder_dialog, folders_dialog, tracker_info};
 
@@ -408,7 +408,7 @@ impl Application for App {
                             .padding(10)
                             .on_press(Message::SaveConfig),
                         button(
-                            row![text("Start"), icons::download_icon()]
+                            row![text("Start"), crate::icon::download_icon()]
                                 .align_items(Alignment::Center)
                         )
                         .padding(10)
