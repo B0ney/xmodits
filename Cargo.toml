@@ -37,6 +37,7 @@ features = ["windows_dpi_awareness", "windows_visual_styles"]
 
 [dependencies.iced]
 version = "0.9.0"
+default-features = false
 features = [
     # "svg",
     "glow", 
