@@ -17,7 +17,7 @@ use iced::widget::{button, column, container, row, text, Column, Container, Spac
 use iced::window::Event as WindowEvent;
 use iced::{Alignment, Application, Command, Element, Event, Length, Renderer, Subscription};
 
-use crate::font::JETBRAINS_MONO;
+// use crate::font::JETBRAINS_MONO;
 use style::Theme;
 use utils::{create_file, files_dialog, folder_dialog, folders_dialog, tracker_info};
 
@@ -73,6 +73,7 @@ pub enum Message {
     SaveErrorResult(Result<(), Vec<Failed>>),
     Cancelled,
     InvertSelection,
+    FontsLoaded(Result<(), iced::font::Error>),
     // SaveFile(Option<PathBuf>),
 }
 
@@ -221,7 +222,7 @@ impl Application for App {
                 general_config: general,
                 ..Default::default()
             },
-            Command::none(),
+            Command::batch(vec![crate::font::load().map(Message::FontsLoaded)]),
         )
     }
 
@@ -368,6 +369,7 @@ impl Application for App {
                 CANCELLED.store(true, std::sync::atomic::Ordering::Release)
             },
             Message::InvertSelection => self.entries.invert(),
+            Message::FontsLoaded(_) => (),
         };
         Command::none()
     }

@@ -1,4 +1,4 @@
-use crate::gui::{style, JETBRAINS_MONO};
+use crate::gui::{style};
 use crate::{core::cfg::SampleNameConfig, gui::style::Theme};
 use iced::alignment::Horizontal;
 use iced::widget::{checkbox, column, container, pick_list, row, text};
@@ -102,7 +102,7 @@ impl SampleNameConfig {
         .padding(8)
         .width(Length::Fill);
 
-        container(column![text("Sample Naming").font(JETBRAINS_MONO), settings].spacing(10))
+        container(column![text("Sample Naming"), settings].spacing(10))
             .width(Length::Fill)
             .into()
     }

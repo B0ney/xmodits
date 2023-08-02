@@ -52,14 +52,14 @@ impl container::StyleSheet for ColorPalette {
                 background: Some(Background::Color(self.base.foreground)),
                 text_color: Some(self.bright.surface),
                 border_color: self.base.border,
-                border_radius: 5.0,
+                border_radius: 5.0.into(),
                 border_width: 1.2,
                 // ..container::Appearance::default()
             },
             Container::Black => container::Appearance {
                 background: Some(self.base.dark.into()),
                 text_color: Some(self.bright.surface),
-                border_radius: 5.0,
+                border_radius: 5.0.into(),
                 border_width: 1.2,
                 border_color: self.base.border,
                 // ..container::Appearance::default()
@@ -86,7 +86,7 @@ impl menu::StyleSheet for ColorPalette {
             text_color: p.bright.surface,
             background: p.base.background.into(),
             border_width: 1.2,
-            border_radius: 5.0,
+            border_radius: 5.0.into(),
             border_color: self.base.border,
             selected_text_color: p.bright.surface,
             selected_background: Color {
@@ -107,7 +107,7 @@ impl pick_list::StyleSheet for ColorPalette {
             background: self.base.background.into(),
             border_width: 1.2,
             border_color: self.base.border,
-            border_radius: 5.0,
+            border_radius: 5.0.into(),
             handle_color: self.bright.surface,
             placeholder_color: self.bright.surface,
         }
@@ -137,7 +137,7 @@ impl rule::StyleSheet for ColorPalette {
             Rule::Default => rule::Appearance {
                 color: self.base.border,
                 width: 1,
-                radius: 1.0,
+                radius: 1.0.into(),
                 fill_mode: rule::FillMode::Full,
             },
         }

@@ -1,6 +1,6 @@
 use crate::icon::folder_icon;
 use crate::gui::style::{self, Theme};
-use crate::gui::JETBRAINS_MONO;
+// use crate::gui::JETBRAINS_MONO;
 use iced::widget::{column, container, text};
 use iced::{Element, Length, Renderer};
 
@@ -13,7 +13,7 @@ pub fn view() -> Element<'static, Message, Renderer<Theme>> {
         .height(Length::Fill)
         .width(Length::Fill);
 
-    container(column![text("Help").font(JETBRAINS_MONO), about].spacing(15))
+    container(column![text("Help"), about].spacing(15))
         .width(Length::Fill)
         .into()
 }

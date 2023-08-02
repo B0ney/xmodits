@@ -19,6 +19,7 @@ impl slider::StyleSheet for ColorPalette {
             rail: Rail {
                 colors: (p.normal.primary, p.normal.primary),
                 width: 3.0,
+                border_radius: Default::default(),
             },
             handle: Handle {
                 shape: HandleShape::Circle { radius: 3.0 },
@@ -35,6 +36,7 @@ impl slider::StyleSheet for ColorPalette {
             rail: Rail {
                 colors: (p.normal.primary, p.normal.primary),
                 width: 3.0,
+                border_radius: Default::default(),
             },
             handle: Handle {
                 shape: HandleShape::Circle { radius: 3.0 },
@@ -51,6 +53,7 @@ impl slider::StyleSheet for ColorPalette {
             rail: Rail {
                 colors: (p.normal.primary, p.normal.primary),
                 width: 3.0,
+                border_radius: Default::default(),
             },
             handle: Handle {
                 shape: HandleShape::Circle { radius: 3.0 },

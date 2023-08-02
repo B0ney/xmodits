@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::core::cfg::GeneralConfig;
 use crate::gui::style::{self, Theme, Themes};
-use crate::gui::JETBRAINS_MONO;
+// use crate::gui::JETBRAINS_MONO;
 use iced::widget::container;
 use iced::widget::{checkbox, column, pick_list, row, text};
 use iced::Alignment;
@@ -71,7 +71,7 @@ impl GeneralConfig {
         .height(Length::Fill)
         .width(Length::Fill);
 
-        container(column![text("Settings").font(JETBRAINS_MONO), setting,].spacing(15))
+        container(column![text("Settings"), setting,].spacing(15))
             .width(Length::Fill)
             .into()
     }

@@ -14,7 +14,7 @@ impl text_input::StyleSheet for ColorPalette {
     fn active(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
             background: Background::Color(self.base.foreground),
-            border_radius: 8.0,
+            border_radius: 8.0.into(),
             border_width: 1.2,
             border_color: self.base.border,
             icon_color: self.base.foreground,
@@ -24,7 +24,7 @@ impl text_input::StyleSheet for ColorPalette {
     fn focused(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
             background: Background::Color(self.base.foreground),
-            border_radius: 8.0,
+            border_radius: 8.0.into(),
             border_width: 1.2,
             border_color: self.bright.primary,
             icon_color: self.base.foreground,
@@ -34,7 +34,7 @@ impl text_input::StyleSheet for ColorPalette {
     fn disabled(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
             background: Background::Color(self.base.foreground),
-            border_radius: 8.0,
+            border_radius: 8.0.into(),
             border_width: 1.2,
             border_color: self.bright.primary,
             icon_color: self.base.foreground,

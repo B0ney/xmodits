@@ -15,12 +15,12 @@ impl scrollable::StyleSheet for ColorPalette {
     fn active(&self, style: &Self::Style) -> scrollable::Scrollbar {
         let from_appearance = |c: Color, d: Color| scrollable::Scrollbar {
             background: Some(Background::Color(c)),
-            border_radius: 5.0,
+            border_radius: 5.0.into(),
             border_width: 0.0,
             border_color: Color::TRANSPARENT,
             scroller: scrollable::Scroller {
                 color: d,
-                border_radius: 5.0,
+                border_radius: 5.0.into(),
                 border_width: 1.0,
                 border_color: self.base.border,
             },

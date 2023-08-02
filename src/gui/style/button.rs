@@ -25,7 +25,7 @@ impl button::StyleSheet for ColorPalette {
 
         let appearance = button::Appearance {
             border_width: 1.0,
-            border_radius: 8.0,
+            border_radius: 8.0.into(),
             ..button::Appearance::default()
         };
 
@@ -44,7 +44,7 @@ impl button::StyleSheet for ColorPalette {
             Button::Entry => button::Appearance {
                 background: Some(Background::Color(p.base.foreground)),
                 text_color: p.bright.surface,
-                border_radius: 5.0,
+                border_radius: 5.0.into(),
                 border_width: 1.0,
                 border_color: self.base.border,
                 ..appearance

@@ -16,7 +16,7 @@ impl progress_bar::StyleSheet for ColorPalette {
         progress_bar::Appearance {
             background: Background::Color(self.base.background),
             bar: Background::Color(self.normal.primary),
-            border_radius: 64.0,
+            border_radius: 64.0.into(),
         }
     }
 }

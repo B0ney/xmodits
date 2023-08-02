@@ -15,7 +15,7 @@ impl checkbox::StyleSheet for ColorPalette {
         let default = checkbox::Appearance {
             background: self.base.background.into(),
             icon_color: self.bright.primary,
-            border_radius: 5.0,
+            border_radius: 5.0.into(),
             border_width: 1.2,
             border_color: self.base.border,
             text_color: Some(self.bright.surface),
@@ -33,7 +33,7 @@ impl checkbox::StyleSheet for ColorPalette {
         let from_appearance = checkbox::Appearance {
             background: self.base.background.into(),
             icon_color: self.bright.primary,
-            border_radius: 5.0,
+            border_radius: 5.0.into(),
             border_width: 2.0,
             border_color: self.bright.primary,
             text_color: Some(self.bright.surface),

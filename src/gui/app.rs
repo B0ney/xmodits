@@ -2,19 +2,19 @@ use crate::icon::GIF;
 use super::{style, App, Info, Message, State};
 
 use crate::core::xmodits::{CompleteState, StartSignal};
-use crate::font::JETBRAINS_MONO;
+// use crate::font::JETBRAINS_MONO;
 use crate::icon;
 use crate::gui::utils::file_name;
 
 use iced::alignment::Horizontal;
 use iced::widget::{
-    button, checkbox, column, container, progress_bar, row, scrollable, text, text_input, Space,
+    button, checkbox, column, container, progress_bar, row, scrollable, text, text_input, Space, lazy,
 };
 use iced::window::icon::from_rgba;
 use iced::window::{Icon, Settings as Window};
 use iced::{Alignment, Application, Command, Element, Length, Renderer, Settings};
 use iced_gif::gif;
-use iced_lazy::lazy;
+// use iced_lazy::lazy;
 
 use image::{self, GenericImageView};
 use once_cell::sync::Lazy;
@@ -37,17 +37,22 @@ impl App {
         tracing::info!("Starting gui");
         GIF.init_lazy();
 
-        let settings: Settings<()> = Settings {
+        let settings: Settings<()> = iced::Settings {
             window: Window {
-                size: (780, 720),
+                size: (800, 720),
                 resizable: true,
                 decorations: true,
                 icon: Some(icon()),
                 ..iced::window::Settings::default()
             },
+            default_font: iced::Font {
+                monospaced: true,
+                
+                ..iced::Font::with_name("JetBrains Mono")
+            },
             // try_opengles_first: true,
             antialiasing: true,
-            default_text_size: 17.0,
+            default_text_size: 13.0,
             ..iced::Settings::default()
         };
 
@@ -231,11 +236,14 @@ impl App {
                     .width(Length::Fill),
                 ),
             },
-            None => container(text("None selected").font(JETBRAINS_MONO)),
+            None => container(text("None selected")
+            // 
+        ),
         };
         container(
             column![
-                text("Current Tracker Information").font(JETBRAINS_MONO),
+                text("Current Tracker Information"),
+                // ,
                 content
                     .style(style::Container::Frame)
                     .height(Length::Fill)
@@ -253,10 +261,14 @@ impl App {
 
     pub fn view_entries(&self) -> Element<Message, Renderer<Theme>> {
         let total_modules: _ =
-            text(format!("Entries: {}", self.entries.len())).font(JETBRAINS_MONO);
+            text(format!("Entries: {}", self.entries.len()))
+            // 
+            ;
 
         let total_selected: _ =
-            text(format!("Selected: {}", self.entries.total_selected())).font(JETBRAINS_MONO);
+            text(format!("Selected: {}", self.entries.total_selected()))
+            // 
+            ;
 
         let continue_button: _ = button("Continue")
             .on_press(Message::SetState(State::Idle))
@@ -279,7 +291,9 @@ impl App {
             State::Idle => {
                 if self.entries.is_empty() {
                     container(
-                        column![text("Drag and Drop").font(JETBRAINS_MONO), gif(&GIF.idle)]
+                        column![text("Drag and Drop")
+                        // 
+                        , gif(&GIF.idle)]
                             .align_items(Alignment::Center),
                     )
                     .width(Length::Fill)
@@ -341,7 +355,7 @@ impl App {
                         Some(info) => info,
                         None => "Ripping...",
                     })
-                    .font(JETBRAINS_MONO)
+                    // 
                     .horizontal_alignment(Horizontal::Center),
                     progress_bar(0.0..=100.0, progress).height(5).width(200),
                     cancel_ripping_button,
@@ -358,9 +372,9 @@ impl App {
             State::Done(ref completed_state) => match completed_state {
                 CompleteState::Cancelled => container(
                     column![
-                        text("Cancelled").font(JETBRAINS_MONO),
-                        text("Drag and Drop").font(JETBRAINS_MONO),
-                        text(&self.time).font(JETBRAINS_MONO),
+                        text("Cancelled"),
+                        text("Drag and Drop"),
+                        text(&self.time),
                         Space::with_height(15),
                         continue_button
                     ]
@@ -373,9 +387,9 @@ impl App {
 
                 CompleteState::NoErrors => container(
                     column![
-                        text("Done! \\(^_^)/").font(JETBRAINS_MONO),
-                        text("Drag and Drop").font(JETBRAINS_MONO),
-                        text(&self.time).font(JETBRAINS_MONO),
+                        text("Done! \\(^_^)/"),
+                        text("Drag and Drop"),
+                        text(&self.time),
                         Space::with_height(15),
                         continue_button
                     ]
@@ -390,9 +404,9 @@ impl App {
                     column![
                         column![
                             text("Done... But xmodits could not rip everything... (._.)")
-                                .font(JETBRAINS_MONO)
+                                
                                 .horizontal_alignment(Horizontal::Center),
-                            text(&self.time).font(JETBRAINS_MONO),
+                            text(&self.time),
                         ]
                         .padding(4)
                         .align_items(Alignment::Center),
@@ -436,22 +450,22 @@ impl App {
 
                 CompleteState::TooMuchErrors { log, total } => container(
                     column![
-                        text("Done...").font(JETBRAINS_MONO),
-                        text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
-                        text("Check the logs at:").font(JETBRAINS_MONO),
+                        text("Done..."),
+                        text("But there's too many errors to display! (-_-')"),
+                        text("Check the logs at:"),
                         button(
                             text(log.display())
-                                .font(JETBRAINS_MONO)
+                                
                                 .horizontal_alignment(Horizontal::Center)
                         )
                         .padding(0)
                         .on_press(Message::Open(log.to_owned()))
                         .style(style::button::Button::HyperlinkInverted),
                         text(format!("{} errors written", total))
-                            .font(JETBRAINS_MONO)
+                            
                             .horizontal_alignment(Horizontal::Center),
                         text(&self.time)
-                            .font(JETBRAINS_MONO)
+                            
                             .horizontal_alignment(Horizontal::Center),
                         // space,
                         row![continue_button]
@@ -474,11 +488,11 @@ impl App {
                     manually_saved,
                 } => container(
                     column![
-                        text("Done...").font(JETBRAINS_MONO),
-                        text("But there's too many errors to display! (-_-')").font(JETBRAINS_MONO),
-                        text("...and I can't store them to a file either:").font(JETBRAINS_MONO),
+                        text("Done..."),
+                        text("But there's too many errors to display! (-_-')"),
+                        text("...and I can't store them to a file either:"),
                         text(format!("\"{}\"", reason))
-                            .font(JETBRAINS_MONO)
+                            
                             .horizontal_alignment(Horizontal::Center)
                             .style(style::text::Text::Error),
                         match errors.len() {
@@ -491,7 +505,7 @@ impl App {
                             },
                             n => text(format!("{} stored errors", n)),
                         }
-                        .font(JETBRAINS_MONO)
+                        
                         .horizontal_alignment(Horizontal::Center),
                         match discarded {
                             0 => text(format!("No errors were discarded.")),
@@ -501,10 +515,10 @@ impl App {
                             ))
                             .style(style::text::Text::Error),
                         }
-                        .font(JETBRAINS_MONO)
+                        // 
                         .horizontal_alignment(Horizontal::Center),
                         text(&self.time)
-                            .font(JETBRAINS_MONO)
+                            // 
                             .horizontal_alignment(Horizontal::Center),
                         match manually_saved {
                             true => row![continue_button],

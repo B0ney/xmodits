@@ -1,5 +1,5 @@
 // use crate::core::cfg::FormatHint;
-use crate::gui::{style, JETBRAINS_MONO};
+use crate::gui::{style};
 use crate::{core::cfg::SampleRippingConfig, gui::style::Theme};
 use iced::widget::{checkbox, column, container, pick_list, row, text};
 use iced::Alignment;
@@ -74,7 +74,7 @@ impl SampleRippingConfig {
         .padding(8)
         .width(Length::Fill);
 
-        container(column![text("Ripping Configuration").font(JETBRAINS_MONO), settings].spacing(10))
+        container(column![text("Ripping Configuration"), settings].spacing(10))
             .width(Length::Fill)
             .into()
     }
