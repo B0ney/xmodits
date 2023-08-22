@@ -43,6 +43,7 @@ impl App {
                 resizable: true,
                 decorations: true,
                 icon: Some(icon()),
+                min_size: Some((800, 720)),
                 ..iced::window::Settings::default()
             },
             default_font: iced::Font {

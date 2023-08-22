@@ -1,16 +1,23 @@
 use crate::core::cfg::Config;
 use crate::core::dialog::{
-    failed_single, show_help_box, success, success_partial, success_partial_no_log, no_valid_modules,
+    failed_single, no_valid_modules, show_help_box, success, success_partial,
+    success_partial_no_log,
 };
 use crate::core::extraction::strict_loading;
 use crate::core::log::write_error_log;
 use std::cmp::Ordering;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use xmodits_lib::interface::Error;
 use xmodits_lib::{common::extract, interface::ripper::Ripper};
 
-pub fn rip(paths: Vec<PathBuf>) {
-    let mut paths: Vec<PathBuf> = paths.into_iter().filter(|f| f.is_file()).collect();
+pub fn rip(paths: impl IntoIterator<Item = String>) {
+    let mut paths: Vec<PathBuf> = paths
+        .into_iter()
+        .filter_map(|f| match Path::new(&f).is_file() {
+            true => Some(PathBuf::new().join(f)),
+            false => None,
+        })
+        .collect();
 
     if paths.is_empty() {
         return show_help_box();
@@ -19,7 +26,7 @@ pub fn rip(paths: Vec<PathBuf>) {
     let config = Config::load();
 
     let filter = strict_loading(config.ripping.strict);
-    
+
     if config.ripping.strict {
         paths = paths.into_iter().filter(|f| filter(f)).collect();
 
