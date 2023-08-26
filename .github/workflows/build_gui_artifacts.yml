@@ -149,7 +149,7 @@ jobs:
 
   build_gui_macos:
     name: Building GUI for ${{ matrix.target }}
-    runs-on: macOS-latest
+    runs-on: macos-latest
     strategy:
       matrix:
         target:
@@ -196,55 +196,3 @@ jobs:
         name: xmodits-gui-${{ matrix.target }}
         path: |
           bin/xmodits-gui-${{ matrix.target }}.*
-
-
-  # build:
-  #   name: Building ${{ matrix.build_target }} 
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       build_target: [linux, windows]
-  #       include:
-  #       - build_target: linux
-  #         os: ubuntu-latest
-  #       - build_target: windows
-  #         os: windows-latest
-          
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: dtolnay/rust-toolchain@stable
-  #     - uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           ~/.cargo/bin/
-  #           ~/.cargo/registry/index/
-  #           ~/.cargo/registry/cache/
-  #           ~/.cargo/git/db/
-  #           target
-  #         key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
-  #         restore-keys: ${{ runner.OS }}-release-
-
-  #     - name: Building GUI      
-  #       run: cargo build -p xmodits-gui --release
-
-  #     - name: Create ./bin directory
-  #       run: mkdir -p bin
-          
-  #     - name: Tarball Linux GUI binary
-  #       if: matrix.os != 'windows-latest'
-  #       run: |
-  #         tar -czf bin/xmodits-gui-${{ matrix.build_target }}.tar.gz -C target/release/ xmodits-gui
-
-  #     - name: Zip Windows GUI binary
-  #       if: matrix.os == 'windows-latest'
-  #       run: | # On Windows, remove gui suffix
-  #         rm target/release/*xmodits.exe
-  #         mv target/release/xmodits-gui.exe target/release/xmodits.exe
-  #         Compress-Archive target/release/xmodits.exe bin/xmodits-gui-${{ matrix.build_target }}.zip
-
-  #     - name: Upload artifacts
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: xmodits-gui-${{ matrix.build_target }}
-  #         path: |
-  #           bin/xmodits-gui-${{ matrix.build_target }}.*
