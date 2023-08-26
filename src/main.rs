@@ -4,7 +4,6 @@ mod core;
 mod gui;
 mod simple;
 use crate::core::panic_handler::panic::set_panic_hook;
-use std::path::{Path, PathBuf};
 pub mod font;
 pub mod icon;
 mod logger;
