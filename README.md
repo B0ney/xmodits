@@ -53,15 +53,15 @@ If you prefer to use a minimal version of this tool, a command line version of x
 \* xmodits will only use threads if it is ripping from a directory.
 
 ## Screenshots
-![xmodits gui](./extras/screenshots/home.png)
+![xmodits gui](./assets/screenshots/home.png)
 <details>
 <summary>Click to show more</summary>
 
-![xmodits gui](./extras/screenshots/selection.png)
-![xmodits gui](./extras/screenshots/ripping.png)
-![xmodits gui](./extras/screenshots/ripping_done.png)
+![xmodits gui](./assets/screenshots/selection.png)
+![xmodits gui](./assets/screenshots/ripping.png)
+![xmodits gui](./assets/screenshots/ripping_done.png)
 
-Click [here](./extras/screenshots/README.md) for different themes
+Click [here](./assets/screenshots/README.md) for different themes
 
 </details>
 
