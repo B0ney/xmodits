@@ -1,12 +1,15 @@
 use crate::core::cfg::Config;
-use crate::core::dialog::{
+use crate::logger::write_error_log;
+use crate::dialog::{
     failed_single, no_valid_modules, show_help_box, success, success_partial,
     success_partial_no_log,
 };
 use crate::core::extraction::strict_loading;
-use crate::core::log::write_error_log;
+
+
 use std::cmp::Ordering;
 use std::path::{Path, PathBuf};
+
 use xmodits_lib::interface::Error;
 use xmodits_lib::{common::extract, interface::ripper::Ripper};
 

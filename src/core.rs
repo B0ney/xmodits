@@ -1,10 +1,7 @@
 pub mod cfg;
-pub mod dialog;
 pub mod entries;
 pub mod extraction;
-pub mod log;
-pub mod panic_handler;
-pub mod sfx;
+pub mod crash_handler;
 pub mod track;
 pub mod xmodits;
 // pub use sfx::SFX;

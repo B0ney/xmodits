@@ -9,8 +9,16 @@ license = "GPLv3"
 repository = "https://github.com/B0ney/xmodits"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+update_check = ["updater"]
+with_metadata = ["built"]
+
+
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1.12"
+
+[build-dependencies]
+built = { version = "0.6.1", features = ["chrono", "git2"], optional = true }
 
 [dependencies.xmodits-lib]
 git = "https://github.com/B0ney/xmodits-lib.git"
@@ -73,6 +81,9 @@ tempfile = "3.5.0"
 # iced_aw = "0.4.1"
 iced_gif = "0.4.0" 
 
+updater = { path = "updater", optional = true }
+
+
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["wincon"] }
 # winsafe = { version = "0.0.14", features = ["shell", "user"] }
@@ -84,7 +95,8 @@ Comments = "This software is licensed under GPLv3. You can obtain the source cod
 
 [workspace]
 members = [
-    "data"
+    "data",
+    "updater",
 ]
 
 [profile.dev]

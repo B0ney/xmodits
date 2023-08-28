@@ -11,3 +11,9 @@ rev = "0cb0dad"
 features = ["serde"]
 
 [dependencies]
+dirs = "5.0.0"
+serde = { version = "1.0", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+toml = "0.7.5" # todo: switch to different format?
+
+iced_core = "0.10.0"

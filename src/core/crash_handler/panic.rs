@@ -1,7 +1,5 @@
-use crate::core::{
-    dialog,
-    track::{GlobalTracker, GLOBAL_TRACKER},
-};
+use crate::core::track::{GlobalTracker, GLOBAL_TRACKER};
+use crate::dialog;
 use std::{panic::PanicInfo, path::PathBuf};
 
 #[derive(Default, Debug)]
@@ -67,8 +65,7 @@ pub fn set_panic_hook() {
         let info = match &dump.location {
             Some(location) => format!(
                 "Panic occurred in file '{}' at line {}",
-                location.file,
-                location.line,
+                location.file, location.line,
             ),
             None => String::from("Panic occurred but can't get location information..."),
         };

@@ -1,0 +1,1 @@
+//! provide detailed informatiomn about the modules ripped

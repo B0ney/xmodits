@@ -3,7 +3,8 @@
 mod core;
 mod gui;
 mod simple;
-use crate::core::panic_handler::panic::set_panic_hook;
+use crate::core::crash_handler::panic::set_panic_hook;
+pub mod dialog;
 pub mod font;
 pub mod icon;
 mod logger;

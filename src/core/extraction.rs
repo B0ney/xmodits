@@ -398,7 +398,7 @@ struct State {
 #[derive(Debug, Clone)]
 pub struct Failed {
     pub path: PathBuf,
-    pub reason: Box<str>,
+    pub reason: Box<str>, // TODO: use enum for single or multiple
     filename: Box<str>,
 }
 
