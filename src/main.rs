@@ -3,15 +3,16 @@
 mod core;
 mod gui;
 mod simple;
-use crate::core::crash_handler::panic::set_panic_hook;
+
 pub mod dialog;
 pub mod font;
 pub mod icon;
-mod logger;
+pub mod logger;
+pub mod theme;
 
 fn main() {
     logger::win_attach_terminal();
-    set_panic_hook();
+    logger::set_panic_hook();
     logger::init_logging();
 
     let args: Vec<String> = std::env::args().skip(1).collect();

@@ -1,5 +1,5 @@
 use crate::core::cfg::config_dir;
-use crate::font::ICONS;
+use crate::{font, theme};
 use crate::gui::style::Theme;
 
 use iced::widget::{text, Text};
@@ -111,7 +111,7 @@ impl Animation {
 //     icon('\u{f345}')
 // }
 
-pub fn folder_icon() -> Text<'static, Renderer<Theme>> {
+pub fn folder_icon<'a>() -> Text<'a>{
     icon('\u{f228}')
 }
 
@@ -123,7 +123,7 @@ pub fn folder_icon() -> Text<'static, Renderer<Theme>> {
 //     icon('\u{f221}')
 // }
 
-pub fn download_icon() -> Text<'static, Renderer<Theme>> {
+pub fn download_icon<'a>() -> Text<'a>  {
     icon('\u{f220}')
 }
 
@@ -131,9 +131,9 @@ pub fn download_icon() -> Text<'static, Renderer<Theme>> {
 //     icon('\u{f3b8}')
 // }
 
-fn icon(unicode: char) -> Text<'static, Renderer<Theme>> {
+fn icon(unicode: char) -> Text<'static> {
     text(unicode.to_string())
-        .font(ICONS)
+        .font(font::ICONS)
         .width(20)
         .horizontal_alignment(alignment::Horizontal::Center)
 }

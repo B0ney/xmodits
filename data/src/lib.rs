@@ -6,3 +6,5 @@ pub mod history;
 pub mod theme;
 pub mod entries;
 pub mod error;
+
+pub use theme::Theme;

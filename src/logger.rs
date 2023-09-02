@@ -1,3 +1,6 @@
+pub mod crash_handler;
+pub use crash_handler::set_panic_hook;
+
 use anyhow::Result;
 use rand::Rng;
 use std::fs::File;

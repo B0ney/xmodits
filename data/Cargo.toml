@@ -15,5 +15,6 @@ dirs = "5.0.0"
 serde = { version = "1.0", features = ["derive"] }
 chrono = { version = "0.4", features = ["serde"] }
 toml = "0.7.5" # todo: switch to different format?
-
+palette = "0.7.3"
 iced_core = "0.10.0"
+tracing-log = "0.1.3"
