@@ -939,11 +939,13 @@ dependencies = [
 name = "data"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "chrono",
  "dirs",
  "iced_core",
  "palette",
  "serde",
+ "tokio",
  "toml 0.7.6",
  "tracing-log",
  "xmodits-lib",

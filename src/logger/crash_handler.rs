@@ -1,4 +1,4 @@
-use crate::core::track::{GlobalTracker, GLOBAL_TRACKER};
+use super::global_tracker::{GLOBAL_TRACKER, GlobalTracker};
 use crate::dialog;
 use std::{panic::PanicInfo, path::PathBuf};
 

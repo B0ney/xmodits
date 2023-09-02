@@ -1,5 +1,5 @@
-use crate::core::cfg::SampleRippingConfig;
-use crate::core::track::GLOBAL_TRACKER;
+use data::config::SampleRippingConfig;
+use crate::logger::GLOBAL_TRACKER;
 use crate::gui::utils::file_name;
 
 use std::fs::File;

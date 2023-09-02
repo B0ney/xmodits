@@ -1,5 +1,8 @@
 pub mod crash_handler;
+pub mod global_tracker;
+
 pub use crash_handler::set_panic_hook;
+pub use global_tracker::GLOBAL_TRACKER;
 
 use anyhow::Result;
 use rand::Rng;

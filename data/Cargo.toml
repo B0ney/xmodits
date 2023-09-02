@@ -18,3 +18,8 @@ toml = "0.7.5" # todo: switch to different format?
 palette = "0.7.3"
 iced_core = "0.10.0"
 tracing-log = "0.1.3"
+anyhow = "1.0.0"
+
+[dependencies.tokio]
+version = "1.29.1"
+features = ["sync", "fs", "io-util", "parking_lot"]

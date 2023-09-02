@@ -1,4 +1,4 @@
-use super::cfg::SampleRippingConfig;
+use data::config::SampleRippingConfig;
 pub use super::extraction::{Failed, ThreadMsg};
 use iced::{subscription, Subscription};
 use rand::Rng;

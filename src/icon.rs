@@ -1,4 +1,4 @@
-use crate::core::cfg::config_dir;
+use data::config::config_dir;
 use crate::{font, theme};
 use crate::gui::style::Theme;
 

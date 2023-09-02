@@ -1,11 +1,15 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, fs};
 
 use serde::{Serialize, Deserialize};
 
 pub mod ripping;
 pub mod general;
 
-// pub use ripping::
+pub use ripping::{SampleRippingConfig, SampleNameConfig};
+pub use general::GeneralConfig;
+use tokio::io::AsyncWriteExt;
+use tracing_log::log::{warn, info, error};
+use anyhow::Result;
 
 const APP_NAME: &str = "xmodits";
 const CONFIG_NAME: &str = "config.toml";
@@ -22,55 +26,55 @@ pub struct Config {
     pub ripping: ripping::SampleRippingConfig,
 }
 
-// impl Config {
-//     pub fn load() -> Self {
-//         let Ok(toml) = fs::read_to_string(Self::path()) else {
-//             info!("Generating Default config file. Note that this won't be saved.");
-//             return Self::default();
-//         };
+impl Config {
+    pub fn load() -> Self {
+        let Ok(toml) = fs::read_to_string(Self::path()) else {
+            info!("Generating Default config file. Note that this won't be saved.");
+            return Self::default();
+        };
 
-//         let Ok(config) = toml::from_str(&toml) else {
-//             warn!("Could not parse config file. Perhaps an older version was loaded...");
-//             return Self::default();
-//         };
+        let Ok(config) = toml::from_str(&toml) else {
+            warn!("Could not parse config file. Perhaps an older version was loaded...");
+            return Self::default();
+        };
 
-//         config
-//     }
+        config
+    }
 
-//     pub async fn save(&self) -> Result<()> {
-//         if !config_dir().exists() {
-//             info!("Creating config directory: {}", config_dir().display());
-//             tokio::fs::create_dir(config_dir()).await?;
-//         };
+    pub async fn save(&self) -> Result<()> {
+        if !config_dir().exists() {
+            info!("Creating config directory: {}", config_dir().display());
+            tokio::fs::create_dir(config_dir()).await?;
+        };
 
-//         let file = tokio::fs::OpenOptions::new()
-//             .write(true)
-//             .truncate(true)
-//             .create(true)
-//             .open(Self::path())
-//             .await;
+        let file = tokio::fs::OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(Self::path())
+            .await;
 
-//         if let Err(e) = &file {
-//             error!("{}", e);
-//         }
+        if let Err(e) = &file {
+            error!("{}", e);
+        }
 
-//         let result = file?
-//             .write_all(toml::to_string_pretty(&self)?.as_bytes())
-//             .await;
+        let result = file?
+            .write_all(toml::to_string_pretty(&self)?.as_bytes())
+            .await;
 
-//         if let Err(e) = &result {
-//             error!("{}", e)
-//         } else {
-//             info!("Saved Configuration!");
-//         }
+        if let Err(e) = &result {
+            error!("{}", e)
+        } else {
+            info!("Saved Configuration!");
+        }
 
-//         Ok(result?)
-//     }
-//     pub fn filename() -> &'static str {
-//         CONFIG_NAME
-//     }
+        Ok(result?)
+    }
+    pub fn filename() -> &'static str {
+        CONFIG_NAME
+    }
 
-//     pub fn path() -> PathBuf {
-//         config_dir().join(Self::filename())
-//     }
-// }
+    pub fn path() -> PathBuf {
+        config_dir().join(Self::filename())
+    }
+}

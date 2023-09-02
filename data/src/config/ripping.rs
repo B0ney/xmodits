@@ -1,9 +1,10 @@
 mod sample_naming;
 
+pub use sample_naming::SampleNameConfig;
+
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use serde::{Serialize, Deserialize};
 use xmodits_lib::exporter::AudioFormat;
-use sample_naming::SampleNameConfig;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SampleRippingConfig {

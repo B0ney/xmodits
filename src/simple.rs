@@ -1,7 +1,11 @@
-use crate::core::cfg::Config;
+use data::config::Config;
 use crate::logger::write_error_log;
 use crate::dialog::{
-    failed_single, no_valid_modules, show_help_box, success, success_partial,
+    failed_single, 
+    no_valid_modules, 
+    show_help_box, 
+    success, 
+    success_partial,
     success_partial_no_log,
 };
 use crate::core::extraction::strict_loading;
