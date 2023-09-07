@@ -10,10 +10,14 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
+/// Initialize application logging
 pub fn init_logging() {
     use tracing::subscriber::set_global_default;
     use tracing::Level;
     use tracing_subscriber::FmtSubscriber;
+
+    #[cfg(windows)]
+    reattach_windows_terminal();
 
     // all spans/events with a level higher than TRACE (e.g, debug, info, warn, etc.)
     // will be written to stdout.
@@ -56,7 +60,7 @@ where
 /// ``[windows_subsystem = "windows"]``
 ///
 /// This allows logs to be displayed when launched from the terminal.
-pub fn win_attach_terminal() {
+pub fn reattach_windows_terminal() {
     #[cfg(windows)]
     unsafe {
         use winapi::um::wincon::{AttachConsole, ATTACH_PARENT_PROCESS};

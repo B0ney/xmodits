@@ -2,11 +2,14 @@ use std::{path::PathBuf, fs};
 
 use serde::{Serialize, Deserialize};
 
-pub mod ripping;
+pub mod sample_ripping;
 pub mod general;
+pub mod sample_naming;
 
-pub use ripping::{SampleRippingConfig, SampleNameConfig};
+pub use sample_ripping::SampleRippingConfig;
+pub use sample_naming::SampleNameConfig;
 pub use general::GeneralConfig;
+
 use tokio::io::AsyncWriteExt;
 use tracing_log::log::{warn, info, error};
 use anyhow::Result;
@@ -22,8 +25,8 @@ pub fn config_dir() -> PathBuf {
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
-    pub general: general::GeneralConfig,
-    pub ripping: ripping::SampleRippingConfig,
+    pub general: GeneralConfig,
+    pub ripping: SampleRippingConfig,
 }
 
 impl Config {

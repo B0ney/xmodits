@@ -57,6 +57,7 @@ impl From<&GlobalTracker> for Dump {
     }
 }
 
+/// Provide human friendly crash reporting
 pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(|panic_info| {
         let dump = Dump::from_panic(panic_info);

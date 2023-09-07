@@ -5,7 +5,7 @@ use std::{
 };
 
 // use chrono::Utc;
-use crate::config::ripping::SampleRippingConfig;
+use crate::config::SampleRippingConfig;
 
 #[derive(Default)]
 pub struct Entry {

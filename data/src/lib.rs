@@ -11,3 +11,4 @@ pub mod tracker_info;
 pub mod name_preview;
 
 pub use theme::Theme;
+pub use config::Config;

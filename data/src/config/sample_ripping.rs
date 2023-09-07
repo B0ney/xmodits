@@ -1,6 +1,4 @@
-mod sample_naming;
-
-pub use sample_naming::SampleNameConfig;
+pub use super::SampleNameConfig;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

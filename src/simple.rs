@@ -8,7 +8,7 @@ use crate::dialog::{
     success_partial,
     success_partial_no_log,
 };
-use crate::core::extraction::strict_loading;
+// use crate::core::extraction::strict_loading;
 
 
 use std::cmp::Ordering;

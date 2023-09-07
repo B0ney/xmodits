@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
-use crate::core::cfg::GeneralConfig;
+// use crate::core::cfg::GeneralConfig;
 use crate::gui::style::{self, Theme, Themes};
+use data::config::GeneralConfig;
 // use crate::gui::JETBRAINS_MONO;
 use iced::widget::container;
 use iced::widget::{checkbox, column, pick_list, row, text};

@@ -9,6 +9,6 @@ fn main() {
             .expect("embed windows icon");
     }
 
-    #[cfg(feature = "with_metadata")]
+    #[cfg(feature = "build_info")]
     built::write_built_file().expect("Failed to acquire build-time information");
 }
