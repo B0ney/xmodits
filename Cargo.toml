@@ -32,11 +32,6 @@ features = ["serde"]
 version = "1.29.1"
 features = ["sync", "fs", "io-util", "parking_lot"]
 
-[dependencies.image]
-version = "0.24.6"
-default-features = false
-features = ["ico"]
-
 [dependencies.rfd]
 version = "0.11.4"
 default-features = false
@@ -63,6 +58,8 @@ features = [
 [dependencies]
 data = { path = "data" }
 updater = { path = "updater", optional = true }
+
+iced_aw = {git = "https://github.com/iced-rs/iced_aw.git"}
 
 anyhow = "1.0.0"
 dirs = "5.0.0"
