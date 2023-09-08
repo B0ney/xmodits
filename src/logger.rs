@@ -1,5 +1,6 @@
 pub mod crash_handler;
 pub mod global_tracker;
+pub mod history;
 
 pub use crash_handler::set_panic_hook;
 pub use global_tracker::GLOBAL_TRACKER;

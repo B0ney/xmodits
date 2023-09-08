@@ -12,3 +12,15 @@ pub mod name_preview;
 
 pub use theme::Theme;
 pub use config::Config;
+
+
+use xmodits_lib::exporter::AudioFormat;
+
+pub const SUPPORTED_FORMATS: &[AudioFormat] = &[
+    AudioFormat::WAV,
+    AudioFormat::AIFF,
+    AudioFormat::ITS,
+    AudioFormat::S3I,
+    AudioFormat::IFF,
+    AudioFormat::RAW,
+];

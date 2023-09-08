@@ -16,6 +16,7 @@ pub mod font;
 pub mod logger;
 pub mod theme;
 pub mod widget;
+pub mod view;
 
 #[cfg(feature = "build_info")]
 pub mod build_info {

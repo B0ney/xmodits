@@ -141,20 +141,3 @@ impl Entries {
     }
 }
 
-#[derive(Default)]
-pub struct History {
-    // timestamp: chrono::DateTime<Utc>,
-    entries: Entries,
-    failed: Option<Failed>,
-    config: SampleRippingConfig,
-}
-
-enum Failed {
-    Mem(Vec<FailedModule>),
-    File { path: PathBuf, file: File },
-}
-
-struct FailedModule {
-    path: PathBuf,
-    reason: String,
-}
