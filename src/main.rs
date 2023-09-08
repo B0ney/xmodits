@@ -3,9 +3,10 @@
 
 use std::env;
 
-use data::Config;
+use data::{Config, config::SampleRippingConfig};
 
-use iced::{Application, Command, Element, Subscription};
+use iced::{Application, Command, Element, Subscription, Settings};
+use view::{sample_naming, sample_ripping};
 
 // mod core;
 // mod gui;
@@ -43,8 +44,12 @@ fn main() -> iced::Result {
     XMODITS::launch()
 }
 
+
 /// XMODITS graphical application
-pub struct XMODITS {}
+#[derive(Debug, Default)]
+pub struct XMODITS {
+    config: SampleRippingConfig
+}
 
 impl XMODITS {
     /// Launch the application
@@ -59,7 +64,7 @@ impl XMODITS {
         let config = Config::load();
 
         //
-        Self::run(todo!())
+        Self::run(Settings::default())
     }
 
     /// WINDOWS ONLY
@@ -93,7 +98,7 @@ impl Application for XMODITS {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, Command<Message>) {
-        todo!()
+        (Self::default(), Command::none())
     }
 
     fn title(&self) -> String {
@@ -102,16 +107,17 @@ impl Application for XMODITS {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::Ignore => todo!(),
+            Message::Ignore => (),
             _ => todo!(),
         }
+        Command::none()
     }
 
     fn view(&self) -> Element<Message> {
-        todo!()
+        sample_ripping::view(&self.config).map(|_|Message::Ignore)
     }
 
-    fn subscription(&self) -> Subscription<Message> {
-        todo!()
-    }
+    // fn subscription(&self) -> Subscription<Message> {
+    //     todo!()
+    // }
 }

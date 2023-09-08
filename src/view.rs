@@ -6,3 +6,4 @@ pub mod sample_naming;
 pub mod sample_preview;
 pub mod sample_ripping;
 pub mod tracker_info;
+pub mod settings;

@@ -1,4 +1,4 @@
-//! Data components
+//! Data components of XMODITS
 //! 
 
 pub mod config;

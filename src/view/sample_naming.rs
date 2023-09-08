@@ -2,9 +2,8 @@
 
 use data::config::SampleNameConfig;
 
+use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
 use iced::Element;
-use iced::widget::{checkbox, column, container, text, row, pick_list, horizontal_rule};
-
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -19,7 +18,7 @@ pub enum Message {
 
 pub fn view<'a>(
     config: &'a SampleNameConfig,
-    preview_name: &'a fn(&SampleNameConfig) -> String,
+    preview_name: &dyn Fn(&SampleNameConfig) -> String, // TODO
 ) -> Element<'a, Message> {
     let col1 = column![
         checkbox("Index Only", config.index_only, Message::IndexOnly),
@@ -30,31 +29,67 @@ pub fn view<'a>(
     let col2 = column![
         checkbox("Upper Case", config.upper, Message::UpperCase),
         checkbox("Lower Case", config.index_raw, Message::LowerCase),
-        checkbox("Prefer Filename", config.prefer_filename, Message::PreferFilename),
+        checkbox(
+            "Prefer Filename",
+            config.prefer_filename,
+            Message::PreferFilename
+        ),
     ];
-    
+
     let checkboxes = row![col1, col2];
 
     let options: &[u8] = &[1, 2, 3, 4];
-
     let idx_padding = row![
         pick_list(options, Some(config.index_padding), Message::IndexPadding),
         "Index Padding"
     ];
 
-    let name_preview = column![
-        text(preview_name(config))
-    ];
+    let name_preview = column![text(preview_name(config))];
 
-    let settings = column![
-        text("Sample Naming"),
-        checkboxes,
-        idx_padding,
-        horizontal_rule(1),
-        name_preview
-    ];
+    let settings = column![checkboxes, idx_padding, horizontal_rule(1), name_preview];
 
-    container( settings)
-        // .width(Length::Fill)
+    let settings = column![text("Sample Naming"), settings];
+
+    container(settings)
         .into()
+}
+
+pub fn update(cfg: &mut SampleNameConfig, message: Message) {
+    match message {
+        Message::IndexOnly(index_only) => {
+            if index_only {
+                cfg.lower = false;
+                cfg.upper = false;
+                cfg.prefer_filename = false;
+            }
+            cfg.index_only = index_only;
+        }
+        Message::IndexRaw(b) => cfg.index_raw = b,
+        Message::UpperCase(upper) => {
+            if cfg.lower && upper {
+                cfg.lower = false;
+            }
+            if upper {
+                cfg.index_only = false;
+            }
+            cfg.upper = upper;
+        }
+        Message::LowerCase(lower) => {
+            if cfg.upper && lower {
+                cfg.upper = false;
+            }
+            if lower {
+                cfg.index_only = false;
+            }
+            cfg.lower = lower;
+        }
+        Message::PreferFilename(use_filename) => {
+            if use_filename {
+                cfg.index_only = false;
+            }
+            cfg.prefer_filename = use_filename;
+        }
+        Message::IndexPadding(padding) => cfg.index_padding = padding,
+        Message::PrefixSamples(prefix) => cfg.prefix = prefix,
+    }
 }

@@ -25,7 +25,7 @@ impl GeneralConfig {
 
         match msg {
             Message::SetTheme(theme) => self.theme = theme,
-            Message::SetWorkerThreads(workers) => self.worker_threads = workers,
+            // Message::SetWorkerThreads(workers) => self.worker_th reads = workers,
             Message::NonGuiQuietOutput(quiet_output) => self.non_gui_quiet_output = quiet_output,
             Message::NonGuiUseCwd(use_cwd) => self.non_gui_use_cwd = use_cwd,
             Message::SetLogDirectory(log_dir) => self.logging_path = Some(log_dir),
@@ -78,15 +78,4 @@ impl GeneralConfig {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, PartialOrd, Eq)]
-#[repr(transparent)]
-struct Workers(pub usize);
 
-impl std::fmt::Display for Workers {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.0 {
-            0 => write!(f, "Automatic"),
-            n => write!(f, "{}", format!("{}", n)),
-        }
-    }
-}
