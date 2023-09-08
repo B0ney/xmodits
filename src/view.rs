@@ -1,7 +1,8 @@
-//! provide different views for 
-pub mod tracker_info;
-pub mod sample_ripping;
-pub mod sample_naming;
-pub mod main_panel;
+//! provide different views for
 pub mod about;
-mod destination_bar;
+pub mod destination_bar;
+pub mod main_panel;
+pub mod sample_naming;
+pub mod sample_preview;
+pub mod sample_ripping;
+pub mod tracker_info;

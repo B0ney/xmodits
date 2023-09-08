@@ -1,4 +1,4 @@
-//
+//! Configure how samples should be named
 
 use data::config::SampleNameConfig;
 

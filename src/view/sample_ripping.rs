@@ -1,5 +1,7 @@
+//! Configure how samples should be extracted
+
 use data::config::SampleRippingConfig;
-// 
+
 use iced::Element;
 use iced::widget::{checkbox, column, container, text, row, pick_list, horizontal_rule};
 
@@ -20,10 +22,10 @@ pub fn view<'a>(
         checkbox("Self Contained", ripping.self_contained, Message::ToggleSelfContained),
         checkbox("Strict Loading", ripping.strict, Message::ToggleStrictLoad),
     ];
-    
+    let formats = data::SUPPORTED_FORMATS;
     let export_format = row![
         pick_list(
-            data::SUPPORTED_FORMATS, 
+            formats, 
             Some(ripping.exported_format), 
             Message::SetFormat
         ),
