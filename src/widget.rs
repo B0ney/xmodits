@@ -2,7 +2,6 @@
 
 pub mod waveform;
 pub mod collection;
-pub mod comp;
 pub mod context_menu;
 
 pub use self::collection::Collection;

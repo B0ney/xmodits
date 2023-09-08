@@ -24,3 +24,5 @@ pub const SUPPORTED_FORMATS: &[AudioFormat] = &[
     AudioFormat::IFF,
     AudioFormat::RAW,
 ];
+
+pub use xmodits_lib;

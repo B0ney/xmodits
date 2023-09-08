@@ -23,10 +23,10 @@ built = { version = "0.6.1", features = ["chrono", "git2"], optional = true }
 winres = "0.1.12"
 static_vcruntime = "2.0.0"
 
-[dependencies.xmodits-lib]
-git = "https://github.com/B0ney/xmodits-lib.git"
-rev = "0cb0dad"
-features = ["serde"]
+# [dependencies.xmodits-lib]
+# git = "https://github.com/B0ney/xmodits-lib.git"
+# rev = "0cb0dad"
+# features = ["serde"]
 
 [dependencies.iced]
 # version = "0.10.0"

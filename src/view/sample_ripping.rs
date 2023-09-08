@@ -1,15 +1,15 @@
 //! Configure how samples should be extracted
 
 use data::config::SampleRippingConfig;
+// use data::xmodits_lib::AudioFormat;
+use data::xmodits_lib::exporter::AudioFormat;
 
 use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
 use iced::Element;
 
-use xmodits_lib::exporter::AudioFormat; // todo
-
 #[derive(Debug, Clone)]
 pub enum Message {
-    SetFormat(AudioFormat),
+    SetExportFormat(AudioFormat),
     ToggleSelfContained(bool),
     ToggleStrictLoad(bool),
     SetWorkerThreads(Workers),
@@ -30,7 +30,7 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
         pick_list(
             data::SUPPORTED_FORMATS,
             Some(ripping.exported_format),
-            Message::SetFormat
+            Message::SetExportFormat
         ),
         text("Export Format"),
     ];
@@ -70,7 +70,7 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
 
 pub fn update(cfg: &mut SampleRippingConfig, message: Message) {
     match message {
-        Message::SetFormat(format) => cfg.exported_format = format,
+        Message::SetExportFormat(format) => cfg.exported_format = format,
         Message::ToggleSelfContained(toggle) => cfg.self_contained = toggle,
         Message::SetFolderDepth(depth) => cfg.folder_max_depth = depth,
         Message::ToggleStrictLoad(strict) => cfg.strict = strict,

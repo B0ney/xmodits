@@ -1,6 +1,6 @@
 use std::path::{PathBuf, Path};
 
-use xmodits_lib::traits::Module;
+use xmodits_lib::Module;
 
 #[derive(Debug, Clone)]
 pub enum Info {
