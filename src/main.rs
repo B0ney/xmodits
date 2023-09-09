@@ -18,7 +18,11 @@ use std::env;
 use data::{config::SampleRippingConfig, Config};
 
 use iced::{Application, Command, Element, Settings, Subscription};
-use screen::configuration::{sample_naming, sample_ripping};
+use screen::configuration::sample_ripping;
+
+use sample_ripper::Message as SubscriptionMessage;
+
+use iced::Event as IcedEvent;
 
 #[cfg(feature = "build_info")]
 pub mod build_info {
@@ -88,6 +92,8 @@ pub enum Message {
     FontsLoaded(Result<(), iced::font::Error>),
     #[cfg(feature = "audio")]
     AudioEngine(),
+    Subscription(SubscriptionMessage),
+    Iced(IcedEvent),
 }
 
 impl Application for XMODITS {
@@ -107,7 +113,7 @@ impl Application for XMODITS {
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::Ignore => (),
-            _ => todo!(),
+            _ => (),
         }
         Command::none()
     }
@@ -116,7 +122,10 @@ impl Application for XMODITS {
         sample_ripping::view(&self.config).map(|_| Message::Ignore)
     }
 
-    // fn subscription(&self) -> Subscription<Message> {
-    //     todo!()
-    // }
+    fn subscription(&self) -> Subscription<Message> {
+        iced::Subscription::batch([
+            iced::event::listen().map(Message::Iced),
+            sample_ripper::xmodits_subscription().map(Message::Subscription),
+        ])
+    }
 }

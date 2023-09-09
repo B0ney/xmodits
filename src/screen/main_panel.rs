@@ -2,7 +2,7 @@
 
 pub mod entry;
 
-use data::entries::Entries;
+use entry::Entries;
 use iced::Element;
 
 use super::tracker_info;

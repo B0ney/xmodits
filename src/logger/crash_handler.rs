@@ -1,4 +1,4 @@
-use super::global_tracker::{GLOBAL_TRACKER, GlobalTracker};
+use super::global_tracker::{GlobalTracker, GLOBAL_TRACKER};
 use crate::dialog;
 use std::{panic::PanicInfo, path::PathBuf};
 
@@ -30,10 +30,10 @@ impl Dump {
 
         let message: Option<String> = match panic_info.payload().downcast_ref::<String>() {
             Some(e) => Some(e.to_string()),
-            None => match panic_info.payload().downcast_ref::<&str>() {
-                Some(err) => Some(err.to_string()),
-                None => None,
-            },
+            None => panic_info
+                .payload()
+                .downcast_ref::<&str>()
+                .map(|err| err.to_string()),
         };
 
         Self {

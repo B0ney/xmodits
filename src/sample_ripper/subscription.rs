@@ -1,5 +1,5 @@
-pub mod extraction;
 pub mod error_handler;
+pub mod extraction;
 
 use error_handler::ErrorHandler;
 use iced::{subscription, Subscription};
@@ -89,9 +89,9 @@ impl CompleteState {
 impl From<ErrorHandler> for CompleteState {
     fn from(value: ErrorHandler) -> Self {
         match value {
-            ErrorHandler::Mem { errors, .. } => match errors.len() > 0 {
-                true => Self::SomeErrors(errors),
-                false => Self::NoErrors,
+            ErrorHandler::Mem { errors, .. } => match errors.is_empty() {
+                true => Self::NoErrors,
+                false => Self::SomeErrors(errors),
             },
             ErrorHandler::File { total, path, .. } => Self::TooMuchErrors { log: path, total },
             ErrorHandler::FailedFile {
@@ -128,8 +128,8 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                         .try_send(Message::Ready(sender))
                         .expect("Sending a 'transmission channel' to main application.");
                 }
-                State::Idle(start_msg) => match start_msg.recv().await {
-                    Some(config) => {
+                State::Idle(start_msg) => {
+                    if let Some(config) = start_msg.recv().await {
                         let total = config.entries.len() as u64;
                         // let total = 0;
                         let (tx, rx) = mpsc::unbounded_channel();
@@ -151,8 +151,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                             total_errors: 0,
                         };
                     }
-                    None => (),
-                },
+                }
                 State::Ripping {
                     ripping_msg,
                     total_errors,

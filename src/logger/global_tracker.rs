@@ -5,7 +5,7 @@ use std::sync::Arc;
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
 
-pub static GLOBAL_TRACKER: Lazy<GlobalTracker> = Lazy::new(|| GlobalTracker::init());
+pub static GLOBAL_TRACKER: Lazy<GlobalTracker> = Lazy::new(GlobalTracker::init);
 
 /// Will be accessed by the panic Handler
 pub struct GlobalTracker {

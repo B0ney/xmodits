@@ -6,3 +6,4 @@ pub mod main_panel;
 pub mod sample_preview;
 pub mod settings;
 pub mod tracker_info;
+pub mod help;

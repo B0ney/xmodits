@@ -2,12 +2,10 @@ use std::path::{Path, PathBuf};
 
 // use super::Info;
 
-pub fn filename(path: impl AsRef<Path>) -> String {
-    path.as_ref()
-        .file_name()
-        .map(|f| f.to_string_lossy())
+pub fn filename(path: &Path) -> &str {
+    path.file_name()
+        .and_then(|f| f.to_str())
         .unwrap_or_default()
-        .into()
 }
 
 pub async fn folder_dialog() -> Option<PathBuf> {

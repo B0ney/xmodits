@@ -1,5 +1,5 @@
 use data::config::SampleRippingConfig;
-use data::xmodits_lib::{extract, Ripper, Error};
+use data::xmodits_lib::{extract, Error, Ripper};
 
 use crate::logger::GLOBAL_TRACKER;
 use crate::sample_ripper::Signal;
@@ -8,8 +8,8 @@ use crate::utils::filename;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, Write};
 use std::path::{Path, PathBuf};
+use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::Arc;
-use std::sync::mpsc::{Receiver, Sender, self};
 
 use parking_lot::Mutex;
 use tokio::sync::mpsc::UnboundedSender as AsyncSender;
@@ -103,7 +103,7 @@ fn stage_1(
         }
 
         let _ = subscr_tx.send(Message::Progress(
-            extract(&file, &cfg.destination, ripper.as_ref(), cfg.self_contained)
+            extract(file, &cfg.destination, ripper.as_ref(), cfg.self_contained)
                 .map_err(|error| Failed::new(file.display().to_string(), error))
                 .err(),
         ));
@@ -190,12 +190,15 @@ pub fn traverse(
 
     // traverse list of directories, output to a file
     'traversal: for folder in dirs.into_iter() {
-        for entry in WalkDir::new(folder).max_depth(max_depth as usize).into_iter() {
+        for entry in WalkDir::new(folder)
+            .max_depth(max_depth as usize)
+            .into_iter()
+        {
             if cancelled() {
                 break 'traversal;
             }
 
-            let Ok(f) = entry else { 
+            let Ok(f) = entry else {
                 continue;
             };
 
@@ -206,7 +209,7 @@ pub fn traverse(
                     .expect("Writing file entry");
             }
         }
-    };
+    }
 
     // Rewind cursor to beginning
     file.rewind().unwrap();
@@ -274,7 +277,7 @@ impl<'io> Batcher<'io> {
                         return;
                     }
 
-                    let result = extract(&file, &destination, &ripper, self_contained);
+                    let result = extract(file, &destination, &ripper, self_contained);
 
                     // Send an update to the subscription
                     let _ = match result {
@@ -380,11 +383,7 @@ pub fn strict_loading(strict: bool) -> impl Fn(&Path) -> bool {
                 "it", "xm", "s3m", "mod", "umx", "mptm", "IT", "XM", "S3M", "MOD", "UMX", "MPTM",
             ];
 
-            let Some(ext) = path
-                .extension()
-                .map(|f| f.to_str())
-                .flatten()
-            else {
+            let Some(ext) = path.extension().and_then(|f| f.to_str()) else {
                 return false;
             };
 
