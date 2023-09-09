@@ -1,24 +1,23 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // show logs when debugging
 #![allow(dead_code)]
 
-use std::env;
-
-use data::{Config, config::SampleRippingConfig};
-
-use iced::{Application, Command, Element, Subscription, Settings};
-use view::{sample_naming, sample_ripping};
-
-// mod core;
-// mod gui;
-// mod simple;
-
 pub mod dialog;
 pub mod font;
 // pub mod icon;
 pub mod logger;
 pub mod theme;
 pub mod widget;
-pub mod view;
+pub mod screen;
+// mod core;
+// mod gui;
+// mod simple;
+
+use std::env;
+
+use data::{Config, config::SampleRippingConfig};
+
+use iced::{Application, Command, Element, Subscription, Settings};
+use screen::{sample_naming, sample_ripping};
 
 #[cfg(feature = "build_info")]
 pub mod build_info {
