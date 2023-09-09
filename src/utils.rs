@@ -8,6 +8,12 @@ pub fn filename(path: &Path) -> &str {
         .unwrap_or_default()
 }
 
+pub fn extension(path: &Path) -> &str {
+    path.extension()
+        .and_then(|f| f.to_str())
+        .unwrap_or_default()
+}
+
 pub async fn folder_dialog() -> Option<PathBuf> {
     rfd::AsyncFileDialog::new()
         .pick_folder()

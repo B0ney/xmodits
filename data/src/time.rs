@@ -1,5 +1,6 @@
 use std::time::{Instant, Duration};
 
+#[derive(Debug, Clone)]
 pub struct Time {
     start: Instant,
     duration: Duration,
@@ -25,6 +26,10 @@ impl Time {
 
     pub fn elapsed(&self) -> f32 {
         self.duration.as_secs_f32()
+    }
+
+    pub fn init() -> Self {
+        Self::default()
     }
 }
 

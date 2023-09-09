@@ -402,8 +402,7 @@ struct State {
 #[derive(Debug, Clone)]
 pub struct Failed {
     pub path: PathBuf,
-    pub reason: Box<str>, // TODO: use enum for single or multiple
-    filename: Box<str>,
+    pub reason: String, // TODO: use enum for single or multiple
 }
 
 impl std::fmt::Display for Failed {
@@ -421,14 +420,13 @@ impl Failed {
     pub fn new(path: String, error: Error) -> Self {
         let path: PathBuf = path.into();
         Self {
-            filename: filename(&path).into(),
             path,
-            reason: error.to_string().into(),
+            reason: error.to_string(),
         }
     }
 
     pub fn filename(&self) -> &str {
-        &self.filename
+        filename(&self.path)
     }
 }
 

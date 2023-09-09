@@ -1,6 +1,7 @@
 pub mod error_handler;
 pub mod extraction;
 
+use data::time::Time;
 use error_handler::ErrorHandler;
 use iced::{subscription, Subscription};
 
@@ -37,6 +38,7 @@ enum State {
         progress: u64,
         error_handler: ErrorHandler,
         total_errors: u64,
+        timer: Time,
     },
 }
 
@@ -44,8 +46,14 @@ enum State {
 #[derive(Clone, Debug)]
 pub enum Message {
     Ready(Sender<Signal>),
-    Done(CompleteState),
-    Progress { progress: f32, total_errors: u64 },
+    Progress { 
+        progress: f32, 
+        total_errors: u64 
+    },
+    Done {
+        state: CompleteState,
+        time: Time,
+    },
     Info(Option<String>),
 }
 
@@ -149,6 +157,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                             progress: 0,
                             error_handler: ErrorHandler::default(),
                             total_errors: 0,
+                            timer: Time::init()
                         };
                     }
                 }
@@ -158,6 +167,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                     error_handler,
                     progress,
                     total,
+                    timer,
                 } => match ripping_msg.recv().await {
                     Some(ThreadMessage::Progress(error)) => {
                         *progress += 1;
@@ -183,16 +193,28 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                     }
                     Some(ThreadMessage::Cancelled) => {
                         // let error = std::mem::take(error_handler);
+                        timer.stop();
+
+                        let msg = Message::Done { 
+                            state: CompleteState::Cancelled,
+                            time: std::mem::take(timer),
+                        };
+
                         output
-                            .try_send(Message::Done(CompleteState::Cancelled))
+                            .try_send(msg)
                             .expect("Sending 'extraction complete' message to application.");
 
                         info!("Cancelled!");
                         state = State::Init;
                     }
                     _ => {
+                        timer.stop();
                         let error = std::mem::take(error_handler);
-                        let msg = Message::Done(CompleteState::from(error));
+
+                        let msg = Message::Done { 
+                            state: CompleteState::from(error),
+                            time: std::mem::take(timer),
+                        };
 
                         // It's important that this gets delivered, otherwise the program would be in an invalid state.
                         output
