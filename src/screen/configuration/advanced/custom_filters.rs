@@ -53,5 +53,16 @@ pub struct File {}
 fn contains(items: &Vec<String>, item: &str) -> bool {
     items.iter().any(|f| f == item)
 }
-
 // fn
+pub struct Filter(Vec<Box<dyn Fn(&Path) -> bool>>);
+
+impl Filter {
+    pub fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn push(&mut self, func: Box<dyn Fn(&Path) -> bool>) -> &mut Self {
+        self.0.push(func);
+        self
+    }
+}

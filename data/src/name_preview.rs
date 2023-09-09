@@ -1,6 +1,8 @@
 use std::path::Path;
 
-pub fn preview_sample_name() -> String {
+use crate::config::SampleNameConfig;
+
+pub fn preview_sample_name(config: &SampleNameConfig) -> String {
     todo!()
     // use xmodits_lib::interface::{Sample, name::Context};
 

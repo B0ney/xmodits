@@ -18,7 +18,7 @@ use std::env;
 use data::{config::SampleRippingConfig, Config};
 
 use iced::{Application, Command, Element, Settings, Subscription};
-use screen::configuration::sample_ripping;
+use screen::configuration::{sample_ripping, SampleConfigManager};
 
 use sample_ripper::Message as SubscriptionMessage;
 
@@ -51,7 +51,9 @@ fn main() -> iced::Result {
 /// XMODITS graphical application
 #[derive(Debug, Default)]
 pub struct XMODITS {
-    config: SampleRippingConfig,
+    config_manager: SampleConfigManager,
+    
+
 }
 
 impl XMODITS {
@@ -119,7 +121,8 @@ impl Application for XMODITS {
     }
 
     fn view(&self) -> Element<Message> {
-        sample_ripping::view(&self.config).map(|_| Message::Ignore)
+        // sample_ripping::view(&self.config).map(|_| Message::Ignore)
+        todo!()
     }
 
     fn subscription(&self) -> Subscription<Message> {

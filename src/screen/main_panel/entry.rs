@@ -135,3 +135,6 @@ impl Entries {
     }
 }
 
+fn view(entry: &Entry) {
+    
+}

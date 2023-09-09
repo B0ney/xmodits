@@ -7,6 +7,8 @@ use data::xmodits_lib::exporter::AudioFormat;
 use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
 use iced::Element;
 
+// TODO have data defined here
+
 #[derive(Debug, Clone)]
 pub enum Message {
     SetExportFormat(AudioFormat),
