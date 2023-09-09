@@ -1,23 +1,24 @@
 use data::config::SampleRippingConfig;
+use data::xmodits_lib::{extract, Ripper, Error};
+
 use crate::logger::GLOBAL_TRACKER;
-use crate::gui::utils::file_name;
+use crate::sample_ripper::Signal;
+use crate::utils::filename;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, Write};
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{Receiver, Sender};
-use std::sync::{mpsc, Arc};
+use std::sync::Arc;
+use std::sync::mpsc::{Receiver, Sender, self};
 
 use parking_lot::Mutex;
 use tokio::sync::mpsc::UnboundedSender as AsyncSender;
 use walkdir::WalkDir;
-use xmodits_lib::common::extract;
-use xmodits_lib::interface::ripper::Ripper;
 
-use super::xmodits::cancelled;
+use super::cancelled;
 
 #[derive(Debug)]
-pub enum ThreadMsg {
+pub enum Message {
     SetTotal(u64),
     Info(Option<String>),
     Progress(Option<Failed>),
@@ -25,18 +26,20 @@ pub enum ThreadMsg {
     Cancelled,
 }
 
-impl ThreadMsg {
+impl Message {
     pub fn info(str: &str) -> Self {
         Self::Info(Some(str.to_owned()))
     }
 }
 
-pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippingConfig) {
+pub fn rip(tx: AsyncSender<Message>, signal: Signal) {
     GLOBAL_TRACKER.reset();
 
     // split files and folders
     let mut files: Vec<PathBuf> = Vec::new();
     let mut folders: Vec<PathBuf> = Vec::new();
+
+    let paths = signal.entries;
 
     for i in paths {
         if i.is_file() {
@@ -46,13 +49,15 @@ pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippi
         }
     }
 
+    let mut cfg = signal.ripping;
+
     cfg.folder_max_depth = match cfg.folder_max_depth {
         0 => 1,
         d => d,
     };
 
     let ripper = Arc::new(Ripper::new(
-        cfg.naming.build_func(),
+        signal.name.build_func(),
         cfg.exported_format.into(),
     ));
 
@@ -63,14 +68,14 @@ pub fn rip(tx: AsyncSender<ThreadMsg>, paths: Vec<PathBuf>, mut cfg: SampleRippi
     stage_2(tx.clone(), folders, ripper, cfg);
 
     tx.send(match cancelled() {
-        true => ThreadMsg::Cancelled,
-        false => ThreadMsg::Done,
+        true => Message::Cancelled,
+        false => Message::Done,
     })
     .expect("Informing main GUI that the extraction has completed");
 }
 
 fn stage_1(
-    subscr_tx: AsyncSender<ThreadMsg>,
+    subscr_tx: AsyncSender<Message>,
     files: Vec<PathBuf>,
     ripper: Arc<Ripper>,
     cfg: &SampleRippingConfig,
@@ -79,11 +84,11 @@ fn stage_1(
         return;
     }
     subscr_tx
-        .send(ThreadMsg::SetTotal(files.len() as u64))
+        .send(Message::SetTotal(files.len() as u64))
         .unwrap();
 
     subscr_tx
-        .send(ThreadMsg::Info(Some(format!(
+        .send(Message::Info(Some(format!(
             "Stage 1: Ripping {} files...",
             files.len()
         ))))
@@ -97,7 +102,7 @@ fn stage_1(
             break;
         }
 
-        let _ = subscr_tx.send(ThreadMsg::Progress(
+        let _ = subscr_tx.send(Message::Progress(
             extract(&file, &cfg.destination, ripper.as_ref(), cfg.self_contained)
                 .map_err(|error| Failed::new(file.display().to_string(), error))
                 .err(),
@@ -110,7 +115,7 @@ fn stage_1(
 /// todo add documentation
 ///
 fn stage_2(
-    subscr_tx: AsyncSender<ThreadMsg>,
+    subscr_tx: AsyncSender<Message>,
     folders: Vec<PathBuf>,
     ripper: Arc<Ripper>,
     cfg: SampleRippingConfig,
@@ -120,23 +125,23 @@ fn stage_2(
     }
     let selected_dirs = folders.len();
     subscr_tx
-        .send(ThreadMsg::info("Traversing Directories..."))
+        .send(Message::info("Traversing Directories..."))
         .unwrap();
 
     let filter = strict_loading(cfg.strict);
 
     let (mut file, lines) = traverse(folders, cfg.folder_max_depth, filter, |lines| {
         subscr_tx
-            .send(ThreadMsg::Info(Some(format!(
+            .send(Message::Info(Some(format!(
                 "Traversing Directories...\n({lines} filtered files)"
             ))))
             .unwrap()
     });
 
-    subscr_tx.send(ThreadMsg::SetTotal(lines)).unwrap();
+    subscr_tx.send(Message::SetTotal(lines)).unwrap();
 
     subscr_tx
-        .send(ThreadMsg::Info(Some(format!(
+        .send(Message::Info(Some(format!(
             "Stage 2: Ripping {} files from {} folder(s)...",
             lines, selected_dirs
         ))))
@@ -233,7 +238,7 @@ impl<'io> Batcher<'io> {
         batch_size: usize,
         ripper: Arc<Ripper>,
         cfg: SampleRippingConfig,
-        subscr_tx: AsyncSender<ThreadMsg>,
+        subscr_tx: AsyncSender<Message>,
     ) -> Batcher<'io> {
         GLOBAL_TRACKER.set_batch_size(batch_size);
 
@@ -273,11 +278,11 @@ impl<'io> Batcher<'io> {
 
                     // Send an update to the subscription
                     let _ = match result {
-                        Ok(_) => subscr_tx.send(ThreadMsg::Progress(None)),
+                        Ok(_) => subscr_tx.send(Message::Progress(None)),
 
                         Err(error) => {
                             let error = Some(Failed::new(file.into(), error));
-                            subscr_tx.send(ThreadMsg::Progress(error))
+                            subscr_tx.send(Message::Progress(error))
                         }
                     };
                 });
@@ -414,10 +419,10 @@ impl std::fmt::Display for Failed {
 }
 
 impl Failed {
-    pub fn new(path: String, error: xmodits_lib::interface::Error) -> Self {
+    pub fn new(path: String, error: Error) -> Self {
         let path: PathBuf = path.into();
         Self {
-            filename: file_name(&path).into(),
+            filename: filename(&path).into(),
             path,
             reason: error.to_string().into(),
         }

@@ -5,19 +5,20 @@ pub mod dialog;
 pub mod font;
 // pub mod icon;
 pub mod logger;
-pub mod theme;
-pub mod widget;
+pub mod sample_ripper;
 pub mod screen;
-// mod core;
+pub mod theme;
+pub mod utils;
+pub mod widget;
 // mod gui;
 // mod simple;
 
 use std::env;
 
-use data::{Config, config::SampleRippingConfig};
+use data::{config::SampleRippingConfig, Config};
 
-use iced::{Application, Command, Element, Subscription, Settings};
-use screen::{sample_naming, sample_ripping};
+use iced::{Application, Command, Element, Settings, Subscription};
+use screen::configuration::{sample_naming, sample_ripping};
 
 #[cfg(feature = "build_info")]
 pub mod build_info {
@@ -43,11 +44,10 @@ fn main() -> iced::Result {
     XMODITS::launch()
 }
 
-
 /// XMODITS graphical application
 #[derive(Debug, Default)]
 pub struct XMODITS {
-    config: SampleRippingConfig
+    config: SampleRippingConfig,
 }
 
 impl XMODITS {
@@ -113,7 +113,7 @@ impl Application for XMODITS {
     }
 
     fn view(&self) -> Element<Message> {
-        sample_ripping::view(&self.config).map(|_|Message::Ignore)
+        sample_ripping::view(&self.config).map(|_| Message::Ignore)
     }
 
     // fn subscription(&self) -> Subscription<Message> {

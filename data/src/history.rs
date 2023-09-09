@@ -1,4 +1,5 @@
 //! provide detailed informatiomn about the modules ripped
+pub mod manager;
 
 use std::path::PathBuf;
 

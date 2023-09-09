@@ -12,8 +12,6 @@ pub struct SampleRippingConfig {
     pub strict: bool,
     pub worker_threads: usize,
     pub exported_format: AudioFormat,
-    // must be placed at the bottom
-    pub naming: SampleNameConfig,
 }
 
 impl Default for SampleRippingConfig {
@@ -24,11 +22,6 @@ impl Default for SampleRippingConfig {
             folder_max_depth: 4,
             strict: true,
             exported_format: Default::default(),
-            naming: SampleNameConfig {
-                index_padding: 2,
-                prefer_filename: true,
-                ..Default::default()
-            },
             worker_threads: 0,
         }
     }

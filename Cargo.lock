@@ -4561,7 +4561,9 @@ version = "0.11.0"
 dependencies = [
  "anyhow",
  "built",
+ "chrono",
  "data",
+ "dirs",
  "iced",
  "native-dialog",
  "once_cell",

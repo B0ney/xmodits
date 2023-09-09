@@ -27,6 +27,7 @@ pub fn config_dir() -> PathBuf {
 pub struct Config {
     pub general: GeneralConfig,
     pub ripping: SampleRippingConfig,
+    pub naming: SampleNameConfig,
 }
 
 impl Config {
