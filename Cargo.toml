@@ -10,11 +10,12 @@ repository = "https://github.com/B0ney/xmodits"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = []
+default = ["audio"]
 update_check = ["updater"]
 build_info = ["built"]
-audio = []
+audio = ["audio_engine"]
 wgpu = ["iced/wgpu"]
+# plugins = ["plugin"]
 
 [build-dependencies]
 built = { version = "0.6.1", features = ["chrono", "git2"], optional = true }
@@ -55,6 +56,8 @@ features = ["windows_dpi_awareness", "windows_visual_styles"]
 [dependencies]
 data = { path = "data" }
 updater = { path = "updater", optional = true }
+audio_engine = { path = "audio_engine", optional = true }
+# plugin = { path = "plugin", optional = true }
 
 anyhow = "1.0.0"
 serde = { version = "1.0", features = ["derive"] }
@@ -89,7 +92,7 @@ FileDescription = "A tool to extract samples from tracker modules. https://githu
 Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
 
 [workspace]
-members = ["data", "updater"]
+members = ["data", "updater", "audio_engine"]
 
 [profile.dev]
 split-debuginfo = "packed"

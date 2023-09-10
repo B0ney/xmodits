@@ -25,4 +25,5 @@ pub const SUPPORTED_FORMATS: &[AudioFormat] = &[
     AudioFormat::RAW,
 ];
 
+/// Reimport the xmodits core library.
 pub use xmodits_lib;
