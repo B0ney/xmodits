@@ -1,11 +1,18 @@
 //! Configure how samples should be extracted
 
+use std::path::PathBuf;
+
 use data::config::SampleRippingConfig;
-// use data::xmodits_lib::AudioFormat;
 use data::xmodits_lib::exporter::AudioFormat;
 
-use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
-use iced::Element;
+use iced::widget::{
+    button, checkbox, column, container, horizontal_rule, pick_list, row, text, text_input,
+};
+use iced::{Command, Element};
+
+use once_cell::sync::Lazy;
+
+use crate::utils::folder_dialog;
 
 // TODO have data defined here
 
@@ -16,6 +23,44 @@ pub enum Message {
     ToggleStrictLoad(bool),
     SetWorkerThreads(Workers),
     SetFolderDepth(u8),
+    SetDestination(Option<PathBuf>),
+    SetDestinationDialog,
+}
+
+pub fn update(cfg: &mut SampleRippingConfig, message: Message) -> Command<Message> {
+    match message {
+        Message::SetExportFormat(format) => cfg.exported_format = format,
+        Message::ToggleSelfContained(toggle) => cfg.self_contained = toggle,
+        Message::SetFolderDepth(depth) => cfg.folder_max_depth = depth,
+        Message::ToggleStrictLoad(strict) => cfg.strict = strict,
+        Message::SetWorkerThreads(Workers(threads)) => cfg.worker_threads = threads,
+        Message::SetDestination(destination) => {
+            if let Some(destination) = destination {
+                cfg.destination = destination
+            }
+        }
+        Message::SetDestinationDialog => {
+            return Command::perform(folder_dialog(), Message::SetDestination);
+        }
+    }
+    Command::none()
+}
+
+pub static DESTINATION_BAR_ID: Lazy<text_input::Id> = Lazy::new(text_input::Id::unique);
+
+pub fn view_destination_bar(destination: &str) -> Element<Message> {
+    let input = text_input("Output Directory", &destination)
+        .id(DESTINATION_BAR_ID.clone())
+        .on_input(|f| {
+            let destination = PathBuf::new().join(f);
+            Message::SetDestination(Some(destination))
+        });
+
+    let button = button("Select")
+        .on_press(Message::SetDestinationDialog)
+        .padding(10);
+
+    row![input, button].into()
 }
 
 pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
@@ -68,16 +113,6 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
     let settings = column![text("Ripping Configuration"), settings];
 
     container(settings).into()
-}
-
-pub fn update(cfg: &mut SampleRippingConfig, message: Message) {
-    match message {
-        Message::SetExportFormat(format) => cfg.exported_format = format,
-        Message::ToggleSelfContained(toggle) => cfg.self_contained = toggle,
-        Message::SetFolderDepth(depth) => cfg.folder_max_depth = depth,
-        Message::ToggleStrictLoad(strict) => cfg.strict = strict,
-        Message::SetWorkerThreads(Workers(threads)) => cfg.worker_threads = threads,
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]

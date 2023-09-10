@@ -16,44 +16,6 @@ pub enum Message {
     PrefixSamples(bool),
 }
 
-pub fn view<'a>(
-    config: &'a SampleNameConfig,
-    preview_name: &dyn Fn(&SampleNameConfig) -> String, // TODO
-) -> Element<'a, Message> {
-    let col1 = column![
-        checkbox("Index Only", config.index_only, Message::IndexOnly),
-        checkbox("Preserve Index", config.index_raw, Message::IndexRaw),
-        checkbox("Prefix Samples", config.prefix, Message::PrefixSamples),
-    ];
-
-    let col2 = column![
-        checkbox("Upper Case", config.upper, Message::UpperCase),
-        checkbox("Lower Case", config.index_raw, Message::LowerCase),
-        checkbox(
-            "Prefer Filename",
-            config.prefer_filename,
-            Message::PreferFilename
-        ),
-    ];
-
-    let checkboxes = row![col1, col2];
-
-    let options: &[u8] = &[1, 2, 3, 4];
-    let idx_padding = row![
-        pick_list(options, Some(config.index_padding), Message::IndexPadding),
-        "Index Padding"
-    ];
-
-    let name_preview = column![text(preview_name(config))];
-
-    let settings = column![checkboxes, idx_padding, horizontal_rule(1), name_preview];
-
-    let settings = column![text("Sample Naming"), settings];
-
-    container(settings)
-        .into()
-}
-
 pub fn update(cfg: &mut SampleNameConfig, message: Message) {
     match message {
         Message::IndexOnly(index_only) => {
@@ -92,4 +54,44 @@ pub fn update(cfg: &mut SampleNameConfig, message: Message) {
         Message::IndexPadding(padding) => cfg.index_padding = padding,
         Message::PrefixSamples(prefix) => cfg.prefix = prefix,
     }
+}
+
+pub fn view<'a>(
+    config: &'a SampleNameConfig,
+    preview_name: &dyn Fn(&SampleNameConfig) -> String, // TODO
+) -> Element<'a, Message> {
+    let col1 = column![
+        checkbox("Index Only", config.index_only, Message::IndexOnly),
+        checkbox("Preserve Index", config.index_raw, Message::IndexRaw),
+        checkbox("Prefix Samples", config.prefix, Message::PrefixSamples),
+    ];
+
+    let col2 = column![
+        checkbox("Upper Case", config.upper, Message::UpperCase),
+        checkbox("Lower Case", config.index_raw, Message::LowerCase),
+        checkbox(
+            "Prefer Filename",
+            config.prefer_filename,
+            Message::PreferFilename
+        ),
+    ];
+
+    let checkboxes = row![col1, col2];
+
+    let options: &[u8] = &[1, 2, 3, 4];
+    let idx_padding = row![
+        pick_list(options, Some(config.index_padding), Message::IndexPadding),
+        "Index Padding"
+    ];
+
+    let settings = column![
+        checkboxes,
+        idx_padding,
+        horizontal_rule(1),
+        text(preview_name(config))
+    ];
+
+    let settings = column![text("Sample Naming"), settings];
+
+    container(settings).into()
 }

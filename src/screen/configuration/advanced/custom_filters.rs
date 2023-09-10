@@ -1,35 +1,56 @@
-use std::{num::NonZeroU32, path::Path};
+use std::path::Path;
 
 use crate::utils::{extension, filename};
+
+pub trait FilterCreator {
+    fn create(self) -> Box<dyn Fn(&Path) -> bool>;
+}
+
+#[derive(Debug, Clone, Copy)]
+struct Size {
+    min: u64,
+    max: u64,
+}
+
+impl FilterCreator for Size {
+    fn create(self) -> Box<dyn Fn(&Path) -> bool> {
+        Box::new(move |path: &Path| -> bool {
+            let Ok(meta) = path.metadata() else {
+                return false;
+            };
+
+            let filesize = meta.len();
+
+            if filesize > self.max {
+                return false;
+            }
+
+            if filesize < self.min {
+                return false;
+            }
+
+            return true;
+        })
+    }
+}
 
 /// TODO
 pub struct Regex(String);
 
-#[derive(Debug, Default, Clone)]
-pub struct PathFilter {
-    contains: Vec<String>,
-    starts_with: Vec<String>,
-    ends_with: Vec<String>,
-    has_extension: Vec<String>,
-    // has_root: Items,
+#[derive(Debug, Clone)]
+struct Date {
     before: Option<chrono::DateTime<chrono::Utc>>,
     after: Option<chrono::DateTime<chrono::Utc>>,
-    min_size: Option<NonZeroU32>,
-    max_size: Option<NonZeroU32>,
 }
 
-impl PathFilter {
-    fn a(&self, path: &Path) {
-        let filename = filename(path);
-        let extension = extension(path);
-        let meta = path.metadata().ok().unwrap();
+type Items = Option<Vec<String>>;
 
-        let result = self.contains.has(filename)
-            && self.starts_with.has(filename)
-            && self.ends_with.has(filename)
-            && self.has_extension.has(extension);
-        // && self.
-    }
+#[derive(Debug, Default, Clone)]
+struct Name {
+    contains: Items,
+    starts_with: Items,
+    ends_with: Items,
+    has_extension: Items,
 }
 
 pub trait HasItem {

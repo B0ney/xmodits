@@ -7,7 +7,7 @@ pub mod sample_ripping;
 use data::config::{SampleNameConfig, SampleRippingConfig};
 use data::name_preview;
 
-use iced::Element;
+use iced::{Command, Element};
 
 use self::advanced::AdvancedConfiguration;
 
@@ -31,12 +31,15 @@ impl SampleConfigManager {
     pub fn load() {}
     pub fn save() {}
 
-    pub fn update(&mut self, message: Message) {
+    pub fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::Ripping(msg) => sample_ripping::update(&mut self.ripping, msg),
+            Message::Ripping(msg) => {
+                return sample_ripping::update(&mut self.ripping, msg).map(Message::Ripping)
+            }
             Message::Naming(msg) => sample_naming::update(&mut self.naming, msg),
             Message::Advanced(msg) => self.advanced.update(msg),
         }
+        Command::none()
     }
 
     pub fn view_ripping_config(&self) -> Element<Message> {

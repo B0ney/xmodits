@@ -1,13 +1,13 @@
 use std::path::{Path, PathBuf};
 
-// use super::Info;
-
+/// Returns filename of path
 pub fn filename(path: &Path) -> &str {
     path.file_name()
         .and_then(|f| f.to_str())
         .unwrap_or_default()
 }
 
+/// Returns path file extension
 pub fn extension(path: &Path) -> &str {
     path.extension()
         .and_then(|f| f.to_str())
@@ -50,19 +50,3 @@ fn paths(h: Option<Vec<rfd::FileHandle>>) -> Option<Vec<PathBuf>> {
             .collect()
     })
 }
-
-// pub async fn tracker_info(path: PathBuf) -> Option<Info> {
-//     let path2 = path.clone();
-
-//     let tracker_result = tokio::task::spawn_blocking(|| {
-//         let mut file = std::fs::File::open(path2)?;
-//         xmodits_lib::fmt::loader::load_module(&mut file)
-//     })
-//     .await
-//     .ok()?;
-
-//     match tracker_result {
-//         Ok(tracker) => Some(Info::valid(tracker, path)),
-//         Err(error) => Some(Info::invalid(error.to_string(), path)),
-//     }
-// }
