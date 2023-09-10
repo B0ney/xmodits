@@ -10,7 +10,7 @@ repository = "https://github.com/B0ney/xmodits"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["audio"]
+default = ["audio", "build_info"]
 update_check = ["updater"]
 build_info = ["built"]
 audio = ["audio_engine"]

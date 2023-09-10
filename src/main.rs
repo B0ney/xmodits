@@ -18,16 +18,15 @@ use std::env;
 use data::{config::SampleRippingConfig, Config};
 
 use iced::{Application, Command, Element, Settings, Subscription};
+use iced::widget::column;
 use screen::configuration::{sample_ripping, SampleConfigManager};
 
 use sample_ripper::Message as SubscriptionMessage;
 
 use iced::Event as IcedEvent;
+use widget::Collection;
 
-#[cfg(feature = "build_info")]
-pub mod build_info {
-    include!(concat!(env!("OUT_DIR"), "/built.rs"));
-}
+use crate::screen::build_info;
 
 fn main() -> iced::Result {
     let args = env::args().skip(1);
@@ -122,7 +121,8 @@ impl Application for XMODITS {
 
     fn view(&self) -> Element<Message> {
         // sample_ripping::view(&self.config).map(|_| Message::Ignore)
-        todo!()
+        column![].push_maybe(build_info::view()).into()
+        // todo!()
     }
 
     fn subscription(&self) -> Subscription<Message> {

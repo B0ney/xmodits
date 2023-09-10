@@ -119,8 +119,26 @@ Build:
 ```shell
 cd xmodits
 
-cargo build -p xmodits-gui --release
+cargo build --release
 ```
+### Build Flags
+
+```shell
+cargo build --release --features=["FEATURE"]
+
+```
+
+|Feature | Description | Enabled by Default |
+|-|-|-|
+|audio|Add audio playback, used to preview samples|**yes**|
+|build_info|Provide information about the binary|**yes**|
+|update_check|Check for updates|no|
+|wgpu|Include hardware acceleration (Vulkan/Metal)|no|
+
+Build flags used in official releases:
+* audio
+* build_info
+* update_check
 
 ## License
 xmodits is licensed under the GPLv3
