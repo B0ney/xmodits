@@ -25,7 +25,7 @@ use sample_ripper::Message as SubscriptionMessage;
 
 use iced::Event as IcedEvent;
 use widget::Collection;
-
+use screen::configuration::Message as ConfigMessage;
 use crate::screen::build_info;
 
 fn main() -> iced::Result {
@@ -52,7 +52,6 @@ fn main() -> iced::Result {
 pub struct XMODITS {
     config_manager: SampleConfigManager,
     
-
 }
 
 impl XMODITS {
@@ -90,6 +89,7 @@ fn icon() -> iced::window::Icon {
 #[derive(Debug, Clone)]
 pub enum Message {
     Ignore,
+    Config(ConfigMessage),
     FontsLoaded(Result<(), iced::font::Error>),
     #[cfg(feature = "audio")]
     AudioEngine(),
@@ -114,15 +114,17 @@ impl Application for XMODITS {
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::Ignore => (),
+            Message::Config(msg) => return self.config_manager.update(msg).map(Message::Config),
             _ => (),
         }
         Command::none()
     }
 
     fn view(&self) -> Element<Message> {
-        // sample_ripping::view(&self.config).map(|_| Message::Ignore)
-        column![].push_maybe(build_info::view()).into()
-        // todo!()
+        // column![].push_maybe(build_info::view())
+        // .push(self.config_manager.view_ripping_config().map(Message::Config))
+        //     .push(self.config_manager.view_destination().map(Message::Config)).into()
+        todo!()
     }
 
     fn subscription(&self) -> Subscription<Message> {

@@ -9,6 +9,8 @@ use data::name_preview;
 
 use iced::{Command, Element};
 
+use crate::utils::filename;
+
 use self::advanced::AdvancedConfiguration;
 
 #[derive(Debug, Clone)]
@@ -22,9 +24,9 @@ pub enum Message {
 ///
 #[derive(Debug, Default)]
 pub struct SampleConfigManager {
-    ripping: SampleRippingConfig,
-    naming: SampleNameConfig,
-    advanced: AdvancedConfiguration,
+    pub ripping: SampleRippingConfig,
+    pub naming: SampleNameConfig,
+    pub advanced: AdvancedConfiguration,
 }
 
 impl SampleConfigManager {
@@ -48,5 +50,19 @@ impl SampleConfigManager {
 
     pub fn view_naming_config(&self) -> Element<Message> {
         sample_naming::view(&self.naming, &name_preview::preview_sample_name).map(Message::Naming)
+    }
+
+    // TODO
+    pub fn view_destination(&self) -> Element<Message> {
+        let destination = &self.ripping.destination;
+
+        let filename_only = false;
+        
+        let destination = match filename_only {
+            true => filename(&destination),
+            false => destination.to_str().unwrap_or_default(),
+        };
+
+        sample_ripping::view_destination_bar(destination).map(Message::Ripping)
     }
 }
