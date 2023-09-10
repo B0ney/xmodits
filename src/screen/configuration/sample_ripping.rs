@@ -8,7 +8,8 @@ use data::xmodits_lib::exporter::AudioFormat;
 use iced::widget::{
     button, checkbox, column, container, horizontal_rule, pick_list, row, text, text_input,
 };
-use iced::{Command, Element};
+use iced::Command;
+use crate::widget::Element;
 
 use once_cell::sync::Lazy;
 

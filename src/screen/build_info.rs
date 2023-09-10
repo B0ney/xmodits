@@ -1,7 +1,7 @@
 //! Provide information about the application
 
 use iced::widget::{column, container, text};
-use iced::Element;
+use crate::widget::Element;
 
 #[cfg(feature = "build_info")]
 pub mod info {

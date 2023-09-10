@@ -1,25 +1,19 @@
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 
+use crate::utils::filename;
+
 #[derive(Default)]
 pub struct Entry {
     pub selected: bool,
     pub path: PathBuf,
-    filename: Box<str>,
 }
 
 impl Entry {
     pub fn new(path: PathBuf) -> Self {
-        let filename = path
-            .file_name()
-            .map(|f| f.to_string_lossy())
-            .unwrap_or_default()
-            .into();
-
         Self {
             selected: false,
             path: path,
-            filename,
         }
     }
     pub fn is_dir(&self) -> bool {
@@ -31,7 +25,7 @@ impl Entry {
     }
 
     pub fn filename(&self) -> &str {
-        &self.filename
+        filename(&self.path)
     }
 }
 

@@ -3,7 +3,7 @@
 use data::config::SampleNameConfig;
 
 use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
-use iced::Element;
+use crate::widget::Element;
 
 #[derive(Debug, Clone)]
 pub enum Message {

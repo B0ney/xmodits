@@ -2,7 +2,7 @@
 pub mod custom_filters;
 pub mod custom_rules;
 
-use iced::Element;
+use crate::widget::Element;
 
 #[derive(Debug, Clone)]
 pub enum Message {}

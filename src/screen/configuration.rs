@@ -7,7 +7,8 @@ pub mod sample_ripping;
 use data::config::{SampleNameConfig, SampleRippingConfig};
 use data::name_preview;
 
-use iced::{Command, Element};
+use iced::Command;
+use crate::widget::Element;
 
 use crate::utils::filename;
 

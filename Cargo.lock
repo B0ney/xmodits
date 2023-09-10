@@ -348,6 +348,7 @@ checksum = "1181e1e0d1fce796a03db1ae795d67167da795f9cf4a39c37589e85ef57f26d3"
 name = "audio_engine"
 version = "0.1.0"
 dependencies = [
+ "data",
  "rubato",
 ]
 
