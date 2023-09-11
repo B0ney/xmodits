@@ -1,21 +1,21 @@
 use iced::font::{self, Error};
 use iced::Command;
 
-// pub static JETBRAINS_MONO: Font = Font::new();
-
-// pub static ICONS: Font = Font::External {
-//     name: "Icons",
-//     bytes: include_bytes!("../assets/font/material_design_iconic_font.ttf"),
-// };
+pub static JETBRAINS_MONO: iced::Font = iced::Font {
+    monospaced: true,
+    ..iced::Font::with_name("JetBrains Mono")
+};
 
 pub static ICONS: iced::Font = iced::Font {
     monospaced: true,
-    ..iced::Font::with_name("MaterialDesign Iconic")
+    ..iced::Font::with_name("bootstrap-icons")
+
 };
 
 pub fn load() -> Command<Result<(), Error>> {
-    Command::batch(vec![
-        font::load(include_bytes!("../assets/font/material_design_iconic_font.ttf").as_slice()),
+    Command::batch([
+        font::load(include_bytes!("../assets/font/icons.ttf").as_slice()),
+        // font::load(include_bytes!("../assets/font/material_design_iconic_font.ttf").as_slice()),
         font::load(include_bytes!("../assets/font/JetBrainsMono-Regular.ttf").as_slice()),
     ])
 }

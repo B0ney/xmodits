@@ -1,6 +1,6 @@
 //! Configure how samples should be named
 
-use data::config::SampleNameConfig;
+use data::{config::SampleNameConfig, xmodits_lib::exporter::AudioFormat};
 
 use crate::widget::Element;
 use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
@@ -58,7 +58,8 @@ pub fn update(cfg: &mut SampleNameConfig, message: Message) {
 
 pub fn view<'a>(
     config: &'a SampleNameConfig,
-    preview_name: &dyn Fn(&SampleNameConfig) -> String, // TODO
+    export_format: &'a AudioFormat,
+    preview_name: &dyn Fn(&SampleNameConfig, &AudioFormat) -> String, // TODO
 ) -> Element<'a, Message> {
     let col1 = column![
         checkbox("Index Only", config.index_only, Message::IndexOnly),
@@ -68,7 +69,7 @@ pub fn view<'a>(
 
     let col2 = column![
         checkbox("Upper Case", config.upper, Message::UpperCase),
-        checkbox("Lower Case", config.index_raw, Message::LowerCase),
+        checkbox("Lower Case", config.lower, Message::LowerCase),
         checkbox(
             "Prefer Filename",
             config.prefer_filename,
@@ -88,7 +89,7 @@ pub fn view<'a>(
         checkboxes,
         idx_padding,
         horizontal_rule(1),
-        text(preview_name(config))
+        text(preview_name(config, export_format))
     ];
 
     let settings = column![text("Sample Naming"), settings];

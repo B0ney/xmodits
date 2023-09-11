@@ -18,7 +18,7 @@ pub struct Palette {
 
 impl Default for Palette {
     fn default() -> Self {
-        Themes::Dark.palette()
+        Themes::Catppuccin.palette()
     }
 }
 

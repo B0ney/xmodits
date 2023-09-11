@@ -35,6 +35,8 @@ impl SampleConfigManager {
     pub fn save() {}
 
     pub fn update(&mut self, message: Message) -> Command<Message> {
+        tracing::info!("{:?}", &message);
+        
         match message {
             Message::Ripping(msg) => {
                 return sample_ripping::update(&mut self.ripping, msg).map(Message::Ripping)
@@ -50,7 +52,14 @@ impl SampleConfigManager {
     }
 
     pub fn view_naming_config(&self) -> Element<Message> {
-        sample_naming::view(&self.naming, &name_preview::preview_sample_name).map(Message::Naming)
+        // TODO: make name previewer its own helper function
+        let export_format = &self.ripping.exported_format;
+        sample_naming::view(
+            &self.naming,
+            export_format,
+            &name_preview::preview_sample_name,
+        )
+        .map(Message::Naming)
     }
 
     // TODO

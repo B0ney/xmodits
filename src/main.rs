@@ -3,7 +3,7 @@
 
 pub mod dialog;
 pub mod font;
-// pub mod icon;
+pub mod icon;
 pub mod logger;
 pub mod sample_ripper;
 pub mod screen;
@@ -16,6 +16,7 @@ use std::env;
 
 use data::{config::SampleRippingConfig, Config};
 
+use font::JETBRAINS_MONO;
 use iced::widget::column;
 use iced::{Application, Command, Settings, Subscription};
 use screen::configuration::{sample_ripping, SampleConfigManager};
@@ -45,7 +46,7 @@ fn main() -> iced::Result {
 
     // let args: Vec<String> =  env::args().collect();
 
-    XMODITS::launch()
+    XMODITS::launch().map(|_| tracing::info!("Bye :)"))
 }
 
 /// XMODITS graphical application
@@ -67,7 +68,8 @@ impl XMODITS {
         let config = Config::load();
 
         //
-        Self::run(Settings::default())
+        tracing::info!("Launcing GUI");
+        Self::run(settings())
     }
 
     /// WINDOWS ONLY
@@ -82,8 +84,16 @@ impl XMODITS {
 
 /// TODO: allow the user to customize their application icon
 fn icon() -> iced::window::Icon {
-    let icon_data = include_bytes!("../assets/img/logo/icon3.png");
-    iced::window::icon::from_file_data(icon_data, None).unwrap()
+    iced::window::icon::from_file_data(include_bytes!("../assets/img/logo/icon3.png"), None)
+        .unwrap()
+}
+
+pub fn settings() -> iced::Settings<()> {
+    iced::Settings {
+        default_font: JETBRAINS_MONO,
+        default_text_size: 13.0,
+        ..Default::default()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -104,7 +114,7 @@ impl Application for XMODITS {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, Command<Message>) {
-        (Self::default(), Command::none())
+        (Self::default(), font::load().map(Message::FontsLoaded))
     }
 
     fn title(&self) -> String {
@@ -128,7 +138,15 @@ impl Application for XMODITS {
                     .view_ripping_config()
                     .map(Message::Config),
             )
+            .push(
+                self.config_manager
+                    .view_naming_config()
+                    .map(Message::Config),
+            )
             .push(self.config_manager.view_destination().map(Message::Config))
+            .push(icon::download())
+            .push(icon::play())
+            .push(icon::pause())
             .into()
 
         // self.config_manager.view_destination().map(Message::Config).into()
