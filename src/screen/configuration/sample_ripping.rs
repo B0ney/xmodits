@@ -5,11 +5,11 @@ use std::path::PathBuf;
 use data::config::SampleRippingConfig;
 use data::xmodits_lib::exporter::AudioFormat;
 
+use crate::widget::Element;
 use iced::widget::{
     button, checkbox, column, container, horizontal_rule, pick_list, row, text, text_input,
 };
 use iced::Command;
-use crate::widget::Element;
 
 use once_cell::sync::Lazy;
 

@@ -9,5 +9,4 @@ pub enum Message {
     Loop,
 }
 
-pub fn view(){}
-
+pub fn view() {}

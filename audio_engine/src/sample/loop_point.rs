@@ -1,8 +1,3 @@
+pub enum LoopKind {}
 
-pub enum LoopKind {
-
-}
-
-pub struct LoopInfo {
-    
-}
+pub struct LoopInfo {}

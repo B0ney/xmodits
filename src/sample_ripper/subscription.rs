@@ -46,14 +46,8 @@ enum State {
 #[derive(Clone, Debug)]
 pub enum Message {
     Ready(Sender<Signal>),
-    Progress { 
-        progress: f32, 
-        total_errors: u64 
-    },
-    Done {
-        state: CompleteState,
-        time: Time,
-    },
+    Progress { progress: f32, total_errors: u64 },
+    Done { state: CompleteState, time: Time },
     Info(Option<String>),
 }
 
@@ -157,7 +151,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                             progress: 0,
                             error_handler: ErrorHandler::default(),
                             total_errors: 0,
-                            timer: Time::init()
+                            timer: Time::init(),
                         };
                     }
                 }
@@ -195,7 +189,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                         // let error = std::mem::take(error_handler);
                         timer.stop();
 
-                        let msg = Message::Done { 
+                        let msg = Message::Done {
                             state: CompleteState::Cancelled,
                             time: std::mem::take(timer),
                         };
@@ -211,7 +205,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                         timer.stop();
                         let error = std::mem::take(error_handler);
 
-                        let msg = Message::Done { 
+                        let msg = Message::Done {
                             state: CompleteState::from(error),
                             time: std::mem::take(timer),
                         };

@@ -1,10 +1,9 @@
-
 use std::path::PathBuf;
 
 use data::config::GeneralConfig;
 
-use iced::Element;
 use iced::widget::{checkbox, column, container, text};
+use iced::Element;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -27,13 +26,9 @@ pub fn view<'a>(general: &'a GeneralConfig) -> Element<'a, Message> {
         ),
     ];
 
-    let settings = column![
-        text("Settings"),
-        settings
-    ];
+    let settings = column![text("Settings"), settings];
 
-    container(settings)
-        .into()
+    container(settings).into()
 }
 
 pub fn update(cfg: &mut GeneralConfig, message: Message) {

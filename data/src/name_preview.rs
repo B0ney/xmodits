@@ -13,7 +13,7 @@ pub fn preview_sample_name(config: &SampleNameConfig) -> String {
 
     // let namer_func = ripping_config.naming.build_func();
     // let formatter = ripping_config.exported_format.get_impl();
-    
+
     // let dummy_sample = Sample {
     //     filename: Some(filename.into()),
     //     name: name.into(),

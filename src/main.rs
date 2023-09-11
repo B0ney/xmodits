@@ -16,18 +16,18 @@ use std::env;
 
 use data::{config::SampleRippingConfig, Config};
 
-use iced::{Application, Command, Settings, Subscription};
 use iced::widget::column;
+use iced::{Application, Command, Settings, Subscription};
 use screen::configuration::{sample_ripping, SampleConfigManager};
 
 use sample_ripper::Message as SubscriptionMessage;
 
-use iced::Event as IcedEvent;
-use widget::Collection;
-use screen::configuration::Message as ConfigMessage;
 use crate::screen::build_info;
+use iced::Event as IcedEvent;
+use screen::configuration::Message as ConfigMessage;
+use widget::Collection;
 
-use widget::{Element, Column};
+use widget::{Column, Element};
 
 fn main() -> iced::Result {
     let args = env::args().skip(1);
@@ -52,7 +52,6 @@ fn main() -> iced::Result {
 #[derive(Debug, Default)]
 pub struct XMODITS {
     config_manager: SampleConfigManager,
-    
 }
 
 impl XMODITS {
@@ -122,11 +121,17 @@ impl Application for XMODITS {
     }
 
     fn view(&self) -> Element<Message> {
-        column![].push_maybe(build_info::view())
-        .push(self.config_manager.view_ripping_config().map(Message::Config))
-            .push(self.config_manager.view_destination().map(Message::Config)).into()
+        column![]
+            .push_maybe(build_info::view())
+            .push(
+                self.config_manager
+                    .view_ripping_config()
+                    .map(Message::Config),
+            )
+            .push(self.config_manager.view_destination().map(Message::Config))
+            .into()
 
-            // self.config_manager.view_destination().map(Message::Config).into()
+        // self.config_manager.view_destination().map(Message::Config).into()
         // todo!()
     }
 

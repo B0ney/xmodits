@@ -1,7 +1,7 @@
 use iced_core::color;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use super::{Palette, BaseColors, BrightColors, NormalColors};
+use super::{BaseColors, BrightColors, NormalColors, Palette};
 
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Themes {

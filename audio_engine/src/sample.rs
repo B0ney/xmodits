@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use self::buffer::SampleBuffer;
 
-pub mod loop_point;
 pub mod buffer;
+pub mod loop_point;
 
 pub struct TrackerSample {
     pub buf: Arc<SampleBuffer>,

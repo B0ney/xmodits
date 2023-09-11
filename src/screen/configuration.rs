@@ -7,8 +7,8 @@ pub mod sample_ripping;
 use data::config::{SampleNameConfig, SampleRippingConfig};
 use data::name_preview;
 
-use iced::Command;
 use crate::widget::Element;
+use iced::Command;
 
 use crate::utils::filename;
 
@@ -58,7 +58,7 @@ impl SampleConfigManager {
         let destination = &self.ripping.destination;
 
         let filename_only = false;
-        
+
         let destination = match filename_only {
             true => filename(&destination),
             false => destination.to_str().unwrap_or_default(),

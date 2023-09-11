@@ -1,12 +1,12 @@
 //! Custom widgets
-//! 
+//!
 //! Most it graciously yoinked from: https://github.com/squidowl/halloy/
-//! 
+//!
 //! I cannot express my gratitude enough. Those guys are awesome.
 
-pub mod waveform;
 pub mod collection;
 pub mod context_menu;
+pub mod waveform;
 
 pub use self::collection::Collection;
 

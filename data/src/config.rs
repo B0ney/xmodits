@@ -1,18 +1,18 @@
-use std::{path::PathBuf, fs};
+use std::{fs, path::PathBuf};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-pub mod sample_ripping;
 pub mod general;
 pub mod sample_naming;
+pub mod sample_ripping;
 
-pub use sample_ripping::SampleRippingConfig;
-pub use sample_naming::SampleNameConfig;
 pub use general::GeneralConfig;
+pub use sample_naming::SampleNameConfig;
+pub use sample_ripping::SampleRippingConfig;
 
-use tokio::io::AsyncWriteExt;
-use tracing_log::log::{warn, info, error};
 use anyhow::Result;
+use tokio::io::AsyncWriteExt;
+use tracing_log::log::{error, info, warn};
 
 const APP_NAME: &str = "xmodits";
 const CONFIG_NAME: &str = "config.toml";

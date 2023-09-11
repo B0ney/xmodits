@@ -129,6 +129,4 @@ impl Entries {
     }
 }
 
-fn view(entry: &Entry) {
-    
-}
+fn view(entry: &Entry) {}

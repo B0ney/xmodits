@@ -2,8 +2,8 @@
 
 use data::config::SampleNameConfig;
 
-use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
 use crate::widget::Element;
+use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
 
 #[derive(Debug, Clone)]
 pub enum Message {

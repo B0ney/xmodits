@@ -15,7 +15,7 @@ pub struct Signal {
 impl Signal {
     pub fn new(
         entries: Vec<PathBuf>,
-        ripping: config::SampleRippingConfig, 
+        ripping: config::SampleRippingConfig,
         name: config::SampleNameConfig,
     ) -> Self {
         Self {

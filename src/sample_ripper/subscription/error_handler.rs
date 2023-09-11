@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use rand::Rng;
-use tokio::io::{BufWriter, AsyncWriteExt};
+use tokio::io::{AsyncWriteExt, BufWriter};
 
 use super::Failed;
 

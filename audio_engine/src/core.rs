@@ -1,4 +1,3 @@
-
 pub trait PlayHandle: Send + Sync {
     fn next(&mut self) -> Option<[f32; 2]>;
     fn reset(&mut self);

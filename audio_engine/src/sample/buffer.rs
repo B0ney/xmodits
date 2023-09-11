@@ -1,6 +1,5 @@
 use data::xmodits_lib::dsp;
 
-
 #[derive(Clone)]
 pub struct SampleBuffer {
     pub buf: Vec<Vec<f32>>,

@@ -83,11 +83,7 @@ impl TrackerView {
     }
 }
 
-fn view_ripping(
-    message: &Option<String>,
-    progress: f32,
-    total_errors: u64,
-) -> Element<Message> {
+fn view_ripping(message: &Option<String>, progress: f32, total_errors: u64) -> Element<Message> {
     container(
         column![
             text(match message.as_ref() {
