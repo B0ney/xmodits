@@ -1,5 +1,7 @@
-use iced::{color, Color};
-use serde::{Deserialize, Serialize};
+use iced_core::color;
+use serde::{Serialize, Deserialize};
+
+use super::{Palette, BaseColors, BrightColors, NormalColors};
 
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Themes {
@@ -10,44 +12,6 @@ pub enum Themes {
     Nord,
     LMMS,
     OneShot,
-    // Custom(Option<Box<ColorPalette>>),
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct BaseColors {
-    pub background: Color,
-    pub foreground: Color,
-    pub dark: Color,   // TODO: sort
-    pub border: Color, // TODO: sort
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct NormalColors {
-    pub primary: Color,
-    pub secondary: Color,
-    pub surface: Color,
-    pub error: Color,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct BrightColors {
-    pub primary: Color,
-    pub secondary: Color,
-    pub surface: Color,
-    pub error: Color,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct ColorPalette {
-    pub base: BaseColors,
-    pub normal: NormalColors,
-    pub bright: BrightColors,
-}
-
-impl Default for ColorPalette {
-    fn default() -> Self {
-        Themes::default().palette()
-    }
 }
 
 impl Themes {
@@ -60,9 +24,9 @@ impl Themes {
         Self::OneShot,
     ];
 
-    pub fn palette(&self) -> ColorPalette {
+    pub fn palette(&self) -> Palette {
         match self {
-            Self::Dark => ColorPalette {
+            Self::Dark => Palette {
                 base: BaseColors {
                     background: color!(0x272727),
                     foreground: color!(0x353535),
@@ -82,7 +46,7 @@ impl Themes {
                     error: color!(0xff5555),
                 },
             },
-            Self::Dracula => ColorPalette {
+            Self::Dracula => Palette {
                 base: BaseColors {
                     background: color!(0x282a36),
                     foreground: color!(0x44475a),
@@ -102,7 +66,7 @@ impl Themes {
                     error: color!(0xff5555),
                 },
             },
-            Self::LMMS => ColorPalette {
+            Self::LMMS => Palette {
                 base: BaseColors {
                     background: color!(0x26_2B_30),
                     foreground: color!(0x3B424A), //3B424A
@@ -122,7 +86,7 @@ impl Themes {
                     error: color!(0xff5555),
                 },
             },
-            Self::Nord => ColorPalette {
+            Self::Nord => Palette {
                 base: BaseColors {
                     background: color!(0x2e3440),
                     foreground: color!(0x3b4252),
@@ -142,7 +106,7 @@ impl Themes {
                     error: color!(0xbf616a),
                 },
             },
-            Self::OneShot => ColorPalette {
+            Self::OneShot => Palette {
                 base: BaseColors {
                     background: color!(0x1A0B1D),
                     foreground: color!(0x2B0D1A),
@@ -162,7 +126,7 @@ impl Themes {
                     error: color!(0xff5555),
                 },
             },
-            Self::Catppuccin => ColorPalette {
+            Self::Catppuccin => Palette {
                 base: BaseColors {
                     background: color!(0x1E1E28),
                     foreground: color!(0x332E41),
@@ -182,12 +146,6 @@ impl Themes {
                     error: color!(0xE38C8F),
                 },
             },
-            // Self::Custom(theme) => {
-            //     match theme {
-            //         Some(theme) => theme.clone(),
-            //         None => Self::default()
-            //     }
-            // },
         }
     }
 }

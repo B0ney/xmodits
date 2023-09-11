@@ -10,7 +10,6 @@ pub mod screen;
 pub mod theme;
 pub mod utils;
 pub mod widget;
-// mod gui;
 // mod simple;
 
 use std::env;
@@ -102,7 +101,7 @@ pub enum Message {
 impl Application for XMODITS {
     type Executor = iced::executor::Default;
     type Message = Message;
-    type Theme = iced::Theme; // TODO: replace with theme::Theme when implemented
+    type Theme = theme::Theme;
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, Command<Message>) {

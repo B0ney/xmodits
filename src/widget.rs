@@ -10,8 +10,8 @@ pub mod context_menu;
 
 pub use self::collection::Collection;
 
-// use crate::theme::Theme;
-use iced::Theme;  // TODO: use one above once theme::Theme has been implemented
+use crate::theme::Theme;
+// use iced::Theme;
 
 pub type Renderer = iced::Renderer<Theme>;
 
