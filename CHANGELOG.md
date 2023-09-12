@@ -18,7 +18,7 @@
 * XMODITS will no longer overwrite files with conflicting filenames. It will error instead.
 * Prefixing samples with the module's filename now includes its file extension.
 
-# v0.10.0 (29 July 2023)
+# v0.10.0 (22 May 2023)
 
 ## What's New:
 * You can now extract samples to the following formats:
