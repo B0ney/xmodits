@@ -3,15 +3,19 @@ mod simple;
 use crate::font::{self, JETBRAINS_MONO};
 use crate::icon;
 use crate::logger;
+use crate::sample_ripper::handle::SubscriptionHandle;
+use crate::sample_ripper::subscription::CompleteState;
 use crate::sample_ripper::{self, Message as SubscriptionMessage};
 use crate::screen::{
     about::{self, Message as AboutMessage},
     build_info,
     configuration::{sample_ripping, Message as ConfigMessage, SampleConfigManager},
+    main_panel::entry::Entries,
 };
 use crate::theme;
 use crate::widget::{Collection, Column, Element};
 
+use data::time::Time;
 use data::{config::SampleRippingConfig, Config};
 
 use iced::widget::column;
@@ -19,9 +23,12 @@ use iced::Event as IcedEvent;
 use iced::{Application, Command, Settings, Subscription};
 
 /// XMODITS graphical application
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct XMODITS {
     config_manager: SampleConfigManager,
+    entries: Entries,
+    state: State,
+    handle: SubscriptionHandle,
 }
 
 impl XMODITS {
@@ -65,6 +72,40 @@ pub fn settings() -> iced::Settings<()> {
     }
 }
 
+/// The current state of the application.
+#[derive(Default, Debug, Clone)]
+pub enum State {
+    #[default]
+    Idle,
+    /// The user is previewing some samples
+    SamplePreview(
+        /* TODO */
+    ),
+    /// The application is currently ripping samples
+    Ripping {
+        message: Option<String>,
+        progress: f32,
+        total_errors: u64,
+    },
+    /// The application has finished ripping samples
+    Finished {
+        state: CompleteState,
+        time: Time,
+    },
+}
+
+/// TODO: rename to avoid confusion
+/// 
+/// This is basically the configuration panel view.
+#[derive(Default, Debug, Clone)]
+pub enum View {
+    #[default]
+    Configure,
+    Settings,
+    About,
+    Help,
+}
+
 #[derive(Debug, Clone)]
 pub enum Message {
     About(AboutMessage),
@@ -105,6 +146,9 @@ impl Application for XMODITS {
     }
 
     fn view(&self) -> Element<Message> {
+        let right_half = ();
+        let left_half = ();
+
         column![]
             .push_maybe(build_info::view())
             .push(

@@ -1,5 +1,5 @@
 use super::global_tracker::{GlobalTracker, GLOBAL_TRACKER};
-use crate::dialog;
+use crate::{dialog, sample_ripper::stop_flag};
 use std::{panic::PanicInfo, path::PathBuf};
 
 #[derive(Default, Debug)]
@@ -60,6 +60,8 @@ impl From<&GlobalTracker> for Dump {
 /// Provide human friendly crash reporting
 pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(|panic_info| {
+        stop_flag::set_flag(stop_flag::StopFlag::Abort);
+        
         let dump = Dump::from_panic(panic_info);
 
         // let backtrace = std::backtrace::Backtrace::force_capture();

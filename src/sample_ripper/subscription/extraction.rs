@@ -15,7 +15,7 @@ use parking_lot::Mutex;
 use tokio::sync::mpsc::UnboundedSender as AsyncSender;
 use walkdir::WalkDir;
 
-use super::cancelled;
+use super::stop_flag::cancelled;
 
 #[derive(Debug)]
 pub enum Message {

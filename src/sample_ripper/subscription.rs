@@ -6,25 +6,13 @@ use error_handler::ErrorHandler;
 use iced::{subscription, Subscription};
 
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
 use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
 
 use tracing::{error, info};
 
-use super::Signal;
+use super::{Signal, stop_flag};
 
 pub use extraction::{Failed, Message as ThreadMessage};
-
-pub static CANCELLED: AtomicBool = AtomicBool::new(false);
-
-pub fn cancelled() -> bool {
-    CANCELLED.load(Ordering::Relaxed)
-}
-
-// pub struct Handle {
-//     cancel: &'static AtomicBool,
-
-// }
 
 /// State of subscription
 #[derive(Default, Debug)]
