@@ -64,7 +64,14 @@ where
 pub fn reattach_windows_terminal() {
     #[cfg(windows)]
     unsafe {
+        use std::sync::Once;
         use winapi::um::wincon::{AttachConsole, ATTACH_PARENT_PROCESS};
-        let _ = AttachConsole(ATTACH_PARENT_PROCESS);
+
+        // Probably overkill to wrap in ONCE
+        static ONCE: Once = Once::new();
+
+        ONCE.call_once(|| {
+            let _ = AttachConsole(ATTACH_PARENT_PROCESS);
+        });
     }
 }
