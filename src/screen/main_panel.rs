@@ -108,12 +108,12 @@ fn view_ripping(message: &Option<String>, progress: f32, total_errors: u64) -> E
 
 /// XMODITS has finished extracting the samples
 fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Element<'a, Message> {
-    let continue_button: _ = button("Continue")
+    let continue_button = button("Continue")
         // .on_press(Message::SetState(State::Idle))
         // .on_press(Message::Ignore)
         .padding(5);
 
-    let save_errors_button: _ = button("Save Errors")
+    let save_errors_button = button("Save Errors")
         // .on_press(Message::SaveErrors)
         .padding(5);
 
@@ -213,14 +213,14 @@ fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Eleme
         } => {
             let error_state = match errors.len() {
                 0 => match manually_saved {
-                    false => text(format!("Manually Saving errors...")),
-                    true => text(format!("Errors saved manually :D")),
+                    false => text("Manually Saving errors..."),
+                    true => text("Errors saved manually :D"),
                 },
                 n => text(format!("{} stored errors", n)),
             };
 
             let discarded_errors = match discarded {
-                0 => text(format!("No errors were discarded.")),
+                0 => text("No errors were discarded."),
                 n => text(format!(
                     "I had to discard {} error(s) to save memory. >_<",
                     n

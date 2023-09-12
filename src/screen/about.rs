@@ -28,7 +28,7 @@ pub fn view<'a>() -> Element<'a, Message> {
     let repo = button(text(env!("CARGO_PKG_REPOSITORY"))).on_press(Message::GitHub);
     let version = text(format!("version: {}", env!("CARGO_PKG_VERSION")));
 
-    let about: _ = container(column![title, version, about, repo])
+    let about = container(column![title, version, about, repo])
         .padding(8)
         .center_x()
         .center_y();

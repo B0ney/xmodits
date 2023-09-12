@@ -35,7 +35,7 @@ pub fn rip(paths: impl IntoIterator<Item = String>) {
     let filter = strict_loading(config.ripping.strict);
 
     if config.ripping.strict {
-        paths = paths.into_iter().filter(|f| filter(f)).collect();
+        paths.retain(|f| filter(f));
 
         if paths.is_empty() {
             return no_valid_modules();

@@ -29,7 +29,7 @@ impl FilterCreator for Size {
                 return false;
             }
 
-            return true;
+            true
         })
     }
 }

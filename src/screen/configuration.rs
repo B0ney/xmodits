@@ -69,7 +69,7 @@ impl SampleConfigManager {
         let filename_only = false;
 
         let destination = match filename_only {
-            true => filename(&destination),
+            true => filename(destination),
             false => destination.to_str().unwrap_or_default(),
         };
 

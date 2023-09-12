@@ -50,7 +50,7 @@ pub fn update(cfg: &mut SampleRippingConfig, message: Message) -> Command<Messag
 pub static DESTINATION_BAR_ID: Lazy<text_input::Id> = Lazy::new(text_input::Id::unique);
 
 pub fn view_destination_bar(destination: &str) -> Element<Message> {
-    let input = text_input("Output Directory", &destination)
+    let input = text_input("Output Directory", destination)
         .id(DESTINATION_BAR_ID.clone())
         .on_input(|f| {
             let destination = PathBuf::new().join(f);
