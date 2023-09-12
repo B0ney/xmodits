@@ -1,4 +1,6 @@
 use data::config::Config;
+use data::xmodits_lib;
+
 use crate::logger::write_error_log;
 use crate::dialog::{
     failed_single, 
@@ -8,9 +10,7 @@ use crate::dialog::{
     success_partial,
     success_partial_no_log,
 };
-// use crate::core::extraction::strict_loading;
-
-
+use crate::sample_ripper::subscription::extraction::strict_loading;
 use std::cmp::Ordering;
 use std::path::{Path, PathBuf};
 
@@ -54,9 +54,11 @@ pub fn rip(paths: impl IntoIterator<Item = String>) {
         Some(log) => log,
         None => &destination,
     };
-
+    
+    let naming = config.naming;
     let config = &config.ripping;
-    let namer = config.naming.build_func();
+    
+    let namer = naming.build_func();
 
     let mut ripper = Ripper::default();
     ripper.change_namer(namer);

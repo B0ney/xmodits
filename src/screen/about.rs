@@ -1,5 +1,6 @@
 use iced::widget::{button, column, container, text};
-use iced::Element;
+use crate::widget::Element;
+
 use tracing::warn;
 
 #[derive(Debug, Clone)]

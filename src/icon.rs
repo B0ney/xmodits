@@ -61,14 +61,6 @@ use tracing::{error, info};
 //     }
 // }
 
-// static FOLDER: &[u8] = include_bytes!("../../res/img/svg/folder.svg");
-// static FOLDER_ADD: &[u8] = include_bytes!("../../res/img/svg/folder_add.svg");
-// static FILE_ADD: &[u8] = include_bytes!("../../res/img/svg/file_add.svg");
-// static CLEAR: &[u8] = include_bytes!("../../res/img/svg/clear.svg");
-// static GPLV3: &[u8] = include_bytes!("../../res/img/svg/gpl-v3-logo.svg");
-// static GITHUB: &[u8] = include_bytes!("../../res/img/svg/github-mark-white.svg");
-
-
 pub fn folder<'a>() -> Text<'a>{
     icon('\u{f3d1}')
 }
