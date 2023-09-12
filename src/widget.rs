@@ -4,6 +4,7 @@
 //!
 //! I cannot express my gratitude enough. Those guys are awesome.
 
+pub mod animation;
 pub mod collection;
 pub mod context_menu;
 pub mod waveform;

@@ -14,9 +14,8 @@ update_check = ["updater"]
 build_info = ["built"]
 audio = ["audio_engine"]
 wgpu = ["iced/wgpu"]
+custom_anim = ["iced_gif"]
 # plugins = ["plugin"]
-
-
 
 [dependencies.iced]
 # version = "0.10.0"
@@ -67,7 +66,7 @@ chrono = { version = "0.4", features = ["serde"] }
 
 # cosmic-time = "0.1.2"
 # iced_aw = "0.4.1"
-# iced_gif = "0.4.0"
+iced_gif = { version = "0.4.0", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["wincon"] }
