@@ -12,11 +12,11 @@ use crate::screen::{
 use crate::theme;
 use crate::widget::{Collection, Column, Element};
 
+use data::{config::SampleRippingConfig, Config};
+
 use iced::widget::column;
 use iced::Event as IcedEvent;
 use iced::{Application, Command, Settings, Subscription};
-
-use data::{config::SampleRippingConfig, Config};
 
 /// XMODITS graphical application
 #[derive(Debug, Default)]
@@ -67,14 +67,17 @@ pub fn settings() -> iced::Settings<()> {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    Ignore,
+    About(AboutMessage),
+    AboutPressed,
+
+    #[cfg(feature = "audio")]
+    Audio(),
+
     Config(ConfigMessage),
     FontsLoaded(Result<(), iced::font::Error>),
-    #[cfg(feature = "audio")]
-    AudioEngine(),
-    Subscription(SubscriptionMessage),
     Iced(IcedEvent),
-    About(AboutMessage),
+    Ignore,
+    Subscription(SubscriptionMessage),
 }
 
 impl Application for XMODITS {

@@ -1,5 +1,9 @@
-use iced::widget::{button, column, container, text};
+//! Information about xmodits
+
 use crate::widget::Element;
+use iced::widget::{button, column, container, text};
+
+use super::build_info;
 
 use tracing::warn;
 

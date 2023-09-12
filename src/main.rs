@@ -11,7 +11,6 @@ pub mod screen;
 pub mod theme;
 pub mod utils;
 pub mod widget;
-// mod simple;
 
 use std::env;
 
@@ -28,8 +27,6 @@ fn main() -> iced::Result {
         println!("XMODITS {}", env!("CARGO_PKG_VERSION"));
         return Ok(());
     }
-
-    // let args: Vec<String> =  env::args().collect();
 
     app::XMODITS::launch().map(|_| tracing::info!("Bye :)"))
 }
