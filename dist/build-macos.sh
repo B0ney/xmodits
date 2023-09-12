@@ -44,4 +44,4 @@ hdiutil create "$DMG_DIR/$DMG_NAME" -volname "xmodits" -fs HFS+ -srcfolder "$APP
 echo "Packed '$APP_NAME' in '$APP_DIR'"
 
 
-# https://github.com/squidowl/xmodits/blob/9393792c43d705740ccddce561c52931ae098472/scripts/build-macos.sh
+# https://github.com/squidowl/halloy/blob/9393792c43d705740ccddce561c52931ae098472/scripts/build-macos.sh

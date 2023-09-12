@@ -4,7 +4,7 @@ fn main() {
         static_vcruntime::metabuild();
         // TODO: replace with embed resource
         winres::WindowsResource::new()
-            .set_icon("./assets/img/logo/icon.ico")
+            .set_icon("./dist/windows/icon.ico")
             .compile()
             .expect("embed windows icon");
     }
