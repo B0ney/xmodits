@@ -10,23 +10,19 @@ repository = "https://github.com/B0ney/xmodits"
 
 [features]
 default = ["audio", "build_info"]
-update_check = ["updater"]
-build_info = ["built"]
 audio = ["audio_engine"]
-wgpu = ["iced/wgpu"]
+build_info = ["built"]
 custom_anim = ["iced_gif"]
+jemalloc = ["tikv-jemallocator"]
+wgpu = ["iced/wgpu"]
+update_check = ["updater"]
 # plugins = ["plugin"]
 
 [dependencies.iced]
 # version = "0.10.0"
 git = "https://github.com/iced-rs/iced.git"
 default-features = false
-features = [
-    "image",
-    "tokio",
-    "lazy",
-    "advanced",
-]
+features = ["image", "tokio", "lazy", "advanced"]
 
 [dependencies.tokio]
 version = "1.29.1"
@@ -70,6 +66,9 @@ iced_gif = { version = "0.4.0", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["wincon"] }
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { version = "0.5", optional = true }
 
 [build-dependencies]
 built = { version = "0.6.1", features = ["chrono", "git2"], optional = true }

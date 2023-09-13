@@ -30,3 +30,10 @@ fn main() -> iced::Result {
 
     app::XMODITS::launch().map(|_| tracing::info!("Bye :)"))
 }
+
+#[cfg(not(target_env = "msvc"))]
+use tikv_jemallocator::Jemalloc;
+
+#[cfg(not(target_env = "msvc"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
