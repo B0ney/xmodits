@@ -123,17 +123,18 @@ cargo build --release
 ```
 ### Build Flags
 
-```shell
-cargo build --release --features=["FEATURE"]
-
-```
-
-|Feature | Description | Enabled by Default |
+|Feature | Description | Enabled by Default? |
 |-|-|-|
-|audio|Add audio playback, used to preview samples|**yes**|
-|build_info|Provide information about the binary|**yes**|
-|update_check|Check for updates|no|
-|wgpu|Include hardware acceleration (Vulkan/Metal)|no|
+|``audio``|Add audio playback, used to preview samples.|**yes**|
+|``build_info``|Includes metadata about the binary and the environment it was compiled in - making it useful for bug reporting.|**yes**|
+|``jemalloc``| (*nix only) Uses the jemallocator. Can be used to mitigate memory fragmentation which can improve memory footprint.  |no|
+|``update_check``|Adds a button to check for updates. Disable this if you're distributing XMODITS through a package manager, or don't want any networking components.|no|
+|``wgpu``| Enables hardware acceleration for the GUI (DX12/Vulkan/Metal). |no|
+
+For example, to compile xmodits with ``jemalloc`` and ``wgpu``:
+```shell
+cargo build --features="jemalloc","wgpu"
+```
 
 Build flags used in official releases:
 * audio
