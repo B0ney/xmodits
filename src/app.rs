@@ -3,9 +3,9 @@ mod simple;
 use crate::font::{self, JETBRAINS_MONO};
 use crate::icon;
 use crate::logger;
-use crate::sample_ripper::handle::SubscriptionHandle;
-use crate::sample_ripper::subscription::CompleteState;
-use crate::sample_ripper::{self, Message as SubscriptionMessage};
+use crate::ripper::handle::SubscriptionHandle;
+use crate::ripper::subscription::CompleteState;
+use crate::ripper::{self, Message as SubscriptionMessage};
 use crate::screen::{
     about::{self, Message as AboutMessage},
     build_info,
@@ -175,7 +175,7 @@ impl Application for XMODITS {
     fn subscription(&self) -> Subscription<Message> {
         iced::Subscription::batch([
             iced::event::listen().map(Message::Iced),
-            sample_ripper::xmodits_subscription().map(Message::Subscription),
+            ripper::xmodits_subscription().map(Message::Subscription),
         ])
     }
 }

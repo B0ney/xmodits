@@ -2,7 +2,7 @@ use data::config::SampleRippingConfig;
 use data::xmodits_lib::{extract, Error, Ripper};
 
 use crate::logger::GLOBAL_TRACKER;
-use crate::sample_ripper::Signal;
+use super::Signal;
 use crate::utils::filename;
 
 use std::fs::File;

@@ -1,5 +1,5 @@
 use super::global_tracker::{GlobalTracker, GLOBAL_TRACKER};
-use crate::{dialog, sample_ripper::stop_flag};
+use crate::{dialog, ripper::stop_flag};
 use std::{panic::PanicInfo, path::PathBuf};
 
 #[derive(Default, Debug)]

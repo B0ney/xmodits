@@ -10,7 +10,8 @@ use crate::dialog::{
     success_partial,
     success_partial_no_log,
 };
-use crate::sample_ripper::subscription::extraction::strict_loading;
+use crate::ripper::subscription::extraction::strict_loading;
+
 use std::cmp::Ordering;
 use std::path::{Path, PathBuf};
 

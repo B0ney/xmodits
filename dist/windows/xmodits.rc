@@ -1,0 +1,6 @@
+#define RT_MANIFEST 24
+1 RT_MANIFEST "xmodits.manifest"
+
+#define IDI_ICON 0x101
+
+IDI_ICON ICON "icon.ico"

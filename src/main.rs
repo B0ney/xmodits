@@ -6,7 +6,7 @@ pub mod dialog;
 pub mod font;
 pub mod icon;
 pub mod logger;
-pub mod sample_ripper;
+pub mod ripper;
 pub mod screen;
 pub mod theme;
 pub mod utils;
