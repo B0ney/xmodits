@@ -1,4 +1,4 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // show logs when debugging
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![allow(dead_code)]
 
 pub mod app;
@@ -13,6 +13,13 @@ pub mod utils;
 pub mod widget;
 
 use std::env;
+
+#[cfg(all(feature = "jemalloc", not(target_env = "msvc")))]
+use tikv_jemallocator::Jemalloc;
+
+#[cfg(all(feature = "jemalloc", not(target_env = "msvc")))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
 
 fn main() -> iced::Result {
     let args = env::args().skip(1);
@@ -30,10 +37,3 @@ fn main() -> iced::Result {
 
     app::XMODITS::launch().map(|_| tracing::info!("Bye :)"))
 }
-
-#[cfg(not(target_env = "msvc"))]
-use tikv_jemallocator::Jemalloc;
-
-#[cfg(not(target_env = "msvc"))]
-#[global_allocator]
-static GLOBAL: Jemalloc = Jemalloc;
