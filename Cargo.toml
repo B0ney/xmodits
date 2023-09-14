@@ -30,13 +30,9 @@ version = "1.29.1"
 features = ["sync", "fs", "io-util", "parking_lot"]
 
 [dependencies.rfd]
-version = "0.11.4"
+version = "0.12.0"
 default-features = false
 features = ["xdg-portal"]
-
-[dependencies.native-dialog]
-version = "0.6.4"
-features = ["windows_dpi_awareness", "windows_visual_styles"]
 
 [dependencies]
 data = { path = "data" }
@@ -75,8 +71,7 @@ tikv-jemallocator = { version = "0.5", optional = true }
 built = { version = "0.6.1", features = ["chrono", "git2"], optional = true }
 
 [target.'cfg(windows)'.build-dependencies]
-winres = "0.1.12" # todo: replace with embed-resource
-# embed-resource = "2.3.0"
+winresource = "0.1.17"
 static_vcruntime = "2.0.0"
 
 [package.metadata.winres]
@@ -90,7 +85,7 @@ incremental = true
 
 [profile.release]
 strip = true
-opt-level = 2
+opt-level = 3
 codegen-units = 1
 
 [workspace]

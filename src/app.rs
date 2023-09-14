@@ -67,6 +67,7 @@ pub fn settings() -> iced::Settings<()> {
     iced::Settings {
         default_font: JETBRAINS_MONO,
         default_text_size: 13.0,
+        exit_on_close_request: true,
         ..Default::default()
     }
 }
@@ -77,9 +78,7 @@ pub enum State {
     #[default]
     Idle,
     /// The user is previewing some samples
-    SamplePreview(
-        /* TODO */
-    ),
+    SamplePreview(/* TODO */),
     /// The application is currently ripping samples
     Ripping {
         message: Option<String>,
@@ -87,14 +86,11 @@ pub enum State {
         total_errors: u64,
     },
     /// The application has finished ripping samples
-    Finished {
-        state: CompleteState,
-        time: Time,
-    },
+    Finished { state: CompleteState, time: Time },
 }
 
 /// TODO: rename to avoid confusion
-/// 
+///
 /// This is basically the configuration panel view.
 #[derive(Default, Debug, Clone)]
 pub enum View {
@@ -141,10 +137,15 @@ impl Application for XMODITS {
             Message::About(msg) => about::update(msg),
             Message::Subscription(msg) => match msg {
                 SubscriptionMessage::Ready(sender) => self.handle.set_sender(sender),
-                SubscriptionMessage::Progress { progress, total_errors } => todo!(),
-                SubscriptionMessage::Done { state, time } => todo!(),
+                SubscriptionMessage::Progress {
+                    progress,
+                    total_errors,
+                } => todo!(),
+                SubscriptionMessage::Done { state, time } => {
+                    self.state = State::Finished { state, time }
+                }
                 SubscriptionMessage::Info(_) => todo!(),
-            }
+            },
             _ => (),
         }
         Command::none()
