@@ -40,55 +40,55 @@ jobs:
           path: |
             bin/xmodits-gui-linux-x86_64.*
 
-  build_gui_linux-cross:
-    name: Building GUI for ${{ matrix.target }}
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target:
-          - linux-aarch64-gnu
-          - linux-armv7-gnu
+  # build_gui_linux-cross:
+  #   name: Building GUI for ${{ matrix.target }}
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       target:
+  #         - linux-aarch64-gnu
+  #         - linux-armv7-gnu
 
-        include:
-          - target: linux-aarch64-gnu
-            arch: aarch64-unknown-linux-gnu
+  #       include:
+  #         - target: linux-aarch64-gnu
+  #           arch: aarch64-unknown-linux-gnu
 
-          - target: linux-armv7-gnu
-            arch: armv7-unknown-linux-gnueabihf
+  #         - target: linux-armv7-gnu
+  #           arch: armv7-unknown-linux-gnueabihf
 
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target
-          key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-release-
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@stable
+  #     - uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.cargo/bin/
+  #           ~/.cargo/registry/index/
+  #           ~/.cargo/registry/cache/
+  #           ~/.cargo/git/db/
+  #           target
+  #         key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
+  #         restore-keys: ${{ runner.os }}-release-
         
-      - name: Install cross
-        run: cargo install cross
+  #     - name: Install cross
+  #       run: cargo install cross
 
-      - name: Build Linux GUI binaries
-        run: cross build -p xmodits-gui --release --target ${{ matrix.arch }}
+  #     - name: Build Linux GUI binaries
+  #       run: cross build -p xmodits-gui --release --target ${{ matrix.arch }}
       
-      - name: Create ./bin directory
-        run: mkdir -p bin
+  #     - name: Create ./bin directory
+  #       run: mkdir -p bin
 
-      - name: Tarball Linux GUI binary
-        run: |
-          tar -czf bin/xmodits-gui-${{ matrix.target }}.tar.gz -C target/${{matrix.arch}}/release/ xmodits-gui
+  #     - name: Tarball Linux GUI binary
+  #       run: |
+  #         tar -czf bin/xmodits-gui-${{ matrix.target }}.tar.gz -C target/${{matrix.arch}}/release/ xmodits-gui
       
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: xmodits-gui-${{ matrix.target }}
-          path: |
-            bin/xmodits-gui-${{ matrix.target }}.*
+  #     - name: Upload artifacts
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: xmodits-gui-${{ matrix.target }}
+  #         path: |
+  #           bin/xmodits-gui-${{ matrix.target }}.*
 
   build_gui_windows:
     name: Building GUI for ${{ matrix.target }}
