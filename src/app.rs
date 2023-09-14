@@ -66,7 +66,7 @@ fn icon() -> iced::window::Icon {
 pub fn settings() -> iced::Settings<()> {
     iced::Settings {
         default_font: JETBRAINS_MONO,
-        default_text_size: 13.0,
+        default_text_size: 13.0.into(),
         exit_on_close_request: true,
         ..Default::default()
     }
