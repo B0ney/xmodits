@@ -6,7 +6,7 @@ use iced::{application, overlay, Background, Color};
 
 use data::theme;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Theme(theme::Palette);
 
 impl Theme {

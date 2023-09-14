@@ -15,10 +15,10 @@ use crate::theme;
 use crate::widget::{Collection, Column, Element};
 
 use data::time::Time;
-use data::{config::SampleRippingConfig, Config};
+use data::Config;
 
 use iced::widget::column;
-use iced::Event as IcedEvent;
+use iced::{window, Event as IcedEvent};
 use iced::{Application, Command, Settings, Subscription};
 
 /// XMODITS graphical application
@@ -28,6 +28,7 @@ pub struct XMODITS {
     entries: Entries,
     state: State,
     handle: ripper::Handle,
+    theme: theme::Theme,
 }
 
 impl XMODITS {
@@ -42,7 +43,7 @@ impl XMODITS {
 
         //
         tracing::info!("Launcing GUI");
-        Self::run(settings())
+        Self::run(settings(config))
     }
 
     /// WINDOWS ONLY
@@ -59,15 +60,20 @@ impl XMODITS {
 
 /// TODO: allow the user to customize their application icon
 fn icon() -> iced::window::Icon {
-    iced::window::icon::from_file_data(include_bytes!("../assets/img/logo/icon3.png"), None)
+    iced::window::icon::from_file_data(include_bytes!("../assets/img/logo/icon2.png"), None)
         .unwrap()
 }
 
-pub fn settings() -> iced::Settings<()> {
+pub fn settings(config: Config) -> iced::Settings<Config> {
     iced::Settings {
         default_font: JETBRAINS_MONO,
         default_text_size: 13.0.into(),
         exit_on_close_request: true,
+        flags: config,
+        window: window::Settings {
+            icon: Some(icon()),
+            ..Default::default()
+        },
         ..Default::default()
     }
 }
@@ -110,6 +116,7 @@ pub enum Message {
     Audio(),
 
     Config(ConfigMessage),
+    ConfigPressed,
     FontsLoaded(Result<(), iced::font::Error>),
     Iced(IcedEvent),
     Ignore,
@@ -120,7 +127,7 @@ impl Application for XMODITS {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Theme = theme::Theme;
-    type Flags = ();
+    type Flags = Config;
 
     fn new(_flags: Self::Flags) -> (Self, Command<Message>) {
         (Self::default(), font::load().map(Message::FontsLoaded))
@@ -130,21 +137,32 @@ impl Application for XMODITS {
         String::from("XMDOITS - 10%") // todo: add status
     }
 
+    fn theme(&self) -> Self::Theme {
+        self.theme.clone()
+    }
+
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::Ignore => (),
-            Message::Config(msg) => return self.config_manager.update(msg).map(Message::Config),
             Message::About(msg) => about::update(msg),
+            Message::AboutPressed => (),
+            Message::Config(msg) => return self.config_manager.update(msg).map(Message::Config),
+            Message::ConfigPressed => (),
+            Message::FontsLoaded(result) => {
+                if result.is_err() {
+                    tracing::error!("could not load font")
+                }
+            }
+            Message::Ignore => (),
             Message::Subscription(msg) => match msg {
                 SubscriptionMessage::Ready(sender) => self.handle.set_sender(sender),
                 SubscriptionMessage::Progress {
                     progress,
                     total_errors,
                 } => todo!(),
+                SubscriptionMessage::Info(_) => todo!(),
                 SubscriptionMessage::Done { state, time } => {
                     self.state = State::Finished { state, time }
                 }
-                SubscriptionMessage::Info(_) => todo!(),
             },
             _ => (),
         }

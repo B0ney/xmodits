@@ -3,9 +3,10 @@
 pub mod advanced;
 pub mod sample_naming;
 pub mod sample_ripping;
+pub mod name_preview;
 
 use data::config::{SampleNameConfig, SampleRippingConfig};
-use data::name_preview;
+// use data::name_preview;
 
 use crate::widget::Element;
 use iced::Command;
@@ -56,8 +57,8 @@ impl SampleConfigManager {
         let export_format = &self.ripping.exported_format;
         sample_naming::view(
             &self.naming,
-            export_format,
-            &name_preview::preview_sample_name,
+            // export_format,
+            // &name_preview::preview_sample_name,
         )
         .map(Message::Naming)
     }

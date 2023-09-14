@@ -1,9 +1,9 @@
 //! Configure how samples should be named
 
-use data::{config::SampleNameConfig, xmodits_lib::exporter::AudioFormat};
+use data::config::SampleNameConfig;
 
 use crate::widget::Element;
-use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
+use iced::widget::{checkbox, column, container,pick_list, row, text};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -56,11 +56,7 @@ pub fn update(cfg: &mut SampleNameConfig, message: Message) {
     }
 }
 
-pub fn view<'a>(
-    config: &'a SampleNameConfig,
-    export_format: &'a AudioFormat,
-    preview_name: &dyn Fn(&SampleNameConfig, &AudioFormat) -> String, // TODO
-) -> Element<'a, Message> {
+pub fn view<'a>(config: &'a SampleNameConfig) -> Element<'a, Message> {
     let col1 = column![
         checkbox("Index Only", config.index_only, Message::IndexOnly),
         checkbox("Preserve Index", config.index_raw, Message::IndexRaw),
@@ -85,12 +81,7 @@ pub fn view<'a>(
         "Index Padding"
     ];
 
-    let settings = column![
-        checkboxes,
-        idx_padding,
-        horizontal_rule(1),
-        text(preview_name(config, export_format))
-    ];
+    let settings = column![checkboxes, idx_padding,];
 
     let settings = column![text("Sample Naming"), settings];
 

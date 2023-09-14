@@ -12,7 +12,7 @@ pub use sample_ripping::SampleRippingConfig;
 
 use anyhow::Result;
 use tokio::io::AsyncWriteExt;
-use tracing_log::log::{error, info, warn};
+use tracing::{error, info, warn};
 
 const APP_NAME: &str = "xmodits";
 const CONFIG_NAME: &str = "config.toml";
@@ -38,7 +38,7 @@ impl Config {
         };
 
         let Ok(config) = toml::from_str(&toml) else {
-            warn!("Could not parse config file. Perhaps an older version was loaded...");
+            warn!("Could not parse config file. Perhaps an older version was loaded?");
             return Self::default();
         };
 

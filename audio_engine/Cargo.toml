@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 data = { path = "../data" }
 rubato = "0.14.1"
+cpal = "0.15.2"
