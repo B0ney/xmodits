@@ -1,34 +1,45 @@
+use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::mpsc::Sender;
 
-use super::{Signal, stop_flag};
+use super::{stop_flag, Signal};
 
-/// Communicates with the subscription
+/// Communicates with the subscription.
+/// 
+/// Also provides convenience methods to access the global stop_flag.
 #[derive(Default)]
-pub struct SubscriptionHandle {
-    start_signal: Option<Sender<Signal>>
+pub struct Handle {
+    sender: Option<Sender<Signal>>,
 }
 
-impl SubscriptionHandle {
+impl Handle {
     pub fn new() -> Self {
-        Self { start_signal: None }
+        Self { sender: None }
     }
 
-    pub fn set(&mut self, sender: Sender<Signal>) {
-        self.start_signal = Some(sender)
+    pub fn set_sender(&mut self, sender: Sender<Signal>) {
+        tracing::info!("Received sender!");
+        self.sender = Some(sender)
     }
-    
-    pub fn send(&self, signal: Signal) {
-        if let Some(sender) = self.start_signal.as_ref() {
-            // TODO: should this return the value on error?
-            let _ = sender.send(signal);
-        }
+
+    pub fn send(&self, signal: Signal) -> Result<(), Signal> {
+        let Some(sender) = self.sender.as_ref() else {
+            return Err(signal);
+        };
+
+        let get_sender = |err: TrySendError<Signal>| -> Signal {
+            match err {
+                TrySendError::Full(sender) 
+                | TrySendError::Closed(sender) => sender,
+            }
+        };
+
+        sender.try_send(signal).map_err(get_sender)
     }
 
     pub fn is_active(&self) -> bool {
-        match self.start_signal.as_ref() {
-            Some(signal) => !signal.is_closed(),
-            None => false,
-        }
+        self.sender
+            .as_ref()
+            .is_some_and(|sender| !sender.is_closed())
     }
 
     pub fn cancel() {

@@ -15,7 +15,7 @@ use parking_lot::Mutex;
 use tokio::sync::mpsc::UnboundedSender as AsyncSender;
 use walkdir::WalkDir;
 
-use super::stop_flag::cancelled;
+use super::stop_flag;
 
 #[derive(Debug)]
 pub enum Message {
@@ -24,6 +24,7 @@ pub enum Message {
     Progress(Option<Failed>),
     Done,
     Cancelled,
+    Aborted,
 }
 
 impl Message {
@@ -67,9 +68,10 @@ pub fn rip(tx: AsyncSender<Message>, signal: Signal) {
     stage_1(tx.clone(), files, ripper.clone(), &cfg);
     stage_2(tx.clone(), folders, ripper, cfg);
 
-    tx.send(match cancelled() {
-        true => Message::Cancelled,
-        false => Message::Done,
+    tx.send(match stop_flag::get_flag() {
+        stop_flag::StopFlag::None => Message::Done,
+        stop_flag::StopFlag::Cancel => Message::Cancelled,
+        stop_flag::StopFlag::Abort => Message::Aborted,
     })
     .expect("Informing main GUI that the extraction has completed");
 }
@@ -98,7 +100,7 @@ fn stage_1(
     let filter = strict_loading(cfg.strict);
 
     for file in files.lock().iter().filter(|f| filter(f)) {
-        if cancelled() {
+        if stop_flag::is_set() {
             break;
         }
 
@@ -120,7 +122,7 @@ fn stage_2(
     ripper: Arc<Ripper>,
     cfg: SampleRippingConfig,
 ) {
-    if folders.is_empty() || cancelled() {
+    if folders.is_empty() || stop_flag::is_set() {
         return;
     }
     let selected_dirs = folders.len();
@@ -147,7 +149,7 @@ fn stage_2(
         ))))
         .unwrap();
 
-    if cancelled() {
+    if stop_flag::is_set() {
         return;
     }
 
@@ -194,7 +196,7 @@ pub fn traverse(
             .max_depth(max_depth as usize)
             .into_iter()
         {
-            if cancelled() {
+            if stop_flag::is_set() {
                 break 'traversal;
             }
 
@@ -273,7 +275,7 @@ impl<'io> Batcher<'io> {
 
             let rip_parallel = move |batch: &[String]| {
                 batch.par_iter().for_each(|file| {
-                    if cancelled() {
+                    if stop_flag::is_set() {
                         return;
                     }
 
@@ -299,7 +301,7 @@ impl<'io> Batcher<'io> {
             pool.spawn(move || {
                 while let Ok(batch) = batch_rx.recv() {
                     for sub_batch in batch.lock().chunks(SUB_BATCH_SIZE) {
-                        if cancelled() {
+                        if stop_flag::is_set() {
                             break;
                         }
 
@@ -319,7 +321,7 @@ impl<'io> Batcher<'io> {
     pub fn start(&mut self) {
         let mut is_last_batch = false;
 
-        while !self.state.complete && !cancelled() {
+        while !self.state.complete && !stop_flag::is_set() {
             // If this is the last batch, set the state to complete
             // and send the last batch. When complete this loop terminates.
             self.state.complete = is_last_batch;

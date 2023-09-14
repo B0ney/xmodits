@@ -3,16 +3,24 @@ pub mod extraction;
 
 use data::time::Time;
 use error_handler::ErrorHandler;
-use iced::{subscription, Subscription};
 
+use iced::{subscription, Subscription};
 use std::path::PathBuf;
 use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
-
 use tracing::{error, info};
 
-use super::{Signal, stop_flag};
+use super::{stop_flag, Signal};
 
 pub use extraction::{Failed, Message as ThreadMessage};
+
+/// Messages emitted by subscription
+#[derive(Clone, Debug)]
+pub enum Message {
+    Ready(Sender<Signal>),
+    Progress { progress: f32, total_errors: u64 },
+    Done { state: CompleteState, time: Time },
+    Info(Option<String>),
+}
 
 /// State of subscription
 #[derive(Default, Debug)]
@@ -30,20 +38,12 @@ enum State {
     },
 }
 
-/// Messages emitted by subscription
-#[derive(Clone, Debug)]
-pub enum Message {
-    Ready(Sender<Signal>),
-    Progress { progress: f32, total_errors: u64 },
-    Done { state: CompleteState, time: Time },
-    Info(Option<String>),
-}
-
 #[derive(Default, Debug, Clone)]
 pub enum CompleteState {
-    Cancelled,
     #[default]
     NoErrors,
+    Cancelled,
+    Aborted,
     SomeErrors(Vec<Failed>),
     TooMuchErrors {
         log: PathBuf,
@@ -173,12 +173,17 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                     Some(ThreadMessage::Info(info)) => {
                         let _ = output.try_send(Message::Info(info));
                     }
-                    Some(ThreadMessage::Cancelled) => {
-                        // let error = std::mem::take(error_handler);
+                    Some(stop @ (ThreadMessage::Cancelled | ThreadMessage::Aborted)) => {
                         timer.stop();
 
+                        let completed_state = match stop {
+                            ThreadMessage::Aborted => CompleteState::Aborted,
+                            ThreadMessage::Cancelled => CompleteState::Cancelled,
+                            _ => unreachable!(),
+                        };
+
                         let msg = Message::Done {
-                            state: CompleteState::Cancelled,
+                            state: completed_state,
                             time: std::mem::take(timer),
                         };
 

@@ -3,7 +3,6 @@ mod simple;
 use crate::font::{self, JETBRAINS_MONO};
 use crate::icon;
 use crate::logger;
-use crate::ripper::handle::SubscriptionHandle;
 use crate::ripper::subscription::CompleteState;
 use crate::ripper::{self, Message as SubscriptionMessage};
 use crate::screen::{
@@ -28,7 +27,7 @@ pub struct XMODITS {
     config_manager: SampleConfigManager,
     entries: Entries,
     state: State,
-    handle: SubscriptionHandle,
+    handle: ripper::Handle,
 }
 
 impl XMODITS {
@@ -140,6 +139,12 @@ impl Application for XMODITS {
             Message::Ignore => (),
             Message::Config(msg) => return self.config_manager.update(msg).map(Message::Config),
             Message::About(msg) => about::update(msg),
+            Message::Subscription(msg) => match msg {
+                SubscriptionMessage::Ready(sender) => self.handle.set_sender(sender),
+                SubscriptionMessage::Progress { progress, total_errors } => todo!(),
+                SubscriptionMessage::Done { state, time } => todo!(),
+                SubscriptionMessage::Info(_) => todo!(),
+            }
             _ => (),
         }
         Command::none()

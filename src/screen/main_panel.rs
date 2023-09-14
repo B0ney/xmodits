@@ -148,6 +148,19 @@ fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Eleme
         .center_x()
         .center_y()
         .into(),
+        CompleteState::Aborted => container(
+            column![
+                text("An internal error occured."),
+                // Space::with_height(15),
+                // continue_button
+            ]
+            .align_items(Alignment::Center),
+        )
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .center_x()
+        .center_y()
+        .into(),
         CompleteState::SomeErrors(errors) => {
             let message = column![
                 text("Done... But xmodits could not rip everything... (._.)")

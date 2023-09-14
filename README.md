@@ -101,9 +101,6 @@ Any changes made to the configuration **must be saved manually**.<br>The configu
 |Linux|``~/.config/xmodits/config.toml``|
 |MacOs|``~/Library/Application Support/xmodits/config.toml``|
 
-<!-- ## Resources
-The resources that made this project possible can be found [here](./resources/). -->
-
 ## Building
 Requirements:
 * Rust compiler: https://www.rust-lang.org/tools/install
@@ -127,7 +124,7 @@ cargo build --release
 |-|-|-|
 |``audio``|Add audio playback, used to preview samples.|**yes**|
 |``build_info``|Includes metadata about the binary and the environment it was compiled in - making it useful for bug reporting.|**yes**|
-|``jemalloc``| (*nix only) Uses the jemallocator. Can be used to mitigate memory fragmentation which can improve memory footprint.  |no|
+|``jemalloc``| (*nix only) Uses the [jemalloc](https://jemalloc.net/) memory allocator. Can be used to mitigate memory fragmentation which can improve memory footprint.  |no|
 |``update_check``|Adds a button to check for updates. Disable this if you're distributing XMODITS through a package manager, or don't want any networking components.|no|
 |``wgpu``| Enables hardware acceleration for the GUI (DX12/Vulkan/Metal). |no|
 
