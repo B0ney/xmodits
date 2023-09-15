@@ -121,7 +121,7 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
         col1,
         export_format,
         worker_threads,
-        horizontal_rule(1),
+        // horizontal_rule(1),
         folder_scan_depth
     ];
 

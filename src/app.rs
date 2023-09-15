@@ -2,26 +2,25 @@ mod simple;
 
 use std::path::PathBuf;
 
-use crate::font::{self, JETBRAINS_MONO};
-use crate::icon::{self, error};
+use crate::font;
+use crate::icon;
 use crate::logger;
 use crate::ripper::subscription::CompleteState;
 use crate::ripper::{self, Message as RipperMessage};
-use crate::screen::config::advanced::AdvancedConfig;
-use crate::screen::config::sample_naming::NamingConfig;
-use crate::screen::config::sample_ripping::RippingConfig;
-use crate::screen::config::{advanced, sample_naming};
+use crate::screen::config::advanced::{self, AdvancedConfig};
+use crate::screen::config::sample_naming::{self, NamingConfig};
+use crate::screen::config::sample_ripping::{self, RippingConfig};
 use crate::screen::history::History;
 use crate::screen::tracker_info::{self, TrackerInfo};
-use crate::screen::{about, build_info, config::sample_ripping, main_panel::entry::Entries};
+use crate::screen::{about, build_info, main_panel::entry::Entries};
 use crate::theme;
-use crate::widget::{Collection, Column, Element};
+use crate::utils::{files_dialog, folders_dialog};
+use crate::widget::{Collection, Column, Container, Element};
 
-// use data::time::Time;
 use data::Config;
 
-use iced::widget::column;
-use iced::{window, Event as IcedEvent};
+use iced::widget::{button, column, row, Space};
+use iced::{window, Event as IcedEvent, Length};
 use iced::{Application, Command, Settings, Subscription};
 
 /// XMODITS graphical application
@@ -77,7 +76,7 @@ fn icon() -> iced::window::Icon {
 
 pub fn settings(config: Config) -> iced::Settings<Config> {
     iced::Settings {
-        default_font: JETBRAINS_MONO,
+        default_font: font::JETBRAINS_MONO,
         default_text_size: 13.0.into(),
         exit_on_close_request: true,
         flags: config,
@@ -148,8 +147,11 @@ pub enum Message {
     #[cfg(feature = "audio")]
     Audio(),
 
+    Clear,
     ConfigPressed,
     DeleteSelected,
+    FileDialog,
+    FolderDialog,
     FontsLoaded(Result<(), iced::font::Error>),
     Iced(IcedEvent),
     Ignore,
@@ -159,6 +161,7 @@ pub enum Message {
     ProbeResult(TrackerInfo),
     RippingCfg(sample_ripping::Message),
     SaveConfig,
+    StartRipping,
     Subscription(RipperMessage),
 }
 
@@ -190,8 +193,11 @@ impl Application for XMODITS {
                 }
             }
             Message::AdvancedCfg(msg) => self.advanced_cfg.update(msg),
+            Message::Clear => self.entries.clear(),
             Message::ConfigPressed => self.view = View::Configure,
             Message::DeleteSelected => self.entries.delete_selected(),
+            Message::FileDialog => return Command::perform(files_dialog(), Message::Add),
+            Message::FolderDialog => return Command::perform(folders_dialog(), Message::Add),
             Message::FontsLoaded(result) => {
                 if result.is_err() {
                     tracing::error!("could not load font")
@@ -210,6 +216,7 @@ impl Application for XMODITS {
             }
             Message::ProbeResult(probe) => self.tracker_info = probe,
             Message::SaveConfig => {}
+            Message::StartRipping => {}
             Message::Subscription(msg) => match msg {
                 RipperMessage::Ready(sender) => self.ripper.set_sender(sender),
                 RipperMessage::Info(info) => self.state.update_message(info),
@@ -226,22 +233,48 @@ impl Application for XMODITS {
     }
 
     fn view(&self) -> Element<Message> {
-        let right_half = ();
-        let left_half = ();
+        let top_left_menu = row![
+            button("Configure").on_press(Message::ConfigPressed),
+            button("Settings").on_press(Message::ConfigPressed),
+            button("About").on_press(Message::AboutPressed),
+        ];
 
-        column![]
-            .push_maybe(build_info::view())
-            .push(self.ripping_cfg.view().map(Message::RippingCfg))
-            .push(self.naming_cfg.view().map(Message::NamingCfg))
-            .push(sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg))
-            .push(icon::download())
-            .push(icon::play())
-            .push(icon::pause())
-            .push(about::view().map(Message::About))
+        let bottom_left_buttons = row![
+            button("Save Configuration").on_press(Message::SaveConfig),
+            button(row!["START", icon::download()]).on_press(Message::StartRipping),
+        ];
+
+        let left_half = column![
+            top_left_menu,
+            self.naming_cfg.view().map(Message::NamingCfg),
+            self.ripping_cfg.view().map(Message::RippingCfg),
+            bottom_left_buttons,
+        ];
+
+        let destination =
+            sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
+
+        let right_bottom_buttons = row![
+            button("Add File").on_press(Message::FileDialog),
+            button("Add Folder").on_press(Message::FolderDialog),
+            Space::with_width(Length::Fill),
+            button("Delete Selected").on_press(Message::DeleteSelected),
+            button("Clear").on_press(Message::Clear),
+        ];
+
+        let right_half = column![
+            destination,
+            // self.entries
+            right_bottom_buttons
+        ];
+
+        let main = row![left_half, right_half];
+
+        Container::new(main)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .padding(15)
             .into()
-
-        // self.config_manager.view_destination().map(Message::Config).into()
-        // todo!()
     }
 
     fn subscription(&self) -> Subscription<Message> {

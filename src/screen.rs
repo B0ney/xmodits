@@ -1,4 +1,5 @@
-//! provide different views for
+//! Self contained data stuff
+
 pub mod about;
 pub mod build_info;
 pub mod config;
