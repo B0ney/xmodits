@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use data::config::SampleRippingConfig;
+use data::config::{self,SampleRippingConfig};
 use data::xmodits_lib::exporter::AudioFormat;
 
 use crate::widget::Element;
@@ -15,7 +15,19 @@ use once_cell::sync::Lazy;
 
 use crate::utils::folder_dialog;
 
-// TODO have data defined here
+#[derive(Debug, Default)]
+pub struct RippingConfig(config::SampleRippingConfig);
+
+impl RippingConfig {
+    pub fn update(&mut self, message: Message) -> Command<Message> {
+        tracing::info!("{:?}", &message);
+        update(&mut self.0, message)
+    }
+
+    pub fn view(&self)  -> Element<Message> {
+        view(&self.0)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -49,7 +61,9 @@ pub fn update(cfg: &mut SampleRippingConfig, message: Message) -> Command<Messag
 
 pub static DESTINATION_BAR_ID: Lazy<text_input::Id> = Lazy::new(text_input::Id::unique);
 
-pub fn view_destination_bar(destination: &str) -> Element<Message> {
+pub fn view_destination_bar(destination: &RippingConfig) -> Element<Message> {
+    let destination = destination.0.destination.to_str().unwrap_or_default();
+
     let input = text_input("Output Directory", destination)
         .id(DESTINATION_BAR_ID.clone())
         .on_input(|f| {

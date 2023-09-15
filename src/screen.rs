@@ -1,7 +1,7 @@
 //! provide different views for
 pub mod about;
 pub mod build_info;
-pub mod configuration;
+pub mod config;
 pub mod help;
 pub mod history;
 pub mod main_panel;

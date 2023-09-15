@@ -15,7 +15,6 @@ pub static ICONS: iced::Font = iced::Font {
 pub fn load() -> Command<Result<(), Error>> {
     Command::batch([
         font::load(include_bytes!("../assets/font/icons.ttf").as_slice()),
-        // font::load(include_bytes!("../assets/font/material_design_iconic_font.ttf").as_slice()),
         font::load(include_bytes!("../assets/font/JetBrainsMono-Regular.ttf").as_slice()),
     ])
 }

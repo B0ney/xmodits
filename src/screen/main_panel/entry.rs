@@ -114,6 +114,30 @@ impl Entries {
         selected
     }
 
+    pub fn delete_selected(&mut self) {
+        // clear the entries if everything is selected
+        if self.all_selected || self.total_selected() == self.entries.len() {
+            self.entries.clear();
+            // self.current = None;
+            return;
+        }
+
+        let mut i = 0;
+
+        while i < self.entries.len() {
+            let path = &self.entries[i];
+            if path.selected {
+                // if matches!(&self.current, Some(e) if e.matches(&path.path)) {
+                //     self.current = None;
+                // }
+                let _ = self.entries.remove(i);
+            } else {
+                i += 1;
+            }
+        }
+        self.all_selected = false;
+    }
+
     pub fn files(&self) -> usize {
         self.entries.iter().filter(|f| f.is_file()).count()
     }

@@ -7,19 +7,17 @@ use crate::icon::{self, error};
 use crate::logger;
 use crate::ripper::subscription::CompleteState;
 use crate::ripper::{self, Message as RipperMessage};
-use crate::screen::configuration::{advanced, sample_naming};
+use crate::screen::config::advanced::AdvancedConfig;
+use crate::screen::config::sample_naming::NamingConfig;
+use crate::screen::config::sample_ripping::RippingConfig;
+use crate::screen::config::{advanced, sample_naming};
 use crate::screen::history::History;
 use crate::screen::tracker_info::{self, TrackerInfo};
-use crate::screen::{
-    about, build_info,
-    configuration::{sample_ripping, SampleConfigManager},
-    main_panel::entry::Entries,
-};
+use crate::screen::{about, build_info, config::sample_ripping, main_panel::entry::Entries};
 use crate::theme;
 use crate::widget::{Collection, Column, Element};
 
-use data::config::{SampleNameConfig, SampleRippingConfig};
-use data::time::Time;
+// use data::time::Time;
 use data::Config;
 
 use iced::widget::column;
@@ -37,9 +35,11 @@ pub struct XMODITS {
     #[cfg(feature = "audio")]
     audio: audio_engine::Handle,
     tracker_info: TrackerInfo,
+    // sample_pack: (),
     theme: theme::Theme,
-    naming_cfg: SampleNameConfig,
-    ripping_cfg: SampleRippingConfig,
+    naming_cfg: NamingConfig,
+    ripping_cfg: RippingConfig,
+    advanced_cfg: AdvancedConfig,
 }
 
 impl XMODITS {
@@ -103,7 +103,10 @@ pub enum State {
         errors: u64,
     },
     /// The application has finished ripping samples
-    Finished { state: CompleteState, time: Time },
+    Finished {
+        state: CompleteState,
+        time: data::Time,
+    },
 }
 
 impl State {
@@ -186,9 +189,9 @@ impl Application for XMODITS {
                     self.entries.add_multiple(paths)
                 }
             }
-            Message::AdvancedCfg(_) => todo!(),
+            Message::AdvancedCfg(msg) => self.advanced_cfg.update(msg),
             Message::ConfigPressed => self.view = View::Configure,
-            Message::DeleteSelected => todo!(),
+            Message::DeleteSelected => self.entries.delete_selected(),
             Message::FontsLoaded(result) => {
                 if result.is_err() {
                     tracing::error!("could not load font")
@@ -196,9 +199,11 @@ impl Application for XMODITS {
             }
             Message::Iced(_) => {}
             Message::Ignore => (),
-            Message::RippingCfg(riping) => (),
-            Message::InvertSelection => todo!(),
-            Message::NamingCfg(_) => (),
+            Message::RippingCfg(msg) => {
+                return self.ripping_cfg.update(msg).map(Message::RippingCfg)
+            }
+            Message::InvertSelection => self.entries.invert(),
+            Message::NamingCfg(msg) => self.naming_cfg.update(msg),
             Message::Probe(idx) => {
                 let path = self.entries.get(idx).unwrap().to_owned();
                 return Command::perform(tracker_info::probe(path), Message::ProbeResult);
@@ -226,9 +231,9 @@ impl Application for XMODITS {
 
         column![]
             .push_maybe(build_info::view())
-            .push(sample_ripping::view(&self.ripping_cfg).map(Message::RippingCfg))
-            .push(sample_naming::view(&self.naming_cfg).map(Message::NamingCfg))
-            // .push(sample_ripping::view_destination_bar(self.ripping_cfg.).map(Message::Config))
+            .push(self.ripping_cfg.view().map(Message::RippingCfg))
+            .push(self.naming_cfg.view().map(Message::NamingCfg))
+            .push(sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg))
             .push(icon::download())
             .push(icon::play())
             .push(icon::pause())

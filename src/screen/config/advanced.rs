@@ -8,9 +8,9 @@ use crate::widget::Element;
 pub enum Message {}
 
 #[derive(Debug, Default)]
-pub struct AdvancedConfiguration;
+pub struct AdvancedConfig;
 
-impl AdvancedConfiguration {
+impl AdvancedConfig {
     pub fn view(&self) -> Element<Message> {
         todo!()
     }

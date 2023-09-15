@@ -1,9 +1,23 @@
 //! Configure how samples should be named
 
-use data::config::SampleNameConfig;
+use data::config::{self, SampleNameConfig};
 
 use crate::widget::Element;
 use iced::widget::{checkbox, column, container,pick_list, row, text};
+
+#[derive(Debug, Default)]
+pub struct NamingConfig(config::SampleNameConfig);
+
+impl NamingConfig {
+    pub fn update(&mut self, message: Message) {
+        tracing::info!("{:?}", &message);
+        update(&mut self.0, message)
+    }
+
+    pub fn view(&self)  -> Element<Message> {
+        view(&self.0)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum Message {
