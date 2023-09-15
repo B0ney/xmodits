@@ -13,7 +13,7 @@ pub enum Message {
     SetLogFolderDialog,
 }
 
-pub fn view<'a>(general: &'a GeneralConfig) -> Element<'a, Message> {
+pub fn view(general: &GeneralConfig) -> Element<Message> {
     let settings = column![
         checkbox(
             "(non-gui) Quiet output",

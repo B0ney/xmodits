@@ -33,41 +33,10 @@ pub struct TrackerView {
 }
 
 impl TrackerView {
-    // pub fn view(&self) -> Element<Message> {
-    //     match &self.state {
-    //         State::Idle => self.view_entries(),
-    //         State::Ripping {
-    //             message,
-    //             progress,
-    //             total_errors,
-    //         } => view_ripping(message, *progress, *total_errors),
-    //         State::Finished { state, time } => view_finished(state, time),
-    //     }
-    // }
-
     pub fn update(&mut self) {}
-
-    // / View the entries added by the user
-    // fn view_entries(&self) -> Element<Message> {
-    //     if self.entries.is_empty() {
-    //         return container(
-    //             column![text("Drag and Drop")], // , gif(&GIF.idle)]
-    //                                             //     .align_items(Alignment::Center),
-    //         )
-    //         .width(Length::Fill)
-    //         .height(Length::Fill)
-    //         .center_x()
-    //         .center_y()
-    //         .into();
-    //     }
-
-    //     // self.entries
-
-    //     todo!()
-    // }
 }
 
-fn view_ripping(message: &Option<String>, progress: f32, total_errors: u64) -> Element<Message> {
+fn view_ripping<'a>(message: &Option<String>, progress: f32, total_errors: u64) -> Element<'a, Message> {
     container(
         column![
             text(match message.as_ref() {

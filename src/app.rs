@@ -124,6 +124,14 @@ impl State {
             *message = new_message
         }
     }
+
+    fn set_message(&mut self, message: impl Into<String>) {
+        self.update_message(Some(message.into()))
+    }
+
+    fn is_ripping(&self) -> bool {
+        matches!(self, Self::Ripping { .. })
+    }
 }
 
 /// TODO: rename to avoid confusion
@@ -147,6 +155,7 @@ pub enum Message {
     #[cfg(feature = "audio")]
     Audio(),
 
+    Cancel,
     Clear,
     ConfigPressed,
     DeleteSelected,
@@ -193,6 +202,10 @@ impl Application for XMODITS {
                 }
             }
             Message::AdvancedCfg(msg) => self.advanced_cfg.update(msg),
+            Message::Cancel => {
+                self.state.set_message("Cancelling...");
+                self.ripper.cancel();
+            }
             Message::Clear => self.entries.clear(),
             Message::ConfigPressed => self.view = View::Configure,
             Message::DeleteSelected => self.entries.delete_selected(),

@@ -33,7 +33,7 @@ pub fn aborted() -> bool {
 
 /// Reset the flag back to its original state
 pub fn reset() {
-    STOP_FLAG.store(NONE as u8, Ordering::Relaxed);
+    STOP_FLAG.store(NONE, Ordering::Relaxed);
 }
 
 #[derive(Debug, Clone, Copy)]

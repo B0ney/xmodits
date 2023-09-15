@@ -42,10 +42,11 @@ impl Handle {
             .is_some_and(|sender| !sender.is_closed())
     }
 
-    pub fn cancel() {
+    /// Cancel the ripping process by setting the stop_flag to Cancel
+    pub fn cancel(&self) {
         stop_flag::set_flag(stop_flag::StopFlag::Cancel)
     }
-
+    
     pub fn cancelled(&self) -> bool {
         stop_flag::cancelled()
     }

@@ -22,11 +22,15 @@ pub async fn folder_dialog() -> Option<PathBuf> {
 }
 
 pub async fn folders_dialog() -> Option<Vec<PathBuf>> {
-    paths(rfd::AsyncFileDialog::new().pick_folders().await)
+    rfd::AsyncFileDialog::new().pick_folders().await.map(paths)
 }
 
 pub async fn files_dialog() -> Option<Vec<PathBuf>> {
-    paths(rfd::AsyncFileDialog::new().pick_files().await)
+    rfd::AsyncFileDialog::new().pick_files().await.map(paths)
+}
+
+fn paths(handles: Vec<rfd::FileHandle>) -> Vec<PathBuf> {
+    handles.into_iter().map(|d| d.path().to_owned()).collect()
 }
 
 pub async fn create_file() -> Option<PathBuf> {
@@ -40,13 +44,4 @@ pub async fn create_file() -> Option<PathBuf> {
         .save_file()
         .await
         .map(|handle| handle.path().to_owned())
-}
-
-fn paths(h: Option<Vec<rfd::FileHandle>>) -> Option<Vec<PathBuf>> {
-    h.map(|filehandles| {
-        filehandles
-            .into_iter()
-            .map(|d| d.path().to_owned())
-            .collect()
-    })
 }
