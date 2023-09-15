@@ -9,6 +9,7 @@ pub mod error;
 pub mod name_preview;
 pub mod time;
 
+pub use history::History;
 pub use config::Config;
 pub use theme::Theme;
 

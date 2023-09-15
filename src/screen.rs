@@ -3,6 +3,7 @@ pub mod about;
 pub mod build_info;
 pub mod configuration;
 pub mod help;
+pub mod history;
 pub mod main_panel;
 pub mod sample_preview;
 pub mod settings;

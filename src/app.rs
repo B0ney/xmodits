@@ -8,10 +8,10 @@ use crate::logger;
 use crate::ripper::subscription::CompleteState;
 use crate::ripper::{self, Message as RipperMessage};
 use crate::screen::configuration::{advanced, sample_naming};
+use crate::screen::history::History;
 use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{
-    about,
-    build_info,
+    about, build_info,
     configuration::{sample_ripping, SampleConfigManager},
     main_panel::entry::Entries,
 };
@@ -29,9 +29,8 @@ use iced::{Application, Command, Settings, Subscription};
 /// XMODITS graphical application
 #[derive(Default)]
 pub struct XMODITS {
-    config_manager: SampleConfigManager,
     entries: Entries,
-    // history: (),
+    history: History,
     state: State,
     view: View,
     ripper: ripper::Handle,
@@ -156,6 +155,7 @@ pub enum Message {
     Probe(usize),
     ProbeResult(TrackerInfo),
     RippingCfg(sample_ripping::Message),
+    SaveConfig,
     Subscription(RipperMessage),
 }
 
@@ -185,7 +185,7 @@ impl Application for XMODITS {
                 if let Some(paths) = paths {
                     self.entries.add_multiple(paths)
                 }
-            },
+            }
             Message::AdvancedCfg(_) => todo!(),
             Message::ConfigPressed => self.view = View::Configure,
             Message::DeleteSelected => todo!(),
@@ -194,7 +194,7 @@ impl Application for XMODITS {
                     tracing::error!("could not load font")
                 }
             }
-            Message::Iced(_) => {},
+            Message::Iced(_) => {}
             Message::Ignore => (),
             Message::RippingCfg(riping) => (),
             Message::InvertSelection => todo!(),
@@ -204,6 +204,7 @@ impl Application for XMODITS {
                 return Command::perform(tracker_info::probe(path), Message::ProbeResult);
             }
             Message::ProbeResult(probe) => self.tracker_info = probe,
+            Message::SaveConfig => {}
             Message::Subscription(msg) => match msg {
                 RipperMessage::Ready(sender) => self.ripper.set_sender(sender),
                 RipperMessage::Info(info) => self.state.update_message(info),

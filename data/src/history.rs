@@ -6,7 +6,7 @@ use std::path::PathBuf;
 // use crate::entries::Entries;
 use crate::config::SampleRippingConfig;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct History {
     timestamp: chrono::DateTime<chrono::Utc>,
     // entries: Entries,
