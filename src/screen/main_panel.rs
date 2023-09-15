@@ -19,22 +19,6 @@ pub enum Message {
     Ignore,
 }
 
-#[derive(Default, Debug, Clone)]
-pub enum State {
-    #[default]
-    Idle,
-    Ripping {
-        message: Option<String>,
-        progress: f32,
-        total_errors: u64,
-    },
-    Finished {
-        state: CompleteState,
-        time: Time,
-    },
-    // SamplePreview,
-}
-
 // #[derive(Default, Debug, Clone, Copy)]
 // pub enum CompleteState {
 //     #[default]
@@ -44,43 +28,43 @@ pub enum State {
 pub fn view() {}
 
 pub struct TrackerView {
-    pub state: State,
-    pub entries: Entries,
+    // pub state: State,
+    // pub entries: Entries,
 }
 
 impl TrackerView {
-    pub fn view(&self) -> Element<Message> {
-        match &self.state {
-            State::Idle => self.view_entries(),
-            State::Ripping {
-                message,
-                progress,
-                total_errors,
-            } => view_ripping(message, *progress, *total_errors),
-            State::Finished { state, time } => view_finished(state, time),
-        }
-    }
+    // pub fn view(&self) -> Element<Message> {
+    //     match &self.state {
+    //         State::Idle => self.view_entries(),
+    //         State::Ripping {
+    //             message,
+    //             progress,
+    //             total_errors,
+    //         } => view_ripping(message, *progress, *total_errors),
+    //         State::Finished { state, time } => view_finished(state, time),
+    //     }
+    // }
 
     pub fn update(&mut self) {}
 
-    /// View the entries added by the user
-    fn view_entries(&self) -> Element<Message> {
-        if self.entries.is_empty() {
-            return container(
-                column![text("Drag and Drop")], // , gif(&GIF.idle)]
-                                                //     .align_items(Alignment::Center),
-            )
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center_x()
-            .center_y()
-            .into();
-        }
+    // / View the entries added by the user
+    // fn view_entries(&self) -> Element<Message> {
+    //     if self.entries.is_empty() {
+    //         return container(
+    //             column![text("Drag and Drop")], // , gif(&GIF.idle)]
+    //                                             //     .align_items(Alignment::Center),
+    //         )
+    //         .width(Length::Fill)
+    //         .height(Length::Fill)
+    //         .center_x()
+    //         .center_y()
+    //         .into();
+    //     }
 
-        // self.entries
+    //     // self.entries
 
-        todo!()
-    }
+    //     todo!()
+    // }
 }
 
 fn view_ripping(message: &Option<String>, progress: f32, total_errors: u64) -> Element<Message> {

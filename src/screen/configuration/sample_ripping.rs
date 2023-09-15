@@ -90,7 +90,7 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
             Some(ripping.folder_max_depth),
             Message::SetFolderDepth
         ),
-        text("Export Format"),
+        text("Folder Scan Depth"),
     ];
 
     let options = [0usize, 1, 2, 4, 6, 8, 10, 12, 16].map(Workers).to_vec();

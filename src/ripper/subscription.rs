@@ -17,7 +17,7 @@ pub use extraction::{Failed, Message as ThreadMessage};
 #[derive(Clone, Debug)]
 pub enum Message {
     Ready(Sender<Signal>),
-    Progress { progress: f32, total_errors: u64 },
+    Progress { progress: f32, errors: u64 },
     Done { state: CompleteState, time: Time },
     Info(Option<String>),
 }
@@ -163,7 +163,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
 
                         let _ = output.try_send(Message::Progress {
                             progress: percentage,
-                            total_errors: *total_errors,
+                            errors: *total_errors,
                         });
                     }
                     Some(ThreadMessage::SetTotal(new_total)) => {

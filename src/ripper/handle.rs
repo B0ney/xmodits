@@ -46,11 +46,17 @@ impl Handle {
         stop_flag::set_flag(stop_flag::StopFlag::Cancel)
     }
 
-    pub fn cancelled() -> bool {
+    pub fn cancelled(&self) -> bool {
         stop_flag::cancelled()
     }
 
-    pub fn aborted() -> bool {
+    pub fn aborted(&self) -> bool {
         stop_flag::aborted()
+    }
+
+    pub fn reset_stop_flag(&self) {
+        if !stop_flag::aborted() {
+            stop_flag::reset()
+        }
     }
 }

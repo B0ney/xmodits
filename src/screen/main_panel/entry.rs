@@ -39,7 +39,7 @@ impl Hash for Entry {
 #[derive(Default)]
 pub struct Entries {
     pub all_selected: bool,
-    pub entries: Vec<Entry>, // todo: use hashset
+    pub entries: Vec<Entry>, // todo: use hashset, use "(bool, Entry)" instead?
 }
 
 impl Entries {
@@ -50,6 +50,14 @@ impl Entries {
     pub fn add(&mut self, path: PathBuf) {
         self.entries.push(Entry::new(path));
         self.all_selected = false;
+    }
+
+    /// todo: avoid duplicates.
+    pub fn add_multiple(&mut self, paths: Vec<PathBuf>) {
+        self.all_selected = false;
+        paths
+            .into_iter()
+            .for_each(|path| self.entries.push(Entry::new(path)))
     }
 
     pub fn total_selected(&self) -> usize {
@@ -126,6 +134,10 @@ impl Entries {
 
     pub fn non_selected(&self) -> bool {
         self.total_selected() == 0
+    }
+
+    pub fn get(&self, idx: usize) -> Option<&Path> {
+        self.entries.get(idx).map(|f| f.path.as_ref())
     }
 }
 

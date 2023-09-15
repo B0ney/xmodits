@@ -2,12 +2,69 @@
 //!
 //! Also allows the user to play the different samples.
 
+use std::{
+    fmt::Debug,
+    path::{Path, PathBuf},
+};
+
+use data::xmodits_lib::Module;
 use iced::Element;
 
-pub enum Message {
-    PreviewSamples,
+#[derive(Debug, Default, Clone)]
+pub enum TrackerInfo {
+    #[default]
+    None,
+    Invalid {
+        path: PathBuf,
+        reason: String,
+    },
+    Loaded {
+        path: PathBuf,
+        name: String,
+        format: String,
+        samples: usize,
+        total_sample_size: usize,
+    },
 }
 
-pub fn view<'a>() -> Element<'a, Message> {
+impl TrackerInfo {
+    pub fn path(&self) -> Option<&Path> {
+        match self {
+            Self::Invalid { path, .. } 
+            | Self::Loaded { path, .. } => Some(path),
+            Self::None => None,
+        }
+    }
+
+    pub fn matches_path(&self, other: &Path) -> bool {
+        self.path().is_some_and(|path| path == other)
+    }
+
+    pub fn invalid(error: String, path: PathBuf) -> Self {
+        Self::Invalid {
+            reason: error,
+            path,
+        }
+    }
+
+    pub fn valid(tracker: Box<dyn Module>, path: PathBuf) -> Self {
+        Self::Loaded {
+            name: tracker.name().to_owned(),
+            format: tracker.format().to_owned(),
+            samples: tracker.total_samples(),
+            path,
+            total_sample_size: tracker
+                .samples()
+                .iter()
+                .map(|f| f.length as usize)
+                .sum::<usize>()
+                / 1024,
+        }
+    }
+}
+
+pub fn view() {}
+
+pub async fn probe(path: PathBuf) -> TrackerInfo {
     todo!()
 }

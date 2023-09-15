@@ -38,7 +38,7 @@ impl Config {
         };
 
         let Ok(config) = toml::from_str(&toml) else {
-            warn!("Could not parse config file. Perhaps an older version was loaded?");
+            warn!("Could not parse existing configuration file. Perhaps an older version was loaded?");
             return Self::default();
         };
 
@@ -74,6 +74,7 @@ impl Config {
 
         Ok(result?)
     }
+    
     pub fn filename() -> &'static str {
         CONFIG_NAME
     }

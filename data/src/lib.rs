@@ -8,7 +8,6 @@ pub mod theme;
 pub mod error;
 pub mod name_preview;
 pub mod time;
-pub mod tracker_info;
 
 pub use config::Config;
 pub use theme::Theme;
