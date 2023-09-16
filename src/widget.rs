@@ -7,6 +7,7 @@
 pub mod animation;
 pub mod collection;
 pub mod context_menu;
+pub mod helpers;
 pub mod waveform;
 
 pub use self::collection::Collection;
