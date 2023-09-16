@@ -22,12 +22,12 @@ pub fn is_set() -> bool {
 }
 
 /// Has the cancelled flag been set?
-pub fn cancelled() -> bool {
+pub fn is_cancelled() -> bool {
     STOP_FLAG.load(Ordering::Relaxed) == CANCEL
 }
 
 /// Has the aborted flag been set?
-pub fn aborted() -> bool {
+pub fn is_aborted() -> bool {
     STOP_FLAG.load(Ordering::Relaxed) == ABORT
 }
 

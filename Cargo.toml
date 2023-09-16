@@ -21,7 +21,7 @@ update_check = ["update"]
 # version = "0.12.0"
 git = "https://github.com/iced-rs/iced.git"
 default-features = false
-features = ["image", "tokio", "lazy", "advanced"]
+features = ["image", "tokio", "advanced"]
 
 [dependencies.tokio]
 version = "1.32.0"
@@ -72,7 +72,7 @@ incremental = true
 
 [profile.release]
 strip = true
-opt-level = 2
+opt-level = "s"
 codegen-units = 1
 
 [workspace]

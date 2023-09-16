@@ -9,7 +9,7 @@ use iced::{alignment::Horizontal, Alignment, Element, Length};
 use super::tracker_info;
 use crate::ripper::subscription::CompleteState;
 use iced::widget::{
-    button, checkbox, column, container, lazy, progress_bar, row, scrollable, text, text_input,
+    button, checkbox, column, container, progress_bar, row, scrollable, text, text_input,
     Space,
 };
 

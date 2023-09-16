@@ -48,15 +48,15 @@ impl Handle {
     }
     
     pub fn cancelled(&self) -> bool {
-        stop_flag::cancelled()
+        stop_flag::is_cancelled()
     }
 
     pub fn aborted(&self) -> bool {
-        stop_flag::aborted()
+        stop_flag::is_aborted()
     }
 
     pub fn reset_stop_flag(&self) {
-        if !stop_flag::aborted() {
+        if !stop_flag::is_aborted() {
             stop_flag::reset()
         }
     }

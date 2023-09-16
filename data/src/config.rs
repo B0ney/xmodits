@@ -11,7 +11,7 @@ pub use sample_naming::SampleNameConfig;
 pub use sample_ripping::SampleRippingConfig;
 
 use anyhow::Result;
-use tokio::io::AsyncWriteExt;
+// use tokio::io::AsyncWriteExt;
 use tracing::{error, info, warn};
 
 const APP_NAME: &str = "xmodits";
@@ -45,35 +45,35 @@ impl Config {
         config
     }
 
-    pub async fn save(&self) -> Result<()> {
-        if !config_dir().exists() {
-            info!("Creating config directory: {}", config_dir().display());
-            tokio::fs::create_dir(config_dir()).await?;
-        };
+    // pub async fn save(&self) -> Result<()> {
+    //     if !config_dir().exists() {
+    //         info!("Creating config directory: {}", config_dir().display());
+    //         tokio::fs::create_dir(config_dir()).await?;
+    //     };
 
-        let file = tokio::fs::OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .create(true)
-            .open(Self::path())
-            .await;
+    //     let file = tokio::fs::OpenOptions::new()
+    //         .write(true)
+    //         .truncate(true)
+    //         .create(true)
+    //         .open(Self::path())
+    //         .await;
 
-        if let Err(e) = &file {
-            error!("{}", e);
-        }
+    //     if let Err(e) = &file {
+    //         error!("{}", e);
+    //     }
 
-        let result = file?
-            .write_all(toml::to_string_pretty(&self)?.as_bytes())
-            .await;
+    //     let result = file?
+    //         .write_all(toml::to_string_pretty(&self)?.as_bytes())
+    //         .await;
 
-        if let Err(e) = &result {
-            error!("{}", e)
-        } else {
-            info!("Saved Configuration!");
-        }
+    //     if let Err(e) = &result {
+    //         error!("{}", e)
+    //     } else {
+    //         info!("Saved Configuration!");
+    //     }
 
-        Ok(result?)
-    }
+    //     Ok(result?)
+    // }
     
     pub fn filename() -> &'static str {
         CONFIG_NAME
