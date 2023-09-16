@@ -9,7 +9,7 @@ use crate::ripper::subscription::CompleteState;
 use crate::ripper::{self, Message as RipperMessage};
 use crate::screen::config::advanced::{self, AdvancedConfig};
 use crate::screen::config::sample_naming::{self, NamingConfig};
-use crate::screen::config::sample_ripping::{self, RippingConfig};
+use crate::screen::config::sample_ripping::{self, RippingConfig, DESTINATION_BAR_ID};
 use crate::screen::history::History;
 use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, build_info, main_panel::entry::Entries};
@@ -19,6 +19,7 @@ use crate::widget::{Collection, Column, Container, Element};
 
 use data::Config;
 
+use iced::widget::text_input;
 use iced::widget::{button, column, row, Space};
 use iced::{window, Event as IcedEvent, Length};
 use iced::{Application, Command, Settings, Subscription};
@@ -170,6 +171,9 @@ pub enum Message {
     ProbeResult(TrackerInfo),
     RippingCfg(sample_ripping::Message),
     SaveConfig,
+    SaveConfigResult(),
+    SaveErrors,
+    SaveErrorsResult(),
     StartRipping,
     Subscription(RipperMessage),
 }
@@ -197,16 +201,24 @@ impl Application for XMODITS {
             Message::About(msg) => about::update(msg),
             Message::AboutPressed => self.view = View::About,
             Message::Add(paths) => {
+                if self.state.is_ripping() {
+                    return Command::none();
+                }
+
                 if let Some(paths) = paths {
                     self.entries.add_multiple(paths)
                 }
+                // todo: change state
             }
             Message::AdvancedCfg(msg) => self.advanced_cfg.update(msg),
             Message::Cancel => {
                 self.state.set_message("Cancelling...");
                 self.ripper.cancel();
             }
-            Message::Clear => self.entries.clear(),
+            Message::Clear => {
+                // todo change state. clear current loaded module
+                self.entries.clear();
+            }
             Message::ConfigPressed => self.view = View::Configure,
             Message::DeleteSelected => self.entries.delete_selected(),
             Message::FileDialog => return Command::perform(files_dialog(), Message::Add),
@@ -229,7 +241,17 @@ impl Application for XMODITS {
             }
             Message::ProbeResult(probe) => self.tracker_info = probe,
             Message::SaveConfig => {}
-            Message::StartRipping => {}
+            Message::SaveConfigResult() => {}
+            Message::SaveErrors => todo!(),
+            Message::SaveErrorsResult() => todo!(),
+            Message::StartRipping => {
+                if !self.ripping_cfg.destination_is_valid() {
+                    tracing::error!(
+                        "The provided destination is not valid. The *parent* folder must exist."
+                    );
+                    return text_input::focus(DESTINATION_BAR_ID.clone());
+                }
+            }
             Message::Subscription(msg) => match msg {
                 RipperMessage::Ready(sender) => self.ripper.set_sender(sender),
                 RipperMessage::Info(info) => self.state.update_message(info),

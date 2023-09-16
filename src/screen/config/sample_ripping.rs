@@ -1,6 +1,6 @@
 //! Configure how samples should be extracted
 
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 
 use data::config::{self,SampleRippingConfig};
 use data::xmodits_lib::exporter::AudioFormat;
@@ -26,6 +26,12 @@ impl RippingConfig {
 
     pub fn view(&self)  -> Element<Message> {
         view(&self.0)
+    }
+
+    pub fn destination_is_valid(&self) -> bool {
+        self.0.destination.parent().is_some_and(|path|  {
+            path.exists() && path != Path::new("")
+        })
     }
 }
 

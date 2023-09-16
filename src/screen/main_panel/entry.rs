@@ -48,6 +48,10 @@ impl Entries {
     }
 
     pub fn add(&mut self, path: PathBuf) {
+        if self.contains(&path) {
+            return;
+        }
+
         self.entries.push(Entry::new(path));
         self.all_selected = false;
     }
