@@ -6,7 +6,7 @@ use crate::widget::Element;
 use iced::widget::{checkbox, column, container,pick_list, row, text};
 
 #[derive(Debug, Default)]
-pub struct NamingConfig(config::SampleNameConfig);
+pub struct NamingConfig(pub config::SampleNameConfig);
 
 impl NamingConfig {
     pub fn update(&mut self, message: Message) {

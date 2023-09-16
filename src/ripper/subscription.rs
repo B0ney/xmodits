@@ -121,16 +121,13 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                 State::Idle(start_msg) => {
                     if let Some(config) = start_msg.recv().await {
                         let total = config.entries.len() as u64;
-                        // let total = 0;
                         let (tx, rx) = mpsc::unbounded_channel();
-                        info!("Started ripping");
 
                         // The ripping process is delegated by the subscription to a separate thread.
                         // This might not be idiomatic, but it works...
                         std::thread::spawn(move || {
-                            todo!()
-                            // let (paths, config) = config;
-                            // super::extraction::rip(tx, paths, config);
+                            info!("Started ripping");
+                            extraction::rip(tx, config);
                         });
 
                         state = State::Ripping {

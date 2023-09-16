@@ -22,14 +22,6 @@ use std::path::{Path, PathBuf};
 use style::Theme;
 use tracing::warn;
 
-static DESTINATION_ID: Lazy<text_input::Id> = Lazy::new(text_input::Id::unique);
-
-fn icon() -> Icon {
-    let image = image::load_from_memory(include_bytes!("../../assets/img/logo/icon3.png")).unwrap();
-    let (w, h) = image.dimensions();
-
-    from_rgba(image.as_bytes().to_vec(), w, h).unwrap()
-}
 
 // See mod.rs for the full iced application
 impl App {
@@ -106,16 +98,6 @@ impl App {
         self.entries.all_selected = false;
     }
 
-    pub fn destination_bar(&self) -> Element<Message, Renderer<Theme>> {
-        let destination = &self.ripping_config.destination;
-        let input: _ = text_input("Output Directory", &format!("{}", destination.display()))
-            .id(DESTINATION_ID.clone())
-            .padding(10)
-            .on_input(|s| Message::SetDestination(Some(PathBuf::new().join(s))));
-
-        input.into()
-    }
-
     pub fn start_ripping(&mut self) -> Command<Message> {
         let focus_destination = || text_input::focus(DESTINATION_ID.clone());
 
@@ -169,36 +151,6 @@ impl App {
         (paths, ripping_config)
     }
 
-    /// TODO: allow user to customise
-    pub fn preview_sample_name(&self) -> String {
-        use xmodits_lib::interface::{Sample, name::Context};
-
-        let module_name = "music.it";
-        let filename = "SNARE.WAV";
-        let name = "snare";
-        let path = Path::new("~/Downloads").join(module_name);
-    
-        let namer_func = self.ripping_config.naming.build_func();
-        let formatter = self.ripping_config.exported_format.get_impl();
-        
-        let dummy_sample = Sample {
-            filename: Some(filename.into()),
-            name: name.into(),
-            index_raw: 5,
-            ..Default::default()
-        };
-    
-        let context = Context {
-            total: 10,
-            extension: formatter.extension(),
-            highest: 10,
-            source_path: Some(&path),
-        };
-    
-        let sequential_index = 0;
-    
-        namer_func(&dummy_sample, &context, sequential_index)
-    }
 
     pub fn view_current_tracker(&self) -> Element<Message, Renderer<Theme>> {
         // let view_samples_button: _ = button("View Samples")

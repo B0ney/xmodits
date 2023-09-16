@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use rand::Rng;
 use tokio::io::{AsyncWriteExt, BufWriter};
 
-use super::Failed;
+use super::{Failed, extraction::Reason};
 
 const MAX: usize = 100;
 const ABSOLUTE_LIMIT: usize = MAX * 10;
@@ -141,7 +141,19 @@ impl ErrorHandler {
         let failed_file = error.path.display().to_string();
         let _ = file.write_all(failed_file.as_bytes()).await;
         let _ = file.write_all(b"\n     ").await;
-        let _ = file.write_all(error.reason.as_bytes()).await;
+
+        match error.reason {
+            Reason::Single(reason) => {
+                let _ = file.write_all(reason.as_bytes()).await;
+            },
+            Reason::Multiple(reasons) => {
+                //todo include raw index
+                for (_raw_idx, reason) in reasons {
+                    let _ = file.write_all(reason.as_bytes()).await;
+                    let _ = file.write_all(b"\n").await;
+                }
+            },
+        }
         let _ = file.write_all(b"\n\n").await;
         let _ = file.flush().await;
     }

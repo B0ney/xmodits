@@ -16,7 +16,7 @@ use once_cell::sync::Lazy;
 use crate::utils::folder_dialog;
 
 #[derive(Debug, Default)]
-pub struct RippingConfig(config::SampleRippingConfig);
+pub struct RippingConfig(pub config::SampleRippingConfig);
 
 impl RippingConfig {
     pub fn update(&mut self, message: Message) -> Command<Message> {

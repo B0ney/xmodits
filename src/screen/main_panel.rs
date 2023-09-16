@@ -126,17 +126,17 @@ fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Eleme
                 .spacing(6)
                 .align_items(Alignment::Center);
 
-            let errors = scrollable(column(
-                errors
-                    .iter()
-                    .map(|error| {
-                        let err = column![text(error.filename()), text(&error.reason)];
-                        container(err).into()
-                    })
-                    .collect(),
-            ));
+            // let errors = scrollable(column(
+            //     errors
+            //         .iter()
+            //         .map(|error| {
+            //             let err = column![text(error.filename()), text(&error.reason)];
+            //             container(err).into()
+            //         })
+            //         .collect(),
+            // ));
 
-            let view = column![message, buttons, errors,];
+            let view = column![message, buttons,];
 
             container(view)
                 .width(Length::Fill)

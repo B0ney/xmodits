@@ -56,6 +56,10 @@ impl Entries {
         self.all_selected = false;
     }
 
+    pub fn all_selected(&self) -> bool {
+        self.all_selected
+    }
+
     /// todo: avoid duplicates.
     pub fn add_multiple(&mut self, paths: Vec<PathBuf>) {
         self.all_selected = false;

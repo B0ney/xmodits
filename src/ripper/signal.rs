@@ -8,26 +8,26 @@ use data::config;
 pub struct Signal {
     pub entries: Vec<PathBuf>,
     pub ripping: config::SampleRippingConfig,
-    pub name: config::SampleNameConfig,
-    pub filter: Option<Box<dyn CustomFilter>>,
+    pub naming: config::SampleNameConfig,
+    // pub filter: Option<Box<dyn CustomFilter>>,
 }
 
 impl Signal {
     pub fn new(
         entries: Vec<PathBuf>,
         ripping: config::SampleRippingConfig,
-        name: config::SampleNameConfig,
+        naming: config::SampleNameConfig,
     ) -> Self {
         Self {
             ripping,
-            name,
-            filter: None,
+            naming,
+            // filter: None,
             entries,
         }
     }
 
-    pub fn with_filter(mut self, filter: Box<dyn CustomFilter>) -> Self {
-        self.filter = Some(filter);
-        self
-    }
+    // pub fn with_filter(mut self, filter: Box<dyn CustomFilter>) -> Self {
+    //     self.filter = Some(filter);
+    //     self
+    // }
 }

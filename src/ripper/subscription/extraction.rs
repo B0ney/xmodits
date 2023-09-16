@@ -1,10 +1,11 @@
 use data::config::SampleRippingConfig;
 use data::xmodits_lib::{extract, Error, Ripper};
 
-use crate::logger::GLOBAL_TRACKER;
 use super::Signal;
+use crate::logger::GLOBAL_TRACKER;
 use crate::utils::filename;
 
+use std::fmt::Display;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, Write};
 use std::path::{Path, PathBuf};
@@ -58,7 +59,7 @@ pub fn rip(tx: AsyncSender<Message>, signal: Signal) {
     };
 
     let ripper = Arc::new(Ripper::new(
-        signal.name.build_func(),
+        signal.naming.build_func(),
         cfg.exported_format.into(),
     ));
 
@@ -404,27 +405,41 @@ struct State {
 #[derive(Debug, Clone)]
 pub struct Failed {
     pub path: PathBuf,
-    pub reason: String, // TODO: use enum for single or multiple
+    pub reason: Reason, // TODO: use enum for single or multiple
 }
 
 impl std::fmt::Display for Failed {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Failed: {}, reason: {}",
+            "Failed: {}, reason: {:?}",
             self.path.display(),
             &self.reason
         )
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum Reason {
+    Single(String),
+    Multiple(Vec<(usize, String)>),
+}
+
 impl Failed {
     pub fn new(path: String, error: Error) -> Self {
         let path: PathBuf = path.into();
-        Self {
-            path,
-            reason: error.to_string(),
-        }
+        let reason = match error {
+            Error::FailedRip(multi) => Reason::Multiple(
+                multi
+                    .inner()
+                    .into_iter()
+                    .map(|reason| (reason.raw_index, reason.reason.to_string()))
+                    .collect(),
+            ),
+            single => Reason::Single(single.to_string()),
+        };
+
+        Self { path, reason }
     }
 
     pub fn filename(&self) -> &str {

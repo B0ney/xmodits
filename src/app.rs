@@ -228,7 +228,7 @@ impl Application for XMODITS {
                     tracing::error!("could not load font")
                 }
             }
-            Message::Iced(_) => {}
+            Message::Iced(_) => {},
             Message::Ignore => (),
             Message::RippingCfg(msg) => {
                 return self.ripping_cfg.update(msg).map(Message::RippingCfg)
@@ -251,6 +251,36 @@ impl Application for XMODITS {
                     );
                     return text_input::focus(DESTINATION_BAR_ID.clone());
                 }
+
+                if self.entries.is_empty() | !self.ripper.is_active() {
+                    return Command::none();
+                }
+
+                // todo refactor
+                let entries = match self.entries.all_selected() {
+                    true => self.entries.take_selected(),
+                    false => std::mem::take(&mut self.entries.entries),
+                }
+                .into_iter()
+                .map(|f| f.path)
+                .collect();
+
+                let ripping = self.ripping_cfg.0.to_owned();
+                let naming = self.naming_cfg.0.to_owned();
+
+                let start_signal = ripper::Signal {
+                    entries,
+                    ripping,
+                    naming,
+                };
+
+                let _ = self.ripper.send(start_signal);
+
+                self.state = State::Ripping {
+                    message: None,
+                    progress: 0.0,
+                    errors: 0,
+                }
             }
             Message::Subscription(msg) => match msg {
                 RipperMessage::Ready(sender) => self.ripper.set_sender(sender),
@@ -260,7 +290,8 @@ impl Application for XMODITS {
                 }
                 RipperMessage::Done { state, time } => {
                     self.ripper.reset_stop_flag(); // todo: should this be here?
-                    self.state = State::Finished { state, time }
+                    self.state = State::Finished { state, time };
+                    tracing::debug!("{:#?}", self.state);
                 }
             },
         }
