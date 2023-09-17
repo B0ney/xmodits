@@ -19,22 +19,7 @@ pub enum Message {
     Ignore,
 }
 
-// #[derive(Default, Debug, Clone, Copy)]
-// pub enum CompleteState {
-//     #[default]
-//     NoError,
-// }
-
 pub fn view() {}
-
-pub struct TrackerView {
-    // pub state: State,
-    // pub entries: Entries,
-}
-
-impl TrackerView {
-    pub fn update(&mut self) {}
-}
 
 fn view_ripping<'a>(message: &Option<String>, progress: f32, total_errors: u64) -> Element<'a, Message> {
     container(

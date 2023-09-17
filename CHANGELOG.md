@@ -1,4 +1,21 @@
+# v0.12.0 (planned, subject to change)
+## What's new
+* Added option to filter files based on the following properties:
+  * file size
+  * file name
+  * file extension
+  * TODO: date-(created, modified)
+* Added button to preview samples.
+* Can import/export custom themes.
 
+## Bug Fixes
+* (xmodits-lib) Fixed downsampling bug when exporting samples to ``.8svx``
+
+## Other Improvements
+* XMODITS now has a built-in software renderer.
+* Improved displaying for errors.
+* Improved memory usage for Linux binaries (uses jemalloc).
+* MacOS builds now include binaries for Apple Silicon.
 
 # v0.11.0 (29 July 2023)
 

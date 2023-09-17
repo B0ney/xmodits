@@ -137,6 +137,7 @@ Build flags used in official releases:
 * audio
 * build_info
 * update_check
+* jemalloc (linux-only)
 
 ## License
 xmodits is licensed under the GPLv3

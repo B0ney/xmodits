@@ -34,7 +34,7 @@ pub struct XMODITS {
     ripper: ripper::Handle,
     #[cfg(feature = "audio")]
     audio: audio_engine::Handle,
-    tracker_info: TrackerInfo,
+    tracker_info: Option<TrackerInfo>,
     // sample_pack: (),
     theme: theme::Theme,
     naming_cfg: NamingConfig,
@@ -67,6 +67,25 @@ impl XMODITS {
 
     pub fn settings() {}
     // fn load_config() {}
+
+    pub fn build_start_signal(&mut self) -> ripper::Signal {
+        let entries = match self.entries.all_selected() {
+            true => self.entries.take_selected(),
+            false => std::mem::take(&mut self.entries.entries),
+        }
+        .into_iter()
+        .map(|f| f.path)
+        .collect();
+
+        let ripping = self.ripping_cfg.0.to_owned();
+        let naming = self.naming_cfg.0.to_owned();
+
+        ripper::Signal {
+            entries,
+            ripping,
+            naming,
+        }
+    }
 }
 
 /// TODO: allow the user to customize their application icon
@@ -228,7 +247,7 @@ impl Application for XMODITS {
                     tracing::error!("could not load font")
                 }
             }
-            Message::Iced(_) => {},
+            Message::Iced(_) => {}
             Message::Ignore => (),
             Message::RippingCfg(msg) => {
                 return self.ripping_cfg.update(msg).map(Message::RippingCfg)
@@ -239,7 +258,7 @@ impl Application for XMODITS {
                 let path = self.entries.get(idx).unwrap().to_owned();
                 return Command::perform(tracker_info::probe(path), Message::ProbeResult);
             }
-            Message::ProbeResult(probe) => self.tracker_info = probe,
+            Message::ProbeResult(probe) => self.tracker_info = Some(probe),
             Message::SaveConfig => {}
             Message::SaveConfigResult() => {}
             Message::SaveErrors => todo!(),
@@ -256,24 +275,7 @@ impl Application for XMODITS {
                     return Command::none();
                 }
 
-                // todo refactor
-                let entries = match self.entries.all_selected() {
-                    true => self.entries.take_selected(),
-                    false => std::mem::take(&mut self.entries.entries),
-                }
-                .into_iter()
-                .map(|f| f.path)
-                .collect();
-
-                let ripping = self.ripping_cfg.0.to_owned();
-                let naming = self.naming_cfg.0.to_owned();
-
-                let start_signal = ripper::Signal {
-                    entries,
-                    ripping,
-                    naming,
-                };
-
+                let start_signal = self.build_start_signal();                
                 let _ = self.ripper.send(start_signal);
 
                 self.state = State::Ripping {

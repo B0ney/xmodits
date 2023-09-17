@@ -10,10 +10,8 @@ use std::{
 use data::xmodits_lib::Module;
 use iced::Element;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub enum TrackerInfo {
-    #[default]
-    None,
     Invalid {
         path: PathBuf,
         reason: String,
@@ -28,16 +26,15 @@ pub enum TrackerInfo {
 }
 
 impl TrackerInfo {
-    pub fn path(&self) -> Option<&Path> {
+    pub fn path(&self) -> &Path {
         match self {
             Self::Invalid { path, .. } 
-            | Self::Loaded { path, .. } => Some(path),
-            Self::None => None,
+            | Self::Loaded { path, .. } => path,
         }
     }
 
     pub fn matches_path(&self, other: &Path) -> bool {
-        self.path().is_some_and(|path| path == other)
+        self.path() == other
     }
 
     pub fn invalid(error: String, path: PathBuf) -> Self {
