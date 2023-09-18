@@ -2,6 +2,7 @@ mod simple;
 
 use std::path::PathBuf;
 
+use crate::event;
 use crate::font;
 use crate::icon;
 use crate::logger;
@@ -66,17 +67,9 @@ impl XMODITS {
     }
 
     pub fn settings() {}
-    // fn load_config() {}
 
     pub fn build_start_signal(&mut self) -> ripper::Signal {
-        let entries = match self.entries.all_selected() {
-            true => self.entries.take_selected(),
-            false => std::mem::take(&mut self.entries.entries),
-        }
-        .into_iter()
-        .map(|f| f.path)
-        .collect();
-
+        let entries = self.entries.take();
         let ripping = self.ripping_cfg.0.to_owned();
         let naming = self.naming_cfg.0.to_owned();
 
@@ -90,8 +83,8 @@ impl XMODITS {
 
 /// TODO: allow the user to customize their application icon
 fn icon() -> iced::window::Icon {
-    iced::window::icon::from_file_data(include_bytes!("../assets/img/logo/icon2.png"), None)
-        .unwrap()
+    let icon = include_bytes!("../assets/img/logo/icon2.png");
+    iced::window::icon::from_file_data(icon, None).unwrap()
 }
 
 pub fn settings(config: Config) -> iced::Settings<Config> {
@@ -170,22 +163,23 @@ pub enum View {
 pub enum Message {
     About(about::Message),
     AboutPressed,
-    Add(Option<Vec<PathBuf>>),
+    Add(PathBuf),
+    AddMultiple(Option<Vec<PathBuf>>),
     AdvancedCfg(advanced::Message),
     #[cfg(feature = "audio")]
     Audio(),
-
     Cancel,
     Clear,
     ConfigPressed,
     DeleteSelected,
+    Event(event::Event),
     FileDialog,
     FolderDialog,
     FontsLoaded(Result<(), iced::font::Error>),
-    Iced(IcedEvent),
     Ignore,
     InvertSelection,
     NamingCfg(sample_naming::Message),
+    Open(String),
     Probe(usize),
     ProbeResult(TrackerInfo),
     RippingCfg(sample_ripping::Message),
@@ -219,7 +213,14 @@ impl Application for XMODITS {
         match message {
             Message::About(msg) => about::update(msg),
             Message::AboutPressed => self.view = View::About,
-            Message::Add(paths) => {
+            Message::Add(path) => {
+                if self.state.is_ripping() {
+                    return Command::none();
+                }
+
+                self.entries.add(path)
+            }
+            Message::AddMultiple(paths) => {
                 if self.state.is_ripping() {
                     return Command::none();
                 }
@@ -240,20 +241,31 @@ impl Application for XMODITS {
             }
             Message::ConfigPressed => self.view = View::Configure,
             Message::DeleteSelected => self.entries.delete_selected(),
-            Message::FileDialog => return Command::perform(files_dialog(), Message::Add),
-            Message::FolderDialog => return Command::perform(folders_dialog(), Message::Add),
+            Message::Event(event) => match event {
+                event::Event::Delete => self.entries.delete_selected(),
+                event::Event::FileDropped(file) => self.entries.add(file),
+                _ => todo!()
+            },
+            Message::FileDialog => return Command::perform(files_dialog(), Message::AddMultiple),
+            Message::FolderDialog => {
+                return Command::perform(folders_dialog(), Message::AddMultiple)
+            }
             Message::FontsLoaded(result) => {
                 if result.is_err() {
                     tracing::error!("could not load font")
                 }
             }
-            Message::Iced(_) => {}
             Message::Ignore => (),
             Message::RippingCfg(msg) => {
                 return self.ripping_cfg.update(msg).map(Message::RippingCfg)
             }
             Message::InvertSelection => self.entries.invert(),
             Message::NamingCfg(msg) => self.naming_cfg.update(msg),
+            Message::Open(link) => {
+                if let Err(err) = open::that_detached(link) {
+                    tracing::warn!("Could not open external link: {:?}", err)
+                };
+            }
             Message::Probe(idx) => {
                 let path = self.entries.get(idx).unwrap().to_owned();
                 return Command::perform(tracker_info::probe(path), Message::ProbeResult);
@@ -264,6 +276,10 @@ impl Application for XMODITS {
             Message::SaveErrors => todo!(),
             Message::SaveErrorsResult() => todo!(),
             Message::StartRipping => {
+                if self.state.is_ripping() | self.entries.is_empty() | !self.ripper.is_active() {
+                    return Command::none();
+                }
+
                 if !self.ripping_cfg.destination_is_valid() {
                     tracing::error!(
                         "The provided destination is not valid. The *parent* folder must exist."
@@ -271,11 +287,7 @@ impl Application for XMODITS {
                     return text_input::focus(DESTINATION_BAR_ID.clone());
                 }
 
-                if self.entries.is_empty() | !self.ripper.is_active() {
-                    return Command::none();
-                }
-
-                let start_signal = self.build_start_signal();                
+                let start_signal = self.build_start_signal();
                 let _ = self.ripper.send(start_signal);
 
                 self.state = State::Ripping {
@@ -347,7 +359,7 @@ impl Application for XMODITS {
 
     fn subscription(&self) -> Subscription<Message> {
         iced::Subscription::batch([
-            iced::event::listen().map(Message::Iced),
+            event::events().map(Message::Event),
             ripper::xmodits_subscription().map(Message::Subscription),
         ])
     }

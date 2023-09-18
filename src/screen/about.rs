@@ -15,7 +15,7 @@ pub enum Message {
 pub fn update(msg: Message) {
     match msg {
         Message::GitHub => {
-            if let Err(err) = open::that(env!("CARGO_PKG_REPOSITORY")) {
+            if let Err(err) = open::that_detached(env!("CARGO_PKG_REPOSITORY")) {
                 warn!("Could not open external link: {:?}", err)
             };
         }

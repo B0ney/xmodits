@@ -7,6 +7,7 @@
   * TODO: date-(created, modified)
 * Added button to preview samples.
 * Can import/export custom themes.
+* Shows the number of errors while ripping.
 
 ## Bug Fixes
 * (xmodits-lib) Fixed downsampling bug when exporting samples to ``.8svx``

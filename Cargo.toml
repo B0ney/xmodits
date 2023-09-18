@@ -15,7 +15,6 @@ build_info = ["built"]
 custom_anim = ["iced_gif"]
 jemalloc = ["tikv-jemallocator"]
 wgpu = ["iced/wgpu"]
-update_check = ["update"]
 
 [dependencies.iced]
 # version = "0.12.0"
@@ -29,7 +28,6 @@ features = ["sync", "fs", "io-util", "parking_lot"]
 
 [dependencies]
 data = { path = "data" }
-update = { path = "update", optional = true }
 audio_engine = { path = "audio_engine", optional = true }
 
 anyhow = "1.0.0"
@@ -76,4 +74,4 @@ opt-level = "s"
 codegen-units = 1
 
 [workspace]
-members = ["data", "update", "audio_engine"]
+members = ["data", "audio_engine"]

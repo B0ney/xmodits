@@ -46,26 +46,22 @@ impl Entries {
     pub fn contains(&self, path: &Path) -> bool {
         self.entries.iter().any(|x| &*x.path == path)
     }
+    
+    pub fn all_selected(&self) -> bool {
+        self.all_selected
+    }
 
     pub fn add(&mut self, path: PathBuf) {
         if self.contains(&path) {
             return;
         }
-
         self.entries.push(Entry::new(path));
         self.all_selected = false;
     }
 
-    pub fn all_selected(&self) -> bool {
-        self.all_selected
-    }
-
-    /// todo: avoid duplicates.
     pub fn add_multiple(&mut self, paths: Vec<PathBuf>) {
         self.all_selected = false;
-        paths
-            .into_iter()
-            .for_each(|path| self.entries.push(Entry::new(path)))
+        paths.into_iter().for_each(|path| self.add(path));
     }
 
     pub fn total_selected(&self) -> usize {
@@ -122,6 +118,16 @@ impl Entries {
         selected
     }
 
+    pub fn take(&mut self) -> Vec<PathBuf> {
+        match self.none_selected() {
+            true => std::mem::take(&mut self.entries),
+            false => self.take_selected(),
+        }
+        .into_iter()
+        .map(|f| f.path)
+        .collect()
+    }
+
     pub fn delete_selected(&mut self) {
         // clear the entries if everything is selected
         if self.all_selected || self.total_selected() == self.entries.len() {
@@ -155,7 +161,7 @@ impl Entries {
             return;
         }
 
-        if self.all_selected || self.non_selected() {
+        if self.all_selected || self.none_selected() {
             self.all_selected = !self.all_selected;
         };
 
@@ -164,7 +170,7 @@ impl Entries {
             .for_each(|f| f.selected = !f.selected)
     }
 
-    pub fn non_selected(&self) -> bool {
+    pub fn none_selected(&self) -> bool {
         self.total_selected() == 0
     }
 

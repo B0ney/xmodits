@@ -3,6 +3,7 @@
 
 pub mod app;
 pub mod dialog;
+pub mod event;
 pub mod font;
 pub mod icon;
 pub mod logger;
