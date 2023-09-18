@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use rand::Rng;
 use tokio::io::{AsyncWriteExt, BufWriter};
 
-use super::{Failed, extraction::Reason};
+use super::error::{Failed, Reason};
 
 const MAX: usize = 100;
 const ABSOLUTE_LIMIT: usize = MAX * 10;

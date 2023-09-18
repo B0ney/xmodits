@@ -1,17 +1,12 @@
-pub mod error_handler;
-pub mod extraction;
-
 use data::time::Time;
-use error_handler::ErrorHandler;
 
 use iced::{subscription, Subscription};
 use std::path::PathBuf;
 use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
 use tracing::{error, info};
 
-use super::{stop_flag, Signal};
-
-pub use extraction::{Failed, Message as ThreadMessage};
+pub use super::extraction::{self, ErrorHandler, Failed, Message as ThreadMessage};
+use super::Signal;
 
 /// Messages emitted by subscription
 #[derive(Clone, Debug)]

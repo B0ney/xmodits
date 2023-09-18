@@ -1,22 +1,27 @@
-use data::config::SampleRippingConfig;
-use data::xmodits_lib::{extract, Error, Ripper};
+pub mod buffer;
+pub mod error;
+pub mod error_handler;
 
+pub use buffer::{Batch, Buffer};
+pub use error::Failed;
+pub use error_handler::ErrorHandler;
+
+use super::stop_flag;
 use super::Signal;
-use crate::logger::GLOBAL_TRACKER;
-use crate::utils::filename;
 
-use std::fmt::Display;
+use crate::logger::GLOBAL_TRACKER;
+
+use data::config::SampleRippingConfig;
+use data::xmodits_lib::{extract, Ripper};
+
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::Arc;
 
-use parking_lot::Mutex;
 use tokio::sync::mpsc::UnboundedSender as AsyncSender;
 use walkdir::WalkDir;
-
-use super::stop_flag;
 
 #[derive(Debug)]
 pub enum Message {
@@ -171,21 +176,12 @@ fn batch_size(lines: u64) -> usize {
 /// Traversing deeply nested directories can use a lot of memory.
 ///
 /// For that reason we write the output to a file
-pub fn traverse(
+fn traverse(
     dirs: Vec<PathBuf>,
     max_depth: u8,
     filter: impl Fn(&Path) -> bool,
     callback: impl Fn(u64),
 ) -> (BufReader<File>, u64) {
-    // create a file in read-write mode
-    // TODO: make this a temporary file, but I'll also need to figure out how to resume...
-    // let mut file: File = OpenOptions::new()
-    //     .read(true)
-    //     .write(true)
-    //     .create(true)
-    //     .truncate(true)
-    //     .open("./test.txt") // todo
-    //     .unwrap();
     let mut file = tempfile::tempfile().expect("Creating a temporary file");
 
     // store the number of entries
@@ -221,10 +217,13 @@ pub fn traverse(
     (BufReader::new(file), lines)
 }
 
-pub type Batch<T> = Arc<Mutex<Vec<T>>>;
-
 #[derive(Copy, Clone)]
 struct NextBatch;
+
+#[derive(Default)]
+struct State {
+    pub complete: bool,
+}
 
 ///
 ///
@@ -239,7 +238,7 @@ struct Batcher<'io> {
 }
 
 impl<'io> Batcher<'io> {
-    pub fn new(
+    fn new(
         file: &'io mut BufReader<File>,
         batch_size: usize,
         ripper: Arc<Ripper>,
@@ -396,143 +395,3 @@ pub fn strict_loading(strict: bool) -> impl Fn(&Path) -> bool {
         false => |_: &Path| true,
     }
 }
-
-#[derive(Default)]
-struct State {
-    pub complete: bool,
-}
-
-#[derive(Debug, Clone)]
-pub struct Failed {
-    pub path: PathBuf,
-    pub reason: Reason, // TODO: use enum for single or multiple
-}
-
-impl std::fmt::Display for Failed {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Failed: {}, reason: {:?}",
-            self.path.display(),
-            &self.reason
-        )
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum Reason {
-    Single(String),
-    Multiple(Vec<(usize, String)>),
-}
-
-impl Failed {
-    pub fn new(path: String, error: Error) -> Self {
-        let path: PathBuf = path.into();
-        let reason = match error {
-            Error::FailedRip(multi) => Reason::Multiple(
-                multi
-                    .inner()
-                    .into_iter()
-                    .map(|reason| (reason.raw_index, reason.reason.to_string()))
-                    .collect(),
-            ),
-            single => Reason::Single(single.to_string()),
-        };
-
-        Self { path, reason }
-    }
-
-    pub fn filename(&self) -> &str {
-        filename(&self.path)
-    }
-}
-
-#[derive(Default, Clone, Copy)]
-enum CurrentBatch {
-    #[default]
-    Batch1,
-    Batch2,
-}
-
-impl CurrentBatch {
-    pub fn next(self) -> Self {
-        match self {
-            Self::Batch1 => Self::Batch2,
-            Self::Batch2 => Self::Batch1,
-        }
-    }
-
-    pub fn switch(&mut self) {
-        // println!("---------- SWITCHING ----------");
-        *self = self.next();
-    }
-}
-
-struct Buffer<T> {
-    current: CurrentBatch,
-    buf_1: Batch<T>,
-    buf_2: Batch<T>,
-}
-
-impl<T> Buffer<T> {
-    fn init(batch_size: usize) -> Self {
-        Self {
-            current: CurrentBatch::Batch1,
-            buf_1: Self::alloc(batch_size),
-            buf_2: Self::alloc(batch_size),
-        }
-    }
-
-    fn current_buffer(&self) -> Batch<T> {
-        match self.current {
-            CurrentBatch::Batch1 => self.buf_1.clone(),
-            CurrentBatch::Batch2 => self.buf_2.clone(),
-        }
-    }
-
-    fn switch(&mut self) {
-        self.current.switch()
-    }
-
-    fn alloc(batch_size: usize) -> Batch<T> {
-        Arc::new(Mutex::new(Vec::with_capacity(batch_size)))
-    }
-}
-
-// struct SubBatcher<'a, T> {
-//     batch: &'a [T],
-//     size: usize,
-//     count: usize,
-// }
-
-// impl<'a, T> SubBatcher<'a, T> {
-//     pub fn new(batch: &'a [T], size: usize) -> Self {
-//         Self {
-//             batch,
-//             size,
-//             count: 0,
-//         }
-//     }
-// }
-
-// impl<'a, T> Iterator for SubBatcher<'a, T> {
-//     type Item = &'a [T];
-
-//     fn next(&mut self) -> Option<Self::Item> {
-//         let offset = self.size * self.count;
-//         let len = self.batch.len();
-
-//         // uses short circuiting so the order matters here
-//         if len == 0 || offset > (len - 1) {
-//             return None;
-//         };
-
-//         self.count += 1;
-//         let end = offset + self.size;
-
-//         match end > len {
-//             true => self.batch.get(offset..),
-//             false => self.batch.get(offset..end),
-//         }
-//     }
-// }
