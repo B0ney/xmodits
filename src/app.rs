@@ -242,9 +242,12 @@ impl Application for XMODITS {
             Message::ConfigPressed => self.view = View::Configure,
             Message::DeleteSelected => self.entries.delete_selected(),
             Message::Event(event) => match event {
+                event::Event::Clear => self.entries.clear(),
+                event::Event::CloseRequested => {}
                 event::Event::Delete => self.entries.delete_selected(),
                 event::Event::FileDropped(file) => self.entries.add(file),
-                _ => todo!()
+                event::Event::Save => {}
+                event::Event::Start => {}
             },
             Message::FileDialog => return Command::perform(files_dialog(), Message::AddMultiple),
             Message::FolderDialog => {
