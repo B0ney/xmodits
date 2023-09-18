@@ -20,10 +20,8 @@ use crate::widget::{Collection, Column, Container, Element};
 
 use data::Config;
 
-use iced::widget::text_input;
-use iced::widget::{button, column, row, Space};
-use iced::{window, Event as IcedEvent, Length};
-use iced::{Application, Command, Settings, Subscription};
+use iced::widget::{button, column, row, text_input, Space};
+use iced::{window, Application, Command, Length, Subscription};
 
 /// XMODITS graphical application
 #[derive(Default)]
@@ -95,6 +93,7 @@ pub fn settings(config: Config) -> iced::Settings<Config> {
         flags: config,
         window: window::Settings {
             icon: Some(icon()),
+            min_size: Some((800, 720)),
             ..Default::default()
         },
         ..Default::default()
@@ -163,8 +162,7 @@ pub enum View {
 pub enum Message {
     About(about::Message),
     AboutPressed,
-    Add(PathBuf),
-    AddMultiple(Option<Vec<PathBuf>>),
+    Add(Option<Vec<PathBuf>>),
     AdvancedCfg(advanced::Message),
     #[cfg(feature = "audio")]
     Audio(),
@@ -187,6 +185,7 @@ pub enum Message {
     SaveConfigResult(),
     SaveErrors,
     SaveErrorsResult(),
+    SelectAll(bool),
     StartRipping,
     Subscription(RipperMessage),
 }
@@ -213,14 +212,7 @@ impl Application for XMODITS {
         match message {
             Message::About(msg) => about::update(msg),
             Message::AboutPressed => self.view = View::About,
-            Message::Add(path) => {
-                if self.state.is_ripping() {
-                    return Command::none();
-                }
-
-                self.entries.add(path)
-            }
-            Message::AddMultiple(paths) => {
+            Message::Add(paths) => {
                 if self.state.is_ripping() {
                     return Command::none();
                 }
@@ -228,7 +220,7 @@ impl Application for XMODITS {
                 if let Some(paths) = paths {
                     self.entries.add_multiple(paths)
                 }
-                // todo: change state
+                // todo: change state to idlde?
             }
             Message::AdvancedCfg(msg) => self.advanced_cfg.update(msg),
             Message::Cancel => {
@@ -236,11 +228,14 @@ impl Application for XMODITS {
                 self.ripper.cancel();
             }
             Message::Clear => {
-                // todo change state. clear current loaded module
+                self.tracker_info = None;
                 self.entries.clear();
             }
             Message::ConfigPressed => self.view = View::Configure,
-            Message::DeleteSelected => self.entries.delete_selected(),
+            Message::DeleteSelected => {
+                // todo: clear tracker info if the selected path is equal
+                self.entries.delete_selected()
+            }
             Message::Event(event) => match event {
                 event::Event::Clear => self.entries.clear(),
                 event::Event::CloseRequested => {}
@@ -249,10 +244,8 @@ impl Application for XMODITS {
                 event::Event::Save => {}
                 event::Event::Start => {}
             },
-            Message::FileDialog => return Command::perform(files_dialog(), Message::AddMultiple),
-            Message::FolderDialog => {
-                return Command::perform(folders_dialog(), Message::AddMultiple)
-            }
+            Message::FileDialog => return Command::perform(files_dialog(), Message::Add),
+            Message::FolderDialog => return Command::perform(folders_dialog(), Message::Add),
             Message::FontsLoaded(result) => {
                 if result.is_err() {
                     tracing::error!("could not load font")
@@ -299,6 +292,7 @@ impl Application for XMODITS {
                     errors: 0,
                 }
             }
+            Message::SelectAll(selected) => self.entries.select_all(selected),
             Message::Subscription(msg) => match msg {
                 RipperMessage::Ready(sender) => self.ripper.set_sender(sender),
                 RipperMessage::Info(info) => self.state.update_message(info),
@@ -344,6 +338,8 @@ impl Application for XMODITS {
             button("Delete Selected").on_press(Message::DeleteSelected),
             button("Clear").on_press(Message::Clear),
         ];
+
+        // let main_view =
 
         let right_half = column![
             destination,
