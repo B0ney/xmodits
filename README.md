@@ -3,13 +3,24 @@
 <!-- I could do with an improved logo tbh -->
 
 # XMODITS
-</div>
+
 
 # A tool to bulk extract samples from various tracker modules with ease.
+</div>
+<div align="center">
 
+![GitHub all releases](https://img.shields.io/github/downloads/B0ney/xmodits/total)
+![GitHub](https://img.shields.io/github/license/B0ney/xmodits)
+[![GitHub release (with filter)](https://img.shields.io/github/v/release/B0ney/xmodits)](https://github.com/B0ney/xmodits/releases)
+[!["Release RSS Feed"](https://img.shields.io/badge/rss-releases-ffa500?logo=rss)](https://github.com/B0ney/xmodits/releases.atom)
+
+</div>
+
+<div align="center">
 <a href="https://github.com/iced-rs/iced">
   <img src="https://gist.githubusercontent.com/hecrj/ad7ecd38f6e47ff3688a38c79fd108f0/raw/74384875ecbad02ae2a926425e9bcafd0695bade/color.svg" width="130px">
 </a>
+</div>
 
 ## Download
 You can download builds for xmodits [here](https://github.com/B0ney/xmodits/releases).
