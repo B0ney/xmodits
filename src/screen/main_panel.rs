@@ -104,8 +104,7 @@ fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Eleme
 
         CompleteState::SomeErrors(errors) => {
             let message = column![
-                text("Done... But xmodits could not rip everything... (._.)")
-                    .horizontal_alignment(Horizontal::Center),
+                text_centered("Done... But xmodits could not rip everything... (._.)"),
                 text("took...")
             ];
 
