@@ -1,3 +1,5 @@
+//! Utilility functions used throughout the codebase.
+
 use std::path::{Path, PathBuf};
 
 /// Returns filename of path

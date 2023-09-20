@@ -6,9 +6,8 @@ use crate::event;
 use crate::font;
 use crate::icon;
 use crate::logger;
-use crate::ripper::subscription::CompleteState;
-use crate::ripper::{self, Message as RipperMessage};
-use crate::screen::config::advanced::{self, AdvancedConfig};
+use crate::ripper::{self, subscription::CompleteState};
+use crate::screen::config::name_preview::{self, SampleNameParams};
 use crate::screen::config::sample_naming::{self, NamingConfig};
 use crate::screen::config::sample_ripping::{self, RippingConfig, DESTINATION_BAR_ID};
 use crate::screen::history::History;
@@ -38,8 +37,8 @@ pub struct XMODITS {
     // sample_pack: (),
     theme: theme::Theme,
     naming_cfg: NamingConfig,
+    sample_name: SampleNameParams,
     ripping_cfg: RippingConfig,
-    advanced_cfg: AdvancedConfig,
 }
 
 impl XMODITS {
@@ -164,7 +163,6 @@ pub enum Message {
     About(about::Message),
     AboutPressed,
     Add(Option<Vec<PathBuf>>),
-    AdvancedCfg(advanced::Message),
     #[cfg(feature = "audio")]
     Audio(),
     Cancel,
@@ -193,7 +191,7 @@ pub enum Message {
     SelectAll(bool),
     SetTheme,
     StartRipping,
-    Subscription(RipperMessage),
+    Subscription(ripper::Message),
 }
 
 impl Application for XMODITS {
@@ -228,7 +226,6 @@ impl Application for XMODITS {
                 }
                 // todo: change state to idlde?
             }
-            Message::AdvancedCfg(msg) => self.advanced_cfg.update(msg),
             Message::Cancel => {
                 self.state.set_message("Cancelling...");
                 self.ripper.cancel();
@@ -302,12 +299,12 @@ impl Application for XMODITS {
                 }
             }
             Message::Subscription(msg) => match msg {
-                RipperMessage::Ready(sender) => self.ripper.set_sender(sender),
-                RipperMessage::Info(info) => self.state.update_message(info),
-                RipperMessage::Progress { progress, errors } => {
+                ripper::Message::Ready(sender) => self.ripper.set_sender(sender),
+                ripper::Message::Info(info) => self.state.update_message(info),
+                ripper::Message::Progress { progress, errors } => {
                     self.state.update_progress(progress, errors)
                 }
-                RipperMessage::Done { state, time } => {
+                ripper::Message::Done { state, time } => {
                     self.ripper.reset_stop_flag(); // todo: should this be here?
                     self.state = State::Finished { state, time };
                     tracing::debug!("{:#?}", self.state);

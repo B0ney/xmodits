@@ -1,3 +1,5 @@
+//! Define what kind of files XMODITS should keep when scanning files
+
 use std::path::Path;
 
 use crate::utils::{extension, filename};

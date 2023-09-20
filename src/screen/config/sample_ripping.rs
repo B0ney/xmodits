@@ -37,29 +37,29 @@ impl RippingConfig {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    SetExportFormat(AudioFormat),
-    ToggleSelfContained(bool),
-    ToggleStrictLoad(bool),
-    SetWorkerThreads(Workers),
-    SetFolderDepth(u8),
-    SetDestination(Option<PathBuf>),
-    SetDestinationDialog,
+    ExportFormat(AudioFormat),
+    SelfContained(bool),
+    StrictLoad(bool),
+    WorkerThreads(Workers),
+    FolderDepth(u8),
+    Destination(Option<PathBuf>),
+    DestinationDialog,
 }
 
 pub fn update(cfg: &mut SampleRippingConfig, message: Message) -> Command<Message> {
     match message {
-        Message::SetExportFormat(format) => cfg.exported_format = format,
-        Message::ToggleSelfContained(toggle) => cfg.self_contained = toggle,
-        Message::SetFolderDepth(depth) => cfg.folder_max_depth = depth,
-        Message::ToggleStrictLoad(strict) => cfg.strict = strict,
-        Message::SetWorkerThreads(Workers(threads)) => cfg.worker_threads = threads,
-        Message::SetDestination(destination) => {
+        Message::ExportFormat(format) => cfg.exported_format = format,
+        Message::SelfContained(toggle) => cfg.self_contained = toggle,
+        Message::FolderDepth(depth) => cfg.folder_max_depth = depth,
+        Message::StrictLoad(strict) => cfg.strict = strict,
+        Message::WorkerThreads(Workers(threads)) => cfg.worker_threads = threads,
+        Message::Destination(destination) => {
             if let Some(destination) = destination {
                 cfg.destination = destination
             }
         }
-        Message::SetDestinationDialog => {
-            return Command::perform(folder_dialog(), Message::SetDestination);
+        Message::DestinationDialog => {
+            return Command::perform(folder_dialog(), Message::Destination);
         }
     }
     Command::none()
@@ -74,11 +74,11 @@ pub fn view_destination_bar(destination: &RippingConfig) -> Element<Message> {
         .id(DESTINATION_BAR_ID.clone())
         .on_input(|f| {
             let destination = PathBuf::new().join(f);
-            Message::SetDestination(Some(destination))
+            Message::Destination(Some(destination))
         });
 
     let button = button("Select")
-        .on_press(Message::SetDestinationDialog)
+        .on_press(Message::DestinationDialog)
         .padding(10);
 
     row![input, button].into()
@@ -89,16 +89,16 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
         checkbox(
             "Self Contained",
             ripping.self_contained,
-            Message::ToggleSelfContained
+            Message::SelfContained
         ),
-        checkbox("Strict Loading", ripping.strict, Message::ToggleStrictLoad),
+        checkbox("Strict Loading", ripping.strict, Message::StrictLoad),
     ];
 
     let export_format = row![
         pick_list(
             data::SUPPORTED_FORMATS,
             Some(ripping.exported_format),
-            Message::SetExportFormat
+            Message::ExportFormat
         ),
         text("Export Format"),
     ];
@@ -108,7 +108,7 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
         pick_list(
             options,
             Some(ripping.folder_max_depth),
-            Message::SetFolderDepth
+            Message::FolderDepth
         ),
         text("Folder Scan Depth"),
     ];
@@ -118,7 +118,7 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
         pick_list(
             options,
             Some(Workers(ripping.worker_threads)),
-            Message::SetWorkerThreads
+            Message::WorkerThreads
         ),
         text("Worker Threads"),
     ];
