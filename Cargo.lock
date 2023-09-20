@@ -1724,9 +1724,9 @@ dependencies = [
 
 [[package]]
 name = "hermit-abi"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "443144c8cdadd93ebf52ddb4056d257f5b52c04d3c804e657d19eb73fc33668b"
+checksum = "d77f7ec81a6d05a3abb01ab6eb7590f6083d08449fe5a1c8b1e620283546ccb7"
 
 [[package]]
 name = "hex"
@@ -1766,7 +1766,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "iced_core 0.12.0",
  "iced_futures 0.12.0",
@@ -1794,7 +1794,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "bitflags 1.3.2",
  "instant",
@@ -1821,7 +1821,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "futures",
  "iced_core 0.12.0",
@@ -1865,7 +1865,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
@@ -1899,7 +1899,7 @@ dependencies = [
 [[package]]
 name = "iced_renderer"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "iced_graphics 0.12.0",
  "iced_tiny_skia 0.12.0",
@@ -1923,7 +1923,7 @@ dependencies = [
 [[package]]
 name = "iced_runtime"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "iced_core 0.12.0",
  "iced_futures 0.12.0",
@@ -1944,7 +1944,7 @@ dependencies = [
 [[package]]
 name = "iced_style"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "iced_core 0.12.0",
  "once_cell",
@@ -1972,7 +1972,7 @@ dependencies = [
 [[package]]
 name = "iced_tiny_skia"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -2010,7 +2010,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
@@ -2042,7 +2042,7 @@ dependencies = [
 [[package]]
 name = "iced_widget"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "iced_renderer 0.12.0",
  "iced_runtime 0.12.0",
@@ -2055,7 +2055,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#4613eb26cba3ded83f25ebdefd01c983c79a9d59"
+source = "git+https://github.com/iced-rs/iced.git#e8b01eb5435500c4b4d3135dde3d9e5910aca89e"
 dependencies = [
  "iced_graphics 0.12.0",
  "iced_runtime 0.12.0",
@@ -3232,9 +3232,9 @@ checksum = "9c8a99fddc9f0ba0a85884b8d14e3592853e787d581ca1816c91349b10e4eeab"
 
 [[package]]
 name = "rangemap"
-version = "1.3.0"
+version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b9283c6b06096b47afc7109834fdedab891175bb5241ee5d4f7d2546549f263"
+checksum = "977b1e897f9d764566891689e642653e5ed90c6895106acd005eb4c1d0203991"
 
 [[package]]
 name = "raw-window-handle"
@@ -3602,9 +3602,9 @@ checksum = "62bb4feee49fdd9f707ef802e22365a35de4b7b299de4763d44bfea899442ff9"
 
 [[package]]
 name = "smithay-client-toolkit"
-version = "0.16.0"
+version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f307c47d32d2715eb2e0ece5589057820e0e5e70d07c247d1063e844e107f454"
+checksum = "870427e30b8f2cbe64bf43ec4b86e88fe39b0a84b3f15efd9c9c2d020bc86eb9"
 dependencies = [
  "bitflags 1.3.2",
  "calloop",
@@ -3778,9 +3778,9 @@ dependencies = [
 
 [[package]]
 name = "termcolor"
-version = "1.2.0"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be55cf8942feac5c765c2c993422806843c9a9a45d4d5c407ad6dd2ea95eb9b6"
+checksum = "6093bad37da69aab9d123a8091e4be0aa4a03e4d601ec641c327398315f62b64"
 dependencies = [
  "winapi-util",
 ]
@@ -4119,9 +4119,9 @@ checksum = "1dd624098567895118886609431a7c3b8f516e41d30e0643f03d94592a147e36"
 
 [[package]]
 name = "unicode-width"
-version = "0.1.10"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0edd1e5b14653f783770bce4a4dabb4a5108a5370a5f5d8cfe8710c361f6c8b"
+checksum = "e51733f11c9c4f72aa0c160008246859e340b00807569a0da0e7a1079b27ba85"
 
 [[package]]
 name = "unicode-xid"
@@ -4965,7 +4965,7 @@ checksum = "bab77e97b50aee93da431f2cee7cd0f43b4d1da3c408042f2d7d164187774f0a"
 
 [[package]]
 name = "xmodits-gui"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "anyhow",
  "audio_engine",

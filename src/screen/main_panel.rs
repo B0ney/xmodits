@@ -6,18 +6,73 @@ use data::time::Time;
 use entry::Entries;
 use iced::{alignment::Horizontal, Alignment, Length};
 
+use self::entry::Entry;
+
 use super::tracker_info;
+use crate::{icon, theme};
 use crate::ripper::subscription::CompleteState;
+use crate::theme::Button;
 use crate::widget::helpers::text_centered;
-use crate::widget::Element;
+use crate::widget::{Collection, Element};
 
 use crate::app::Message;
 
 use iced::widget::{
-    button, checkbox, column, container, progress_bar, row, scrollable, text, text_input, Space,
+    button, checkbox, column, container, progress_bar, row, scrollable, text, Space,
 };
 
-pub fn view_entries<'a>() {}
+pub fn view_samples<'a>() -> Element<'a, Message> {
+    todo!()
+}
+
+pub fn view_entries(entries: &Entries) -> Element<Message> {
+    let entries = &entries.entries;
+
+    if entries.is_empty() {
+        return container(text_centered("Drag and Drop"))
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .center_x()
+            .center_y()
+            .into();
+    }
+
+    scrollable(column(
+        entries
+            .iter()
+            .enumerate()
+            .map(|(index, entry)| view_entry(index, entry))
+            .collect(),
+    ))
+    .into()
+}
+
+fn view_entry(index: usize, entry: &Entry) -> Element<Message> {
+    let check = checkbox("", entry.selected, move |selected| Message::Select {
+        index,
+        selected,
+    });
+
+    let filename = text(&entry.filename());
+
+    let view = row![check, filename]
+        .push_maybe(match entry.is_dir() {
+            true => Some(row![Space::with_width(Length::Fill), icon::folder()]),
+            false => None,
+        })
+        .spacing(1)
+        .align_items(Alignment::Center);
+
+    row![
+        button(view)
+            .width(Length::Fill)
+            .on_press(Message::Probe(index))
+            .padding(4)
+            .style(theme::Button::Entry),
+        Space::with_width(15)
+    ]
+    .into()
+}
 
 fn view_ripping<'a>(
     message: &Option<String>,
@@ -183,12 +238,12 @@ fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Eleme
             };
 
             let buttons = match manually_saved {
-                    true => row![continue_button],
-                    false => row![continue_button, save_errors_button],
-                }
-                .padding(4)
-                .spacing(6)
-                .align_items(Alignment::Center);
+                true => row![continue_button],
+                false => row![continue_button, save_errors_button],
+            }
+            .padding(4)
+            .spacing(6)
+            .align_items(Alignment::Center);
 
             let view = column![
                 text("Done..."),

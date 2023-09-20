@@ -5,13 +5,6 @@ use iced::widget::{button, text};
 use crate::widget::{Element, Button, Text};
 
 
-pub fn entry<'a, Message>(
-    on_checked: Message,
-    on_pressed: Message,
-) -> Element<'a, Message> {
-    todo!()
-}
-
 pub fn centered_button<'a, Message>(content: impl Into<Element<'a, Message>>) -> Button<'a, Message> {
     button(content)
         

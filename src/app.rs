@@ -12,6 +12,7 @@ use crate::screen::config::advanced::{self, AdvancedConfig};
 use crate::screen::config::sample_naming::{self, NamingConfig};
 use crate::screen::config::sample_ripping::{self, RippingConfig, DESTINATION_BAR_ID};
 use crate::screen::history::History;
+use crate::screen::main_panel;
 use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, build_info, main_panel::entry::Entries};
 use crate::theme;
@@ -185,6 +186,10 @@ pub enum Message {
     SaveConfigResult(),
     SaveErrors,
     SaveErrorsResult(),
+    Select {
+        index: usize,
+        selected: bool,
+    },
     SelectAll(bool),
     StartRipping,
     Subscription(RipperMessage),
@@ -209,6 +214,8 @@ impl Application for XMODITS {
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
+        tracing::info!("{:?}",&message);
+
         match message {
             Message::About(msg) => about::update(msg),
             Message::AboutPressed => self.view = View::About,
@@ -271,6 +278,8 @@ impl Application for XMODITS {
             Message::SaveConfigResult() => {}
             Message::SaveErrors => todo!(),
             Message::SaveErrorsResult() => todo!(),
+            Message::Select { index, selected } => self.entries.select(index, selected),
+            Message::SelectAll(selected) => self.entries.select_all(selected),
             Message::StartRipping => {
                 if self.state.is_ripping() | self.entries.is_empty() | !self.ripper.is_active() {
                     return Command::none();
@@ -292,7 +301,6 @@ impl Application for XMODITS {
                     errors: 0,
                 }
             }
-            Message::SelectAll(selected) => self.entries.select_all(selected),
             Message::Subscription(msg) => match msg {
                 RipperMessage::Ready(sender) => self.ripper.set_sender(sender),
                 RipperMessage::Info(info) => self.state.update_message(info),
@@ -343,7 +351,7 @@ impl Application for XMODITS {
 
         let right_half = column![
             destination,
-            // self.entries
+            main_panel::view_entries(&self.entries),
             right_bottom_buttons
         ];
 
