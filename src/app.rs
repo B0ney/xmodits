@@ -21,7 +21,7 @@ use crate::widget::{Collection, Column, Container, Element};
 
 use data::Config;
 
-use iced::widget::{button, column, row, text_input, Space};
+use iced::widget::{button, checkbox, column, row, text_input, Space};
 use iced::{window, Application, Command, Length, Subscription};
 
 /// XMODITS graphical application
@@ -191,6 +191,7 @@ pub enum Message {
         selected: bool,
     },
     SelectAll(bool),
+    SetTheme,
     StartRipping,
     Subscription(RipperMessage),
 }
@@ -214,8 +215,6 @@ impl Application for XMODITS {
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
-        tracing::info!("{:?}",&message);
-
         match message {
             Message::About(msg) => about::update(msg),
             Message::AboutPressed => self.view = View::About,
@@ -280,6 +279,7 @@ impl Application for XMODITS {
             Message::SaveErrorsResult() => todo!(),
             Message::Select { index, selected } => self.entries.select(index, selected),
             Message::SelectAll(selected) => self.entries.select_all(selected),
+            Message::SetTheme => todo!(),
             Message::StartRipping => {
                 if self.state.is_ripping() | self.entries.is_empty() | !self.ripper.is_active() {
                     return Command::none();
@@ -329,12 +329,19 @@ impl Application for XMODITS {
             button(row!["START", icon::download()]).on_press(Message::StartRipping),
         ];
 
-        let left_half = column![
-            top_left_menu,
-            self.naming_cfg.view().map(Message::NamingCfg),
-            self.ripping_cfg.view().map(Message::RippingCfg),
-            bottom_left_buttons,
-        ];
+        let left_view = match self.view {
+            View::Configure => column![
+                self.naming_cfg.view().map(Message::NamingCfg),
+                self.ripping_cfg.view().map(Message::RippingCfg),
+                bottom_left_buttons,
+            ]
+            .into(),
+            View::Settings => todo!(),
+            View::About => about::view().map(Message::About),
+            View::Help => todo!(),
+        };
+
+        let left_half = column![top_left_menu, left_view];
 
         let destination =
             sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
@@ -347,13 +354,38 @@ impl Application for XMODITS {
             button("Clear").on_press(Message::Clear),
         ];
 
-        // let main_view =
-
-        let right_half = column![
-            destination,
-            main_panel::view_entries(&self.entries),
-            right_bottom_buttons
+        let top_right_buttons = row![
+            button("Invert")
+                .on_press(Message::InvertSelection)
+                .padding(5),
+            checkbox("Select All", self.entries.all_selected, Message::SelectAll)
         ];
+
+        let main_view = match &self.state {
+            State::Idle => main_panel::view_entries(&self.entries),
+            State::SamplePreview() => todo!(),
+            State::Ripping {
+                message,
+                progress,
+                errors,
+            } => main_panel::view_ripping(message, *progress, *errors),
+            State::Finished { state, time } => main_panel::view_finished(state, time),
+        };
+
+        let bad_cfg_warning = main_panel::warning(
+            || !self.ripping_cfg.0.self_contained && !self.naming_cfg.0.prefix,
+            "\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
+        );
+
+        let too_many_files_warning = main_panel::warning(
+            || self.entries.len() > 200,
+            "That's a lot of files! You REALLY should be using folders.",
+        );
+
+        let right_half = column![destination, top_right_buttons, main_view]
+            .push_maybe(bad_cfg_warning)
+            .push_maybe(too_many_files_warning)
+            .push(right_bottom_buttons);
 
         let main = row![left_half, right_half];
 

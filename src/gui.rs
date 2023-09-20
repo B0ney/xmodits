@@ -78,75 +78,11 @@ pub enum Message {
     // SaveFile(Option<PathBuf>),
 }
 
-#[derive(Default, Debug, Clone)]
-pub enum State {
-    #[default]
-    Idle,
-    Ripping {
-        message: Option<String>,
-        progress: f32,
-        total_errors: u64,
-    },
-    Done(CompleteState),
-}
-
-impl State {
-    fn progress(&mut self, progress_update: f32, errors: u64) {
-        if let Self::Ripping {
-            progress,
-            total_errors,
-            ..
-        } = self
-        {
-            *progress = progress_update;
-            *total_errors = errors
-        }
-    }
-
-    fn message(&mut self, message_update: Option<String>) {
-        if let Self::Ripping { message, .. } = self {
-            *message = message_update;
-        }
-    }
-}
-
-#[derive(Default)]
-pub struct App {
-    view: View,
-    state: State,
-    general_config: GeneralConfig,
-    ripping_config: SampleRippingConfig,
-    entries: Entries,
-    current: Option<Info>,
-    sender: Option<Sender<StartSignal>>,
-    // history: History,
-    time: data::time::Time,
-}
-
 impl Application for App {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Theme = Theme;
     type Flags = ();
-
-    fn new(flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        let Config { ripping, general } = Config::load();
-        (
-            Self {
-                ripping_config: ripping,
-                general_config: general,
-                ..Default::default()
-            },
-            Command::batch(vec![crate::font::load().map(Message::FontsLoaded)]),
-        )
-    }
-
-    fn title(&self) -> String {
-        String::from("XMODITS")
-    }
-    fn theme(&self) -> Self::Theme {
-        self.general_config.theme.palette().clone()
-    }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
@@ -241,7 +177,6 @@ impl Application for App {
                 }
             }
             Message::SetState(state) => self.state = state,
-            // Message::SetTheme(theme) => self.general_config.theme = theme,
             Message::SaveErrors => {
                 let State::Done(errors) =  &mut self.state else {
                     return Command::none();
@@ -278,13 +213,6 @@ impl Application for App {
                     *errors = std::mem::take(&mut returned_errors);
                 };
             }
-            Message::SetGeneralCfg(general_cfg) => self.general_config.update(general_cfg),
-            Message::Cancelled => {
-                self.state.message(Some("Cancelling...".into()));
-                CANCELLED.store(true, std::sync::atomic::Ordering::Release)
-            },
-            Message::InvertSelection => self.entries.invert(),
-            Message::FontsLoaded(_) => (),
         };
         Command::none()
     }

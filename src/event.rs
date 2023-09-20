@@ -27,11 +27,11 @@ pub fn filter(event: iced::Event, status: event::Status) -> Option<Event> {
         iced::Event::Keyboard(keyboard::Event::KeyReleased {
             key_code,
             modifiers,
-        }) => match key_code {
-            // Delete will only delete the selected entries
-            keyboard::KeyCode::Delete if ignored(status) => Some(Event::Delete),
-            // SHIFT + Delete clears the entries
-            keyboard::KeyCode::Delete if modifiers.shift() => Some(Event::Clear),
+        }) => match key_code {          
+            keyboard::KeyCode::Delete if ignored(status) => match modifiers.shift() {
+                true => Some(Event::Clear), // SHIFT + Delete clears the entries
+                false => Some(Event::Delete), // Delete will only delete the selected entries
+            },
             // CTRL + S or ⌘ + S saves the current configuration
             keyboard::KeyCode::S if modifiers.command() => Some(Event::Save),
             _ => None,

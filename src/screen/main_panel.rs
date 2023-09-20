@@ -4,22 +4,31 @@ pub mod entry;
 
 use data::time::Time;
 use entry::Entries;
-use iced::{alignment::Horizontal, Alignment, Length};
+use iced::{Alignment, Length};
 
 use self::entry::Entry;
 
-use super::tracker_info;
-use crate::{icon, theme};
+use crate::ripper::extraction::error::Reason;
 use crate::ripper::subscription::CompleteState;
 use crate::theme::Button;
 use crate::widget::helpers::text_centered;
-use crate::widget::{Collection, Element};
+use crate::widget::{Collection, Element, Text};
+use crate::{icon, theme};
 
 use crate::app::Message;
 
 use iced::widget::{
     button, checkbox, column, container, progress_bar, row, scrollable, text, Space,
 };
+
+
+pub fn warning<'a>(predicate: impl Fn() -> bool, warning: impl ToString) -> Option<Text<'a>> {
+    match predicate() {
+        true => Some(text(warning)),
+        false => None,
+    }
+}
+
 
 pub fn view_samples<'a>() -> Element<'a, Message> {
     todo!()
@@ -74,7 +83,7 @@ fn view_entry(index: usize, entry: &Entry) -> Element<Message> {
     .into()
 }
 
-fn view_ripping<'a>(
+pub fn view_ripping<'a>(
     message: &Option<String>,
     progress: f32,
     total_errors: u64,
@@ -100,7 +109,10 @@ fn view_ripping<'a>(
 }
 
 /// XMODITS has finished extracting the samples
-fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Element<'a, Message> {
+pub fn view_finished<'a>(
+    complete_state: &'a CompleteState,
+    time: &'a Time,
+) -> Element<'a, Message> {
     let continue_button = button("Continue")
         // .on_press(Message::SetState(State::Idle))
         .padding(5);
@@ -168,17 +180,22 @@ fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Eleme
                 .spacing(6)
                 .align_items(Alignment::Center);
 
-            // let errors = scrollable(column(
-            //     errors
-            //         .iter()
-            //         .map(|error| {
-            //             let err = column![text(error.filename()), text(&error.reason)];
-            //             container(err).into()
-            //         })
-            //         .collect(),
-            // ));
+            let errors = scrollable(column(
+                errors
+                    .iter()
+                    .map(|error| {
+                        let reason = match &error.reason {
+                            Reason::Single(single) => text(single),
+                            Reason::Multiple(multiple) => text("multiple..."), //todo
+                        };
+                        
+                        let error = text(error.filename());
+                        container(column![error, reason]).into()
+                    })
+                    .collect(),
+            ));
 
-            let view = column![message, buttons,];
+            let view = column![message, buttons, errors];
 
             container(view)
                 .width(Length::Fill)
@@ -197,7 +214,6 @@ fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Eleme
                     .on_press(Message::Open(log.display().to_string())),
                 text_centered(format!("{} errors written", total)),
                 text_centered(time),
-                // .horizontal_alignment(Horizontal::Center),
                 // space,
                 row![continue_button]
                     .padding(4)
