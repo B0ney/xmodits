@@ -21,15 +21,6 @@ use iced::widget::{
     button, checkbox, column, container, progress_bar, row, scrollable, text, Space,
 };
 
-
-pub fn warning<'a>(predicate: impl Fn() -> bool, warning: impl ToString) -> Option<Text<'a>> {
-    match predicate() {
-        true => Some(text(warning)),
-        false => None,
-    }
-}
-
-
 pub fn view_samples<'a>() -> Element<'a, Message> {
     todo!()
 }
@@ -88,7 +79,7 @@ pub fn view_ripping<'a>(
     progress: f32,
     total_errors: u64,
 ) -> Element<'a, Message> {
-    let cancel_ripping_button = button("Continue").on_press(Message::Cancel).padding(5);
+    let cancel_ripping_button = button("Cancel").on_press(Message::Cancel).padding(5);
 
     let view = column![
         text_centered(message.as_deref().unwrap_or("Ripping...")),
@@ -188,7 +179,7 @@ pub fn view_finished<'a>(
                             Reason::Single(single) => text(single),
                             Reason::Multiple(multiple) => text("multiple..."), //todo
                         };
-                        
+
                         let error = text(error.filename());
                         container(column![error, reason]).into()
                     })

@@ -17,7 +17,7 @@ use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, build_info, main_panel::entry::Entries};
 use crate::theme;
 use crate::utils::{files_dialog, folders_dialog};
-use crate::widget::{Collection, Column, Container, Element};
+use crate::widget::{helpers, Collection, Column, Container, Element};
 
 use data::Config;
 
@@ -372,12 +372,12 @@ impl Application for XMODITS {
             State::Finished { state, time } => main_panel::view_finished(state, time),
         };
 
-        let bad_cfg_warning = main_panel::warning(
+        let bad_cfg_warning = helpers::warning(
             || !self.ripping_cfg.0.self_contained && !self.naming_cfg.0.prefix,
             "\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
         );
 
-        let too_many_files_warning = main_panel::warning(
+        let too_many_files_warning = helpers::warning(
             || self.entries.len() > 200,
             "That's a lot of files! You REALLY should be using folders.",
         );
