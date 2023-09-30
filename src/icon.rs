@@ -48,9 +48,13 @@ pub fn filter<'a>() -> Text<'a> {
     icon('\u{f3c4}')
 }
 
+pub fn save<'a>() -> Text<'a> {
+    icon('\u{e802}')
+}
+
 fn icon(unicode: char) -> Text<'static> {
     text(unicode.to_string())
         .font(font::ICONS)
-        .size(20.0)
+        .size(12.0)
         .horizontal_alignment(alignment::Horizontal::Center)
 }

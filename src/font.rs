@@ -8,7 +8,7 @@ pub static JETBRAINS_MONO: iced::Font = iced::Font {
 
 pub static ICONS: iced::Font = iced::Font {
     monospaced: true,
-    ..iced::Font::with_name("bootstrap-icons")
+    ..iced::Font::with_name("icons")
 
 };
 

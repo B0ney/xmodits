@@ -322,7 +322,7 @@ impl Application for XMODITS {
             button("About").on_press(Message::AboutPressed),
         ];
 
-        let is_ripping = !self.state.is_ripping();
+        let is_ripping = self.state.is_ripping();
 
         let bottom_left_buttons = row![
             button("Save Configuration").on_press(Message::SaveConfig),
