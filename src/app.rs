@@ -17,6 +17,7 @@ use crate::screen::{about, build_info, main_panel::entry::Entries};
 use crate::theme;
 use crate::utils::{files_dialog, folders_dialog};
 use crate::widget::{helpers, Collection, Column, Container, Element};
+use helpers::{action, warning};
 
 use data::Config;
 
@@ -321,9 +322,15 @@ impl Application for XMODITS {
             button("About").on_press(Message::AboutPressed),
         ];
 
+        let is_ripping = !self.state.is_ripping();
+
         let bottom_left_buttons = row![
             button("Save Configuration").on_press(Message::SaveConfig),
-            button(row!["START", icon::download()]).on_press(Message::StartRipping),
+            action(
+                row!["START", icon::download()],
+                Message::StartRipping,
+                || !is_ripping
+            )
         ];
 
         let left_view = match self.view {
@@ -344,11 +351,11 @@ impl Application for XMODITS {
             sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
 
         let right_bottom_buttons = row![
-            button("Add File").on_press(Message::FileDialog),
-            button("Add Folder").on_press(Message::FolderDialog),
+            action("Add File", Message::FileDialog, || !is_ripping),
+            action("Add Folder", Message::FolderDialog, || !is_ripping),
             Space::with_width(Length::Fill),
-            button("Delete Selected").on_press(Message::DeleteSelected),
-            button("Clear").on_press(Message::Clear),
+            action("Delete Selected", Message::DeleteSelected, || !is_ripping),
+            action("Clear", Message::Clear, || !is_ripping),
         ];
 
         let top_right_buttons = row![
@@ -369,12 +376,12 @@ impl Application for XMODITS {
             State::Finished { state, time } => main_panel::view_finished(state, time),
         };
 
-        let bad_cfg_warning = helpers::warning(
+        let bad_cfg_warning = warning(
             || !self.ripping_cfg.0.self_contained && !self.naming_cfg.0.prefix,
             "\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
         );
 
-        let too_many_files_warning = helpers::warning(
+        let too_many_files_warning = warning(
             || self.entries.len() > 200,
             "That's a lot of files! You REALLY should be using folders.",
         );

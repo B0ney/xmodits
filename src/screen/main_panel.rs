@@ -11,7 +11,7 @@ use self::entry::Entry;
 use crate::ripper::extraction::error::Reason;
 use crate::ripper::subscription::CompleteState;
 use crate::theme::Button;
-use crate::widget::helpers::text_centered;
+use crate::widget::helpers::{centered_container, centered_text};
 use crate::widget::{Collection, Element, Text};
 use crate::{icon, theme};
 
@@ -29,12 +29,7 @@ pub fn view_entries(entries: &Entries) -> Element<Message> {
     let entries = &entries.entries;
 
     if entries.is_empty() {
-        return container(text_centered("Drag and Drop"))
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .center_x()
-            .center_y()
-            .into();
+        return centered_container(centered_text("Drag and Drop")).into();
     }
 
     scrollable(column(
@@ -82,21 +77,16 @@ pub fn view_ripping<'a>(
     let cancel_ripping_button = button("Cancel").on_press(Message::Cancel).padding(5);
 
     let view = column![
-        text_centered(message.as_deref().unwrap_or("Ripping...")),
+        centered_text(message.as_deref().unwrap_or("Ripping...")),
         progress_bar(0.0..=100.0, progress).height(5).width(200),
         cancel_ripping_button,
-        text_centered(format!("Errors: {}", total_errors)),
+        centered_text(format!("Errors: {}", total_errors)),
         // gif(&GIF.ripping)
     ]
     .spacing(8)
     .align_items(Alignment::Center);
 
-    container(view)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center_x()
-        .center_y()
-        .into()
+    centered_container(view).into()
 }
 
 /// XMODITS has finished extracting the samples
@@ -113,7 +103,7 @@ pub fn view_finished<'a>(
         .padding(5);
 
     match complete_state {
-        CompleteState::NoErrors => container(
+        CompleteState::NoErrors => centered_container(
             column![
                 text("Done! \\(^_^)/"),
                 text("Drag and Drop"),
@@ -123,13 +113,9 @@ pub fn view_finished<'a>(
             ]
             .align_items(Alignment::Center),
         )
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center_x()
-        .center_y()
         .into(),
 
-        CompleteState::Cancelled => container(
+        CompleteState::Cancelled => centered_container(
             column![
                 text("Cancelled"),
                 text("Drag and Drop"),
@@ -139,14 +125,10 @@ pub fn view_finished<'a>(
             ]
             .align_items(Alignment::Center),
         )
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center_x()
-        .center_y()
         .into(),
 
         // TODO
-        CompleteState::Aborted => container(
+        CompleteState::Aborted => centered_container(
             column![
                 text("An internal error occured."),
                 Space::with_height(15),
@@ -154,15 +136,11 @@ pub fn view_finished<'a>(
             ]
             .align_items(Alignment::Center),
         )
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center_x()
-        .center_y()
         .into(),
 
         CompleteState::SomeErrors(errors) => {
             let message = column![
-                text_centered("Done... But xmodits could not rip everything... (._.)"),
+                centered_text("Done... But xmodits could not rip everything... (._.)"),
                 text("took...")
             ];
 
@@ -188,12 +166,7 @@ pub fn view_finished<'a>(
 
             let view = column![message, buttons, errors];
 
-            container(view)
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .center_x()
-                .center_y()
-                .into()
+            centered_container(view).into()
         }
 
         CompleteState::TooMuchErrors { log, total } => {
@@ -201,10 +174,10 @@ pub fn view_finished<'a>(
                 text("Done..."),
                 text("But there's too many errors to display! (-_-')"),
                 text("Check the logs at:"),
-                button(text_centered(log.display()))
+                button(centered_text(log.display()))
                     .on_press(Message::Open(log.display().to_string())),
-                text_centered(format!("{} errors written", total)),
-                text_centered(time),
+                centered_text(format!("{} errors written", total)),
+                centered_text(time),
                 // space,
                 row![continue_button]
                     .padding(4)
@@ -214,12 +187,7 @@ pub fn view_finished<'a>(
             .padding(4)
             .spacing(6);
 
-            container(view)
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .center_x()
-                .center_y()
-                .into()
+            centered_container(view).into()
         }
 
         CompleteState::TooMuchErrorsNoLog {
@@ -256,7 +224,7 @@ pub fn view_finished<'a>(
                 text("Done..."),
                 text("But there's too many errors to display! (-_-')"),
                 text("...and I can't store them to a file either:"),
-                text_centered(format!("\"{}\"", reason)),
+                centered_text(format!("\"{}\"", reason)),
                 // .style(style::text::Text::Error),
                 buttons,
                 error_message,
@@ -266,12 +234,7 @@ pub fn view_finished<'a>(
             .padding(4)
             .spacing(6);
 
-            container(view)
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .center_x()
-                .center_y()
-                .into()
+            centered_container(view).into()
         }
     }
 }
