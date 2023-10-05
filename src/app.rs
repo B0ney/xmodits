@@ -21,7 +21,8 @@ use helpers::{action, warning};
 
 use data::Config;
 
-use iced::widget::{button, checkbox, column, row, text_input, Space};
+use iced::widget::{button, checkbox, column, row, text_input, Space, horizontal_rule, text};
+use iced::Alignment;
 use iced::{window, Application, Command, Length, Subscription};
 
 /// XMODITS graphical application
@@ -94,7 +95,8 @@ pub fn settings(config: Config) -> iced::Settings<Config> {
         flags: config,
         window: window::Settings {
             icon: Some(icon()),
-            min_size: Some((800, 720)),
+            size: (780, 720),
+            min_size: Some((780, 720)),
             ..Default::default()
         },
         ..Default::default()
@@ -174,6 +176,7 @@ pub enum Message {
     FileDialog,
     FolderDialog,
     FontsLoaded(Result<(), iced::font::Error>),
+    HistoryPressed,
     Ignore,
     InvertSelection,
     NamingCfg(sample_naming::Message),
@@ -255,6 +258,7 @@ impl Application for XMODITS {
                     tracing::error!("could not load font")
                 }
             }
+            Message::HistoryPressed => {}
             Message::Ignore => (),
             Message::RippingCfg(msg) => {
                 return self.ripping_cfg.update(msg).map(Message::RippingCfg)
@@ -318,34 +322,42 @@ impl Application for XMODITS {
     fn view(&self) -> Element<Message> {
         let top_left_menu = row![
             button("Configure").on_press(Message::ConfigPressed),
+            button("History").on_press(Message::HistoryPressed),
             button("Settings").on_press(Message::ConfigPressed),
             button("About").on_press(Message::AboutPressed),
-        ];
+        ]
+        .spacing(5)
+        .width(Length::FillPortion(1))
+        .align_items(Alignment::Center);
 
         let is_ripping = self.state.is_ripping();
 
-        let bottom_left_buttons = row![
-            button("Save Configuration").on_press(Message::SaveConfig),
-            action(
-                row!["START", icon::download()],
-                Message::StartRipping,
-                || !is_ripping
-            )
-        ];
-
         let left_view = match self.view {
-            View::Configure => column![
-                self.naming_cfg.view().map(Message::NamingCfg),
-                self.ripping_cfg.view().map(Message::RippingCfg),
-                bottom_left_buttons,
-            ]
-            .into(),
+            View::Configure => {
+                let bottom_left_buttons = row![
+                    button(row!["Save Configuration", icon::save()]).on_press(Message::SaveConfig),
+                    action(
+                        row!["START", icon::download()],
+                        Message::StartRipping,
+                        || !is_ripping
+                    )
+                ];
+
+                column![
+                    self.naming_cfg.view().map(Message::NamingCfg),
+                    self.ripping_cfg.view().map(Message::RippingCfg),
+                    bottom_left_buttons,
+                ].spacing(8)
+                .into()
+            }
             View::Settings => todo!(),
             View::About => about::view().map(Message::About),
             View::Help => todo!(),
         };
 
-        let left_half = column![top_left_menu, left_view];
+        let left_half = column![top_left_menu, left_view]
+            .width(Length::FillPortion(4))
+            .spacing(10);
 
         let destination =
             sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
@@ -356,14 +368,20 @@ impl Application for XMODITS {
             Space::with_width(Length::Fill),
             action("Delete Selected", Message::DeleteSelected, || !is_ripping),
             action("Clear", Message::Clear, || !is_ripping),
-        ];
+        ]
+        .spacing(5);
 
         let top_right_buttons = row![
+            text(format!("Entries: {}", self.entries.len())),
+            text(format!("Selected: {}", self.entries.total_selected())),
+            Space::with_width(Length::Fill),
             button("Invert")
                 .on_press(Message::InvertSelection)
                 .padding(5),
             checkbox("Select All", self.entries.all_selected, Message::SelectAll)
-        ];
+        ]
+        .spacing(15)
+        .align_items(Alignment::Center);
 
         let main_view = match &self.state {
             State::Idle => main_panel::view_entries(&self.entries),
@@ -389,9 +407,11 @@ impl Application for XMODITS {
         let right_half = column![destination, top_right_buttons, main_view]
             .push_maybe(bad_cfg_warning)
             .push_maybe(too_many_files_warning)
-            .push(right_bottom_buttons);
+            .push(right_bottom_buttons)
+            .width(Length::FillPortion(5))
+            .spacing(10);
 
-        let main = row![left_half, right_half];
+        let main = row![left_half, right_half].spacing(10);
 
         Container::new(main)
             .width(Length::Fill)

@@ -1,15 +1,17 @@
 //! Configure how samples should be extracted
 
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
-use data::config::{self,SampleRippingConfig};
+use data::config::{self, SampleRippingConfig};
 use data::xmodits_lib::exporter::AudioFormat;
 
+use crate::theme;
+use crate::widget::helpers::centered_text;
 use crate::widget::Element;
 use iced::widget::{
     button, checkbox, column, container, horizontal_rule, pick_list, row, text, text_input,
 };
-use iced::Command;
+use iced::{Alignment, Command, Length};
 
 use once_cell::sync::Lazy;
 
@@ -24,14 +26,15 @@ impl RippingConfig {
         update(&mut self.0, message)
     }
 
-    pub fn view(&self)  -> Element<Message> {
+    pub fn view(&self) -> Element<Message> {
         view(&self.0)
     }
 
     pub fn destination_is_valid(&self) -> bool {
-        self.0.destination.parent().is_some_and(|path|  {
-            path.exists() && path != Path::new("")
-        })
+        self.0
+            .destination
+            .parent()
+            .is_some_and(|path| path.exists() && path != Path::new(""))
     }
 }
 
@@ -81,7 +84,10 @@ pub fn view_destination_bar(destination: &RippingConfig) -> Element<Message> {
         .on_press(Message::DestinationDialog)
         .padding(10);
 
-    row![input, button].into()
+    row![input, button]
+        .spacing(5)
+        .width(Length::FillPortion(1))
+        .into()
 }
 
 pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
@@ -92,7 +98,8 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
             Message::SelfContained
         ),
         checkbox("Strict Loading", ripping.strict, Message::StrictLoad),
-    ];
+    ]
+    .spacing(8);
 
     let export_format = row![
         pick_list(
@@ -101,7 +108,9 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
             Message::ExportFormat
         ),
         text("Export Format"),
-    ];
+    ]
+    .align_items(Alignment::Center)
+    .spacing(8);
 
     let options: &[u8] = &[1, 2, 3, 4, 5, 6, 7];
     let folder_scan_depth = row![
@@ -111,7 +120,9 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
             Message::FolderDepth
         ),
         text("Folder Scan Depth"),
-    ];
+    ]
+    .align_items(Alignment::Center)
+    .spacing(8);
 
     let options = [0usize, 1, 2, 4, 6, 8, 10, 12, 16].map(Workers).to_vec();
     let worker_threads = row![
@@ -121,19 +132,34 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
             Message::WorkerThreads
         ),
         text("Worker Threads"),
-    ];
+    ]
+    .align_items(Alignment::Center)
+    .spacing(8);
 
     let settings = column![
         col1,
         export_format,
+        horizontal_rule(1),
+        folder_scan_depth,
         worker_threads,
-        // horizontal_rule(1),
-        folder_scan_depth
-    ];
+    ]
+    .spacing(8);
 
-    let settings = column![text("Ripping Configuration"), settings];
+    let settings = column![
+        container(centered_text("Ripping Configuration"))
+            .width(Length::Fill)
+            .center_x()
+            .center_y(),
+        horizontal_rule(1),
+        settings
+    ]
+    .spacing(8);
 
-    container(settings).into()
+    container(settings)
+        .width(Length::Fill)
+        .padding(10)
+        .style(theme::Container::Frame)
+        .into()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]

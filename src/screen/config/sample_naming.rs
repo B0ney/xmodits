@@ -2,8 +2,10 @@
 
 use data::config::{self, SampleNameConfig};
 
-use crate::widget::Element;
-use iced::widget::{checkbox, column, container,pick_list, row, text};
+use crate::theme;
+use crate::widget::{helpers::centered_text, Element};
+use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
+use iced::{Alignment, Length};
 
 #[derive(Debug, Default)]
 pub struct NamingConfig(pub config::SampleNameConfig);
@@ -14,7 +16,7 @@ impl NamingConfig {
         update(&mut self.0, message)
     }
 
-    pub fn view(&self)  -> Element<Message> {
+    pub fn view(&self) -> Element<Message> {
         view(&self.0)
     }
 }
@@ -75,7 +77,8 @@ pub fn view<'a>(config: &'a SampleNameConfig) -> Element<'a, Message> {
         checkbox("Index Only", config.index_only, Message::IndexOnly),
         checkbox("Preserve Index", config.index_raw, Message::IndexRaw),
         checkbox("Prefix Samples", config.prefix, Message::PrefixSamples),
-    ];
+    ]
+    .spacing(8);
 
     let col2 = column![
         checkbox("Upper Case", config.upper, Message::UpperCase),
@@ -85,19 +88,34 @@ pub fn view<'a>(config: &'a SampleNameConfig) -> Element<'a, Message> {
             config.prefer_filename,
             Message::PreferFilename
         ),
-    ];
+    ]
+    .spacing(8);
 
-    let checkboxes = row![col1, col2];
+    let checkboxes = row![col1, col2].spacing(8);
 
     let options: &[u8] = &[1, 2, 3, 4];
     let idx_padding = row![
         pick_list(options, Some(config.index_padding), Message::IndexPadding),
         "Index Padding"
-    ];
+    ]
+    .align_items(Alignment::Center)
+    .spacing(8);
 
-    let settings = column![checkboxes, idx_padding,];
+    let settings = column![checkboxes, idx_padding].spacing(8);
 
-    let settings = column![text("Sample Naming"), settings];
+    let settings = column![
+        container(centered_text("Sample Naming"))
+            .width(Length::Fill)
+            .center_x()
+            .center_y(),
+        horizontal_rule(1),
+        settings
+    ]
+    .spacing(8);
 
-    container(settings).into()
+    container(settings)
+        .style(theme::Container::Frame)
+        .padding(8)
+        .width(Length::Fill)
+        .into()
 }

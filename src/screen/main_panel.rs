@@ -11,8 +11,8 @@ use self::entry::Entry;
 use crate::ripper::extraction::error::Reason;
 use crate::ripper::subscription::CompleteState;
 use crate::theme::Button;
-use crate::widget::helpers::{centered_container, centered_text};
-use crate::widget::{Collection, Element, Text};
+use crate::widget::helpers::{centered_container, centered_text, fill_container};
+use crate::widget::{Collection, Container, Element, Text};
 use crate::{icon, theme};
 
 use crate::app::Message;
@@ -29,20 +29,22 @@ pub fn view_entries(entries: &Entries) -> Element<Message> {
     let entries = &entries.entries;
 
     if entries.is_empty() {
-        return centered_container(centered_text("Drag and Drop")).into();
+        return centered_container(centered_text("Drag and Drop"))
+            .style(theme::Container::Black)
+            .into();
     }
 
-    scrollable(column(
-        entries
-            .iter()
-            .enumerate()
-            .map(|(index, entry)| view_entry(index, entry))
-            .collect(),
+    fill_container(scrollable(
+        column(entries.iter().enumerate().map(view_entry).collect())
+            .spacing(10)
+            .padding(5),
     ))
+    .style(theme::Container::Black)
+    .padding(5)
     .into()
 }
 
-fn view_entry(index: usize, entry: &Entry) -> Element<Message> {
+fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
     let check = checkbox("", entry.selected, move |selected| Message::Select {
         index,
         selected,
@@ -51,10 +53,11 @@ fn view_entry(index: usize, entry: &Entry) -> Element<Message> {
     let filename = text(&entry.filename());
 
     let view = row![check, filename]
-        .push_maybe(match entry.is_dir() {
-            true => Some(row![Space::with_width(Length::Fill), icon::folder()]),
-            false => None,
-        })
+        .push_maybe(
+            entry
+                .is_dir()
+                .then(|| row![Space::with_width(Length::Fill), icon::folder()]),
+        )
         .spacing(1)
         .align_items(Alignment::Center);
 
@@ -86,7 +89,9 @@ pub fn view_ripping<'a>(
     .spacing(8)
     .align_items(Alignment::Center);
 
-    centered_container(view).into()
+    centered_container(view)
+        .style(theme::Container::Black)
+        .into()
 }
 
 /// XMODITS has finished extracting the samples
@@ -113,6 +118,7 @@ pub fn view_finished<'a>(
             ]
             .align_items(Alignment::Center),
         )
+        .style(theme::Container::Black)
         .into(),
 
         CompleteState::Cancelled => centered_container(
@@ -125,6 +131,7 @@ pub fn view_finished<'a>(
             ]
             .align_items(Alignment::Center),
         )
+        .style(theme::Container::Black)
         .into(),
 
         // TODO
@@ -166,7 +173,9 @@ pub fn view_finished<'a>(
 
             let view = column![message, buttons, errors];
 
-            centered_container(view).into()
+            centered_container(view)
+                .style(theme::Container::Black)
+                .into()
         }
 
         CompleteState::TooMuchErrors { log, total } => {
@@ -187,7 +196,9 @@ pub fn view_finished<'a>(
             .padding(4)
             .spacing(6);
 
-            centered_container(view).into()
+            centered_container(view)
+                .style(theme::Container::Black)
+                .into()
         }
 
         CompleteState::TooMuchErrorsNoLog {
@@ -234,7 +245,9 @@ pub fn view_finished<'a>(
             .padding(4)
             .spacing(6);
 
-            centered_container(view).into()
+            centered_container(view)
+                .style(theme::Container::Black)
+                .into()
         }
     }
 }

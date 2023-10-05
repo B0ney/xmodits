@@ -39,3 +39,12 @@ pub fn centered_container<'a, Message>(
         .center_x()
         .center_y()
 }
+
+
+pub fn fill_container<'a, Message>(
+    content: impl Into<Element<'a, Message>>,
+) -> Container<'a, Message> {
+    container(content)
+        .width(Length::Fill)
+        .height(Length::Fill)
+}
