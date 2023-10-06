@@ -16,7 +16,7 @@ pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
         ("Repository", info::PKG_REPOSITORY),
         ("Git Hash", info::GIT_COMMIT_HASH.unwrap_or("none")),
         ("Rustc Version", info::RUSTC_VERSION),
-        ("Target Architechture", info::CFG_TARGET_ARCH),
+        ("Target Architecture", info::CFG_TARGET_ARCH),
         ("Build Date", info::BUILT_TIME_UTC),
     ];
 

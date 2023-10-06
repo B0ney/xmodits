@@ -137,7 +137,7 @@ pub fn view_finished<'a>(
         // TODO
         CompleteState::Aborted => centered_container(
             column![
-                text("An internal error occured."),
+                text("An internal error occurred."),
                 Space::with_height(15),
                 continue_button
             ]

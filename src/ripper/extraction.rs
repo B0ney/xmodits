@@ -353,7 +353,7 @@ impl<'io> Batcher<'io> {
     ///
     /// This indicates we've reached the end of the file.
     pub fn load(&mut self) -> bool {
-        // Aquire buffer
+        // Acquire buffer
         let buffer = self.buffer.current_buffer();
         let mut buffer = buffer.lock();
 
@@ -372,7 +372,7 @@ impl<'io> Batcher<'io> {
         self.batch_number += 1;
         GLOBAL_TRACKER.incr_batch_number();
 
-        // Have a way of notifiying the caller that this is is the last batch,
+        // Have a way of notifying the caller that this is is the last batch,
         // and should not be called again.
         buffer.len() < self.batch_size
     }

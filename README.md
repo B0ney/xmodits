@@ -92,7 +92,7 @@ Configure how ripped samples are named.
 | ``Prefer Filename`` | Some samples have an additional filename. If present, xmodits will name samples with that. |
 | ``Index Padding`` | Set the minimum amount of digits an index must have. Indexes will be padded with zeros to match the minimum amount of digits*. Set to 1 to disable padding.|
 
-\* xmodits may override this value to ensure that samples are named consistantly (unless it is set to 1).
+\* xmodits may override this value to ensure that samples are named consistently (unless it is set to 1).
 
 ### Ripping Configuration
 
@@ -162,6 +162,6 @@ xmodits is licensed under the GPLv3
 
 ## Special Thanks
 - The GUI was made with [Iced](https://github.com/iced-rs/iced)
-- [@0x192](https://github.com/0x192) (and contributers) for their [Universal Android Debloat tool](https://github.com/0x192/universal-android-debloater/). I've learned a lot of gui stuff from that project.
+- [@0x192](https://github.com/0x192) (and contributors) for their [Universal Android Debloat tool](https://github.com/0x192/universal-android-debloater/). I've learned a lot of gui stuff from that project.
 - [SatyrDiamond](https://github.com/SatyrDiamond)'s [DawVert](https://github.com/SatyrDiamond/DawVert), A program to convert different daw project files to other formats. 
 - The animated fox gif was obtained from: https://github.com/tonybaloney/vscode-pets

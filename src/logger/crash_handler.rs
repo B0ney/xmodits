@@ -75,7 +75,7 @@ pub fn set_panic_hook() {
 
         let message: String = match &dump.message {
             Some(e) => e.into(),
-            None => "Panic occured".into(),
+            None => "Panic occurred".into(),
         };
 
         dialog::critical_error(&format!("{}\n{:?}", info, message));

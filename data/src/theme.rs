@@ -6,7 +6,7 @@ pub use themes::Themes;
 
 pub struct Theme {
     pub name: String,
-    pub pallette: Palette,
+    pub palette: Palette,
 }
 
 #[derive(Debug, Clone, Copy)]
