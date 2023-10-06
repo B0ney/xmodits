@@ -16,12 +16,12 @@ use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, build_info, main_panel::entry::Entries};
 use crate::theme;
 use crate::utils::{files_dialog, folders_dialog};
-use crate::widget::{helpers, Collection, Column, Container, Element};
-use helpers::{action, warning};
+use crate::widget::{Collection, Column, Container, Element};
+use crate::widget::helpers::{action, warning};
 
 use data::Config;
 
-use iced::widget::{button, checkbox, column, row, text_input, Space, horizontal_rule, text};
+use iced::widget::{button, checkbox, column, row, text, text_input, Space};
 use iced::Alignment;
 use iced::{window, Application, Command, Length, Subscription};
 
@@ -163,7 +163,6 @@ pub enum View {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    About(about::Message),
     AboutPressed,
     Add(Option<Vec<PathBuf>>),
     #[cfg(feature = "audio")]
@@ -218,7 +217,6 @@ impl Application for XMODITS {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::About(msg) => about::update(msg),
             Message::AboutPressed => self.view = View::About,
             Message::Add(paths) => {
                 if self.state.is_ripping() {
@@ -310,9 +308,9 @@ impl Application for XMODITS {
                     self.state.update_progress(progress, errors)
                 }
                 ripper::Message::Done { state, time } => {
-                    self.ripper.reset_stop_flag(); // todo: should this be here?
+                    // self.ripper.reset_stop_flag(); // todo: should this be here?
                     self.state = State::Finished { state, time };
-                    tracing::debug!("{:#?}", self.state);
+                    // tracing::debug!("{:#?}", self.state);
                 }
             },
         }
@@ -343,19 +341,27 @@ impl Application for XMODITS {
                     )
                 ];
 
+                let name_preview = name_preview::preview_name(
+                    &SampleNameParams::default(),
+                    &self.naming_cfg.0,
+                    &self.ripping_cfg.0,
+                );
+
                 column![
-                    self.naming_cfg.view().map(Message::NamingCfg),
+                    tracker_info::view(self.tracker_info.as_ref()),
+                    self.naming_cfg.view(name_preview).map(Message::NamingCfg),
                     self.ripping_cfg.view().map(Message::RippingCfg),
                     bottom_left_buttons,
-                ].spacing(8)
+                ]
+                .spacing(8)
                 .into()
             }
             View::Settings => todo!(),
-            View::About => about::view().map(Message::About),
+            View::About => about::view(),
             View::Help => todo!(),
         };
 
-        let left_half = column![top_left_menu, left_view]
+        let left_half = column![top_left_menu, Space::with_height(2), left_view]
             .width(Length::FillPortion(4))
             .spacing(10);
 
@@ -375,9 +381,7 @@ impl Application for XMODITS {
             text(format!("Entries: {}", self.entries.len())),
             text(format!("Selected: {}", self.entries.total_selected())),
             Space::with_width(Length::Fill),
-            button("Invert")
-                .on_press(Message::InvertSelection)
-                .padding(5),
+            button("Invert").on_press(Message::InvertSelection),
             checkbox("Select All", self.entries.all_selected, Message::SelectAll)
         ]
         .spacing(15)

@@ -6,7 +6,7 @@ use data::config::{self, SampleRippingConfig};
 use data::xmodits_lib::exporter::AudioFormat;
 
 use crate::theme;
-use crate::widget::helpers::centered_text;
+use crate::widget::helpers::{centered_text, control, labelled_picklist, centered_button};
 use crate::widget::Element;
 use iced::widget::{
     button, checkbox, column, container, horizontal_rule, pick_list, row, text, text_input,
@@ -80,9 +80,8 @@ pub fn view_destination_bar(destination: &RippingConfig) -> Element<Message> {
             Message::Destination(Some(destination))
         });
 
-    let button = button("Select")
-        .on_press(Message::DestinationDialog)
-        .padding(10);
+    let button = centered_button("Select")
+        .on_press(Message::DestinationDialog);
 
     row![input, button]
         .spacing(5)
@@ -101,40 +100,27 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
     ]
     .spacing(8);
 
-    let export_format = row![
-        pick_list(
-            data::SUPPORTED_FORMATS,
-            Some(ripping.exported_format),
-            Message::ExportFormat
-        ),
-        text("Export Format"),
-    ]
-    .align_items(Alignment::Center)
-    .spacing(8);
+    let export_format = labelled_picklist(
+        "Export Format",
+        data::SUPPORTED_FORMATS,
+        Some(ripping.exported_format),
+        Message::ExportFormat,
+    );
 
-    let options: &[u8] = &[1, 2, 3, 4, 5, 6, 7];
-    let folder_scan_depth = row![
-        pick_list(
-            options,
-            Some(ripping.folder_max_depth),
-            Message::FolderDepth
-        ),
-        text("Folder Scan Depth"),
-    ]
-    .align_items(Alignment::Center)
-    .spacing(8);
+    let folder_scan_depth = labelled_picklist(
+        "Folder Scan Depth",
+        [1, 2, 3, 4, 5, 6, 7].as_slice(),
+        Some(ripping.folder_max_depth),
+        Message::FolderDepth,
+    );
 
     let options = [0usize, 1, 2, 4, 6, 8, 10, 12, 16].map(Workers).to_vec();
-    let worker_threads = row![
-        pick_list(
-            options,
-            Some(Workers(ripping.worker_threads)),
-            Message::WorkerThreads
-        ),
-        text("Worker Threads"),
-    ]
-    .align_items(Alignment::Center)
-    .spacing(8);
+    let worker_threads = labelled_picklist(
+        "Worker Threads",
+        options,
+        Some(Workers(ripping.worker_threads)),
+        Message::WorkerThreads,
+    );
 
     let settings = column![
         col1,
@@ -145,21 +131,7 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
     ]
     .spacing(8);
 
-    let settings = column![
-        container(centered_text("Ripping Configuration"))
-            .width(Length::Fill)
-            .center_x()
-            .center_y(),
-        horizontal_rule(1),
-        settings
-    ]
-    .spacing(8);
-
-    container(settings)
-        .width(Length::Fill)
-        .padding(10)
-        .style(theme::Container::Frame)
-        .into()
+    control("Ripping Configuration", settings).into()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]

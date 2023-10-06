@@ -3,7 +3,9 @@
 use data::config::{self, SampleNameConfig};
 
 use crate::theme;
+use crate::widget::helpers::{control, labelled_picklist, centered_column_x};
 use crate::widget::{helpers::centered_text, Element};
+
 use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
 use iced::{Alignment, Length};
 
@@ -16,8 +18,8 @@ impl NamingConfig {
         update(&mut self.0, message)
     }
 
-    pub fn view(&self) -> Element<Message> {
-        view(&self.0)
+    pub fn view(&self, preview: impl ToString) -> Element<Message> {
+        view(&self.0, preview)
     }
 }
 
@@ -72,7 +74,7 @@ pub fn update(cfg: &mut SampleNameConfig, message: Message) {
     }
 }
 
-pub fn view<'a>(config: &'a SampleNameConfig) -> Element<'a, Message> {
+pub fn view<'a>(config: &'a SampleNameConfig, preview: impl ToString) -> Element<'a, Message> {
     let col1 = column![
         checkbox("Index Only", config.index_only, Message::IndexOnly),
         checkbox("Preserve Index", config.index_raw, Message::IndexRaw),
@@ -92,30 +94,22 @@ pub fn view<'a>(config: &'a SampleNameConfig) -> Element<'a, Message> {
     .spacing(8);
 
     let checkboxes = row![col1, col2].spacing(8);
+    let idx_padding = labelled_picklist(
+        "Index Padding",
+        [1, 2, 3, 4].as_slice(),
+        Some(config.index_padding),
+        Message::IndexPadding,
+    );
 
-    let options: &[u8] = &[1, 2, 3, 4];
-    let idx_padding = row![
-        pick_list(options, Some(config.index_padding), Message::IndexPadding),
-        "Index Padding"
-    ]
-    .align_items(Alignment::Center)
-    .spacing(8);
-
-    let settings = column![checkboxes, idx_padding].spacing(8);
-
-    let settings = column![
-        container(centered_text("Sample Naming"))
-            .width(Length::Fill)
-            .center_x()
-            .center_y(),
-        horizontal_rule(1),
-        settings
-    ]
-    .spacing(8);
-
-    container(settings)
-        .style(theme::Container::Frame)
-        .padding(8)
-        .width(Length::Fill)
-        .into()
+    control(
+        "Sample Naming",
+        column![
+            checkboxes,
+            idx_padding,
+            horizontal_rule(1),
+            centered_column_x(column![centered_text(preview)])
+        ]
+        .spacing(8),
+    )
+    .into()
 }

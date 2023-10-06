@@ -1,37 +1,29 @@
 //! Information about xmodits
 
-use crate::widget::Element;
-use iced::widget::{button, column, container, text};
+use crate::app::Message;
+use crate::theme;
+use crate::widget::helpers::{centered_column, centered_container, centered_text, control};
+use crate::widget::{Collection, Element};
+use iced::{
+    widget::{button, column, container, text},
+    Length,
+};
 
 use super::build_info;
 
-use tracing::warn;
-
-#[derive(Debug, Clone)]
-pub enum Message {
-    GitHub,
-}
-
-pub fn update(msg: Message) {
-    match msg {
-        Message::GitHub => {
-            if let Err(err) = open::that_detached(env!("CARGO_PKG_REPOSITORY")) {
-                warn!("Could not open external link: {:?}", err)
-            };
-        }
-    }
-}
-
 pub fn view<'a>() -> Element<'a, Message> {
-    let title = text("XMODITS - by B0ney");
-    let about = text("A tool to rip samples from various tracker modules.");
-    let repo = button(text(env!("CARGO_PKG_REPOSITORY"))).on_press(Message::GitHub);
-    let version = text(format!("version: {}", env!("CARGO_PKG_VERSION")));
+    let title = centered_text("XMODITS - by B0ney");
+    let about = centered_text("A tool to rip samples from various tracker modules.");
+    let repo = button(text(env!("CARGO_PKG_REPOSITORY")))
+        .on_press(Message::Open(String::from(env!("CARGO_PKG_REPOSITORY"))))
+        .style(theme::Button::Hyperlink);
+    let version = centered_text(format!("version: {}", env!("CARGO_PKG_VERSION")));
 
-    let about = container(column![title, version, about, repo])
-        .padding(8)
-        .center_x()
-        .center_y();
+    let about =
+        centered_container(centered_column(column![title, version, about, repo])).padding(8);
 
-    container(column![text("About"), about]).into()
+    let about = control("About", about);
+    let build = build_info::view().map(|view| control("Build Information", view));
+
+    column![about].push_maybe(build).spacing(8).into()
 }

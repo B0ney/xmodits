@@ -1,17 +1,22 @@
 //! Helper functions to construct widgets
 
+use std::borrow::Cow;
+
 use iced::alignment::Horizontal;
-use iced::widget::{button, container, text};
-use iced::Length;
+use iced::widget::{button, container, row, text};
+use iced::{Alignment, Length};
 
 use crate::theme;
-use crate::widget::{Button, Container, Element, Text};
+use crate::widget::{Button, Column, Container, Element, PickList, Text};
 
 /// TODO
 pub fn centered_button<'a, Message>(
     content: impl Into<Element<'a, Message>>,
 ) -> Button<'a, Message> {
     button(content)
+}
+pub fn smol_button<'a, Message>(content: impl Into<Element<'a, Message>>) -> Button<'a, Message> {
+    button(content).height(Length::Shrink)
 }
 
 pub fn action<'a, Message>(
@@ -40,11 +45,52 @@ pub fn centered_container<'a, Message>(
         .center_y()
 }
 
-
 pub fn fill_container<'a, Message>(
     content: impl Into<Element<'a, Message>>,
 ) -> Container<'a, Message> {
-    container(content)
+    container(content).width(Length::Fill).height(Length::Fill)
+}
+
+/// XMODITS control helper widget
+pub fn control<'a, Message: 'a>(
+    title: impl Into<Element<'a, Message>>,
+    content: impl Into<Element<'a, Message>>,
+) -> Column<'a, Message> {
+    Column::new().spacing(8).push(title).push(
+        container(content)
+            .padding(8)
+            .style(theme::Container::Frame)
+            .width(Length::Fill),
+    )
+}
+
+pub fn labelled_picklist<'a, Message: 'a, T>(
+    label: impl ToString,
+    options: impl Into<Cow<'a, [T]>>,
+    selected: Option<T>,
+    on_selected: impl Fn(T) -> Message + 'a,
+) -> Element<'a, Message>
+where
+    T: ToString + Eq + 'static + Clone,
+    [T]: ToOwned<Owned = Vec<T>>,
+{
+    row![PickList::new(options, selected, on_selected), text(label)]
+        .align_items(Alignment::Center)
+        .spacing(8)
+        .into()
+}
+
+pub fn centered_column<'a, Message>(column: Column<'a, Message>) -> Column<'a, Message> {
+    column
+        .spacing(5)
+        .align_items(Alignment::Center)
         .width(Length::Fill)
         .height(Length::Fill)
+}
+
+pub fn centered_column_x<'a, Message>(column: Column<'a, Message>) -> Column<'a, Message> {
+    column
+        .spacing(5)
+        .align_items(Alignment::Center)
+        .width(Length::Fill)
 }

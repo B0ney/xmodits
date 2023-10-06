@@ -7,8 +7,26 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::{
+    utils::filename,
+    widget::{
+        helpers::{centered_column, centered_text},
+        Element,
+    },
+};
 use data::xmodits_lib::Module;
-use iced::Element;
+use iced::{
+    widget::{button, column, container, row, text, Space},
+    Length,
+};
+// pub enum Message {
+//     PreviewSample,
+// }
+
+use crate::{
+    app::Message,
+    widget::helpers::{centered_container, control},
+};
 
 #[derive(Debug, Clone)]
 pub enum TrackerInfo {
@@ -28,8 +46,7 @@ pub enum TrackerInfo {
 impl TrackerInfo {
     pub fn path(&self) -> &Path {
         match self {
-            Self::Invalid { path, .. } 
-            | Self::Loaded { path, .. } => path,
+            Self::Invalid { path, .. } | Self::Loaded { path, .. } => path,
         }
     }
 
@@ -60,7 +77,42 @@ impl TrackerInfo {
     }
 }
 
-pub fn view() {}
+pub fn view<'a>(tracker_info: Option<&TrackerInfo>) -> Element<'a, Message> {
+    let Some(info) = tracker_info else {
+        return control(
+            "Current Tracker Information",
+            centered_container(text("None Selected")),
+        )
+        .into();
+    };
+
+    let content = match info {
+        TrackerInfo::Invalid { path, reason } => centered_column(column![
+            centered_text(format!("Failed to load {}", filename(path))),
+            centered_text(reason),
+        ]),
+        TrackerInfo::Loaded {
+            path: _,
+            name,
+            format,
+            samples,
+            total_sample_size,
+        } => {
+            let view_samples_button = button("View Samples").on_press(Message::Ignore).padding(5);
+
+            centered_column(column![
+                text(format!("Module Name: {}", name.trim())),
+                text(format!("Format: {}", format)),
+                text(format!("Samples: {}", samples)),
+                text(format!("Total Sample Size: {} KiB", total_sample_size)),
+                Space::with_width(15),
+                view_samples_button,
+            ])
+        }
+    };
+
+    control("Current Tracker Information", content).into()
+}
 
 pub async fn probe(path: PathBuf) -> TrackerInfo {
     todo!()

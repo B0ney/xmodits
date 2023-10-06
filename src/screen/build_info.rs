@@ -20,9 +20,11 @@ pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
         ("Build Date", info::BUILT_TIME_UTC),
     ];
 
-    let information = info.into_iter().fold(column![], |col, (label, value)| {
-        col.push(text(format!("{label}: {value}")))
-    });
+    let information = info
+        .into_iter()
+        .fold(column![].spacing(4), |col, (label, value)| {
+            col.push(text(format!("{label}: {value}")))
+        });
 
     Some(container(information).into())
 }

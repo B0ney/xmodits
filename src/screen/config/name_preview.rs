@@ -31,12 +31,12 @@ pub struct SampleNameParams {
 impl Default for SampleNameParams {
     fn default() -> Self {
         Self {
-            module_name: Default::default(),
-            sample_filename: Default::default(),
-            sample_name: Default::default(),
-            module_source: Default::default(),
-            raw_index: Default::default(),
-            seq_index: Default::default(),
+            module_name: String::from("music"),
+            sample_filename: Some(String::from("kick_1.wav")),
+            sample_name: String::from("kick.wav"),
+            module_source: PathBuf::from("~/Downloads/music.it"),
+            raw_index: 7,
+            seq_index: 0,
         }
     }
 }
@@ -57,7 +57,7 @@ pub fn preview_name<'a>(
     params: &SampleNameParams,
     naming: &'a SampleNameConfig,
     ripping: &'a SampleRippingConfig,
-) -> Text<'a> {
+) -> String {
     let filename = params.sample_filename.clone();
     let name = params.sample_name.clone();
     let source_path = &params.module_source;
@@ -79,5 +79,5 @@ pub fn preview_name<'a>(
         source_path: Some(&source_path),
     };
 
-    text(namer_func(&dummy_sample, &context, params.seq_index as usize))
+    namer_func(&dummy_sample, &context, params.seq_index as usize)
 }
