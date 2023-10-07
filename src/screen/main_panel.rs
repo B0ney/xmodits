@@ -10,9 +10,8 @@ use self::entry::Entry;
 
 use crate::ripper::extraction::error::Reason;
 use crate::ripper::subscription::CompleteState;
-use crate::theme::Button;
 use crate::widget::helpers::{centered_container, centered_text, fill_container};
-use crate::widget::{Collection, Container, Element, Text};
+use crate::widget::{Collection, Element};
 use crate::{icon, theme};
 
 use crate::app::{Message, State};
@@ -115,7 +114,7 @@ pub fn view_finished<'a>(
             column![
                 text("Done! \\(^_^)/"),
                 text("Drag and Drop"),
-                text(time),
+                text(format!("Took {} seconds", time)),
                 Space::with_height(15),
                 continue_button
             ]
@@ -128,7 +127,7 @@ pub fn view_finished<'a>(
             column![
                 text("Cancelled"),
                 text("Drag and Drop"),
-                text(time),
+                text(format!("Took {} seconds", time)),
                 Space::with_height(15),
                 continue_button
             ]
@@ -151,7 +150,7 @@ pub fn view_finished<'a>(
         CompleteState::SomeErrors(errors) => {
             let message = column![
                 centered_text("Done... But xmodits could not rip everything... (._.)"),
-                text("took...")
+                text(format!("Took {} seconds", time)),
             ];
 
             let buttons = row![continue_button, save_errors_button]
@@ -165,7 +164,7 @@ pub fn view_finished<'a>(
                     .map(|error| {
                         let reason = match &error.reason {
                             Reason::Single(single) => text(single),
-                            Reason::Multiple(multiple) => text("multiple..."), //todo
+                            Reason::Multiple(_) => text("multiple..."), //todo
                         };
 
                         let error = text(error.filename());
@@ -189,7 +188,7 @@ pub fn view_finished<'a>(
                 button(centered_text(log.display()))
                     .on_press(Message::Open(log.display().to_string())),
                 centered_text(format!("{} errors written", total)),
-                centered_text(time),
+                text(format!("Took {} seconds", time)),
                 // space,
                 row![continue_button]
                     .padding(4)

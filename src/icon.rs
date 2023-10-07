@@ -1,5 +1,5 @@
 use iced::alignment;
-use iced::widget::text;
+use iced::widget::{text, image};
 
 use crate::font;
 use crate::widget::Text;
@@ -57,4 +57,15 @@ fn icon(unicode: char) -> Text<'static> {
         .font(font::ICONS)
         .size(12.0)
         .horizontal_alignment(alignment::Horizontal::Center)
+}
+
+
+pub fn xmodits_logo() -> image::Handle {
+    use once_cell::sync::Lazy;
+    
+    static HANDLE: Lazy<image::Handle> = Lazy::new(|| {
+        image::Handle::from_memory(include_bytes!("../assets/img/logo/icon2.png"))
+    });
+
+    HANDLE.clone()
 }
