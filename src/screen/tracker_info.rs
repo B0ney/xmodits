@@ -13,8 +13,8 @@ use crate::widget::Element;
 use data::xmodits_lib::common::info::Info;
 use iced::widget::{button, column, text, Space};
 
-use crate::widget::helpers::centered_container;
 use crate::app::Message;
+use crate::widget::helpers::centered_container;
 
 #[derive(Debug, Clone)]
 pub enum TrackerInfo {
@@ -67,13 +67,15 @@ pub fn view<'a>(tracker_info: Option<&TrackerInfo>) -> Element<'a, Message> {
             ]
         }
         TrackerInfo::Loaded {
-            path: _,
+            path,
             name,
             format,
             samples,
             total_sample_size,
         } => {
-            let view_samples_button = button("View Samples").on_press(Message::Ignore).padding(5);
+            let view_samples_button = button("View Samples")
+                .on_press(Message::PreviewSamples(path.to_owned()))
+                .padding(5);
 
             column![
                 centered_text(format!("Module Name: {}", name.trim())),

@@ -180,6 +180,7 @@ pub enum Message {
     InvertSelection,
     NamingCfg(sample_naming::Message),
     Open(String),
+    PreviewSamples(PathBuf),
     Probe(usize),
     ProbeResult(TrackerInfo),
     RippingCfg(sample_ripping::Message),
@@ -269,6 +270,7 @@ impl Application for XMODITS {
                     tracing::warn!("Could not open external link: {:?}", err)
                 };
             }
+            Message::PreviewSamples(path) => (),
             Message::Probe(idx) => {
                 let path = self.entries.get(idx).unwrap();
 
