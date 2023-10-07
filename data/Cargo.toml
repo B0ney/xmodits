@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies.xmodits-lib]
 git = "https://github.com/B0ney/xmodits-lib.git"
-rev = "b923534"
+rev = "78675a3"
 features = ["serde"]
 
 [dependencies.iced_core]

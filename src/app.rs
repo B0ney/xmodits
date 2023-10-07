@@ -270,8 +270,21 @@ impl Application for XMODITS {
                 };
             }
             Message::Probe(idx) => {
-                let path = self.entries.get(idx).unwrap().to_owned();
-                return Command::perform(tracker_info::probe(path), Message::ProbeResult);
+                let path = self.entries.get(idx).unwrap();
+
+                if self
+                    .tracker_info
+                    .as_ref()
+                    .is_some_and(|info| info.matches_path(&path))
+                    | path.is_dir()
+                {
+                    return Command::none();
+                }
+
+                return Command::perform(
+                    tracker_info::probe(path.to_owned()),
+                    Message::ProbeResult,
+                );
             }
             Message::ProbeResult(probe) => self.tracker_info = Some(probe),
             Message::SaveConfig => {}

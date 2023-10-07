@@ -4981,7 +4981,7 @@ dependencies = [
 [[package]]
 name = "xmodits-lib"
 version = "0.8.0"
-source = "git+https://github.com/B0ney/xmodits-lib.git?rev=b923534#b923534515cf4620d1d209259e4da93ef69bb09d"
+source = "git+https://github.com/B0ney/xmodits-lib.git?rev=78675a3#78675a3ff67eccaf9e9001d92f43fc721f816eb3"
 dependencies = [
  "ascii",
  "bytemuck",
