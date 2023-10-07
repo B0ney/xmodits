@@ -15,7 +15,7 @@ use crate::widget::helpers::{centered_container, centered_text, fill_container};
 use crate::widget::{Collection, Container, Element, Text};
 use crate::{icon, theme};
 
-use crate::app::Message;
+use crate::app::{Message, State};
 
 use iced::widget::{
     button, checkbox, column, container, progress_bar, row, scrollable, text, Space,
@@ -77,7 +77,10 @@ pub fn view_ripping<'a>(
     progress: f32,
     total_errors: u64,
 ) -> Element<'a, Message> {
-    let cancel_ripping_button = button("Cancel").on_press(Message::Cancel).padding(5);
+    let cancel_ripping_button = button("Cancel")
+        .on_press(Message::Cancel)
+        .style(theme::Button::Cancel)
+        .padding(5);
 
     let view = column![
         centered_text(message.as_deref().unwrap_or("Ripping...")),
@@ -100,7 +103,7 @@ pub fn view_finished<'a>(
     time: &'a Time,
 ) -> Element<'a, Message> {
     let continue_button = button("Continue")
-        // .on_press(Message::SetState(State::Idle))
+        .on_press(Message::SetState(State::Idle))
         .padding(5);
 
     let save_errors_button = button("Save Errors")

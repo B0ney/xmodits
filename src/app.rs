@@ -13,11 +13,11 @@ use crate::screen::config::sample_ripping::{self, RippingConfig, DESTINATION_BAR
 use crate::screen::history::History;
 use crate::screen::main_panel;
 use crate::screen::tracker_info::{self, TrackerInfo};
-use crate::screen::{about, build_info, main_panel::entry::Entries};
+use crate::screen::{about, main_panel::entry::Entries};
 use crate::theme;
 use crate::utils::{files_dialog, folders_dialog};
+use crate::widget::helpers::{action, spaced_row, warning};
 use crate::widget::{Collection, Column, Container, Element};
-use crate::widget::helpers::{action, warning};
 
 use data::Config;
 
@@ -192,6 +192,7 @@ pub enum Message {
         selected: bool,
     },
     SelectAll(bool),
+    SetState(State),
     SetTheme,
     StartRipping,
     Subscription(ripper::Message),
@@ -279,6 +280,7 @@ impl Application for XMODITS {
             Message::SaveErrorsResult() => todo!(),
             Message::Select { index, selected } => self.entries.select(index, selected),
             Message::SelectAll(selected) => self.entries.select_all(selected),
+            Message::SetState(state) => self.state = state,
             Message::SetTheme => todo!(),
             Message::StartRipping => {
                 if self.state.is_ripping() | self.entries.is_empty() | !self.ripper.is_active() {
@@ -308,7 +310,7 @@ impl Application for XMODITS {
                     self.state.update_progress(progress, errors)
                 }
                 ripper::Message::Done { state, time } => {
-                    // self.ripper.reset_stop_flag(); // todo: should this be here?
+                    self.ripper.reset_stop_flag(); // todo: should this be here?
                     self.state = State::Finished { state, time };
                     // tracing::debug!("{:#?}", self.state);
                 }
@@ -333,16 +335,20 @@ impl Application for XMODITS {
         let left_view = match self.view {
             View::Configure => {
                 let bottom_left_buttons = row![
-                    button(row!["Save Configuration", icon::save()]).on_press(Message::SaveConfig),
+                    button(spaced_row(row!["Save Configuration", icon::save()]))
+                        .on_press(Message::SaveConfig),
                     action(
-                        row!["START", icon::download()],
+                        spaced_row(row!["START", icon::download()]),
                         Message::StartRipping,
                         || !is_ripping
                     )
-                ];
+                    .style(theme::Button::Start)
+                    .width(Length::Fill)
+                ]
+                .spacing(8);
 
                 let name_preview = name_preview::preview_name(
-                    &SampleNameParams::default(),
+                    &self.sample_name,
                     &self.naming_cfg.0,
                     &self.ripping_cfg.0,
                 );

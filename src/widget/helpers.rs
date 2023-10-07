@@ -9,6 +9,8 @@ use iced::{Alignment, Length};
 use crate::theme;
 use crate::widget::{Button, Column, Container, Element, PickList, Text};
 
+use super::Row;
+
 /// TODO
 pub fn centered_button<'a, Message>(
     content: impl Into<Element<'a, Message>>,
@@ -55,12 +57,29 @@ pub fn fill_container<'a, Message>(
 pub fn control<'a, Message: 'a>(
     title: impl Into<Element<'a, Message>>,
     content: impl Into<Element<'a, Message>>,
-) -> Column<'a, Message> {
-    Column::new().spacing(8).push(title).push(
-        container(content)
-            .padding(8)
-            .style(theme::Container::Frame)
-            .width(Length::Fill),
+) -> Container<'a, Message> {
+    container(
+        Column::new().spacing(8).push(title).push(
+            container(content)
+                .padding(8)
+                .style(theme::Container::Frame)
+                .width(Length::Fill),
+        ),
+    )
+}
+
+pub fn control_filled<'a, Message: 'a>(
+    title: impl Into<Element<'a, Message>>,
+    content: impl Into<Element<'a, Message>>,
+) -> Container<'a, Message> {
+    fill_container(
+        Column::new().spacing(8).push(title).push(
+            container(content)
+                .padding(8)
+                .style(theme::Container::Frame)
+                .width(Length::Fill)
+                .height(Length::Fill),
+        ),
     )
 }
 
@@ -93,4 +112,8 @@ pub fn centered_column_x<'a, Message>(column: Column<'a, Message>) -> Column<'a,
         .spacing(5)
         .align_items(Alignment::Center)
         .width(Length::Fill)
+}
+
+pub fn spaced_row<'a, Message: 'a>(row: Row<'a, Message>) -> Row<'a, Message> {
+    row.align_items(Alignment::Center).spacing(5)
 }

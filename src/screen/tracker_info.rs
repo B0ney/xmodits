@@ -7,26 +7,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::{
-    utils::filename,
-    widget::{
-        helpers::{centered_column, centered_text},
-        Element,
-    },
-};
-use data::xmodits_lib::Module;
-use iced::{
-    widget::{button, column, container, row, text, Space},
-    Length,
-};
-// pub enum Message {
-//     PreviewSample,
-// }
+use crate::utils::filename;
+use crate::widget::helpers::{centered_column_x, centered_text, control_filled};
+use crate::widget::Element;
+use data::xmodits_lib::common::info::Info;
+use iced::widget::{button, column, text, Space};
 
-use crate::{
-    app::Message,
-    widget::helpers::{centered_container, control},
-};
+use crate::widget::helpers::centered_container;
+use crate::app::Message;
 
 #[derive(Debug, Clone)]
 pub enum TrackerInfo {
@@ -60,26 +48,11 @@ impl TrackerInfo {
             path,
         }
     }
-
-    pub fn valid(tracker: Box<dyn Module>, path: PathBuf) -> Self {
-        Self::Loaded {
-            name: tracker.name().to_owned(),
-            format: tracker.format().to_owned(),
-            samples: tracker.total_samples(),
-            path,
-            total_sample_size: tracker
-                .samples()
-                .iter()
-                .map(|f| f.length as usize)
-                .sum::<usize>()
-                / 1024,
-        }
-    }
 }
 
 pub fn view<'a>(tracker_info: Option<&TrackerInfo>) -> Element<'a, Message> {
     let Some(info) = tracker_info else {
-        return control(
+        return control_filled(
             "Current Tracker Information",
             centered_container(text("None Selected")),
         )
@@ -87,10 +60,12 @@ pub fn view<'a>(tracker_info: Option<&TrackerInfo>) -> Element<'a, Message> {
     };
 
     let content = match info {
-        TrackerInfo::Invalid { path, reason } => centered_column(column![
-            centered_text(format!("Failed to load {}", filename(path))),
-            centered_text(reason),
-        ]),
+        TrackerInfo::Invalid { path, reason } => {
+            column![
+                centered_text(format!("Failed to load {}", filename(path))),
+                centered_text(reason),
+            ]
+        }
         TrackerInfo::Loaded {
             path: _,
             name,
@@ -100,20 +75,41 @@ pub fn view<'a>(tracker_info: Option<&TrackerInfo>) -> Element<'a, Message> {
         } => {
             let view_samples_button = button("View Samples").on_press(Message::Ignore).padding(5);
 
-            centered_column(column![
-                text(format!("Module Name: {}", name.trim())),
-                text(format!("Format: {}", format)),
-                text(format!("Samples: {}", samples)),
-                text(format!("Total Sample Size: {} KiB", total_sample_size)),
+            column![
+                centered_text(format!("Module Name: {}", name.trim())),
+                centered_text(format!("Format: {}", format)),
+                centered_text(format!("Samples: {}", samples)),
+                centered_text(format!("Total Sample Size: {} KiB", total_sample_size)),
                 Space::with_width(15),
                 view_samples_button,
-            ])
+            ]
         }
     };
 
-    control("Current Tracker Information", content).into()
+    let content = centered_container(centered_column_x(content)).padding(8);
+
+    control_filled("Current Tracker Information", content).into()
 }
 
 pub async fn probe(path: PathBuf) -> TrackerInfo {
-    todo!()
+    tokio::task::spawn_blocking(move || match Info::new(&path) {
+        Ok(Info {
+            name,
+            format,
+            total_samples,
+            total_sample_size,
+        }) => TrackerInfo::Loaded {
+            path,
+            name,
+            format,
+            samples: total_samples,
+            total_sample_size,
+        },
+        Err(reason) => TrackerInfo::Invalid {
+            path: path,
+            reason: reason.to_string(),
+        },
+    })
+    .await
+    .unwrap()
 }

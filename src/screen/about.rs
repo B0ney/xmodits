@@ -2,7 +2,7 @@
 
 use crate::app::Message;
 use crate::theme;
-use crate::widget::helpers::{centered_column, centered_container, centered_text, control};
+use crate::widget::helpers::{centered_column, centered_container, centered_text, control, control_filled, centered_column_x};
 use crate::widget::{Collection, Element};
 use iced::{
     widget::{button, column, container, text},
@@ -20,9 +20,9 @@ pub fn view<'a>() -> Element<'a, Message> {
     let version = centered_text(format!("version: {}", env!("CARGO_PKG_VERSION")));
 
     let about =
-        centered_container(centered_column(column![title, version, about, repo])).padding(8);
+        centered_container(centered_column_x(column![title, version, about, repo])).padding(8);
 
-    let about = control("About", about);
+    let about = control_filled("About", about);
     let build = build_info::view().map(|view| control("Build Information", view));
 
     column![about].push_maybe(build).spacing(8).into()
