@@ -154,7 +154,7 @@ jobs:
       matrix:
         target:
           - macos-intel
-          - macos-apple-slicon # TODO: make this a separate task?
+          - macos-apple-silicon # TODO: make this a separate task?
         include:
           - target: macos-intel
             arch: x86_64-apple-darwin
