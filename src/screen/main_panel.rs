@@ -10,7 +10,9 @@ use self::entry::Entry;
 
 use crate::ripper::extraction::error::Reason;
 use crate::ripper::subscription::CompleteState;
-use crate::widget::helpers::{centered_container, centered_text, fill_container};
+use crate::widget::helpers::{
+    centered_column_x, centered_container, centered_text, fill_container,
+};
 use crate::widget::{Collection, Element};
 use crate::{icon, theme};
 
@@ -173,11 +175,9 @@ pub fn view_finished<'a>(
                     .collect(),
             ));
 
-            let view = column![message, buttons, errors];
+            let view = centered_column_x(column![message, buttons, errors].padding(8));
 
-            centered_container(view)
-                .style(theme::Container::Black)
-                .into()
+            fill_container(view).style(theme::Container::Black).into()
         }
 
         CompleteState::TooMuchErrors { log, total } => {

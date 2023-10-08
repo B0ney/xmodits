@@ -25,6 +25,8 @@ use iced::widget::{button, checkbox, column, row, text, text_input, Space};
 use iced::Alignment;
 use iced::{window, Application, Command, Length, Subscription};
 
+const TITLE: &str = "XMODITS";
+
 /// XMODITS graphical application
 #[derive(Default)]
 pub struct XMODITS {
@@ -77,6 +79,38 @@ impl XMODITS {
             entries,
             ripping,
             naming,
+        }
+    }
+
+    pub fn clear_entries(&mut self) {
+        self.tracker_info = None;
+        self.entries.clear();
+    }
+
+    pub fn delete_selected_entries(&mut self) {
+        let current_tracker_path = self.tracker_info.as_ref().map(|f| f.path());
+        let clear_tracker_info = self.entries.delete_selected(current_tracker_path);
+
+        if clear_tracker_info {
+            self.tracker_info = None;
+        }
+    }
+
+    pub fn app_title(&self) -> String {
+        let modifiers: Option<String> = match &self.state {
+            State::Idle | State::SamplePreview(..) | State::Finished { .. } => None,
+            State::Ripping {
+                message, progress, ..
+            } => Some(format!(
+                "{} - {}%",
+                message.as_deref().unwrap_or("Ripping..."),
+                progress.floor()
+            )),
+        };
+
+        match modifiers {
+            Some(modi) => format!("{TITLE} - {modi}"),
+            None => format!("{TITLE}"),
         }
     }
 }
@@ -210,7 +244,7 @@ impl Application for XMODITS {
     }
 
     fn title(&self) -> String {
-        String::from("XMDOITS - 10%") // todo: add status
+        self.app_title()
     }
 
     fn theme(&self) -> Self::Theme {
@@ -234,19 +268,13 @@ impl Application for XMODITS {
                 self.state.set_message("Cancelling...");
                 self.ripper.cancel();
             }
-            Message::Clear => {
-                self.tracker_info = None;
-                self.entries.clear();
-            }
+            Message::Clear => self.clear_entries(),
             Message::ConfigPressed => self.view = View::Configure,
-            Message::DeleteSelected => {
-                // todo: clear tracker info if the selected path is equal
-                self.entries.delete_selected()
-            }
+            Message::DeleteSelected => self.delete_selected_entries(),
             Message::Event(event) => match event {
-                event::Event::Clear => self.entries.clear(),
+                event::Event::Clear => self.clear_entries(),
                 event::Event::CloseRequested => {}
-                event::Event::Delete => self.entries.delete_selected(),
+                event::Event::Delete => self.delete_selected_entries(),
                 event::Event::FileDropped(file) => self.entries.add(file),
                 event::Event::Save => {}
                 event::Event::Start => {}
@@ -345,7 +373,7 @@ impl Application for XMODITS {
         .width(Length::FillPortion(1))
         .align_items(Alignment::Center);
 
-        let is_ripping = self.state.is_ripping();
+        let not_ripping = !self.state.is_ripping();
 
         let left_view = match self.view {
             View::Configure => {
@@ -354,8 +382,7 @@ impl Application for XMODITS {
                         .on_press(Message::SaveConfig),
                     action(
                         spaced_row(row!["START", icon::download()]),
-                        Message::StartRipping,
-                        || !is_ripping
+                        not_ripping.then_some(Message::StartRipping),
                     )
                     .style(theme::Button::Start)
                     .width(Length::Fill)
@@ -390,11 +417,14 @@ impl Application for XMODITS {
             sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
 
         let right_bottom_buttons = row![
-            action("Add File", Message::FileDialog, || !is_ripping),
-            action("Add Folder", Message::FolderDialog, || !is_ripping),
+            action("Add File", not_ripping.then_some(Message::FileDialog)),
+            action("Add Folder", not_ripping.then_some(Message::FolderDialog)),
             Space::with_width(Length::Fill),
-            action("Delete Selected", Message::DeleteSelected, || !is_ripping),
-            action("Clear", Message::Clear, || !is_ripping),
+            action(
+                "Delete Selected",
+                not_ripping.then_some(Message::DeleteSelected)
+            ),
+            action("Clear", not_ripping.then_some(Message::Clear)),
         ]
         .spacing(5);
 

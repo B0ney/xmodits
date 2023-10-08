@@ -128,28 +128,31 @@ impl Entries {
         .collect()
     }
 
-    pub fn delete_selected(&mut self) {
+    pub fn delete_selected(&mut self, current: Option<&Path>) -> bool{
         // clear the entries if everything is selected
         if self.all_selected || self.total_selected() == self.entries.len() {
             self.entries.clear();
-            // self.current = None;
-            return;
+            return true;
         }
+
+        let mut clear_current_tracker = false;
 
         let mut i = 0;
 
         while i < self.entries.len() {
             let path = &self.entries[i];
             if path.selected {
-                // if matches!(&self.current, Some(e) if e.matches(&path.path)) {
-                //     self.current = None;
-                // }
+                if matches!(current, Some(e) if e == &path.path) {
+                    clear_current_tracker = true;
+                }
                 let _ = self.entries.remove(i);
             } else {
                 i += 1;
             }
         }
         self.all_selected = false;
+
+        clear_current_tracker
     }
 
     pub fn files(&self) -> usize {

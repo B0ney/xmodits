@@ -23,10 +23,9 @@ pub fn smol_button<'a, Message>(content: impl Into<Element<'a, Message>>) -> But
 
 pub fn action<'a, Message>(
     content: impl Into<Element<'a, Message>>,
-    message: Message,
-    predicate: impl Fn() -> bool,
+    message: Option<Message>,
 ) -> Button<'a, Message> {
-    button(content).on_press_maybe(predicate().then_some(message))
+    button(content).on_press_maybe(message)
 }
 
 pub fn centered_text<'a>(input: impl ToString) -> Text<'a> {
