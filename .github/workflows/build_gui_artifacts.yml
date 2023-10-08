@@ -154,12 +154,12 @@ jobs:
       matrix:
         target:
           - macos-intel
-          # - macos-apple-slicon # TODO: make this a separate task?
+          - macos-apple-slicon # TODO: make this a separate task?
         include:
           - target: macos-intel
             arch: x86_64-apple-darwin
-          # - target: macos-apple-silicon
-          #   arch: aarch64-apple-darwin
+          - target: macos-apple-silicon
+            arch: aarch64-apple-darwin
 
     steps:
     - uses: actions/checkout@v3
