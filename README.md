@@ -12,6 +12,7 @@
 ![GitHub all releases](https://img.shields.io/github/downloads/B0ney/xmodits/total)
 ![GitHub](https://img.shields.io/github/license/B0ney/xmodits)
 [![GitHub release (with filter)](https://img.shields.io/github/v/release/B0ney/xmodits)](https://github.com/B0ney/xmodits/releases)
+![Repo size](https://img.shields.io/github/repo-size/B0ney/xmodits)
 [!["Release RSS Feed"](https://img.shields.io/badge/rss-releases-ffa500?logo=rss)](https://github.com/B0ney/xmodits/releases.atom)
 
 </div>
