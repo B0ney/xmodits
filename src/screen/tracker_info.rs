@@ -108,7 +108,7 @@ pub async fn probe(path: PathBuf) -> TrackerInfo {
             total_sample_size,
         },
         Err(reason) => TrackerInfo::Invalid {
-            path: path,
+            path,
             reason: reason.to_string(),
         },
     })

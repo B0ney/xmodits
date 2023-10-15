@@ -17,7 +17,7 @@ use crate::screen::{about, main_panel::entry::Entries};
 use crate::theme;
 use crate::utils::{files_dialog, folders_dialog};
 use crate::widget::helpers::{action, spaced_row, warning};
-use crate::widget::{Collection, Column, Container, Element};
+use crate::widget::{Collection, Container, Element};
 
 use data::Config;
 
@@ -440,7 +440,7 @@ impl Application for XMODITS {
 
         let main_view = match &self.state {
             State::Idle => main_panel::view_entries(&self.entries),
-            State::SamplePreview() => todo!(),
+            State::SamplePreview() => todo!(), // list samples
             State::Ripping {
                 message,
                 progress,

@@ -103,6 +103,17 @@ Configure how ripped samples are named.
 | ``Export Format`` | Samples can be saved to the following formats: [ ``wav``, ``aiff``, ``8svx``, ``its``, ``s3i``, ``raw`` ]|
 | ``Folder Scan Depth`` | Limit how far a folder can be traversed. |
 
+<!-- ### Filters
+Only rip from files/folders if they satisfy a set of defined conditions.
+
+|Attribute| description |
+|-|-|
+|size||
+|contains||
+|starts with||
+|ends with||
+|regex||
+|extension| | -->
 
 ### Saving Configuration
 Any changes made to the configuration **must be saved manually**.<br>The configuration file can be located at:
@@ -113,13 +124,20 @@ Any changes made to the configuration **must be saved manually**.<br>The configu
 |Linux|``~/.config/xmodits/config.toml``|
 |MacOs|``~/Library/Application Support/xmodits/config.toml``|
 
+### Keyboard Shortcuts
+|Shortcut| Action|
+|-|-|
+|<kbd>delete</kbd>| Clears the selected entries|
+|<kbd>shift</kbd> + <kbd>delete</kbd>| Clears the entries|
+|<kbd>ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd>| Save Configuration|
+
 ## Building
 Requirements:
 * Rust compiler: https://www.rust-lang.org/tools/install
 * Minimum rust version: 1.65
 * A decent computer. 
 
-Clone the source code:
+Clone the source code (latest):
 ```shell
 git clone https://github.com/B0ney/xmodits
 ```
@@ -130,6 +148,12 @@ cd xmodits
 
 cargo build --release
 ```
+
+Alternatively, you can download different versions from: https://github.com/B0ney/xmodits/tags
+
+Older versions will have slightly different build instructions.
+Additionally, versions below [v0.9.8](https://github.com/B0ney/xmodits/releases/tag/0.9.8) are CLI only.
+
 ### Build Flags
 
 |Feature | Description | Enabled by Default? |
@@ -163,6 +187,7 @@ xmodits is licensed under the GPLv3
 
 ## Special Thanks
 - The GUI was made with [Iced](https://github.com/iced-rs/iced)
-- [@0x192](https://github.com/0x192) (and contributors) for their [Universal Android Debloat tool](https://github.com/0x192/universal-android-debloater/). I've learned a lot of gui stuff from that project.
+- [0x192](https://github.com/0x192) (and contributors) for their [Universal Android Debloat tool](https://github.com/0x192/universal-android-debloater/). I've learned a lot of gui stuff from that project.
 - [SatyrDiamond](https://github.com/SatyrDiamond)'s [DawVert](https://github.com/SatyrDiamond/DawVert), A program to convert different daw project files to other formats. 
 - The animated fox gif was obtained from: https://github.com/tonybaloney/vscode-pets
+- [Halloy](https://github.com/squidowl/halloy)

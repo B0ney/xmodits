@@ -8,6 +8,12 @@
 * Added button to preview samples.
 * Can import/export custom themes.
 * Shows the number of errors while ripping.
+* Added keyboard shortcuts:
+  |Shortcut| Action|
+  |-|-|
+  |<kbd>delete</kbd>| Clears the selected entries|
+  |<kbd>shift</kbd> + <kbd>delete</kbd>| Clears the entries|
+  |<kbd>ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd>| Save Configuration|
 
 ## Bug Fixes
 * (xmodits-lib) Fixed downsampling bug when exporting samples to ``.8svx``

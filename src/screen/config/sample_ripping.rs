@@ -5,17 +5,14 @@ use std::path::{Path, PathBuf};
 use data::config::{self, SampleRippingConfig};
 use data::xmodits_lib::exporter::AudioFormat;
 
-use crate::theme;
-use crate::widget::helpers::{centered_text, control, labelled_picklist, centered_button};
+use crate::widget::helpers::{centered_button, control, labelled_picklist};
 use crate::widget::Element;
-use iced::widget::{
-    button, checkbox, column, container, horizontal_rule, pick_list, row, text, text_input,
-};
-use iced::{Alignment, Command, Length};
+use crate::utils::folder_dialog;
+
+use iced::widget::{checkbox, column, horizontal_rule, row, text_input};
+use iced::{Command, Length};
 
 use once_cell::sync::Lazy;
-
-use crate::utils::folder_dialog;
 
 #[derive(Debug, Default)]
 pub struct RippingConfig(pub config::SampleRippingConfig);
@@ -80,8 +77,7 @@ pub fn view_destination_bar(destination: &RippingConfig) -> Element<Message> {
             Message::Destination(Some(destination))
         });
 
-    let button = centered_button("Select")
-        .on_press(Message::DestinationDialog);
+    let button = centered_button("Select").on_press(Message::DestinationDialog);
 
     row![input, button]
         .spacing(5)

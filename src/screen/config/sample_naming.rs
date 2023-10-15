@@ -2,12 +2,10 @@
 
 use data::config::{self, SampleNameConfig};
 
-use crate::theme;
 use crate::widget::helpers::{control, labelled_picklist, centered_column_x};
 use crate::widget::{helpers::centered_text, Element};
 
-use iced::widget::{checkbox, column, container, horizontal_rule, pick_list, row, text};
-use iced::{Alignment, Length};
+use iced::widget::{checkbox, column, horizontal_rule, row};
 
 #[derive(Debug, Default)]
 pub struct NamingConfig(pub config::SampleNameConfig);
