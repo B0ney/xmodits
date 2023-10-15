@@ -5,9 +5,24 @@ on:
   workflow_call:
   
 jobs:
-  build_gui_linux:
-    name: Building GUI for Linux x86_64
-    runs-on: ubuntu-latest
+  build:
+    name: Build
+    strategy:
+      matrix:
+        target:
+          - target: linux
+            os: ubuntu-latest
+            make: bash dist/build-linux.sh
+            artifact_path: |
+              echo "ARTIFACT_PATH=dist/build-linux.sh artifact_path" >> "$GITHUB_ENV"
+
+          # - target: macos
+          #   os: macos-latest
+          #   make: bash dist/build-macos.sh
+          #   artifact_path: |
+          #     echo "ARTIFACT_PATH=target/release/macos/xmodits.dmg" >> "$GITHUB_ENV"
+    
+    runs-on: ${{ matrix.target.os }}
 
     steps:
       - uses: actions/checkout@v3
@@ -22,23 +37,50 @@ jobs:
             target
           key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-release-
+      
+      - name: Build
+        run: ${{ matrix.target.make }}
 
-      - name: Build Linux GUI binaries
-        run: cargo build --verbose -p xmodits-gui --release
-        
-      - name: Create ./bin directory
-        run: mkdir -p bin
-
-      - name: Tarball Linux GUI binary
-        run: |
-          tar -czf bin/xmodits-gui-linux-x86_64.tar.gz -C target/release/ xmodits-gui
-        
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: xmodits-gui-linux-x86_64
-          path: |
-            bin/xmodits-gui-linux-x86_64.*
+          name: ${{ matrix.target.target }}
+          path: ${{ env.ARTIFACT_PATH }}/*
+
+  # build_gui_linux:
+  #   name: Building GUI for Linux x86_64
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: dtolnay/rust-toolchain@stable
+  #     - uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.cargo/bin/
+  #           ~/.cargo/registry/index/
+  #           ~/.cargo/registry/cache/
+  #           ~/.cargo/git/db/
+  #           target
+  #         key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
+  #         restore-keys: ${{ runner.os }}-release-
+
+  #     - name: Build Linux GUI binaries
+  #       run: cargo build --verbose -p xmodits-gui --release
+        
+  #     - name: Create ./bin directory
+  #       run: mkdir -p bin
+
+  #     - name: Tarball Linux GUI binary
+  #       run: |
+  #         tar -czf bin/xmodits-gui-linux-x86_64.tar.gz -C target/release/ xmodits-gui
+        
+  #     - name: Upload artifacts
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: xmodits-gui-linux-x86_64
+  #         path: |
+  #           bin/xmodits-gui-linux-x86_64.*
 
   # build_gui_linux-cross:
   #   name: Building GUI for ${{ matrix.target }}
@@ -90,109 +132,109 @@ jobs:
   #         path: |
   #           bin/xmodits-gui-${{ matrix.target }}.*
 
-  build_gui_windows:
-    name: Building GUI for ${{ matrix.target }}
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        target:
-          - windows-64-bit
-          # - windows-32-bit # disabled due to winit bug
+  # build_gui_windows:
+  #   name: Building GUI for ${{ matrix.target }}
+  #   runs-on: windows-latest
+  #   strategy:
+  #     matrix:
+  #       target:
+  #         - windows-64-bit
+  #         # - windows-32-bit # disabled due to winit bug
 
-        include:
-          - target: windows-64-bit
-            arch: x86_64-pc-windows-msvc
+  #       include:
+  #         - target: windows-64-bit
+  #           arch: x86_64-pc-windows-msvc
 
-          # - target: windows-32-bit
-          #   arch: i686-pc-windows-msvc
+  #         # - target: windows-32-bit
+  #         #   arch: i686-pc-windows-msvc
 
-    steps:
-    - uses: actions/checkout@v3
-    - uses: dtolnay/rust-toolchain@stable
-      with:
-        target: ${{ matrix.arch }}
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - uses: dtolnay/rust-toolchain@stable
+  #     with:
+  #       target: ${{ matrix.arch }}
 
-    - uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target
-        key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.os }}-release-
+  #   - uses: actions/cache@v3
+  #     with:
+  #       path: |
+  #         ~/.cargo/bin/
+  #         ~/.cargo/registry/index/
+  #         ~/.cargo/registry/cache/
+  #         ~/.cargo/git/db/
+  #         target
+  #       key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
+  #       restore-keys: ${{ runner.os }}-release-
 
-    - name: Install Windows 32 bit target
-      if: matrix.arch == 'i686-pc-windows-msvc'
-      run: | # Install 32-bit target and make it the default
-        rustup target add i686-pc-windows-msvc && rustup default stable-i686-pc-windows-msvc
+  #   - name: Install Windows 32 bit target
+  #     if: matrix.arch == 'i686-pc-windows-msvc'
+  #     run: | # Install 32-bit target and make it the default
+  #       rustup target add i686-pc-windows-msvc && rustup default stable-i686-pc-windows-msvc
 
-    - name: Build Windows GUI binary
-      run: cargo build -p xmodits-gui --release
+  #   - name: Build Windows GUI binary
+  #     run: cargo build -p xmodits-gui --release
 
-    - name: Create ./bin directory
-      run: mkdir -p bin
+  #   - name: Create ./bin directory
+  #     run: mkdir -p bin
 
-    - name: Zip Windows GUI binary
-      run: | # On Windows, remove gui suffix
-          rm target/release/*xmodits.exe
-          mv target/release/xmodits-gui.exe target/release/xmodits.exe
-          Compress-Archive target/release/xmodits.exe bin/xmodits-gui-${{ matrix.target }}.zip
+  #   - name: Zip Windows GUI binary
+  #     run: | # On Windows, remove gui suffix
+  #         rm target/release/*xmodits.exe
+  #         mv target/release/xmodits-gui.exe target/release/xmodits.exe
+  #         Compress-Archive target/release/xmodits.exe bin/xmodits-gui-${{ matrix.target }}.zip
     
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: xmodits-gui-${{ matrix.target }}
-        path: |
-          bin/xmodits-gui-${{ matrix.target}}.*
+  #   - name: Upload artifacts
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: xmodits-gui-${{ matrix.target }}
+  #       path: |
+  #         bin/xmodits-gui-${{ matrix.target}}.*
 
-  build_gui_macos:
-    name: Building GUI for ${{ matrix.target }}
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        target:
-          - macos-intel
-          - macos-apple-silicon # TODO: make this a separate task?
-        include:
-          - target: macos-intel
-            arch: x86_64-apple-darwin
-          - target: macos-apple-silicon
-            arch: aarch64-apple-darwin
+  # build_gui_macos:
+  #   name: Building GUI for ${{ matrix.target }}
+  #   runs-on: macos-latest
+  #   strategy:
+  #     matrix:
+  #       target:
+  #         - macos-intel
+  #         - macos-apple-silicon # TODO: make this a separate task?
+  #       include:
+  #         - target: macos-intel
+  #           arch: x86_64-apple-darwin
+  #         - target: macos-apple-silicon
+  #           arch: aarch64-apple-darwin
 
-    steps:
-    - uses: actions/checkout@v3
-    - uses: dtolnay/rust-toolchain@stable
-      with:
-        target: ${{ matrix.arch }}
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - uses: dtolnay/rust-toolchain@stable
+  #     with:
+  #       target: ${{ matrix.arch }}
 
-    - uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target
-        key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: ${{ runner.os }}-release-
+  #   - uses: actions/cache@v3
+  #     with:
+  #       path: |
+  #         ~/.cargo/bin/
+  #         ~/.cargo/registry/index/
+  #         ~/.cargo/registry/cache/
+  #         ~/.cargo/git/db/
+  #         target
+  #       key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
+  #       restore-keys: ${{ runner.os }}-release-
 
-    - name: Build macOS GUI binary
-      run: cargo build -p xmodits-gui --release
+  #   - name: Build macOS GUI binary
+  #     run: cargo build -p xmodits-gui --release
 
-    - name: Create ./bin directory
-      run: mkdir -p bin
+  #   - name: Create ./bin directory
+  #     run: mkdir -p bin
 
-    - name: Zip macOS GUI binary 
-      run: |
-        mv target/release/xmodits-gui target/release/xmodits
-        chmod +x target/release/xmodits
-        zip -j ./bin/xmodits-gui-${{ matrix.target }}.zip target/release/xmodits
+  #   - name: Zip macOS GUI binary 
+  #     run: |
+  #       mv target/release/xmodits-gui target/release/xmodits
+  #       chmod +x target/release/xmodits
+  #       zip -j ./bin/xmodits-gui-${{ matrix.target }}.zip target/release/xmodits
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: xmodits-gui-${{ matrix.target }}
-        path: |
-          bin/xmodits-gui-${{ matrix.target }}.*
+  #   - name: Upload artifacts
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: xmodits-gui-${{ matrix.target }}
+  #       path: |
+  #         bin/xmodits-gui-${{ matrix.target }}.*
