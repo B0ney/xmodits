@@ -11,11 +11,13 @@ $ARTIFACT_DIR="$RELEASE_DIR/artifact"
 # Compile application with features
 cargo build -p xmodits-gui --release --features=$FEATURES
 
-# Create artifact folder
+# Create artifact folder, remove residual files
 mkdir -Force -p "target/release/artifact"
+rm "target/release/artifact/*"
 
-# Create archive folder
+# Create archive folder, remove residual files
 mkdir -Force -p "target/release/archive"
+rm "target/release/archive/*"
 
 # move and rename xmodits-gui.exe to xmodits in archive folder
 mv -Force "target/release/xmodits-gui.exe" "target/release/archive/xmodits.exe"
