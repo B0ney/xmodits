@@ -13,8 +13,8 @@ jobs:
           - target: linux
             os: ubuntu-latest
             make: bash dist/build-linux.sh package
-            artifact_path: |
-              echo "ARTIFACT_PATH=$(bash dist/build-linux.sh artifact_path)/*" >> "$GITHUB_ENV"
+            # artifact_path: |
+            #   echo "ARTIFACT_PATH=$(bash dist/build-linux.sh artifact_path)/*" >> "$GITHUB_ENV"
 
           # - target: macos
           #   os: macos-latest
@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.target.target }}
-          path: ${{ env.ARTIFACT_PATH }}
+          path: "target/release/artifact/*"
 
   # build_gui_linux:
   #   name: Building GUI for Linux x86_64
