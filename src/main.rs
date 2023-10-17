@@ -23,6 +23,9 @@ use tikv_jemallocator::Jemalloc;
 static GLOBAL: Jemalloc = Jemalloc;
 
 fn main() -> iced::Result {
+    #[cfg(windows)]
+    logger::reattach_windows_terminal();
+
     let args = env::args().skip(1);
 
     let version = args

@@ -13,14 +13,15 @@ jobs:
           - target: linux
             os: ubuntu-latest
             make: bash dist/build-linux.sh package
-            # artifact_path: |
-            #   echo "ARTIFACT_PATH=$(bash dist/build-linux.sh artifact_path)/*" >> "$GITHUB_ENV"
+
+
+          - target: windows
+            os: windows-latest
+            make: powershell dist/build-windows.ps1
 
           # - target: macos
           #   os: macos-latest
           #   make: bash dist/build-macos.sh
-          #   artifact_path: |
-          #     echo "ARTIFACT_PATH=target/release/macos/xmodits.dmg" >> "$GITHUB_ENV"
     
     runs-on: ${{ matrix.target.os }}
 
