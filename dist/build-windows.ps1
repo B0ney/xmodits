@@ -25,7 +25,7 @@ cp -Force "README.md" "target/release/archive/"
 cp -Force "LICENSE" "target/release/archive/"
 
 # Get version number
-$VERSION = target/release/xmodits.exe --version | Out-String
+$VERSION = cargo run -p xmodits-gui --release -- --version | Out-String
 $VERSION = $VERSION.Trim() # trim whitespace, includes \n
 
 # Compress archive contents of archive folder to a zip file
