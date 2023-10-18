@@ -1,9 +1,24 @@
-use data::config::GeneralConfig;
-use iced::widget::{checkbox, column, container, text};
-use iced::{Command, Element};
+use data::config;
+use iced::widget::{checkbox, column, container, text, text_input};
+use iced::Command;
 use std::path::PathBuf;
 
 use crate::utils::folder_dialog;
+use crate::widget::helpers::{control, control_filled, labelled_picklist};
+use crate::widget::{Collection, Element};
+
+#[derive(Debug, Default)]
+pub struct GeneralConfig(pub config::GeneralConfig);
+
+impl GeneralConfig {
+    pub fn view(&self) -> Element<Message> {
+        view(&self.0)
+    }
+
+    pub fn update(&mut self, message: Message) -> Command<Message> {
+        update(&mut self.0, message)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -13,26 +28,41 @@ pub enum Message {
     SetLogFolderDialog,
 }
 
-pub fn view(general: &GeneralConfig) -> Element<Message> {
+pub fn view(general: &config::GeneralConfig) -> Element<Message> {
+    let settings = column![
+        // labelled_picklist("Themes", options, selected, on_selected)
+    ];
+
+    column![control_filled("Application Settings", settings)]
+        .push_maybe(non_gui(general))
+        .spacing(8)
+        .into()
+}
+
+#[cfg(target_env = "msvc")]
+pub fn non_gui(general: &config::GeneralConfig) -> Option<Element<Message>> {
     let settings = column![
         checkbox(
-            "(non-gui) Quiet output",
+            "Quiet Output",
             general.non_gui_quiet_output,
             Message::NonGuiQuietOutput
         ),
         checkbox(
-            "(non-gui) Use current working directory",
+            "Use Current Working Directory",
             general.non_gui_use_cwd,
             Message::NonGuiUseCwd
         ),
     ];
 
-    let settings = column![text("Settings"), settings];
-
-    container(settings).into()
+    Some(control("Drag and Drop Mode", settings).into())
 }
 
-pub fn update(cfg: &mut GeneralConfig, message: Message) -> Command<Message> {
+#[cfg(not(target_env = "msvc"))]
+pub fn non_gui(general: &config::GeneralConfig) -> Option<Element<Message>> {
+    None
+}
+
+pub fn update(cfg: &mut config::GeneralConfig, message: Message) -> Command<Message> {
     match message {
         Message::NonGuiQuietOutput(quiet_output) => cfg.non_gui_quiet_output = quiet_output,
         Message::NonGuiUseCwd(use_cwd) => cfg.non_gui_use_cwd = use_cwd,

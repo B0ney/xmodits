@@ -12,6 +12,7 @@ use crate::screen::config::sample_naming::{self, NamingConfig};
 use crate::screen::config::sample_ripping::{self, RippingConfig, DESTINATION_BAR_ID};
 use crate::screen::history::History;
 use crate::screen::main_panel;
+use crate::screen::settings::{self, GeneralConfig};
 use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, main_panel::entry::Entries};
 use crate::theme;
@@ -43,6 +44,7 @@ pub struct XMODITS {
     naming_cfg: NamingConfig,
     sample_name: SampleNameParams,
     ripping_cfg: RippingConfig,
+    general_cfg: GeneralConfig,
 }
 
 impl XMODITS {
@@ -209,6 +211,7 @@ pub enum Message {
     FileDialog,
     FolderDialog,
     FontsLoaded(Result<(), iced::font::Error>),
+    GeneralCfg(settings::Message),
     HistoryPressed,
     Ignore,
     InvertSelection,
@@ -229,6 +232,7 @@ pub enum Message {
     SelectAll(bool),
     SetState(State),
     SetTheme,
+    SettingsPressed,
     StartRipping,
     Subscription(ripper::Message),
 }
@@ -286,6 +290,9 @@ impl Application for XMODITS {
                     tracing::error!("could not load font")
                 }
             }
+            Message::GeneralCfg(cfg) => {
+                return self.general_cfg.update(cfg).map(Message::GeneralCfg)
+            }
             Message::HistoryPressed => {}
             Message::Ignore => (),
             Message::RippingCfg(msg) => {
@@ -325,6 +332,7 @@ impl Application for XMODITS {
             Message::SelectAll(selected) => self.entries.select_all(selected),
             Message::SetState(state) => self.state = state,
             Message::SetTheme => todo!(),
+            Message::SettingsPressed => self.view = View::Settings,
             Message::StartRipping => {
                 if self.state.is_ripping() | self.entries.is_empty() | !self.ripper.is_active() {
                     return Command::none();
@@ -366,7 +374,7 @@ impl Application for XMODITS {
         let top_left_menu = row![
             button("Configure").on_press(Message::ConfigPressed),
             button("History").on_press(Message::HistoryPressed),
-            button("Settings").on_press(Message::ConfigPressed),
+            button("Settings").on_press(Message::SettingsPressed),
             button("About").on_press(Message::AboutPressed),
         ]
         .spacing(5)
@@ -404,7 +412,7 @@ impl Application for XMODITS {
                 .spacing(8)
                 .into()
             }
-            View::Settings => todo!(),
+            View::Settings => self.general_cfg.view().map(Message::GeneralCfg),
             View::About => about::view(),
             View::Help => todo!(),
         };

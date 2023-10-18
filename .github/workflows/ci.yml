@@ -9,7 +9,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  check-typos:
 
     runs-on: ubuntu-latest
 
