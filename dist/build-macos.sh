@@ -10,8 +10,6 @@ FEATURES="build_info","wgpu"
 PROFILE="release"
 RELEASE_DIR="target/$PROFILE"
 
-BINARY_OLD="$RELEASE_DIR/$TARGET_OLD"
-
 ARCHIVE_DIR="$RELEASE_DIR/archive"
 ARTIFACT_DIR="$RELEASE_DIR/artifact"
 BINARY="$ARCHIVE_DIR/$TARGET"
@@ -41,7 +39,7 @@ cp  LICENSE $ARCHIVE_DIR
 
 chmod +x $BINARY
 
-ARCHIVE_NAME="$TARGET-v$($BINARY --version)-$PLATFORM-universal.zip"
+ARCHIVE_NAME="xmodits-gui-v$($BINARY --version)-$PLATFORM-universal.zip"
 ARCHIVE_PATH="$ARTIFACT_DIR/$ARCHIVE_NAME"
 
 zip -j $ARCHIVE_PATH $ARCHIVE_DIR/*
