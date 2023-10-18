@@ -31,7 +31,7 @@ $VERSION = cargo run -p xmodits-gui --release -- --version | Out-String
 $VERSION = $VERSION.Trim() # trim whitespace, includes \n
 
 # Compress archive contents of archive folder to a zip file
-$ARTIFACT_PATH = "target/release/artifact/xmodits-gui-$VERSION-$PLATFORM-$ARCH.zip"
+$ARTIFACT_PATH = "target/release/artifact/xmodits-gui-v$VERSION-$PLATFORM-$ARCH.zip"
 Compress-Archive -Force -Path "target/release/archive/*" -DestinationPath $ARTIFACT_PATH 
 
 echo "Packaged archive: $ARTIFACT_PATH"

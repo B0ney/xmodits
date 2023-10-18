@@ -1,12 +1,14 @@
 #!/bin/bash
 
 ARCH="x86_64"
+PLATFORM="linux"
+
 TARGET="xmodits-gui"
 FEATURES="jemalloc","build_info"
+
 PROFILE="release"
 RELEASE_DIR="target/$PROFILE"
 BINARY="$RELEASE_DIR/$TARGET"
-PLATFORM="linux"
 
 ARCHIVE_DIR="$RELEASE_DIR/archive"
 ARTIFACT_DIR="$RELEASE_DIR/artifact"
@@ -41,7 +43,7 @@ package() {
     copy_binary
     copy_extras
 
-    ARCHIVE_NAME="$TARGET-$($BINARY --version)-$PLATFORM-$ARCH.tar.gz"
+    ARCHIVE_NAME="$TARGET-v$($BINARY --version)-$PLATFORM-$ARCH.tar.gz"
     ARCHIVE_PATH="$ARTIFACT_DIR/$ARCHIVE_NAME"
 
     # Compress archive directory
