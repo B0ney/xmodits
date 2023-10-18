@@ -13,10 +13,12 @@ jobs:
           - target: linux
             os: ubuntu-latest
             make: bash dist/build-linux.sh package
+            artifact_path: "target/release/artifact/*"
 
           - target: windows
             os: windows-latest
             make: powershell dist/build-windows.ps1
+            artifact_path: "target/release/artifact/*"
 
           # - target: macos
           #   os: macos-latest
@@ -45,4 +47,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.target.target }}
-          path: "target/release/artifact/*"
+          path: ${{ matrix.target.artifact_path }}
