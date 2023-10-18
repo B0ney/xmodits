@@ -12,7 +12,7 @@ jobs:
         target:
           - target: linux
             os: ubuntu-latest
-            make: bash dist/build-linux.sh package
+            make: bash dist/build-linux.sh
             artifact_path: "target/release/artifact/*"
 
           - target: windows

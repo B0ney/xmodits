@@ -26,10 +26,6 @@ copy_extras() {
     install -D README.md LICENSE -t $ARCHIVE_DIR
 }
 
-artifact_path() {
-    echo $ARTIFACT_DIR
-}
-
 create_dirs() {
     mkdir -p $ARCHIVE_DIR
     rm -rf $ARCHIVE_DIR/*
@@ -55,10 +51,4 @@ package() {
     echo "Packaged archive: $ARCHIVE_PATH"
 }
 
-case "$1" in
-  "package") package;;
-  "artifact_path") artifact_path;;
-  *)
-    echo "available commands: package, artifact_path"
-    ;;
-esac
+package
