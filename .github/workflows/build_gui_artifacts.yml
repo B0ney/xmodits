@@ -20,9 +20,10 @@ jobs:
             make: powershell dist/build-windows.ps1
             artifact_path: "target/release/artifact/*"
 
-          # - target: macos
-          #   os: macos-latest
-          #   make: bash dist/build-macos.sh
+          - target: macos
+            os: macos-latest
+            make: bash dist/build-macos.sh
+            artifact_path: "target/release/artifact/*"
     
     runs-on: ${{ matrix.target.os }}
 
