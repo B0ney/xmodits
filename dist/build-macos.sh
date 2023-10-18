@@ -31,6 +31,7 @@ rustup target add x86_64-apple-darwin
 rustup target add aarch64-apple-darwin
 cargo build -p xmodits-gui --release --target=x86_64-apple-darwin --features=$FEATURES
 cargo build -p xmodits-gui --release --target=aarch64-apple-darwin --features=$FEATURES
+
 lipo "target/x86_64-apple-darwin/release/$TARGET_OLD" "target/aarch64-apple-darwin/release/$TARGET_OLD" -create -output "$BINARY"
 echo "Created universal binary"
 
@@ -40,7 +41,7 @@ cp  LICENSE $ARCHIVE_DIR
 
 chmod +x $BINARY
 
-ARCHIVE_NAME="$TARGET-v$($BINARY --version)-$PLATFORM.zip"
+ARCHIVE_NAME="$TARGET-v$($BINARY --version)-$PLATFORM-universal.zip"
 ARCHIVE_PATH="$ARTIFACT_DIR/$ARCHIVE_NAME"
 
 zip -j $ARCHIVE_PATH $ARCHIVE_DIR/*
