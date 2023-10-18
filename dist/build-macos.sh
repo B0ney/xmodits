@@ -1,47 +1,47 @@
 #!/bin/bash
 
+PLATFORM="macos"
+
+TARGET_OLD="xmodits-gui"
 TARGET="xmodits"
-ASSETS_DIR="assets"
-RELEASE_DIR="target/release"
-APP_NAME="xmodits.app"
-APP_TEMPLATE="$ASSETS_DIR/macos/$APP_NAME"
-APP_TEMPLATE_PLIST="$APP_TEMPLATE/Contents/Info.plist"
-APP_DIR="$RELEASE_DIR/macos"
-APP_BINARY="$RELEASE_DIR/$TARGET"
-APP_BINARY_DIR="$APP_DIR/$APP_NAME/Contents/MacOS"
-APP_EXTRAS_DIR="$APP_DIR/$APP_NAME/Contents/Resources"
 
-DMG_NAME="xmodits.dmg"
-DMG_DIR="$RELEASE_DIR/macos"
+FEATURES="build_info","wgpu"
 
-VERSION=$(cat VERSION)
-BUILD=$(git describe --always --dirty --exclude='*')
+PROFILE="release"
+RELEASE_DIR="target/$PROFILE"
 
-# update version and build
-sed -i '' -e "s/{{ VERSION }}/$VERSION/g" "$APP_TEMPLATE_PLIST"
-sed -i '' -e "s/{{ BUILD }}/$BUILD/g" "$APP_TEMPLATE_PLIST"
+BINARY_OLD="$RELEASE_DIR/$TARGET_OLD"
 
-# build binary
+ARCHIVE_DIR="$RELEASE_DIR/archive"
+ARTIFACT_DIR="$RELEASE_DIR/artifact"
+BINARY="$ARCHIVE_DIR/$TARGET"
+
+
+# create directories
+mkdir -p $ARCHIVE_DIR
+rm -rf $ARCHIVE_DIR/*
+
+mkdir -p $ARTIFACT_DIR
+rm -rf $ARTIFACT_DIR/*
+
+
+# Build universal binary and store it to the archive directory
 export MACOSX_DEPLOYMENT_TARGET="11.0"
 rustup target add x86_64-apple-darwin
 rustup target add aarch64-apple-darwin
-cargo build --release --target=x86_64-apple-darwin
-cargo build --release --target=aarch64-apple-darwin
-lipo "target/x86_64-apple-darwin/release/$TARGET" "target/aarch64-apple-darwin/release/$TARGET" -create -output "$APP_BINARY"
+cargo build -p xmodits-gui --release --target=x86_64-apple-darwin --features=$FEATURES
+cargo build -p xmodits-gui --release --target=aarch64-apple-darwin --features=$FEATURES
 
-# build app
-mkdir -p "$APP_BINARY_DIR"
-mkdir -p "$APP_EXTRAS_DIR"
-cp -fRp "$APP_TEMPLATE" "$APP_DIR"
-cp -fp "$APP_BINARY" "$APP_BINARY_DIR"
-touch -r "$APP_BINARY" "$APP_DIR/$APP_NAME"
-echo "Created '$APP_NAME' in '$APP_DIR'"
+lipo "target/x86_64-apple-darwin/release/$TARGET_OLD" "target/aarch64-apple-darwin/release/$TARGET_OLD" -create -output "$BINARY"
+echo "Created universal binary"
 
-# package dmg
-echo "Packing disk image..."
-ln -sf /Applications "$DMG_DIR/Applications"
-hdiutil create "$DMG_DIR/$DMG_NAME" -volname "xmodits" -fs HFS+ -srcfolder "$APP_DIR" -ov -format UDZO
-echo "Packed '$APP_NAME' in '$APP_DIR'"
+# copy extra files
+cp  README.md $ARCHIVE_DIR
+cp  LICENSE $ARCHIVE_DIR
 
+chmod +x $BINARY
 
-# https://github.com/squidowl/halloy/blob/9393792c43d705740ccddce561c52931ae098472/scripts/build-macos.sh
+ARCHIVE_NAME="$TARGET-v$($BINARY --version)-$PLATFORM-universal.zip"
+ARCHIVE_PATH="$ARTIFACT_DIR/$ARCHIVE_NAME"
+
+zip -j $ARCHIVE_PATH $ARCHIVE_DIR/*

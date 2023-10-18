@@ -17,9 +17,6 @@ pub fn init_logging() {
     use tracing::Level;
     use tracing_subscriber::FmtSubscriber;
 
-    #[cfg(windows)]
-    reattach_windows_terminal();
-
     // all spans/events with a level higher than TRACE (e.g, debug, info, warn, etc.)
     // will be written to stdout.
     set_global_default(

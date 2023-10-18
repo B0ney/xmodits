@@ -1,12 +1,7 @@
 name: Publish
 
 on:
-  # release:
-  # workflow_dispatch:
-  # workflow_call:
   push:
-    # branches:
-    #   - main
     tags:
       - 'v*'
 
@@ -16,13 +11,12 @@ permissions:
 jobs:
   build-gui:
     uses: ./.github/workflows/build_gui_artifacts.yml
-  # build-cli: 
-  #   uses: ./.github/workflows/build_cli_artifacts.yml
 
   release:
     name: Release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
+    
     needs: build-gui
     steps:
       - uses: actions/checkout@v3
@@ -30,60 +24,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: bin
-      - name: Create pre-release
+      - name: Create draft-release
         uses: softprops/action-gh-release@v1
         with:
           files: bin/*/xmodits-*
-          prerelease: true
+          draft: true
+          prerelease: false
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  # upload-compiled-binary:
-  #   # The type of runner that the job will run on
-  #   runs-on: ubuntu-latest
 
-  #   # Steps represent a sequence of tasks that will be executed as part of the job
-  #   steps:
-  #     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-  #     - uses: actions/checkout@v3
-
-  #     - name: setup rustup
-  #       run: |
-  #         rustup override set 1.60
-  #         rustup target add x86_64-pc-windows-gnu
-
-  #     - uses: Swatinem/rust-cache@v1
-
-  #     - name: install deps
-  #       run: sudo apt install -y mingw-w64
-
-  #     - name: compile linux
-  #       run: cargo build --release -p xmodits
-
-  #     - name: compile windows
-  #       run: cargo build --target=x86_64-pc-windows-gnu --release -p xmodits --bin xmodits --bin xmodits-cli
-
-  #     - name: version
-  #       run: echo "::set-output name=version::$(./target/release/xmodits -v)"
-  #       id: version
-
-  #     - name: copy_extra_files
-  #       run: |
-  #         cp ./LICENSE ./target/release/
-  #         cp ./README.md ./target/release/
-
-  #         cp ./LICENSE ./target/x86_64-pc-windows-gnu/release/
-  #         cp ./README.md ./target/x86_64-pc-windows-gnu/release/
-
-
-  #     - name: zip up linux
-  #       run: zip -j xmodits-linux ./target/release/{xmodits,LICENSE,README.md}
-
-  #     - name: zip up windows
-  #       run: zip -j xmodits-windows ./target/x86_64-pc-windows-gnu/release/{xmodits.exe,LICENSE,README.md}
-
-  #     - uses: ncipollo/release-action@v1
-  #       with:
-  #         allowUpdates: true
-  #         artifacts: "xmodits-linux.zip,xmodits-windows.zip"
-  #         token: ${{ github.token }}
-  #         tag: ${{ steps.version.outputs.version }}

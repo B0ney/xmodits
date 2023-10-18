@@ -23,6 +23,9 @@ use tikv_jemallocator::Jemalloc;
 static GLOBAL: Jemalloc = Jemalloc;
 
 fn main() -> iced::Result {
+    #[cfg(windows)]
+    logger::reattach_windows_terminal();
+
     let args = env::args().skip(1);
 
     let version = args
@@ -32,7 +35,7 @@ fn main() -> iced::Result {
         .unwrap_or_default();
 
     if version {
-        println!("XMODITS {}", env!("CARGO_PKG_VERSION"));
+        println!("{}", env!("CARGO_PKG_VERSION"));
         return Ok(());
     }
 
