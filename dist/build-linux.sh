@@ -32,7 +32,10 @@ artifact_path() {
 
 create_dirs() {
     mkdir -p $ARCHIVE_DIR
+    rm -rf $ARCHIVE_DIR/*
+
     mkdir -p $ARTIFACT_DIR
+    rm -rf $ARTIFACT_DIR/*
 }
 
 package() {
