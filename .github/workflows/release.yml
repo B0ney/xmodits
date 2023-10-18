@@ -24,7 +24,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: bin
-      - name: Create pre-release
+      - name: Create draft-release
         uses: softprops/action-gh-release@v1
         with:
           files: bin/*/xmodits-*
