@@ -12,9 +12,9 @@ RELEASE_DIR="target/$PROFILE"
 
 BINARY_OLD="$RELEASE_DIR/$TARGET_OLD"
 
-
 ARCHIVE_DIR="$RELEASE_DIR/archive"
 ARTIFACT_DIR="$RELEASE_DIR/artifact"
+BINARY="$ARCHIVE_DIR/$TARGET"
 
 
 # create directories
@@ -24,7 +24,6 @@ rm -rf $ARCHIVE_DIR/*
 mkdir -p $ARTIFACT_DIR
 rm -rf $ARTIFACT_DIR/*
 
-BINARY = $ARCHIVE_DIR/$TARGET 
 
 # Build universal binary and store it to the archive directory
 export MACOSX_DEPLOYMENT_TARGET="11.0"
