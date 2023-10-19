@@ -22,30 +22,33 @@ git = "https://github.com/iced-rs/iced.git"
 default-features = false
 features = ["image", "tokio"]
 
-[dependencies.tokio]
-version = "1.32.0"
-features = ["sync", "fs", "io-util", "parking_lot"]
+[workspace.dependencies]
+tokio = { version = "1.33.0", features = ["sync", "fs", "io-util", "parking_lot"] }
+dirs = "5.0.0"
+anyhow = "1.0.0"
+tracing = "0.1.40"
 
 [dependencies]
 data = { path = "data" }
 audio_engine = { path = "audio_engine", optional = true }
 
-anyhow = "1.0.0"
-serde = { version = "1.0", features = ["derive"] }
-tracing = "0.1.37"
+tokio.workspace = true
+dirs.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+
 tracing-subscriber = "0.3.17"
 open = "5.0.0"
 walkdir = "2.4.0"
 rand = "0.8.5"
 parking_lot = "0.12.1"
-rayon = "1.7.0"
+rayon = "1.8"
 once_cell = "1.18.0"
 tempfile = "3.8.0"
-dirs = "5.0.0"
 chrono = { version = "0.4", features = ["serde"] }
 rfd = { version = "0.12.0", default-features = false, features = ["xdg-portal"] }
 iced_gif = { version = "0.4.0", optional = true }
-regex = "1.10.2"
+# regex = "1.10.2"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.48.0", features = ["Win32_System_Console", "Win32_Foundation"] }
@@ -60,9 +63,8 @@ built = { version = "0.7.0", features = ["chrono", "git2"], optional = true }
 winresource = "0.1.17"
 static_vcruntime = "2.0.0"
 
-[package.metadata.winres]
+[package.metadata.winresource]
 OriginalFilename = "XMODITS.EXE"
-FileDescription = "A tool to extract samples from tracker modules. https://github.com/B0ney/xmodits/ - GPLv3"
 Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
 
 [profile.dev]
@@ -71,7 +73,7 @@ incremental = true
 
 [profile.release]
 strip = true
-opt-level = "s"
+opt-level = 3
 codegen-units = 1
 
 [workspace]

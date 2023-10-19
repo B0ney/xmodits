@@ -52,7 +52,8 @@ pub fn non_gui(general: &config::GeneralConfig) -> Option<Element<Message>> {
             general.non_gui_use_cwd,
             Message::NonGuiUseCwd
         ),
-    ];
+    ]
+    .spacing(8);
 
     Some(control("Drag and Drop Mode", settings).into())
 }
