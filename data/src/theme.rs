@@ -9,7 +9,7 @@ pub struct Theme {
     pub palette: Palette,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Palette {
     pub base: BaseColors,
     pub normal: NormalColors,
@@ -22,7 +22,7 @@ impl Default for Palette {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BaseColors {
     pub background: Color,
     pub foreground: Color,
@@ -30,7 +30,7 @@ pub struct BaseColors {
     pub border: Color, // TODO: sort
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct NormalColors {
     pub primary: Color,
     pub secondary: Color,
@@ -38,7 +38,7 @@ pub struct NormalColors {
     pub error: Color,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BrightColors {
     pub primary: Color,
     pub secondary: Color,

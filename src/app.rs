@@ -115,6 +115,16 @@ impl XMODITS {
             None => format!("{TITLE}"),
         }
     }
+
+    pub fn save_cfg(&self) -> Command<Message> {
+        let config = data::Config {
+            general: self.general_cfg.0.clone(),
+            ripping: self.ripping_cfg.0.clone(),
+            naming: self.naming_cfg.0.clone(),
+        };
+
+        return Command::perform(async move { config.save().await }, |_| Message::Ignore);
+    }
 }
 
 /// TODO: allow the user to customize their application icon
@@ -280,7 +290,7 @@ impl Application for XMODITS {
                 event::Event::CloseRequested => {}
                 event::Event::Delete => self.delete_selected_entries(),
                 event::Event::FileDropped(file) => self.entries.add(file),
-                event::Event::Save => {}
+                event::Event::Save => return self.save_cfg(),
                 event::Event::Start => {}
             },
             Message::FileDialog => return Command::perform(files_dialog(), Message::Add),
@@ -324,7 +334,9 @@ impl Application for XMODITS {
                 );
             }
             Message::ProbeResult(probe) => self.tracker_info = Some(probe),
-            Message::SaveConfig => {}
+            Message::SaveConfig => {
+                return self.save_cfg();
+            }
             Message::SaveConfigResult() => {}
             Message::SaveErrors => todo!(),
             Message::SaveErrorsResult() => todo!(),

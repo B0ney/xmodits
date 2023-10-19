@@ -11,7 +11,7 @@ pub use sample_naming::SampleNameConfig;
 pub use sample_ripping::SampleRippingConfig;
 
 use anyhow::Result;
-// use tokio::io::AsyncWriteExt;
+use tokio::io::AsyncWriteExt;
 use tracing::{error, info, warn};
 
 const APP_NAME: &str = "xmodits";
@@ -37,43 +37,49 @@ impl Config {
             return Self::default();
         };
 
-        let Ok(config) = toml::from_str(&toml) else {
-            warn!("Could not parse existing configuration file. Perhaps an older version was loaded?");
-            return Self::default();
-        };
-
-        config
+        Self::load_str(&toml)
     }
 
-    // pub async fn save(&self) -> Result<()> {
-    //     if !config_dir().exists() {
-    //         info!("Creating config directory: {}", config_dir().display());
-    //         tokio::fs::create_dir(config_dir()).await?;
-    //     };
+    pub fn load_str(input: &str) -> Self {
+        toml::from_str(input).unwrap_or_else(|_| {
+            warn!("Could not parse existing configuration file. Perhaps an older version was loaded?");
+            Self::default()
+        })
+    }
 
-    //     let file = tokio::fs::OpenOptions::new()
-    //         .write(true)
-    //         .truncate(true)
-    //         .create(true)
-    //         .open(Self::path())
-    //         .await;
+    pub fn save_str(&self) -> anyhow::Result<String> {
+        Ok(toml::to_string_pretty(&self)?)
+    }
 
-    //     if let Err(e) = &file {
-    //         error!("{}", e);
-    //     }
+    pub async fn save(&self) -> Result<()> {
+        if !config_dir().exists() {
+            info!("Creating config directory: {}", config_dir().display());
+            tokio::fs::create_dir(config_dir()).await?;
+        };
 
-    //     let result = file?
-    //         .write_all(toml::to_string_pretty(&self)?.as_bytes())
-    //         .await;
+        let file = tokio::fs::OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open(Self::path())
+            .await;
 
-    //     if let Err(e) = &result {
-    //         error!("{}", e)
-    //     } else {
-    //         info!("Saved Configuration!");
-    //     }
+        if let Err(e) = &file {
+            error!("{}", e);
+        }
 
-    //     Ok(result?)
-    // }
+        let result = file?
+            .write_all(toml::to_string_pretty(&self)?.as_bytes())
+            .await;
+
+        if let Err(e) = &result {
+            error!("{}", e)
+        } else {
+            info!("Saved Configuration!");
+        }
+
+        Ok(result?)
+    }
     
     pub fn filename() -> &'static str {
         CONFIG_NAME
