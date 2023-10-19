@@ -2,7 +2,11 @@
 
 use std::path::Path;
 
+use iced::widget::{column, horizontal_rule, row};
+
+use crate::icon;
 use crate::utils::{extension, filename};
+use crate::widget::{helpers::control, Element};
 
 pub trait FilterCreator {
     fn create(self) -> Box<dyn Fn(&Path) -> bool>;
@@ -88,4 +92,29 @@ impl Filter {
         self.0.push(func);
         self
     }
+}
+
+pub enum Message {}
+
+pub fn view<'a>() -> Element<'a, Message> {
+    let title = row!["Filters", icon::filter()].spacing(8);
+
+    let menu = |title: &'a str| {
+        row![title, horizontal_rule(1)]
+            .spacing(8)
+            .align_items(iced::Alignment::Center)
+    };
+
+    let settings = column![
+        menu("Size"),
+        // horizontal_rule(1),
+        menu("Extension"),
+        // horizontal_rule(1),
+        menu("Name"),
+        // horizontal_rule(1),
+        menu("Date"),
+    ]
+    .spacing(8);
+
+    control(title, settings).into()
 }

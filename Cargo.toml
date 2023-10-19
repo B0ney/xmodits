@@ -73,7 +73,7 @@ incremental = true
 
 [profile.release]
 strip = true
-opt-level = 3
+opt-level = 2
 codegen-units = 1
 
 [workspace]

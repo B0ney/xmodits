@@ -110,20 +110,20 @@ pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
         Message::FolderDepth,
     );
 
-    let options = [0usize, 1, 2, 4, 6, 8, 10, 12, 16].map(Workers).to_vec();
-    let worker_threads = labelled_picklist(
-        "Worker Threads",
-        options,
-        Some(Workers(ripping.worker_threads)),
-        Message::WorkerThreads,
-    );
+    // let options = [0usize, 1, 2, 4, 6, 8, 10, 12, 16].map(Workers).to_vec();
+    // let worker_threads = labelled_picklist(
+    //     "Worker Threads",
+    //     options,
+    //     Some(Workers(ripping.worker_threads)),
+    //     Message::WorkerThreads,
+    // );
 
     let settings = column![
         col1,
         export_format,
         horizontal_rule(1),
         folder_scan_depth,
-        worker_threads,
+        // worker_threads,
     ]
     .spacing(8);
 

@@ -7,6 +7,7 @@ use crate::font;
 use crate::icon;
 use crate::logger;
 use crate::ripper::{self, subscription::CompleteState};
+use crate::screen::config::custom_filters;
 use crate::screen::config::name_preview::{self, SampleNameParams};
 use crate::screen::config::sample_naming::{self, NamingConfig};
 use crate::screen::config::sample_ripping::{self, RippingConfig, DESTINATION_BAR_ID};
@@ -409,16 +410,23 @@ impl Application for XMODITS {
                 ]
                 .spacing(8);
 
-                let name_preview = name_preview::preview_name(
-                    &self.sample_name,
-                    &self.naming_cfg.0,
-                    &self.ripping_cfg.0,
-                );
+                let naming_cfg = {
+                    let name_preview = name_preview::preview_name(
+                        &self.sample_name,
+                        &self.naming_cfg.0,
+                        &self.ripping_cfg.0,
+                    );
+
+                    self.naming_cfg.view(name_preview).map(Message::NamingCfg)
+                };
+
+                let ripping_cfg = self.ripping_cfg.view().map(Message::RippingCfg);
 
                 column![
                     tracker_info::view(self.tracker_info.as_ref()),
-                    self.naming_cfg.view(name_preview).map(Message::NamingCfg),
-                    self.ripping_cfg.view().map(Message::RippingCfg),
+                    naming_cfg,
+                    ripping_cfg,
+                    custom_filters::view().map(|_| Message::Ignore),
                     bottom_left_buttons,
                 ]
                 .spacing(8)
