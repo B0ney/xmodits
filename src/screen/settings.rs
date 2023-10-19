@@ -28,6 +28,12 @@ pub enum Message {
     SetLogFolderDialog,
 }
 
+/* 
+TODO: 
+    * Sample name preview parameters 
+    * Load custom animation for idle, ripping, and done states
+    * Load custom themes and pick a preset
+*/
 pub fn view(general: &config::GeneralConfig) -> Element<Message> {
     let settings = column![
         // labelled_picklist("Themes", options, selected, on_selected)

@@ -6,7 +6,7 @@ use crate::event;
 use crate::font;
 use crate::icon;
 use crate::logger;
-use crate::ripper::{self, subscription::CompleteState};
+use crate::ripper::{subscription::{ErrorHandler, CompleteState}, self};
 use crate::screen::config::custom_filters;
 use crate::screen::config::name_preview::{self, SampleNameParams};
 use crate::screen::config::sample_naming::{self, NamingConfig};
@@ -17,7 +17,7 @@ use crate::screen::settings::{self, GeneralConfig};
 use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, main_panel::entry::Entries};
 use crate::theme;
-use crate::utils::{files_dialog, folders_dialog};
+use crate::utils::{create_file_dialog, files_dialog, folders_dialog};
 use crate::widget::helpers::{action, spaced_row, warning};
 use crate::widget::{Collection, Container, Element};
 
@@ -235,7 +235,7 @@ pub enum Message {
     SaveConfig,
     SaveConfigResult(),
     SaveErrors,
-    SaveErrorsResult(),
+    SaveErrorsResult(Result<(), String>),
     Select {
         index: usize,
         selected: bool,
@@ -339,8 +339,36 @@ impl Application for XMODITS {
                 return self.save_cfg();
             }
             Message::SaveConfigResult() => {}
-            Message::SaveErrors => todo!(),
-            Message::SaveErrorsResult() => todo!(),
+            Message::SaveErrors => {
+                let State::Finished { state, .. } = &mut self.state else {
+                    return Command::none();
+                };
+
+                let Some(errors) = state.errors_ref_mut().cloned() else {
+                    return Command::none();
+                };
+
+                return Command::perform(
+                    async move {
+                        let Some(path) = create_file_dialog().await else {
+                            return Err(String::new()); // todo
+                        };
+
+                        ErrorHandler::dump(errors, path).await
+                    },
+                    Message::SaveErrorsResult,
+                );
+            }
+            Message::SaveErrorsResult(result) => {
+                // todo
+                match result {
+                    Ok(_) => {
+                        self.state = State::Idle; // todo
+                        return Command::none();
+                    }
+                    Err(_) => {}
+                }
+            }
             Message::Select { index, selected } => self.entries.select(index, selected),
             Message::SelectAll(selected) => self.entries.select_all(selected),
             Message::SetState(state) => self.state = state,
@@ -376,7 +404,6 @@ impl Application for XMODITS {
                 ripper::Message::Done { state, time } => {
                     self.ripper.reset_stop_flag(); // todo: should this be here?
                     self.state = State::Finished { state, time };
-                    // tracing::debug!("{:#?}", self.state);
                 }
             },
         }
@@ -386,7 +413,7 @@ impl Application for XMODITS {
     fn view(&self) -> Element<Message> {
         let top_left_menu = row![
             button("Configure").on_press(Message::ConfigPressed),
-            button("History").on_press(Message::HistoryPressed),
+            // button("History").on_press(Message::HistoryPressed),
             button("Settings").on_press(Message::SettingsPressed),
             button("About").on_press(Message::AboutPressed),
         ]
@@ -426,7 +453,7 @@ impl Application for XMODITS {
                     tracker_info::view(self.tracker_info.as_ref()),
                     naming_cfg,
                     ripping_cfg,
-                    custom_filters::view().map(|_| Message::Ignore),
+                    // custom_filters::view().map(|_| Message::Ignore),
                     bottom_left_buttons,
                 ]
                 .spacing(8)

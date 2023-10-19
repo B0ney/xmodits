@@ -35,7 +35,7 @@ fn paths(handles: Vec<rfd::FileHandle>) -> Vec<PathBuf> {
     handles.into_iter().map(|d| d.path().to_owned()).collect()
 }
 
-pub async fn create_file() -> Option<PathBuf> {
+pub async fn create_file_dialog() -> Option<PathBuf> {
     let file_dialog = rfd::AsyncFileDialog::new();
 
     #[cfg(windows)]

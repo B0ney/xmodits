@@ -112,7 +112,7 @@ impl ErrorHandler {
     }
 
     /// dump the errors to a file, will overwrite
-    pub async fn dump(errors: Vec<Failed>, path: PathBuf) -> Result<(), Vec<Failed>> {
+    pub async fn dump(errors: Vec<Failed>, path: PathBuf) -> Result<(), String> {
         match tokio::fs::OpenOptions::new()
             .write(true)
             .truncate(true)
@@ -128,8 +128,7 @@ impl ErrorHandler {
                 Ok(())
             }
             Err(e) => {
-                // error!(e);
-                Err(errors)
+                Err(e.to_string())
             }
         }
     }
@@ -145,14 +144,14 @@ impl ErrorHandler {
         match error.reason {
             Reason::Single(reason) => {
                 let _ = file.write_all(reason.as_bytes()).await;
-            },
+            }
             Reason::Multiple(reasons) => {
                 //todo include raw index
                 for (_raw_idx, reason) in reasons {
                     let _ = file.write_all(reason.as_bytes()).await;
                     let _ = file.write_all(b"\n").await;
                 }
-            },
+            }
         }
         let _ = file.write_all(b"\n\n").await;
         let _ = file.flush().await;
