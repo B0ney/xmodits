@@ -1,22 +1,28 @@
 //! Information about xmodits
 
 use crate::app::Message;
-use crate::icon::xmodits_logo;
+use crate::icon::{vbee3, xmodits_logo};
 use crate::theme;
 use crate::widget::helpers::{
     centered_column_x, centered_container, centered_text, control, control_filled,
 };
 use crate::widget::{Collection, Element};
-use iced::widget::{button, column, image, text};
+use iced::widget::{button, column, image, row, text};
 
 use super::build_info;
 
 pub fn view<'a>() -> Element<'a, Message> {
-    let title = centered_text("XMODITS - by B0ney");
+    let title = row![
+        image(vbee3()),
+        centered_text("XMODITS - by B0ney"),
+        image(vbee3()),
+    ]
+    .align_items(iced::Alignment::Center)
+    .spacing(8);
     let about = centered_text("A tool to rip samples from various tracker modules.");
     let repo = button(text(env!("CARGO_PKG_REPOSITORY")))
         .on_press(Message::Open(String::from(env!("CARGO_PKG_REPOSITORY"))))
-        .style(theme::Button::Hyperlink);
+        .style(theme::Button::HyperlinkInverted);
     let version = centered_text(format!("version: {}", env!("CARGO_PKG_VERSION")));
     let image = image(xmodits_logo());
     let about = centered_container(centered_column_x(column![

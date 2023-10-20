@@ -59,11 +59,23 @@ fn icon(unicode: char) -> Text<'static> {
         .horizontal_alignment(alignment::Horizontal::Center)
 }
 
+
+/* TODO */ 
+
 pub fn xmodits_logo() -> image::Handle {
     use std::sync::OnceLock;
     static HANDLE: OnceLock<image::Handle> = OnceLock::new();
 
     HANDLE
         .get_or_init(|| image::Handle::from_memory(include_bytes!("../assets/img/logos/icon.png")))
+        .clone()
+}
+
+pub fn vbee3() -> image::Handle {
+    use std::sync::OnceLock;
+    static HANDLE: OnceLock<image::Handle> = OnceLock::new();
+
+    HANDLE
+        .get_or_init(|| image::Handle::from_memory(include_bytes!("../assets/img/vbee3.png")))
         .clone()
 }
