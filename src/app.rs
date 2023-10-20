@@ -136,7 +136,7 @@ impl XMODITS {
 
 /// TODO: allow the user to customize their application icon
 fn icon() -> iced::window::Icon {
-    let icon = include_bytes!("../assets/img/logo/icon2.png");
+    let icon = include_bytes!("../assets/img/logos/icon.png");
     iced::window::icon::from_file_data(icon, None).unwrap()
 }
 

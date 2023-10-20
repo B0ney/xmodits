@@ -3,7 +3,6 @@ fn main() {
     {
         static_vcruntime::metabuild();
 
-        // println!("cargo:rerun-if-changed=dist/windows/xmodits.rc");
         winresource::WindowsResource::new()
             .set_icon("./dist/windows/icon.ico")
             // Set dpi awareness so that rfd won't show blurred text 

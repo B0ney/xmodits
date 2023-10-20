@@ -64,6 +64,6 @@ pub fn xmodits_logo() -> image::Handle {
     static HANDLE: OnceLock<image::Handle> = OnceLock::new();
 
     HANDLE
-        .get_or_init(|| image::Handle::from_memory(include_bytes!("../assets/img/logo/icon2.png")))
+        .get_or_init(|| image::Handle::from_memory(include_bytes!("../assets/img/logos/icon.png")))
         .clone()
 }
