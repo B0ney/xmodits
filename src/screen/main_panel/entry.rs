@@ -1,4 +1,3 @@
-use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 
 use crate::utils::filename;
@@ -29,24 +28,17 @@ impl Entry {
     }
 }
 
-impl Hash for Entry {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.selected.hash(state);
-        self.path.hash(state);
-    }
-}
-
 #[derive(Default)]
 pub struct Entries {
     pub all_selected: bool,
-    pub entries: Vec<Entry>, // todo: use hashset, use "(bool, Entry)" instead?
+    pub entries: Vec<Entry>,
 }
 
 impl Entries {
     pub fn contains(&self, path: &Path) -> bool {
         self.entries.iter().any(|x| &*x.path == path)
     }
-    
+
     pub fn all_selected(&self) -> bool {
         self.all_selected
     }
@@ -128,7 +120,7 @@ impl Entries {
         .collect()
     }
 
-    pub fn delete_selected(&mut self, current: Option<&Path>) -> bool{
+    pub fn delete_selected(&mut self, current: Option<&Path>) -> bool {
         // clear the entries if everything is selected
         if self.all_selected || self.total_selected() == self.entries.len() {
             self.entries.clear();
@@ -142,7 +134,7 @@ impl Entries {
         while i < self.entries.len() {
             let path = &self.entries[i];
             if path.selected {
-                if matches!(current, Some(e) if e == &path.path) {
+                if current.eq(&Some(path.path.as_ref())) {
                     clear_current_tracker = true;
                 }
                 let _ = self.entries.remove(i);
@@ -181,5 +173,3 @@ impl Entries {
         self.entries.get(idx).map(|f| f.path.as_ref())
     }
 }
-
-fn view(entry: &Entry) {}

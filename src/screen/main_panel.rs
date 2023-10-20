@@ -51,7 +51,7 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
         selected,
     });
 
-    let filename = text(&entry.filename());
+    let filename = text(entry.filename());
 
     let view = row![check, filename]
         .push_maybe(
@@ -165,15 +165,24 @@ pub fn view_finished<'a>(
                     .iter()
                     .map(|error| {
                         let reason = match &error.reason {
-                            Reason::Single(single) => text(single),
-                            Reason::Multiple(_) => text("multiple..."), //todo
+                            Reason::Single(single) => centered_text(single),
+                            Reason::Multiple(_) => centered_text("multiple..."), //todo
                         };
 
                         let error = text(error.filename());
-                        container(column![error, reason]).into()
+                        let error = container(column![error, reason])
+                            .padding(4)
+                            
+                            .width(Length::Fill)
+                            .style(theme::Container::Frame);
+                        // let error = fill_container(centered_column_x(column![error, reason]))
+                        // .padding(4)
+                        // .width(Length::Fill)
+                        // .style(theme::Container::Frame);
+                        row![error, Space::with_width(15)].into()
                     })
                     .collect(),
-            ));
+            ).spacing(8));
 
             let view = centered_column_x(column![message, buttons, errors].padding(8));
 

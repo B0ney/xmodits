@@ -148,10 +148,14 @@ fn stage_2(
 
     subscr_tx.send(Message::SetTotal(lines)).unwrap();
 
+    let plural = |n: u64| -> &str {
+        if n > 1 {"s"} else {""}
+    };
+
     subscr_tx
         .send(Message::Info(Some(format!(
-            "Stage 2: Ripping {} files from {} folder(s)...",
-            lines, selected_dirs
+            "Stage 2: Ripping {lines} file{} from {selected_dirs} folder{}...",
+            plural(lines), plural(selected_dirs as u64)
         ))))
         .unwrap();
 

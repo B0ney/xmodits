@@ -1,13 +1,9 @@
 //! Preview how ripped samples will be named
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use data::config::{SampleNameConfig, SampleRippingConfig};
 use data::xmodits_lib::interface::{name::Context, Sample};
-
-use iced::widget::text;
-
-use crate::widget::Text;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -76,7 +72,7 @@ pub fn preview_name<'a>(
         total: 10,
         extension: formatter.extension(),
         highest: 10,
-        source_path: Some(&source_path),
+        source_path: Some(source_path),
     };
 
     namer_func(&dummy_sample, &context, params.seq_index as usize)

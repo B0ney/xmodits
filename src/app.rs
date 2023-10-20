@@ -73,6 +73,13 @@ impl XMODITS {
 
     pub fn settings() {}
 
+    pub fn load_cfg(&mut self, config: Config) {
+        // todo
+        self.ripping_cfg.0 = config.ripping;
+        self.naming_cfg.0 = config.naming;
+        self.general_cfg.0 = config.general;
+    }
+
     pub fn build_start_signal(&mut self) -> ripper::Signal {
         let entries = self.entries.take();
         let ripping = self.ripping_cfg.0.to_owned();
@@ -113,7 +120,7 @@ impl XMODITS {
 
         match modifiers {
             Some(modi) => format!("{TITLE} - {modi}"),
-            None => format!("{TITLE}"),
+            None => TITLE.to_string(),
         }
     }
 
@@ -121,10 +128,10 @@ impl XMODITS {
         let config = data::Config {
             general: self.general_cfg.0.clone(),
             ripping: self.ripping_cfg.0.clone(),
-            naming: self.naming_cfg.0.clone(),
+            naming: self.naming_cfg.0,
         };
 
-        return Command::perform(async move { config.save().await }, |_| Message::Ignore);
+        Command::perform(async move { config.save().await }, |_| Message::Ignore)
     }
 }
 
@@ -254,8 +261,11 @@ impl Application for XMODITS {
     type Theme = theme::Theme;
     type Flags = Config;
 
-    fn new(_flags: Self::Flags) -> (Self, Command<Message>) {
-        (Self::default(), font::load().map(Message::FontsLoaded))
+    fn new(flags: Self::Flags) -> (Self, Command<Message>) {
+        let mut app = Self::default();
+        app.load_cfg(flags);
+
+        (app, font::load().map(Message::FontsLoaded))
     }
 
     fn title(&self) -> String {
@@ -316,14 +326,14 @@ impl Application for XMODITS {
                     tracing::warn!("Could not open external link: {:?}", err)
                 };
             }
-            Message::PreviewSamples(path) => (),
+            Message::PreviewSamples(_) => (),
             Message::Probe(idx) => {
                 let path = self.entries.get(idx).unwrap();
 
                 if self
                     .tracker_info
                     .as_ref()
-                    .is_some_and(|info| info.matches_path(&path))
+                    .is_some_and(|info| info.matches_path(path))
                     | path.is_dir()
                 {
                     return Command::none();
