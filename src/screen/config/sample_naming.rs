@@ -1,25 +1,11 @@
 //! Configure how samples should be named
 
-use data::config::{self, SampleNameConfig};
+use data::config::SampleNameConfig;
 
-use crate::widget::helpers::{control, labelled_picklist, centered_column_x};
+use crate::widget::helpers::{centered_column_x, control, labelled_picklist};
 use crate::widget::{helpers::centered_text, Element};
 
 use iced::widget::{checkbox, column, horizontal_rule, row};
-
-#[derive(Debug, Default)]
-pub struct NamingConfig(pub config::SampleNameConfig);
-
-impl NamingConfig {
-    pub fn update(&mut self, message: Message) {
-        tracing::info!("{:?}", &message);
-        update(&mut self.0, message)
-    }
-
-    pub fn view(&self, preview: impl ToString) -> Element<Message> {
-        view(&self.0, preview)
-    }
-}
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -33,6 +19,8 @@ pub enum Message {
 }
 
 pub fn update(cfg: &mut SampleNameConfig, message: Message) {
+    tracing::info!("{:?}", &message);
+    
     match message {
         Message::IndexOnly(index_only) => {
             if index_only {

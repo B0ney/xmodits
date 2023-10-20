@@ -2,8 +2,10 @@
 
 use std::path::PathBuf;
 
-use data::config::{SampleNameConfig, SampleRippingConfig};
+use data::config::{SampleNameConfig, SampleNameParams, SampleRippingConfig};
 use data::xmodits_lib::interface::{name::Context, Sample};
+
+use crate::widget::Element;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -14,39 +16,20 @@ pub enum Message {
     SeqIndex(u16),
 }
 
-#[derive(Debug)]
-pub struct SampleNameParams {
-    module_name: String,
-    module_source: PathBuf,
-    sample_filename: Option<String>,
-    sample_name: String,
-    raw_index: u16,
-    seq_index: u16,
-}
-
-impl Default for SampleNameParams {
-    fn default() -> Self {
-        Self {
-            module_name: String::from("music"),
-            sample_filename: Some(String::from("kick_1.wav")),
-            sample_name: String::from("kick.wav"),
-            module_source: PathBuf::from("~/Downloads/music.it"),
-            raw_index: 7,
-            seq_index: 0,
-        }
+pub fn update(name_params: &mut SampleNameParams, message: Message) {
+    tracing::info!("{:?}", &message);
+    
+    match message {
+        Message::ModuleName(module_name) => name_params.module_name = module_name,
+        Message::FileName(file_name) => name_params.sample_filename = file_name,
+        Message::Source(source) => name_params.module_source = source,
+        Message::RawIndex(raw_index) => name_params.raw_index = raw_index,
+        Message::SeqIndex(seq_index) => name_params.seq_index = seq_index,
     }
 }
 
-impl SampleNameParams {
-    pub fn update(&mut self, message: Message) {
-        match message {
-            Message::ModuleName(_) => todo!(),
-            Message::FileName(_) => todo!(),
-            Message::Source(_) => todo!(),
-            Message::RawIndex(_) => todo!(),
-            Message::SeqIndex(_) => todo!(),
-        }
-    }
+pub fn view<'a>() -> Element<'a, Message> {
+    todo!()
 }
 
 pub fn preview_name<'a>(

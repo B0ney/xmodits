@@ -7,11 +7,14 @@ use iced::{application, overlay, Background, Color};
 use data::theme;
 
 #[derive(Default, Clone)]
-pub struct Theme(theme::Palette);
+pub struct Theme(pub theme::Palette);
 
 impl Theme {
     pub fn inner(&self) -> &theme::Palette {
         &self.0
+    }
+    pub fn load(&mut self, theme: data::Theme) {
+        
     }
 }
 

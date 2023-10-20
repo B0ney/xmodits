@@ -4,10 +4,10 @@ pub mod entry;
 
 use data::time::Time;
 use entry::Entries;
-use iced::{Alignment, Length};
 
 use self::entry::Entry;
 
+use crate::app::{Message, State};
 use crate::ripper::extraction::error::Reason;
 use crate::ripper::subscription::CompleteState;
 use crate::widget::helpers::{
@@ -16,11 +16,10 @@ use crate::widget::helpers::{
 use crate::widget::{Collection, Element};
 use crate::{icon, theme};
 
-use crate::app::{Message, State};
-
 use iced::widget::{
     button, checkbox, column, container, progress_bar, row, scrollable, text, Space,
 };
+use iced::{Alignment, Length};
 
 pub fn view_samples<'a>() -> Element<'a, Message> {
     todo!()
@@ -160,29 +159,27 @@ pub fn view_finished<'a>(
                 .spacing(6)
                 .align_items(Alignment::Center);
 
-            let errors = scrollable(column(
-                errors
-                    .iter()
-                    .map(|error| {
-                        let reason = match &error.reason {
-                            Reason::Single(single) => centered_text(single),
-                            Reason::Multiple(_) => centered_text("multiple..."), //todo
-                        };
+            let errors = scrollable(
+                column(
+                    errors
+                        .iter()
+                        .map(|error| {
+                            let reason = match &error.reason {
+                                Reason::Single(single) => centered_text(single),
+                                Reason::Multiple(_) => centered_text("multiple..."), //todo
+                            };
 
-                        let error = text(error.filename());
-                        let error = container(column![error, reason])
-                            .padding(4)
-                            
-                            .width(Length::Fill)
-                            .style(theme::Container::Frame);
-                        // let error = fill_container(centered_column_x(column![error, reason]))
-                        // .padding(4)
-                        // .width(Length::Fill)
-                        // .style(theme::Container::Frame);
-                        row![error, Space::with_width(15)].into()
-                    })
-                    .collect(),
-            ).spacing(8));
+                            let error = text(error.filename());
+                            let error = container(column![error, reason])
+                                .padding(4)
+                                .width(Length::Fill)
+                                .style(theme::Container::Frame);
+                            row![error, Space::with_width(15)].into()
+                        })
+                        .collect(),
+                )
+                .spacing(8),
+            );
 
             let view = centered_column_x(column![message, buttons, errors].padding(8));
 

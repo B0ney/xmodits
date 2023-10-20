@@ -8,12 +8,12 @@ use crate::icon;
 use crate::logger;
 use crate::ripper::{subscription::{ErrorHandler, CompleteState}, self};
 use crate::screen::config::custom_filters;
-use crate::screen::config::name_preview::{self, SampleNameParams};
-use crate::screen::config::sample_naming::{self, NamingConfig};
-use crate::screen::config::sample_ripping::{self, RippingConfig, DESTINATION_BAR_ID};
+use crate::screen::config::name_preview;
+use crate::screen::config::sample_naming;
+use crate::screen::config::sample_ripping::{self, DESTINATION_BAR_ID};
 use crate::screen::history::History;
 use crate::screen::main_panel;
-use crate::screen::settings::{self, GeneralConfig};
+use crate::screen::settings;
 use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, main_panel::entry::Entries};
 use crate::theme;
@@ -42,10 +42,9 @@ pub struct XMODITS {
     tracker_info: Option<TrackerInfo>,
     // sample_pack: (),
     theme: theme::Theme,
-    naming_cfg: NamingConfig,
-    sample_name: SampleNameParams,
-    ripping_cfg: RippingConfig,
-    general_cfg: GeneralConfig,
+    naming_cfg: data::config::SampleNameConfig,
+    ripping_cfg: data::config::SampleRippingConfig,
+    general_cfg: data::config::GeneralConfig,
 }
 
 impl XMODITS {
@@ -75,15 +74,15 @@ impl XMODITS {
 
     pub fn load_cfg(&mut self, config: Config) {
         // todo
-        self.ripping_cfg.0 = config.ripping;
-        self.naming_cfg.0 = config.naming;
-        self.general_cfg.0 = config.general;
+        self.ripping_cfg = config.ripping;
+        self.naming_cfg = config.naming;
+        self.general_cfg = config.general;
     }
 
     pub fn build_start_signal(&mut self) -> ripper::Signal {
         let entries = self.entries.take();
-        let ripping = self.ripping_cfg.0.to_owned();
-        let naming = self.naming_cfg.0.to_owned();
+        let ripping = self.ripping_cfg.to_owned();
+        let naming = self.naming_cfg.to_owned();
 
         ripper::Signal {
             entries,
@@ -126,9 +125,9 @@ impl XMODITS {
 
     pub fn save_cfg(&self) -> Command<Message> {
         let config = data::Config {
-            general: self.general_cfg.0.clone(),
-            ripping: self.ripping_cfg.0.clone(),
-            naming: self.naming_cfg.0,
+            general: self.general_cfg.clone(),
+            ripping: self.ripping_cfg.clone(),
+            naming: self.naming_cfg,
         };
 
         Command::perform(async move { config.save().await }, |_| Message::Ignore)
@@ -273,7 +272,8 @@ impl Application for XMODITS {
     }
 
     fn theme(&self) -> Self::Theme {
-        self.theme.clone()
+        // todo...
+        theme::Theme(self.general_cfg.theme.palette()).clone()
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
@@ -312,15 +312,15 @@ impl Application for XMODITS {
                 }
             }
             Message::GeneralCfg(cfg) => {
-                return self.general_cfg.update(cfg).map(Message::GeneralCfg)
+                return settings::update(&mut self.general_cfg, cfg).map(Message::GeneralCfg)
             }
             Message::HistoryPressed => {}
             Message::Ignore => (),
             Message::RippingCfg(msg) => {
-                return self.ripping_cfg.update(msg).map(Message::RippingCfg)
+                return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
             }
             Message::InvertSelection => self.entries.invert(),
-            Message::NamingCfg(msg) => self.naming_cfg.update(msg),
+            Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
             Message::Open(link) => {
                 if let Err(err) = open::that_detached(link) {
                     tracing::warn!("Could not open external link: {:?}", err)
@@ -389,7 +389,7 @@ impl Application for XMODITS {
                     return Command::none();
                 }
 
-                if !self.ripping_cfg.destination_is_valid() {
+                if !sample_ripping::destination_is_valid(&self.ripping_cfg) {
                     tracing::error!(
                         "The provided destination is not valid. The *parent* folder must exist."
                     );
@@ -449,15 +449,15 @@ impl Application for XMODITS {
 
                 let naming_cfg = {
                     let name_preview = name_preview::preview_name(
-                        &self.sample_name,
-                        &self.naming_cfg.0,
-                        &self.ripping_cfg.0,
+                        &self.general_cfg.sample_name_params, // TODO
+                        &self.naming_cfg,
+                        &self.ripping_cfg,
                     );
 
-                    self.naming_cfg.view(name_preview).map(Message::NamingCfg)
+                    sample_naming::view(&self.naming_cfg, name_preview).map(Message::NamingCfg)
                 };
 
-                let ripping_cfg = self.ripping_cfg.view().map(Message::RippingCfg);
+                let ripping_cfg = sample_ripping::view(&self.ripping_cfg).map(Message::RippingCfg);
 
                 column![
                     tracker_info::view(self.tracker_info.as_ref()),
@@ -469,7 +469,7 @@ impl Application for XMODITS {
                 .spacing(8)
                 .into()
             }
-            View::Settings => self.general_cfg.view().map(Message::GeneralCfg),
+            View::Settings => settings::view(&self.general_cfg).map(Message::GeneralCfg),
             View::About => about::view(),
             View::Help => todo!(),
         };
@@ -514,13 +514,15 @@ impl Application for XMODITS {
             State::Finished { state, time } => main_panel::view_finished(state, time),
         };
 
+        let allow_warnings = !self.general_cfg.suppress_warnings;
+
         let bad_cfg_warning = warning(
-            || !self.ripping_cfg.0.self_contained && !self.naming_cfg.0.prefix,
+            || allow_warnings && !self.ripping_cfg.self_contained,
             "\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
         );
 
         let too_many_files_warning = warning(
-            || self.entries.len() > 200,
+            || allow_warnings && self.entries.len() > 200,
             "That's a lot of files! You REALLY should be using folders.",
         );
 

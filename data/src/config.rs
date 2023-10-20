@@ -5,10 +5,12 @@ use serde::{Deserialize, Serialize};
 pub mod general;
 pub mod sample_naming;
 pub mod sample_ripping;
+pub mod name_params;
 
 pub use general::GeneralConfig;
 pub use sample_naming::SampleNameConfig;
 pub use sample_ripping::SampleRippingConfig;
+pub use name_params::SampleNameParams;
 
 use anyhow::Result;
 use tokio::io::AsyncWriteExt;
