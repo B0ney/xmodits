@@ -115,7 +115,7 @@ pub fn view_finished<'a>(
             column![
                 text("Done! \\(^_^)/"),
                 text("Drag and Drop"),
-                text(format!("Took {}", time)),
+                text(format!("{}", time)),
                 Space::with_height(15),
                 continue_button
             ]
@@ -128,7 +128,7 @@ pub fn view_finished<'a>(
             column![
                 text("Cancelled"),
                 text("Drag and Drop"),
-                text(format!("Took {}", time)),
+                text(format!("{}", time)),
                 Space::with_height(15),
                 continue_button
             ]
@@ -151,7 +151,7 @@ pub fn view_finished<'a>(
         CompleteState::SomeErrors(errors) => {
             let message = column![
                 centered_text("Done... But xmodits could not rip everything... (._.)"),
-                text(format!("Took {}", time)),
+                text(format!("{}", time)),
             ];
 
             let buttons = row![continue_button, save_errors_button]
@@ -195,7 +195,7 @@ pub fn view_finished<'a>(
                     .on_press(Message::Open(log.display().to_string()))
                     .style(theme::Button::HyperlinkInverted),
                 centered_text(format!("{} errors written", total)),
-                text(format!("Took {}", time)),
+                text(format!("{}", time)),
                 // space,
                 row![continue_button]
                     .padding(4)
