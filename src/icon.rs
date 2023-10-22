@@ -59,23 +59,28 @@ fn icon(unicode: char) -> Text<'static> {
         .horizontal_alignment(alignment::Horizontal::Center)
 }
 
-
-/* TODO */ 
-
 pub fn xmodits_logo() -> image::Handle {
-    use std::sync::OnceLock;
-    static HANDLE: OnceLock<image::Handle> = OnceLock::new();
-
-    HANDLE
-        .get_or_init(|| image::Handle::from_memory(include_bytes!("../assets/img/logos/icon.png")))
-        .clone()
+    get_img("xmodits")
 }
 
 pub fn vbee3() -> image::Handle {
-    use std::sync::OnceLock;
-    static HANDLE: OnceLock<image::Handle> = OnceLock::new();
+    get_img("vbee3")
+}
 
-    HANDLE
-        .get_or_init(|| image::Handle::from_memory(include_bytes!("../assets/img/vbee3.png")))
+fn get_img(src: &str) -> image::Handle {
+    use once_cell::sync::Lazy;
+    use std::collections::HashMap;
+    
+    static MAP: Lazy<HashMap<&'static str, image::Handle>> = Lazy::new(|| {
+        let load = |bytes: &'static [u8]| image::Handle::from_memory(bytes);
+
+        HashMap::from([
+            ("xmodits",load(include_bytes!("../assets/img/logos/icon.png"))),
+            ("vbee3", load(include_bytes!("../assets/img/vbee3.png"))),
+        ])
+    });
+
+    MAP.get(src)
+        .expect(&format!("invalid key '{src}' provided"))
         .clone()
 }
