@@ -67,8 +67,9 @@ impl XMODITS {
     ///
     /// XMODITS' simple mode to allow dragging and dropping modules onto the binary
     #[cfg(windows)]
-    pub fn launch_simple(paths: impl IntoIterator<Item = String>) {
-        simple::rip(paths)
+    pub fn launch_simple(paths: impl IntoIterator<Item = String>) -> iced::Result {
+        simple::rip(paths);
+        Ok(())
     }
 
     pub fn settings() {}

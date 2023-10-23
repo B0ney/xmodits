@@ -13,9 +13,9 @@ impl Theme {
     pub fn inner(&self) -> &theme::Palette {
         &self.0
     }
-    pub fn load(&mut self, theme: data::Theme) {
-        
-    }
+    // pub fn load(&mut self, theme: data::Theme) {
+    //     let _ = 
+    // }
 }
 
 /* Widget styling implementations. Keep in alphabetical order. */

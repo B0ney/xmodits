@@ -1,6 +1,9 @@
 //! Data components of XMODITS
 //!
 
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
 pub mod config;
 pub mod history;
 pub mod theme;

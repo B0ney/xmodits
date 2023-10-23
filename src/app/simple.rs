@@ -47,10 +47,7 @@ pub fn rip(paths: impl IntoIterator<Item = String>) {
         false => config.ripping.destination.clone(),
     };
 
-    let log_path = match &config.general.logging_path {
-        Some(log) => log,
-        None => &destination,
-    };
+    let log_path = config.general.logging_path.as_ref().unwrap_or(&destination);
 
     let namer = config.naming.build_func();
     let self_contained = config.ripping.self_contained;

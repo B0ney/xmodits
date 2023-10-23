@@ -12,7 +12,7 @@ impl Entry {
     pub fn new(path: PathBuf) -> Self {
         Self {
             selected: false,
-            path: path,
+            path,
         }
     }
     pub fn is_dir(&self) -> bool {
