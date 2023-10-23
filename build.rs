@@ -5,10 +5,9 @@ fn main() {
 
         winresource::WindowsResource::new()
             .set_icon("./dist/windows/icon.ico")
-            // Set dpi awareness so that rfd won't show blurred text 
             .set_manifest(include_str!("./dist/windows/xmodits.manifest")) 
             .compile()
-            .expect("embed windows icon");
+            .expect("embed Windows resources");
     }
 
     #[cfg(feature = "build_info")]

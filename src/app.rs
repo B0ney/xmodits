@@ -1,3 +1,4 @@
+#[cfg(windows)]
 mod simple;
 
 use std::path::PathBuf;
@@ -66,8 +67,8 @@ impl XMODITS {
     ///
     /// XMODITS' simple mode to allow dragging and dropping modules onto the binary
     #[cfg(windows)]
-    pub fn launch_simple() {
-        simple::rip(std::env::args())
+    pub fn launch_simple(paths: impl IntoIterator<Item = String>) {
+        simple::rip(paths)
     }
 
     pub fn settings() {}

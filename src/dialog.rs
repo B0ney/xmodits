@@ -17,6 +17,14 @@ pub fn show_help_box() {
     )
 }
 
+pub fn path_contains_folder() {
+    show_dialog(
+        "Use the GUI for folders",
+        "If you want to rip from a folder, please launch the GUI.",
+        MessageLevel::Info,
+    )
+}
+
 pub fn success<P: AsRef<Path>>(dest: P) {
     show_dialog(
         "Success!",

@@ -127,22 +127,17 @@ impl Entries {
             return true;
         }
 
-        let mut clear_current_tracker = false;
-
-        let mut i = 0;
-
-        while i < self.entries.len() {
-            let path = &self.entries[i];
-            if path.selected {
-                if current.eq(&Some(path.path.as_ref())) {
-                    clear_current_tracker = true;
-                }
-                let _ = self.entries.remove(i);
-            } else {
-                i += 1;
-            }
-        }
         self.all_selected = false;
+
+        let mut clear_current_tracker = false;
+        
+        self.entries.retain(|entry: &Entry| {
+            if current.is_some_and(|path| path == entry.path) {
+                clear_current_tracker = true;
+            }
+
+            !entry.selected
+        });
 
         clear_current_tracker
     }

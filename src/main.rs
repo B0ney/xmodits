@@ -14,6 +14,7 @@ pub mod utils;
 pub mod widget;
 
 use std::env;
+use app::XMODITS;
 
 #[cfg(all(feature = "jemalloc", not(target_env = "msvc")))]
 use tikv_jemallocator::Jemalloc;
@@ -39,5 +40,10 @@ fn main() -> iced::Result {
         return Ok(());
     }
 
-    app::XMODITS::launch().map(|_| tracing::info!("Bye :)"))
+    #[cfg(windows)]
+    if env::args().len() > 1 {
+        return Ok(XMODITS::launch_simple(env::args().skip(1)));
+    }
+
+    XMODITS::launch().map(|_| tracing::info!("Bye :)"))
 }
