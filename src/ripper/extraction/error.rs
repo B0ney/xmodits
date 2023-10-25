@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use data::xmodits_lib::Error;
+use xmodits_lib::Error;
 
 use crate::utils::filename;
 

@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use data::config::SampleRippingConfig;
-use data::xmodits_lib::exporter::AudioFormat;
+use xmodits_lib::exporter::AudioFormat;
 
 use crate::utils::folder_dialog;
 use crate::widget::helpers::{centered_button, control, labelled_picklist};
@@ -73,7 +73,7 @@ pub fn view_destination_bar(ripping_cfg: &SampleRippingConfig) -> Element<Messag
         .into()
 }
 
-pub fn view<'a>(ripping: &'a SampleRippingConfig) -> Element<'a, Message> {
+pub fn view(ripping: &SampleRippingConfig) -> Element<Message> {
     let col1 = column![
         checkbox(
             "Self Contained",

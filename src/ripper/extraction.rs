@@ -12,7 +12,7 @@ use super::Signal;
 use crate::logger::GLOBAL_TRACKER;
 
 use data::config::SampleRippingConfig;
-use data::xmodits_lib::{extract, Ripper};
+use xmodits_lib::{extract, Ripper};
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, Seek, Write};

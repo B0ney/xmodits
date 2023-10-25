@@ -376,9 +376,8 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 name = "audio_engine"
 version = "0.1.0"
 dependencies = [
- "cpal",
- "data",
- "rubato",
+ "rodio",
+ "xmodits-lib",
 ]
 
 [[package]]
@@ -3369,6 +3368,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rodio"
+version = "0.17.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b1bb7b48ee48471f55da122c0044fcc7600cfcc85db88240b89cb832935e611"
+dependencies = [
+ "cpal",
+]
+
+[[package]]
 name = "rubato"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4985,6 +4993,7 @@ dependencies = [
  "walkdir",
  "windows-sys 0.48.0",
  "winresource",
+ "xmodits-lib",
 ]
 
 [[package]]

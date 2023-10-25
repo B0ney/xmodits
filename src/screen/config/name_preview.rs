@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use data::config::{SampleNameConfig, SampleNameParams, SampleRippingConfig};
-use data::xmodits_lib::interface::{name::Context, Sample};
+use xmodits_lib::interface::{name::Context, Sample};
 
 use crate::widget::Element;
 

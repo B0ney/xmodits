@@ -10,7 +10,7 @@ use std::{
 use crate::utils::filename;
 use crate::widget::helpers::{centered_column_x, centered_text, control_filled};
 use crate::widget::Element;
-use data::xmodits_lib::common::info::Info;
+use xmodits_lib::common::info::Info;
 use iced::widget::{button, column, text, Space};
 
 use crate::app::Message;

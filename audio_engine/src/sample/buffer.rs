@@ -1,4 +1,4 @@
-use data::xmodits_lib::dsp;
+use xmodits_lib::dsp;
 
 #[derive(Clone)]
 pub struct SampleBuffer {

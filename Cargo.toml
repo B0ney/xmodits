@@ -20,13 +20,18 @@ wgpu = ["iced/wgpu"]
 # version = "0.12.0"
 git = "https://github.com/iced-rs/iced.git"
 default-features = false
-features = ["image", "tokio"]
+features = ["image", "tokio", "palette"]
 
 [workspace.dependencies]
 tokio = { version = "1.33.0", features = ["sync", "fs", "io-util", "parking_lot"] }
 dirs = "5.0.0"
 anyhow = "1.0.0"
 tracing = "0.1.40"
+
+[workspace.dependencies.xmodits-lib]
+git = "https://github.com/B0ney/xmodits-lib.git"
+rev = "78675a3"
+features = ["serde"]
 
 [dependencies]
 data = { path = "data" }
@@ -36,6 +41,7 @@ tokio.workspace = true
 dirs.workspace = true
 anyhow.workspace = true
 tracing.workspace = true
+xmodits-lib.workspace = true
 
 tracing-subscriber = "0.3.17"
 open = "5.0.0"

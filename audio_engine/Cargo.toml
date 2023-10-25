@@ -6,6 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-data = { path = "../data" }
-rubato = "0.14.1"
-cpal = "0.15.2"
+xmodits-lib.workspace = true
+rodio = { version = "0.17.3", default-features = false }

@@ -1,5 +1,4 @@
 use data::config::Config;
-use data::xmodits_lib;
 
 use crate::dialog;
 use crate::logger::write_error_log;

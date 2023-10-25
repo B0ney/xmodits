@@ -80,7 +80,7 @@ pub fn non_gui(general: &config::GeneralConfig) -> Option<Element<Message>> {
 }
 
 #[cfg(not(target_env = "msvc"))]
-pub fn non_gui(general: &config::GeneralConfig) -> Option<Element<Message>> {
+pub fn non_gui(_general: &config::GeneralConfig) -> Option<Element<Message>> {
     None
 }
 
