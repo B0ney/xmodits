@@ -7,7 +7,8 @@ use crate::event;
 use crate::font;
 use crate::icon;
 use crate::logger;
-use crate::ripper::{subscription::{ErrorHandler, CompleteState}, self};
+use crate::ripper;
+use crate::ripper::subscription::{CompleteState, ErrorHandler};
 use crate::screen::config::custom_filters;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
@@ -172,18 +173,12 @@ pub enum State {
         errors: u64,
     },
     /// The application has finished ripping samples
-    Finished {
-        state: CompleteState,
-        time: data::Time,
-    },
+    Finished { state: CompleteState, time: data::Time },
 }
 
 impl State {
     fn update_progress(&mut self, new_progress: f32, new_errors: u64) {
-        if let Self::Ripping {
-            progress, errors, ..
-        } = self
-        {
+        if let Self::Ripping { progress, errors, .. } = self {
             *progress = new_progress;
             *errors = new_errors;
         }
@@ -341,10 +336,7 @@ impl Application for XMODITS {
                     return Command::none();
                 }
 
-                return Command::perform(
-                    tracker_info::probe(path.to_owned()),
-                    Message::ProbeResult,
-                );
+                return Command::perform(tracker_info::probe(path.to_owned()), Message::ProbeResult);
             }
             Message::ProbeResult(probe) => self.tracker_info = Some(probe),
             Message::SaveConfig => {
@@ -392,9 +384,7 @@ impl Application for XMODITS {
                 }
 
                 if !sample_ripping::destination_is_valid(&self.ripping_cfg) {
-                    tracing::error!(
-                        "The provided destination is not valid. The *parent* folder must exist."
-                    );
+                    tracing::error!("The provided destination is not valid. The *parent* folder must exist.");
                     return text_input::focus(DESTINATION_BAR_ID.clone());
                 }
 
@@ -430,7 +420,7 @@ impl Application for XMODITS {
             button("About").on_press(Message::AboutPressed),
         ]
         .spacing(5)
-        .width(Length::FillPortion(1))
+        .width(Length::Fill)
         .align_items(Alignment::Center);
 
         let not_ripping = !self.state.is_ripping();
@@ -451,7 +441,7 @@ impl Application for XMODITS {
 
                 let naming_cfg = {
                     let name_preview = name_preview::preview_name(
-                        &self.general_cfg.sample_name_params, // TODO
+                        &self.general_cfg.sample_name_params,
                         &self.naming_cfg,
                         &self.ripping_cfg,
                     );
@@ -480,20 +470,7 @@ impl Application for XMODITS {
             .width(Length::FillPortion(4))
             .spacing(10);
 
-        let destination =
-            sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
-
-        let right_bottom_buttons = row![
-            action("Add File", not_ripping.then_some(Message::FileDialog)),
-            action("Add Folder", not_ripping.then_some(Message::FolderDialog)),
-            Space::with_width(Length::Fill),
-            action(
-                "Delete Selected",
-                not_ripping.then_some(Message::DeleteSelected)
-            ),
-            action("Clear", not_ripping.then_some(Message::Clear)),
-        ]
-        .spacing(5);
+        let destination = sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
 
         let top_right_buttons = row![
             text(format!("Entries: {}", self.entries.len())),
@@ -504,6 +481,15 @@ impl Application for XMODITS {
         ]
         .spacing(15)
         .align_items(Alignment::Center);
+
+        let bottom_right_buttons = row![
+            action("Add File", not_ripping.then_some(Message::FileDialog)),
+            action("Add Folder", not_ripping.then_some(Message::FolderDialog)),
+            Space::with_width(Length::Fill),
+            action("Delete Selected", not_ripping.then_some(Message::DeleteSelected)),
+            action("Clear", not_ripping.then_some(Message::Clear)),
+        ]
+        .spacing(5);
 
         let main_view = match &self.state {
             State::Idle => main_panel::view_entries(&self.entries),
@@ -531,7 +517,7 @@ impl Application for XMODITS {
         let right_half = column![destination, top_right_buttons, main_view]
             .push_maybe(bad_cfg_warning)
             .push_maybe(too_many_files_warning)
-            .push(right_bottom_buttons)
+            .push(bottom_right_buttons)
             .width(Length::FillPortion(5))
             .spacing(10);
 
