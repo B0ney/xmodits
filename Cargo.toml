@@ -87,5 +87,5 @@ incremental = true
 
 [profile.release]
 strip = true
-opt-level = 2
+opt-level = "s"
 codegen-units = 1
