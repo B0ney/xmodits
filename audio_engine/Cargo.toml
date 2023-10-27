@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 xmodits-lib.workspace = true
-rodio = { version = "0.17.3", default-features = false }
+rodio = { version = "0.17", default-features = false }

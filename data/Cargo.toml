@@ -15,8 +15,7 @@ dirs.workspace = true
 anyhow.workspace = true
 tracing.workspace = true
 xmodits-lib.workspace = true
+chrono.workspace = true
 
 serde = { version = "1.0", features = ["derive"] }
-chrono = { version = "0.4", features = ["serde"] }
-toml = "0.7.5" # todo: switch to different format?
-palette = "0.7.3"
+toml = "0.7" # todo: switch to different format?
