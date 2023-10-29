@@ -1,12 +1,12 @@
-use data::config::{self, general};
-use iced::widget::{button, checkbox, column, container, text, text_input, Space};
-use iced::{Command, Length};
+use data::config::{self};
+use iced::widget::{checkbox, column};
+use iced::Command;
 use std::path::PathBuf;
 
 use crate::screen::config::name_preview;
 
-use crate::utils::{filename, folder_dialog};
-use crate::widget::helpers::{action, control, control_filled, labelled_picklist};
+use crate::utils::folder_dialog;
+use crate::widget::helpers::{control, control_filled, labelled_picklist};
 use crate::widget::{Collection, Element};
 
 #[derive(Debug, Clone)]
@@ -17,12 +17,9 @@ pub enum Message {
     SetLogFolderDialog,
     ShowAnimatedGIF(bool),
     SuppressWarnings(bool),
-    SetGif {
-        kind: GIFKind,
-        path: Option<PathBuf>,
-    },
+    SetGif { kind: GIFKind, path: Option<PathBuf> },
     SetTheme(data::theme::Themes),
-    NamePreview(name_preview::Message)
+    NamePreview(name_preview::Message),
 }
 
 /*
@@ -40,11 +37,7 @@ pub fn view(general: &config::GeneralConfig) -> Element<Message> {
             Some(general.theme),
             Message::SetTheme
         ),
-        checkbox(
-            "Show Animated GIFs",
-            general.show_gif,
-            Message::ShowAnimatedGIF
-        ),
+        checkbox("Show Animated GIFs", general.show_gif, Message::ShowAnimatedGIF),
         checkbox(
             "Suppress Warnings",
             general.suppress_warnings,
@@ -119,9 +112,7 @@ pub fn update(cfg: &mut config::GeneralConfig, message: Message) -> Command<Mess
                 cfg.logging_path = Some(log_path)
             }
         }
-        Message::SetLogFolderDialog => {
-            return Command::perform(folder_dialog(), Message::SetLogFolder)
-        }
+        Message::SetLogFolderDialog => return Command::perform(folder_dialog(), Message::SetLogFolder),
         Message::ShowAnimatedGIF(toggle) => cfg.show_gif = toggle,
         Message::SuppressWarnings(toggle) => cfg.suppress_warnings = toggle,
         Message::SetGif { kind, path } => match kind {

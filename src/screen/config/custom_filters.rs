@@ -10,9 +10,9 @@ use iced::widget::{column, horizontal_rule, row};
 
 use crate::icon;
 use crate::utils::{extension, filename};
+use crate::widget::helpers::{control_filled, text_icon};
 use crate::widget::{helpers::control, Element};
 
-// fn
 pub struct Filters(Vec<Box<dyn Filter>>);
 
 impl Filters {
@@ -33,7 +33,7 @@ impl Filters {
 pub enum Message {}
 
 pub fn view<'a>() -> Element<'a, Message> {
-    let title = row!["Filters", icon::filter()].spacing(8);
+    let title = text_icon("Filters", icon::filter());
 
     let menu = |title: &'a str| {
         row![title, horizontal_rule(1)]
@@ -52,5 +52,5 @@ pub fn view<'a>() -> Element<'a, Message> {
     ]
     .spacing(8);
 
-    control(title, settings).into()
+    control_filled(title, settings).into()
 }

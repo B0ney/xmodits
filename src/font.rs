@@ -1,5 +1,4 @@
-use iced::font::{Error, Font, Family, Weight};
-use iced::Command;
+use iced::font::{Font, Family, Weight};
 
 pub static JETBRAINS_MONO: Font = Font {
     family: Family::Monospace,

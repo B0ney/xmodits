@@ -20,7 +20,7 @@ use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, main_panel::entry::Entries};
 use crate::theme;
 use crate::utils::{create_file_dialog, files_dialog, folders_dialog};
-use crate::widget::helpers::{action, spaced_row, warning};
+use crate::widget::helpers::{text_icon, action, warning};
 use crate::widget::{Collection, Container, Element};
 
 use data::Config;
@@ -147,7 +147,9 @@ pub fn settings(config: Config) -> iced::Settings<Config> {
     iced::Settings {
         fonts: vec![
             include_bytes!("../assets/font/icons.ttf").as_slice().into(),
-            include_bytes!("../assets/font/JetBrainsMono-Regular.ttf").as_slice().into(),
+            include_bytes!("../assets/font/JetBrainsMono-Regular.ttf")
+                .as_slice()
+                .into(),
         ],
         default_font: font::JETBRAINS_MONO,
         default_text_size: 13.0.into(),
@@ -210,6 +212,7 @@ impl State {
 pub enum View {
     #[default]
     Configure,
+    Filters,
     Settings,
     About,
     Help,
@@ -227,6 +230,7 @@ pub enum Message {
     DeleteSelected,
     Event(event::Event),
     FileDialog,
+    FilterPressed,
     FolderDialog,
     GeneralCfg(settings::Message),
     HistoryPressed,
@@ -305,6 +309,7 @@ impl Application for XMODITS {
                 event::Event::Start => {}
             },
             Message::FileDialog => return Command::perform(files_dialog(), Message::Add),
+            Message::FilterPressed => self.view = View::Filters,
             Message::FolderDialog => return Command::perform(folders_dialog(), Message::Add),
             Message::GeneralCfg(cfg) => {
                 return settings::update(&mut self.general_cfg, cfg).map(Message::GeneralCfg)
@@ -413,6 +418,7 @@ impl Application for XMODITS {
     fn view(&self) -> Element<Message> {
         let top_left_menu = row![
             button("Configure").on_press(Message::ConfigPressed),
+            button("Filters").on_press(Message::FilterPressed),
             // button("History").on_press(Message::HistoryPressed),
             button("Settings").on_press(Message::SettingsPressed),
             button("About").on_press(Message::AboutPressed),
@@ -423,20 +429,18 @@ impl Application for XMODITS {
 
         let not_ripping = !self.state.is_ripping();
 
+        let bottom_left_buttons = row![
+            button(text_icon("Save Configuration", icon::save()))
+                .on_press(Message::SaveConfig),
+            button(text_icon("START", icon::download()))
+                .on_press_maybe(not_ripping.then_some(Message::StartRipping))
+                .style(theme::Button::Start)
+                .width(Length::Fill)
+        ]
+        .spacing(8);
+
         let left_view = match self.view {
             View::Configure => {
-                let bottom_left_buttons = row![
-                    button(spaced_row(row!["Save Configuration", icon::save()]))
-                        .on_press(Message::SaveConfig),
-                    action(
-                        spaced_row(row!["START", icon::download()]),
-                        not_ripping.then_some(Message::StartRipping),
-                    )
-                    .style(theme::Button::Start)
-                    .width(Length::Fill)
-                ]
-                .spacing(8);
-
                 let naming_cfg = {
                     let name_preview = name_preview::preview_name(
                         &self.general_cfg.sample_name_params,
@@ -453,12 +457,17 @@ impl Application for XMODITS {
                     tracker_info::view(self.tracker_info.as_ref()),
                     naming_cfg,
                     ripping_cfg,
-                    // custom_filters::view().map(|_| Message::Ignore),
                     bottom_left_buttons,
                 ]
                 .spacing(8)
                 .into()
             }
+            View::Filters => column![
+                custom_filters::view().map(|_| Message::Ignore),
+                bottom_left_buttons,
+            ]
+            .spacing(8)
+            .into(),
             View::Settings => settings::view(&self.general_cfg).map(Message::GeneralCfg),
             View::About => about::view(),
             View::Help => todo!(),
@@ -492,9 +501,11 @@ impl Application for XMODITS {
         let main_view = match &self.state {
             State::Idle => main_panel::view_entries(&self.entries),
             State::SamplePreview() => todo!(), // list samples
-            State::Ripping { message, progress, errors} => {
-                main_panel::view_ripping(message, *progress, *errors)
-            }
+            State::Ripping {
+                message,
+                progress,
+                errors,
+            } => main_panel::view_ripping(message, *progress, *errors),
             State::Finished { state, time } => main_panel::view_finished(state, time),
         };
 

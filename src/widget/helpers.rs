@@ -12,9 +12,7 @@ use crate::widget::{Button, Column, Container, Element, PickList, Text};
 use super::Row;
 
 /// TODO
-pub fn centered_button<'a, Message>(
-    content: impl Into<Element<'a, Message>>,
-) -> Button<'a, Message> {
+pub fn centered_button<'a, Message>(content: impl Into<Element<'a, Message>>) -> Button<'a, Message> {
     button(content)
 }
 pub fn smol_button<'a, Message>(content: impl Into<Element<'a, Message>>) -> Button<'a, Message> {
@@ -36,9 +34,7 @@ pub fn warning<'a>(predicate: impl Fn() -> bool, warning: impl ToString) -> Opti
     predicate().then_some(text(warning).style(theme::Text::Error))
 }
 
-pub fn centered_container<'a, Message>(
-    content: impl Into<Element<'a, Message>>,
-) -> Container<'a, Message> {
+pub fn centered_container<'a, Message>(content: impl Into<Element<'a, Message>>) -> Container<'a, Message> {
     container(content)
         .width(Length::Fill)
         .height(Length::Fill)
@@ -46,9 +42,7 @@ pub fn centered_container<'a, Message>(
         .center_y()
 }
 
-pub fn fill_container<'a, Message>(
-    content: impl Into<Element<'a, Message>>,
-) -> Container<'a, Message> {
+pub fn fill_container<'a, Message>(content: impl Into<Element<'a, Message>>) -> Container<'a, Message> {
     container(content).width(Length::Fill).height(Length::Fill)
 }
 
@@ -115,4 +109,8 @@ pub fn centered_column_x<'a, Message>(column: Column<'a, Message>) -> Column<'a,
 
 pub fn spaced_row<'a, Message: 'a>(row: Row<'a, Message>) -> Row<'a, Message> {
     row.align_items(Alignment::Center).spacing(5)
+}
+
+pub fn text_icon<'a, Message: 'a>(text: &'a str, icon: Text<'a>) -> Row<'a, Message> {
+    row![text, icon].align_items(Alignment::Center).spacing(5)
 }
