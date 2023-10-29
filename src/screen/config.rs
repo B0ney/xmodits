@@ -4,4 +4,3 @@ pub mod sample_naming;
 pub mod sample_ripping;
 pub mod name_preview;
 pub mod custom_filters;
-pub mod custom_rules;

@@ -492,11 +492,9 @@ impl Application for XMODITS {
         let main_view = match &self.state {
             State::Idle => main_panel::view_entries(&self.entries),
             State::SamplePreview() => todo!(), // list samples
-            State::Ripping {
-                message,
-                progress,
-                errors,
-            } => main_panel::view_ripping(message, *progress, *errors),
+            State::Ripping { message, progress, errors} => {
+                main_panel::view_ripping(message, *progress, *errors)
+            }
             State::Finished { state, time } => main_panel::view_finished(state, time),
         };
 

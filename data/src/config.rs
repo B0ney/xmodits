@@ -6,6 +6,7 @@ pub mod general;
 pub mod sample_naming;
 pub mod sample_ripping;
 pub mod name_params;
+pub mod filters; 
 
 pub use general::GeneralConfig;
 pub use sample_naming::SampleNameConfig;
