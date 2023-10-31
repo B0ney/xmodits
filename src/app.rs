@@ -20,7 +20,7 @@ use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, main_panel::entry::Entries};
 use crate::theme;
 use crate::utils::{create_file_dialog, files_dialog, folders_dialog};
-use crate::widget::helpers::{text_icon, action, warning};
+use crate::widget::helpers::{action, text_icon, warning};
 use crate::widget::{Collection, Container, Element};
 
 use data::Config;
@@ -134,6 +134,28 @@ impl XMODITS {
         };
 
         Command::perform(async move { config.save().await }, |_| Message::Ignore)
+    }
+
+    pub fn start_ripping(&mut self) -> Command<Message> {
+        if self.state.is_ripping() | self.entries.is_empty() | !self.ripper.is_active() {
+            return Command::none();
+        }
+
+        if !sample_ripping::destination_is_valid(&self.ripping_cfg) {
+            tracing::error!("The provided destination is not valid. The *parent* folder must exist.");
+            return text_input::focus(DESTINATION_BAR_ID.clone());
+        }
+
+        let start_signal = self.build_start_signal();
+        let _ = self.ripper.send(start_signal);
+
+        self.state = State::Ripping {
+            message: None,
+            progress: 0.0,
+            errors: 0,
+        };
+
+        Command::none()
     }
 }
 
@@ -283,6 +305,10 @@ impl Application for XMODITS {
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::AboutPressed => self.view = View::About,
+            Message::ConfigPressed => self.view = View::Configure,
+            Message::FilterPressed => self.view = View::Filters,
+            Message::SettingsPressed => self.view = View::Settings,
+            Message::HistoryPressed => {}
             Message::Add(paths) => {
                 if self.state.is_ripping() {
                     return Command::none();
@@ -291,36 +317,28 @@ impl Application for XMODITS {
                 if let Some(paths) = paths {
                     self.entries.add_multiple(paths)
                 }
-                // todo: change state to idlde?
-            }
-            Message::Cancel => {
-                self.state.set_message("Cancelling...");
-                self.ripper.cancel();
+                // todo: change state to idle?
             }
             Message::Clear => self.clear_entries(),
-            Message::ConfigPressed => self.view = View::Configure,
             Message::DeleteSelected => self.delete_selected_entries(),
-            Message::Event(event) => match event {
-                event::Event::Clear => self.clear_entries(),
-                event::Event::CloseRequested => {}
-                event::Event::Delete => self.delete_selected_entries(),
-                event::Event::FileDropped(file) => self.entries.add(file),
-                event::Event::Save => return self.save_cfg(),
-                event::Event::Start => {}
-            },
-            Message::FileDialog => return Command::perform(files_dialog(), Message::Add),
-            Message::FilterPressed => self.view = View::Filters,
-            Message::FolderDialog => return Command::perform(folders_dialog(), Message::Add),
+            Message::InvertSelection => self.entries.invert(),
+            Message::Select { index, selected } => self.entries.select(index, selected),
+            Message::SelectAll(selected) => self.entries.select_all(selected),
+            Message::SetState(state) => self.state = state,
+            Message::FileDialog => {
+                return Command::perform(files_dialog(), Message::Add);
+            }
+            Message::FolderDialog => {
+                return Command::perform(folders_dialog(), Message::Add);
+            }
             Message::GeneralCfg(cfg) => {
                 return settings::update(&mut self.general_cfg, cfg).map(Message::GeneralCfg)
             }
-            Message::HistoryPressed => {}
-            Message::Ignore => (),
             Message::RippingCfg(msg) => {
                 return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
             }
-            Message::InvertSelection => self.entries.invert(),
             Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
+            Message::SetTheme => todo!(),
             Message::Open(link) => {
                 if let Err(err) = open::that_detached(link) {
                     tracing::warn!("Could not open external link: {:?}", err)
@@ -367,39 +385,25 @@ impl Application for XMODITS {
                 );
             }
             Message::SaveErrorsResult(result) => {
-                // todo
-                match result {
-                    Ok(_) => {
-                        self.state = State::Idle; // todo
-                        return Command::none();
-                    }
-                    Err(_) => {}
+                if result.is_ok() {
+                    self.state = State::Idle;
                 }
             }
-            Message::Select { index, selected } => self.entries.select(index, selected),
-            Message::SelectAll(selected) => self.entries.select_all(selected),
-            Message::SetState(state) => self.state = state,
-            Message::SetTheme => todo!(),
-            Message::SettingsPressed => self.view = View::Settings,
             Message::StartRipping => {
-                if self.state.is_ripping() | self.entries.is_empty() | !self.ripper.is_active() {
-                    return Command::none();
-                }
-
-                if !sample_ripping::destination_is_valid(&self.ripping_cfg) {
-                    tracing::error!("The provided destination is not valid. The *parent* folder must exist.");
-                    return text_input::focus(DESTINATION_BAR_ID.clone());
-                }
-
-                let start_signal = self.build_start_signal();
-                let _ = self.ripper.send(start_signal);
-
-                self.state = State::Ripping {
-                    message: None,
-                    progress: 0.0,
-                    errors: 0,
-                }
+                return self.start_ripping();
             }
+            Message::Cancel => {
+                self.state.set_message("Cancelling...");
+                self.ripper.cancel();
+            }
+            Message::Event(event) => match event {
+                event::Event::Clear => self.clear_entries(),
+                event::Event::CloseRequested => {}
+                event::Event::Delete => self.delete_selected_entries(),
+                event::Event::FileDropped(file) => self.entries.add(file),
+                event::Event::Save => return self.save_cfg(),
+                event::Event::Start => return self.start_ripping(),
+            },
             Message::Subscription(msg) => match msg {
                 ripper::Message::Ready(sender) => self.ripper.set_sender(sender),
                 ripper::Message::Info(info) => self.state.update_message(info),
@@ -411,6 +415,7 @@ impl Application for XMODITS {
                     self.state = State::Finished { state, time };
                 }
             },
+            Message::Ignore => (),
         }
         Command::none()
     }
@@ -430,8 +435,7 @@ impl Application for XMODITS {
         let not_ripping = !self.state.is_ripping();
 
         let bottom_left_buttons = row![
-            button(text_icon("Save Configuration", icon::save()))
-                .on_press(Message::SaveConfig),
+            button(text_icon("Save Configuration", icon::save())).on_press(Message::SaveConfig),
             button(text_icon("START", icon::download()))
                 .on_press_maybe(not_ripping.then_some(Message::StartRipping))
                 .style(theme::Button::Start)
@@ -512,7 +516,7 @@ impl Application for XMODITS {
         let allow_warnings = !self.general_cfg.suppress_warnings;
 
         let bad_cfg_warning = warning(
-            || allow_warnings && !self.ripping_cfg.self_contained,
+            || allow_warnings && (!self.ripping_cfg.self_contained && !self.naming_cfg.prefix),
             "\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
         );
 
