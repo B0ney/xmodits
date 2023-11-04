@@ -48,6 +48,7 @@ sed -i '' "s/{{ VERSION }}/$VERSION/g" "$APP_PLIST"
 sed -i '' "s/{{ BUILD }}/$BUILD/g" "$APP_PLIST"
 
 chmod +x $BINARY
+mkdir -p $APP_BINARY_DIR
 mv $BINARY $APP_BINARY_DIR
 
 # copy .app folder
@@ -62,4 +63,4 @@ ls $ARCHIVE_DIR
 ARCHIVE_NAME="xmodits-gui-v$VERSION-$PLATFORM-universal.zip"
 ARCHIVE_PATH="$ARTIFACT_DIR/$ARCHIVE_NAME"
 
-zip -j $ARCHIVE_PATH $ARCHIVE_DIR/*
+zip -r $ARCHIVE_PATH $ARCHIVE_DIR/*
