@@ -51,7 +51,7 @@ chmod +x $BINARY
 mv $BINARY $APP_BINARY_DIR
 
 # copy .app folder
-cp -fRP $APP_DIR $ARCHIVE_DIR
+cp -r $APP_DIR $ARCHIVE_DIR
 # copy extra files
 cp  README.md $ARCHIVE_DIR
 cp  LICENSE $ARCHIVE_DIR
