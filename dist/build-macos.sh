@@ -14,7 +14,7 @@ ARCHIVE_DIR="$RELEASE_DIR/archive"
 ARTIFACT_DIR="$RELEASE_DIR/artifact"
 BINARY="$ARCHIVE_DIR/$TARGET"
 
-APP_TEMPLATE="dist/macos/xmodits.app/"
+APP_TEMPLATE="dist/macos/xmodits.app"
 APP_DIR="$RELEASE_DIR/xmodits.app"
 APP_PLIST="$APP_DIR/Contents/Info.plist"
 APP_BINARY_DIR="$RELEASE_DIR/xmodits.app/Contents/Macos"
@@ -41,11 +41,11 @@ BUILD="v$VERSION-$(git rev-parse --short=8 HEAD)"
 
 # remove app binary folder, copy template
 rm -rf $APP_DIR/* &> /dev/null
-cp -fRp $APP_TEMPLATE $RELEASE_DIR
+cp -r $APP_TEMPLATE $RELEASE_DIR
 
 # update version & build from template
-sed -i '' -e "s/{{ VERSION }}/$VERSION/g" "$APP_PLIST"
-sed -i '' -e "s/{{ BUILD }}/$BUILD/g" "$APP_PLIST"
+sed -i '' "s/{{ VERSION }}/$VERSION/g" "$APP_PLIST"
+sed -i '' "s/{{ BUILD }}/$BUILD/g" "$APP_PLIST"
 
 chmod +x $BINARY
 mv $BINARY $APP_BINARY_DIR
