@@ -56,6 +56,9 @@ cp -r $APP_DIR $ARCHIVE_DIR
 cp  ./assets/manual.txt $ARCHIVE_DIR
 cp  LICENSE $ARCHIVE_DIR
 
+ls $ARCHIVE_DIR
+
+
 ARCHIVE_NAME="xmodits-gui-v$VERSION-$PLATFORM-universal.zip"
 ARCHIVE_PATH="$ARTIFACT_DIR/$ARCHIVE_NAME"
 
