@@ -63,5 +63,4 @@ ls $ARCHIVE_DIR
 ARCHIVE_NAME="xmodits-gui-v$VERSION-$PLATFORM-universal.zip"
 ARCHIVE_PATH="$ARTIFACT_DIR/$ARCHIVE_NAME"
 
-# zip -r $ARCHIVE_PATH $ARCHIVE_DIR
-ditto -c -k --sequesterRsrc --keepParent $ARCHIVE_DIR $ARCHIVE_PATH
+ditto -c -k --sequesterRsrc $ARCHIVE_DIR $ARCHIVE_PATH
