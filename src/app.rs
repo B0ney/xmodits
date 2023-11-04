@@ -435,11 +435,13 @@ impl Application for XMODITS {
         let not_ripping = !self.state.is_ripping();
 
         let bottom_left_buttons = row![
-            button(text_icon("Save Configuration", icon::save())).on_press(Message::SaveConfig),
+            button(text_icon("Save Settings", icon::save()))
+                .on_press(Message::SaveConfig)
+                .width(Length::FillPortion(2)),
             button(text_icon("START", icon::download()))
                 .on_press_maybe(not_ripping.then_some(Message::StartRipping))
                 .style(theme::Button::Start)
-                .width(Length::Fill)
+                .width(Length::FillPortion(2))
         ]
         .spacing(8);
 

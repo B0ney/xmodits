@@ -26,10 +26,7 @@ impl Filter for Name {
 /// Returns true if items contains an element that satisfies the given predicate OR
 /// the items is empty.
 fn contains(items: &[String], predicate: impl Fn(&String) -> bool) -> bool {
-    match items.is_empty() {
-        true => true,
-        false => items.iter().any(predicate),
-    }
+    items.is_empty() || items.iter().any(predicate)
 }
 
 fn filename(path: &Path) -> &str {

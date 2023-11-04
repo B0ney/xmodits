@@ -2,6 +2,7 @@
 
 mod file_name;
 mod file_size;
+mod regex;
 
 use std::path::Path;
 use data::config::filters::{Filter, Name, Size};
@@ -30,7 +31,9 @@ impl Filters {
     }
 }
 
-pub enum Message {}
+pub enum Message {
+    A
+}
 
 pub fn view<'a>() -> Element<'a, Message> {
     let title = text_icon("Filters", icon::filter());
@@ -42,7 +45,7 @@ pub fn view<'a>() -> Element<'a, Message> {
     };
 
     let settings = column![
-        menu("Size"),
+        // file_size::view().map(|_| Message::A),
         // horizontal_rule(1),
         menu("Extension"),
         // horizontal_rule(1),

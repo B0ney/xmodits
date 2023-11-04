@@ -46,7 +46,7 @@ pub fn view(general: &config::GeneralConfig) -> Element<Message> {
     ]
     .spacing(8);
 
-    column![control_filled("Application Settings", settings)]
+    column![control("Application Settings", settings)]
         // .push(animated_gif(general))
         .push_maybe(non_gui(general))
         .spacing(8)
