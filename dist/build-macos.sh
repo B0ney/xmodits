@@ -17,7 +17,7 @@ BINARY="$ARCHIVE_DIR/$TARGET"
 APP_TEMPLATE="dist/macos/xmodits.app"
 APP_DIR="$RELEASE_DIR/xmodits.app"
 APP_PLIST="$APP_DIR/Contents/Info.plist"
-APP_BINARY_DIR="$RELEASE_DIR/xmodits.app/Contents/Macos"
+APP_BINARY_DIR="$RELEASE_DIR/xmodits.app/Contents/MacOS"
 
 # create directories
 mkdir -p $ARCHIVE_DIR
@@ -37,7 +37,7 @@ lipo "target/x86_64-apple-darwin/release/$TARGET_OLD" "target/aarch64-apple-darw
 echo "Created universal binary"
 
 VERSION="$($BINARY --version)"
-BUILD="v$VERSION-$(git rev-parse --short=8 HEAD)"
+BUILD="$VERSION-$(git rev-parse --short=8 HEAD)"
 
 # remove app binary folder, copy template
 rm -rf $APP_DIR/* &> /dev/null
@@ -63,4 +63,4 @@ ls $ARCHIVE_DIR
 ARCHIVE_NAME="xmodits-gui-v$VERSION-$PLATFORM-universal.zip"
 ARCHIVE_PATH="$ARTIFACT_DIR/$ARCHIVE_NAME"
 
-zip -r $ARCHIVE_PATH $ARCHIVE_DIR/*
+zip -r $ARCHIVE_PATH $ARCHIVE_DIR
