@@ -66,9 +66,9 @@ impl std::fmt::Display for Modifier {
             f,
             "{}",
             match self {
-                Modifier::B => "Bytes",
-                Modifier::KB => "KiloBytes",
-                Modifier::MB => "MegaBytes",
+                Modifier::B => "bytes",
+                Modifier::KB => "KB",
+                Modifier::MB => "MB",
             }
         )
     }

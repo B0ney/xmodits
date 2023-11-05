@@ -4,7 +4,7 @@ use crate::widget::helpers::control;
 use crate::theme::TextInputStyle;
 use crate::widget::Element;
 use data::config::filters::{size::Modifier, Size};
-use iced::widget::{column, pick_list, row, slider, text_input};
+use iced::widget::{column, pick_list, row, slider, text_input, text, horizontal_rule};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
@@ -18,7 +18,7 @@ pub enum Message {
 pub fn view<'a>(filter: &Size) -> Element<'a, Message> {
     let settings = column![
         row![
-            "MIN:",
+            "Min:",
             text_input("", &format!("{}", filter.min)).on_input(|input| {
                 if input.is_empty() {
                     return Message::SetMin(0);
@@ -34,7 +34,7 @@ pub fn view<'a>(filter: &Size) -> Element<'a, Message> {
         .spacing(8)
         .align_items(iced::Alignment::Center),
         row![
-            "MAX:",
+            "Max:",
             text_input("", &format!("{}", filter.max)).on_input(|input| {
                 if input.is_empty() {
                     return Message::SetMax(0);
@@ -49,7 +49,9 @@ pub fn view<'a>(filter: &Size) -> Element<'a, Message> {
             pick_list(Modifier::ALL, Some(filter.max_modifier), Message::SetMaxModifier)
         ]
         .spacing(8)
-        .align_items(iced::Alignment::Center)
+        .align_items(iced::Alignment::Center),
+        horizontal_rule(1),
+        text("Hint: 1000 bytes = 1 KB, 1000 KB = 1 MB"),
     ]
     .spacing(8);
     control("File Size", settings).into()
