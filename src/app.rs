@@ -47,6 +47,7 @@ pub struct XMODITS {
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
+    custom_filters: custom_filters::CustomFilters,
 }
 
 impl XMODITS {
@@ -249,6 +250,7 @@ pub enum Message {
     Cancel,
     Clear,
     ConfigPressed,
+    CustomFilter(custom_filters::Message),
     DeleteSelected,
     Event(event::Event),
     FileDialog,
@@ -338,6 +340,7 @@ impl Application for XMODITS {
                 return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
             }
             Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
+            Message::CustomFilter(msg) => custom_filters::update(&mut self.custom_filters, msg),
             Message::SetTheme => todo!(),
             Message::Open(link) => {
                 if let Err(err) = open::that_detached(link) {
@@ -469,7 +472,7 @@ impl Application for XMODITS {
                 .into()
             }
             View::Filters => column![
-                custom_filters::view().map(|_| Message::Ignore),
+                custom_filters::view(&self.custom_filters).map(Message::CustomFilter),
                 bottom_left_buttons,
             ]
             .spacing(8)
