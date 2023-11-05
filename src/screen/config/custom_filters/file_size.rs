@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use crate::widget::helpers::control;
+use crate::theme::TextInputStyle;
 use crate::widget::Element;
 use data::config::filters::{size::Modifier, Size};
 use iced::widget::{column, pick_list, row, slider, text_input};
@@ -26,7 +27,8 @@ pub fn view<'a>(filter: &Size) -> Element<'a, Message> {
                     .parse::<u64>()
                     .map(Message::SetMin)
                     .unwrap_or(Message::Ignore)
-            }),
+            })
+            .style(TextInputStyle::Inverted),
             pick_list(Modifier::ALL, Some(filter.min_modifier), Message::SetMinModifier)
         ]
         .spacing(8)
@@ -35,14 +37,15 @@ pub fn view<'a>(filter: &Size) -> Element<'a, Message> {
             "MAX:",
             text_input("", &format!("{}", filter.max)).on_input(|input| {
                 if input.is_empty() {
-                    return Message::SetMin(0);
+                    return Message::SetMax(0);
                 }
 
                 input
                     .parse::<u64>()
                     .map(Message::SetMax)
                     .unwrap_or(Message::Ignore)
-            }),
+            })
+            .style(TextInputStyle::Inverted),
             pick_list(Modifier::ALL, Some(filter.max_modifier), Message::SetMaxModifier)
         ]
         .spacing(8)

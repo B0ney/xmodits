@@ -1,6 +1,6 @@
 use iced::widget::{
-    button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider, text,
-    text_input, vertical_slider,
+    button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider, text, text_input,
+    vertical_slider,
 };
 use iced::{application, overlay, Background, Color};
 
@@ -14,7 +14,7 @@ impl Theme {
         &self.0
     }
     // pub fn load(&mut self, theme: data::Theme) {
-    //     let _ = 
+    //     let _ =
     // }
 }
 
@@ -129,9 +129,7 @@ impl button::StyleSheet for Theme {
     }
 
     fn pressed(&self, style: &Self::Style) -> button::Appearance {
-        button::Appearance {
-            ..self.active(style)
-        }
+        button::Appearance { ..self.active(style) }
     }
 }
 
@@ -448,18 +446,33 @@ impl text::StyleSheet for Theme {
     }
 }
 
-impl text_input::StyleSheet for Theme {
-    type Style = ();
+#[derive(Default, Clone, Copy)]
+pub enum TextInputStyle {
+    #[default]
+    Normal,
+    Inverted,
+}
 
-    fn active(&self, _style: &Self::Style) -> text_input::Appearance {
+impl text_input::StyleSheet for Theme {
+    type Style = TextInputStyle;
+
+    fn active(&self, style: &Self::Style) -> text_input::Appearance {
         let p = self.inner();
 
-        text_input::Appearance {
+        let default = text_input::Appearance {
             background: Background::Color(p.base.foreground),
             border_radius: 8.0.into(),
             border_width: 1.2,
             border_color: p.base.border,
             icon_color: p.base.foreground,
+        };
+
+        match style {
+            TextInputStyle::Normal => default,
+            TextInputStyle::Inverted => text_input::Appearance {
+                background: p.base.background.into(),
+                ..default
+            },
         }
     }
 
@@ -485,7 +498,7 @@ impl text_input::StyleSheet for Theme {
     }
 
     fn selection_color(&self, _style: &Self::Style) -> iced::Color {
-        self.inner().normal.primary
+        Color { a: 0.5, ..self.inner().normal.primary}
     }
 
     fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
