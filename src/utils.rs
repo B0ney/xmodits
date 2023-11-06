@@ -23,6 +23,13 @@ pub async fn folder_dialog() -> Option<PathBuf> {
         .map(|f| f.path().to_owned())
 }
 
+pub async fn file_dialog() -> Option<PathBuf> {
+    rfd::AsyncFileDialog::new()
+        .pick_file()
+        .await
+        .map(|f| f.path().to_owned())
+}
+
 pub async fn folders_dialog() -> Option<Vec<PathBuf>> {
     rfd::AsyncFileDialog::new().pick_folders().await.map(paths)
 }
