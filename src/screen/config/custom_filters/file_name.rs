@@ -42,23 +42,14 @@ pub fn update(filter: &mut Name, msg: Message) {}
 pub fn view<'a>(filter: &'a Name) -> Element<'a, Message> {
     let settings = column![
         row![
-            column![
-                "Value",
-                text_input("Add Filter", "")
-                    .style(theme::TextInputStyle::Inverted)
-                    .width(Length::Fill),
-            ]
-            .width(Length::Fill)
-            .spacing(8),
-            column![
-                "Condition",
-                pick_list(Condition::ALL, Some(Condition::Contains), |_| Message::A)
-            ]
-            .width(Length::Fill)
-            .spacing(8),
+            pick_list(Condition::ALL, Some(Condition::Contains), |_| Message::A),
+            text_input("Filter...", "")
+                .style(theme::TextInputStyle::Inverted)
+                .width(Length::Fill),
         ]
         .width(Length::Fill)
         .spacing(5),
+        checkbox("Case Sensitive", false, |_| Message::A),
         row![button("Add"), button("Add AND"), button("Add OR")]
             .align_items(Alignment::Center)
             .spacing(5),
