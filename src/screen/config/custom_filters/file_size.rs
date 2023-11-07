@@ -15,7 +15,7 @@ pub enum Message {
     Ignore,
 }
 
-pub fn view<'a>(filter: &Size) -> Element<'a, Message> {
+pub fn view(filter: &Size) -> Element<Message> {
     let settings = column![
         row![
             "Min:",

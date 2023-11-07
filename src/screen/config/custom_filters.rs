@@ -4,8 +4,8 @@ mod file_name;
 mod file_size;
 mod regex;
 
-use std::path::Path;
 use data::config::filters::{Filter, Name, Size};
+use std::path::Path;
 
 use iced::widget::{column, horizontal_rule, row};
 
@@ -31,45 +31,31 @@ impl Filters {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum Message {
+    FileSize(file_size::Message),
+    FileName(file_name::Message),
+}
+
 #[derive(Default, Debug)]
 pub struct CustomFilters {
     filesize: Size,
+    filename: Name,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum Message {
-    A,
-    FileSize(file_size::Message)
-}
+impl CustomFilters {
+    pub fn update(&mut self, msg: Message) {
+        match msg {
+            Message::FileSize(filesize) => file_size::update(&mut self.filesize, filesize),
+            Message::FileName(filename) => file_name::update(&mut self.filename, filename),
+        }
+    }
+    pub fn view_file_size(&self) -> Element<Message> {
+        file_size::view(&self.filesize).map(Message::FileSize)
+    }
 
-pub fn view<'a>(filters: &CustomFilters) -> Element<'a, Message> {
-    // let title = text_icon("Filters", icon::filter());
-
-    // let menu = |title: &'a str| {
-    //     row![title, horizontal_rule(1)]
-    //         .spacing(8)
-    //         .align_items(iced::Alignment::Center)
-    // };
-
-    // let settings = column![
-    //     // file_size::view().map(|_| Message::A),
-    //     // horizontal_rule(1),
-    //     menu("Extension"),
-    //     // horizontal_rule(1),
-    //     menu("Name"),
-    //     // horizontal_rule(1),
-    //     menu("Date"),
-    // ]
-    // .spacing(8);
-
-    // control_filled(title, settings).into()
-
-    file_size::view(&filters.filesize).map(Message::FileSize).into()
-}
-
-pub fn update(filter: &mut CustomFilters, msg: Message) {
-    match msg {
-        Message::A => todo!(),
-        Message::FileSize(filesize) => file_size::update(&mut filter.filesize, filesize),
+    pub fn view_file_name(&self) -> Element<Message> {
+        file_name::view(&self.filename).map(Message::FileName)
     }
 }
+

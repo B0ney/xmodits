@@ -340,7 +340,7 @@ impl Application for XMODITS {
                 return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
             }
             Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
-            Message::CustomFilter(msg) => custom_filters::update(&mut self.custom_filters, msg),
+            Message::CustomFilter(msg) => self.custom_filters.update(msg),
             Message::SetTheme => todo!(),
             Message::Open(link) => {
                 if let Err(err) = open::that_detached(link) {
@@ -472,7 +472,8 @@ impl Application for XMODITS {
                 .into()
             }
             View::Filters => column![
-                custom_filters::view(&self.custom_filters).map(Message::CustomFilter),
+                self.custom_filters.view_file_size().map(Message::CustomFilter),
+                self.custom_filters.view_file_name().map(Message::CustomFilter),
                 bottom_left_buttons,
             ]
             .spacing(8)

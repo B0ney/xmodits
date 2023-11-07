@@ -112,5 +112,9 @@ pub fn spaced_row<'a, Message: 'a>(row: Row<'a, Message>) -> Row<'a, Message> {
 }
 
 pub fn text_icon<'a, Message: 'a>(text: &'a str, icon: Text<'a>) -> Row<'a, Message> {
-    row![text, icon].align_items(Alignment::Center).spacing(5)
+    text_elem(text, icon)
+}
+
+pub fn text_elem<'a, Message: 'a>(text: &'a str, elem: impl Into<Element<'a, Message>>) -> Row<'a, Message> {
+    row![text].push(elem).align_items(Alignment::Center).spacing(5)
 }
