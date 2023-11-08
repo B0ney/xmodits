@@ -473,6 +473,7 @@ impl Application for XMODITS {
             }
             View::Filters => column![
                 self.custom_filters.view_file_size().map(Message::CustomFilter),
+                self.custom_filters.view_file_date().map(Message::CustomFilter),
                 self.custom_filters.view_file_name().map(Message::CustomFilter),
                 bottom_left_buttons,
             ]

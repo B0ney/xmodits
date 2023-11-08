@@ -2,6 +2,7 @@
 
 mod file_name;
 mod file_size;
+mod file_date;
 mod regex;
 
 use data::config::filters::{Filter, Name, Size};
@@ -35,6 +36,7 @@ impl Filters {
 pub enum Message {
     FileSize(file_size::Message),
     FileName(file_name::Message),
+    FileDate(file_date::Message),
 }
 
 #[derive(Default, Debug)]
@@ -48,6 +50,7 @@ impl CustomFilters {
         match msg {
             Message::FileSize(filesize) => file_size::update(&mut self.filesize, filesize),
             Message::FileName(filename) => file_name::update(&mut self.filename, filename),
+            Message::FileDate(filedate) => file_date::update(filedate),
         }
     }
     pub fn view_file_size(&self) -> Element<Message> {
@@ -56,6 +59,10 @@ impl CustomFilters {
 
     pub fn view_file_name(&self) -> Element<Message> {
         file_name::view(&self.filename).map(Message::FileName)
+    }
+
+    pub fn view_file_date(&self) -> Element<Message> {
+        file_date::view().map(Message::FileDate)
     }
 }
 
