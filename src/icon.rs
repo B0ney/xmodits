@@ -16,6 +16,10 @@ pub fn play<'a>() -> Text<'a> {
     icon('\u{f4f4}')
 }
 
+pub fn stop<'a>() -> Text<'a> {
+    icon('\u{f4f5}')
+}
+
 pub fn pause<'a>() -> Text<'a> {
     icon('\u{f4c3}')
 }
@@ -50,6 +54,10 @@ pub fn filter<'a>() -> Text<'a> {
 
 pub fn save<'a>() -> Text<'a> {
     icon('\u{e802}')
+}
+
+pub fn calendar<'a>() -> Text<'a> {
+    icon('\u{e803}')
 }
 
 fn icon(unicode: char) -> Text<'static> {

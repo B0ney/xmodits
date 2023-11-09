@@ -6,6 +6,9 @@ use iced::{application, overlay, Background, Color};
 
 use data::theme;
 
+const BORDER_RADIUS: f32 = 5.0;
+const BORDER_WIDTH: f32 = 1.5;
+
 #[derive(Default, Clone)]
 pub struct Theme(pub theme::Palette);
 
@@ -42,6 +45,7 @@ pub enum Button {
     Entry,
     Start,
     Delete,
+    Dark,
 }
 
 impl button::StyleSheet for Theme {
@@ -51,8 +55,8 @@ impl button::StyleSheet for Theme {
         let p = self.inner();
 
         let appearance = button::Appearance {
-            border_width: 1.0,
-            border_radius: 8.0.into(),
+            border_width: BORDER_WIDTH,
+            border_radius: BORDER_RADIUS.into(),
             ..button::Appearance::default()
         };
 
@@ -70,8 +74,8 @@ impl button::StyleSheet for Theme {
             Button::Entry => button::Appearance {
                 background: Some(Background::Color(p.base.foreground)),
                 text_color: p.bright.surface,
-                border_radius: 5.0.into(),
-                border_width: 1.0,
+                border_radius: BORDER_RADIUS.into(),
+                border_width: BORDER_WIDTH,
                 border_color: p.base.border,
                 ..appearance
             },
@@ -85,7 +89,13 @@ impl button::StyleSheet for Theme {
             Button::HyperlinkInverted => button::Appearance {
                 background: None,
                 text_color: p.bright.primary,
-
+                ..appearance
+            },
+            Button::Dark => button::Appearance {
+                background: Some(p.base.dark.into()),
+                text_color:  p.bright.surface,
+                border_radius: BORDER_RADIUS.into(),
+                border_color: p.base.background,
                 ..appearance
             },
         }
@@ -96,7 +106,7 @@ impl button::StyleSheet for Theme {
         let p = self.inner();
 
         let hover_appearance = |bg, tc: Option<Color>| button::Appearance {
-            background: Some(Background::Color(Color { a: 0.25, ..bg })),
+            background: Some(Background::Color(Color { a: 0.4, ..bg })),
 
             text_color: tc.unwrap_or(bg),
             ..active
@@ -118,6 +128,11 @@ impl button::StyleSheet for Theme {
                 ..hover_appearance(p.bright.primary, None)
             },
             Button::Cancel => hover_appearance(p.bright.error, Some(p.bright.surface)),
+            Button::Dark => button::Appearance {
+                background: Some(p.base.dark.into()),
+                text_color:  p.bright.primary,
+                ..active
+            },
         }
     }
 
@@ -149,8 +164,8 @@ impl checkbox::StyleSheet for Theme {
         let default = checkbox::Appearance {
             background: p.base.background.into(),
             icon_color: p.bright.primary,
-            border_radius: 5.0.into(),
-            border_width: 1.2,
+            border_radius: BORDER_RADIUS.into(),
+            border_width: BORDER_WIDTH,
             border_color: p.base.border,
             text_color: Some(p.bright.surface),
         };
@@ -169,7 +184,7 @@ impl checkbox::StyleSheet for Theme {
         let from_appearance = checkbox::Appearance {
             background: p.base.background.into(),
             icon_color: p.bright.primary,
-            border_radius: 5.0.into(),
+            border_radius: BORDER_RADIUS.into(),
             border_width: 2.0,
             border_color: p.bright.primary,
             text_color: Some(p.bright.surface),
@@ -203,14 +218,14 @@ impl container::StyleSheet for Theme {
                 background: Some(Background::Color(self.inner().base.foreground)),
                 text_color: Some(self.inner().bright.surface),
                 border_color: self.inner().base.border,
-                border_radius: 5.0.into(),
-                border_width: 1.2,
+                border_radius: BORDER_RADIUS.into(),
+                border_width: BORDER_WIDTH,
             },
             Container::Black => container::Appearance {
                 background: Some(self.inner().base.dark.into()),
                 text_color: Some(self.inner().bright.surface),
-                border_radius: 5.0.into(),
-                border_width: 1.2,
+                border_radius: BORDER_RADIUS.into(),
+                border_width: BORDER_WIDTH,
                 border_color: self.inner().base.border,
             },
         }
@@ -224,8 +239,8 @@ impl overlay::menu::StyleSheet for Theme {
         overlay::menu::Appearance {
             text_color: self.inner().bright.surface,
             background: self.inner().base.background.into(),
-            border_width: 1.2,
-            border_radius: 5.0.into(),
+            border_width: BORDER_WIDTH,
+            border_radius: BORDER_RADIUS.into(),
             border_color: self.inner().base.border,
             selected_text_color: self.inner().bright.surface,
             selected_background: Color {
@@ -246,9 +261,9 @@ impl pick_list::StyleSheet for Theme {
         pick_list::Appearance {
             text_color: p.bright.surface,
             background: p.base.background.into(),
-            border_width: 1.2,
+            border_width: BORDER_WIDTH,
             border_color: p.base.border,
-            border_radius: 5.0.into(),
+            border_radius: BORDER_RADIUS.into(),
             handle_color: p.bright.surface,
             placeholder_color: p.bright.surface,
         }
@@ -294,7 +309,7 @@ impl radio::StyleSheet for Theme {
         radio::Appearance {
             background: Color::TRANSPARENT.into(),
             dot_color: p.bright.primary,
-            border_width: 1.0,
+            border_width: BORDER_WIDTH,
             border_color: p.bright.primary,
             text_color: None,
         }
@@ -341,13 +356,13 @@ impl scrollable::StyleSheet for Theme {
 
         let from_appearance = |c: Color, d: Color| scrollable::Scrollbar {
             background: Some(Background::Color(c)),
-            border_radius: 5.0.into(),
+            border_radius: BORDER_RADIUS.into(),
             border_width: 0.0,
             border_color: Color::TRANSPARENT,
             scroller: scrollable::Scroller {
                 color: d,
-                border_radius: 5.0.into(),
-                border_width: 1.0,
+                border_radius: BORDER_RADIUS.into(),
+                border_width: BORDER_WIDTH,
                 border_color: p.base.border,
             },
         };
@@ -461,8 +476,8 @@ impl text_input::StyleSheet for Theme {
 
         let default = text_input::Appearance {
             background: Background::Color(p.base.foreground),
-            border_radius: 8.0.into(),
-            border_width: 1.2,
+            border_radius: BORDER_RADIUS.into(),
+            border_width: BORDER_WIDTH,
             border_color: p.base.border,
             icon_color: p.base.foreground,
         };
@@ -471,6 +486,7 @@ impl text_input::StyleSheet for Theme {
             TextInputStyle::Normal => default,
             TextInputStyle::Inverted => text_input::Appearance {
                 background: p.base.background.into(),
+                border_radius: BORDER_RADIUS.into(),
                 ..default
             },
         }

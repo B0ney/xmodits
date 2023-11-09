@@ -50,8 +50,8 @@ pub fn view(filter: &Size) -> Element<Message> {
         ]
         .spacing(8)
         .align_items(iced::Alignment::Center),
-        horizontal_rule(1),
-        text("Hint: 1000 bytes = 1 KB, 1000 KB = 1 MB"),
+        // horizontal_rule(1),
+        // text("Hint: 1000 bytes = 1 KB, 1000 KB = 1 MB"),
     ]
     .spacing(8);
     control("File Size", settings).into()

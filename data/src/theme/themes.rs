@@ -34,7 +34,7 @@ impl Themes {
                     border: color!(0x474747),
                 },
                 normal: NormalColors {
-                    primary: color!(0x5E4266),
+                    primary: color!(0xBA84FC),
                     secondary: color!(0x386e50),
                     surface: color!(0x828282),
                     error: color!(0xff5555),
@@ -68,9 +68,9 @@ impl Themes {
             },
             Self::LMMS => Palette {
                 base: BaseColors {
-                    background: color!(0x26_2B_30),
+                    background: color!(0x262B30),
                     foreground: color!(0x3B424A), //3B424A
-                    dark: color!(0x11_13_14),
+                    dark: color!(0x111314),
                     border: color!(0x4C5864),
                 },
                 normal: NormalColors {

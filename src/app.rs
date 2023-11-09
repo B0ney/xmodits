@@ -440,11 +440,13 @@ impl Application for XMODITS {
         let bottom_left_buttons = row![
             button(text_icon("Save Settings", icon::save()))
                 .on_press(Message::SaveConfig)
-                .width(Length::FillPortion(2)),
+                .width(Length::FillPortion(2))
+                .padding(8),
             button(text_icon("START", icon::download()))
                 .on_press_maybe(not_ripping.then_some(Message::StartRipping))
                 .style(theme::Button::Start)
                 .width(Length::FillPortion(2))
+                .padding(8)
         ]
         .spacing(8);
 
@@ -491,21 +493,25 @@ impl Application for XMODITS {
         let destination = sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
 
         let top_right_buttons = row![
-            text(format!("Entries: {}", self.entries.len())),
-            text(format!("Selected: {}", self.entries.total_selected())),
+            text(format!(
+                "Entries: {}, Selected: {}",
+                self.entries.len(),
+                self.entries.total_selected()
+            )),
             Space::with_width(Length::Fill),
             button("Invert").on_press(Message::InvertSelection),
             checkbox("Select All", self.entries.all_selected, Message::SelectAll)
+                .style(theme::CheckBox::Inverted)
         ]
-        .spacing(15)
+        .spacing(8)
         .align_items(Alignment::Center);
 
         let bottom_right_buttons = row![
-            action("Add File", not_ripping.then_some(Message::FileDialog)),
-            action("Add Folder", not_ripping.then_some(Message::FolderDialog)),
+            action("Add File", not_ripping.then_some(Message::FileDialog)).padding(8),
+            action("Add Folder", not_ripping.then_some(Message::FolderDialog)).padding(8),
             Space::with_width(Length::Fill),
-            action("Delete Selected", not_ripping.then_some(Message::DeleteSelected)),
-            action("Clear", not_ripping.then_some(Message::Clear)),
+            action("Delete Selected", not_ripping.then_some(Message::DeleteSelected)).padding(8),
+            action("Clear", not_ripping.then_some(Message::Clear)).padding(8),
         ]
         .spacing(5);
 

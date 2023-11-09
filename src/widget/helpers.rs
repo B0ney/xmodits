@@ -112,7 +112,7 @@ pub fn spaced_row<'a, Message: 'a>(row: Row<'a, Message>) -> Row<'a, Message> {
 }
 
 pub fn text_icon<'a, Message: 'a>(text: &'a str, icon: Text<'a>) -> Row<'a, Message> {
-    text_elem(text, icon)
+    text_elem(text, icon).spacing(8)
 }
 
 pub fn text_elem<'a, Message: 'a>(text: &'a str, elem: impl Into<Element<'a, Message>>) -> Row<'a, Message> {
