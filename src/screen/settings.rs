@@ -1,6 +1,6 @@
 use data::config::{self};
-use iced::widget::{checkbox, column};
-use iced::Command;
+use iced::widget::{button, checkbox, column, pick_list, row, Space};
+use iced::{Command, Length};
 use std::path::PathBuf;
 
 use crate::screen::config::name_preview;
@@ -20,6 +20,8 @@ pub enum Message {
     SetGif { kind: GIFKind, path: Option<PathBuf> },
     SetTheme(data::theme::Themes),
     NamePreview(name_preview::Message),
+    ImportTheme,
+    ExportTheme,
 }
 
 /*
@@ -31,12 +33,6 @@ TODO:
 pub fn view(general: &config::GeneralConfig) -> Element<Message> {
     let settings = column![
         // labelled_picklist("Themes", options, selected, on_selected)
-        labelled_picklist(
-            "Theme",
-            data::theme::Themes::ALL.as_slice(),
-            Some(general.theme),
-            Message::SetTheme
-        ),
         checkbox("Show Animated GIFs", general.show_gif, Message::ShowAnimatedGIF),
         checkbox(
             "Suppress Warnings",
@@ -47,8 +43,28 @@ pub fn view(general: &config::GeneralConfig) -> Element<Message> {
     .spacing(8);
 
     column![control("Application Settings", settings)]
+        .push(themes(general))
         // .push(animated_gif(general))
         .push_maybe(non_gui(general))
+        .spacing(8)
+        .into()
+}
+
+pub fn themes(general: &config::GeneralConfig) -> Element<Message> {
+    let settings = row![
+        pick_list(
+            data::theme::Themes::ALL.as_slice(),
+            Some(general.theme),
+            Message::SetTheme
+        ),
+        // Space::with_width(Length::Fill),
+        button("Load").on_press(Message::ImportTheme),
+        // button("Export").on_press(Message::ExportTheme),
+    ]
+    .spacing(8)
+    .align_items(iced::Alignment::Center);
+    column![control("Themes", settings)]
+        // .push(animated_gif(general))
         .spacing(8)
         .into()
 }
@@ -122,6 +138,8 @@ pub fn update(cfg: &mut config::GeneralConfig, message: Message) -> Command<Mess
         },
         Message::SetTheme(theme) => cfg.theme = theme,
         Message::NamePreview(msg) => name_preview::update(&mut cfg.sample_name_params, msg),
+        Message::ImportTheme => (),
+        Message::ExportTheme => (),
     }
 
     Command::none()

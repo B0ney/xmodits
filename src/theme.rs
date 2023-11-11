@@ -28,8 +28,8 @@ impl application::StyleSheet for Theme {
 
     fn appearance(&self, _style: &Self::Style) -> application::Appearance {
         application::Appearance {
-            background_color: self.inner().base.background,
-            text_color: self.inner().bright.surface,
+            background_color: self.inner().middleground,
+            text_color: self.inner().text,
         }
     }
 }
@@ -61,41 +61,41 @@ impl button::StyleSheet for Theme {
         };
 
         let active_appearance = |bg: Option<Color>, mc| button::Appearance {
-            background: Some(Background::Color(bg.unwrap_or(p.base.foreground))),
+            background: Some(Background::Color(bg.unwrap_or(p.foreground))),
             border_color: Color { a: 0.5, ..mc },
             text_color: mc,
             ..appearance
         };
 
         match style {
-            Button::Primary => active_appearance(None, p.bright.primary),
-            Button::Cancel => active_appearance(None, p.bright.error),
-            Button::Unavailable => active_appearance(None, p.bright.error),
+            Button::Primary => active_appearance(None, p.accent),
+            Button::Cancel => active_appearance(None, p.error),
+            Button::Unavailable => active_appearance(None, p.error),
             Button::Entry => button::Appearance {
-                background: Some(Background::Color(p.base.foreground)),
-                text_color: p.bright.surface,
+                background: Some(Background::Color(p.foreground)),
+                text_color: p.text,
                 border_radius: BORDER_RADIUS.into(),
                 border_width: BORDER_WIDTH,
-                border_color: p.base.border,
+                border_color: p.border,
                 ..appearance
             },
             Button::Hyperlink => button::Appearance {
                 background: None,
-                text_color: p.bright.surface,
+                text_color: p.text,
                 ..appearance
             },
-            Button::Start => active_appearance(None, p.bright.secondary),
-            Button::Delete => active_appearance(None, p.bright.error),
+            Button::Start => active_appearance(None, p.success),
+            Button::Delete => active_appearance(None, p.error),
             Button::HyperlinkInverted => button::Appearance {
                 background: None,
-                text_color: p.bright.primary,
+                text_color: p.accent,
                 ..appearance
             },
             Button::Dark => button::Appearance {
-                background: Some(p.base.dark.into()),
-                text_color:  p.bright.surface,
+                background: Some(p.background.into()),
+                text_color: p.text,
                 border_radius: BORDER_RADIUS.into(),
-                border_color: p.base.background,
+                border_color: p.middleground,
                 ..appearance
             },
         }
@@ -113,24 +113,24 @@ impl button::StyleSheet for Theme {
         };
 
         match style {
-            Button::Primary => hover_appearance(p.bright.primary, Some(p.bright.surface)),
-            Button::Unavailable => hover_appearance(p.bright.error, None),
-            Button::Entry => hover_appearance(p.bright.primary, Some(p.bright.surface)),
+            Button::Primary => hover_appearance(p.accent, Some(p.text)),
+            Button::Unavailable => hover_appearance(p.error, None),
+            Button::Entry => hover_appearance(p.accent, Some(p.text)),
             Button::Hyperlink => button::Appearance {
                 background: None,
-                ..hover_appearance(p.bright.primary, None)
+                ..hover_appearance(p.accent, None)
             },
-            Button::Start => hover_appearance(p.bright.secondary, Some(p.bright.surface)),
-            Button::Delete => hover_appearance(p.bright.error, Some(p.bright.surface)),
+            Button::Start => hover_appearance(p.success, Some(p.text)),
+            Button::Delete => hover_appearance(p.error, Some(p.text)),
             Button::HyperlinkInverted => button::Appearance {
                 background: None,
-                text_color: p.bright.surface,
-                ..hover_appearance(p.bright.primary, None)
+                text_color: p.text,
+                ..hover_appearance(p.accent, None)
             },
-            Button::Cancel => hover_appearance(p.bright.error, Some(p.bright.surface)),
+            Button::Cancel => hover_appearance(p.error, Some(p.text)),
             Button::Dark => button::Appearance {
-                background: Some(p.base.dark.into()),
-                text_color:  p.bright.primary,
+                background: Some(p.background.into()),
+                text_color: p.accent,
                 ..active
             },
         }
@@ -162,17 +162,17 @@ impl checkbox::StyleSheet for Theme {
         let p = self.inner();
 
         let default = checkbox::Appearance {
-            background: p.base.background.into(),
-            icon_color: p.bright.primary,
+            background: p.middleground.into(),
+            icon_color: p.accent,
             border_radius: BORDER_RADIUS.into(),
             border_width: BORDER_WIDTH,
-            border_color: p.base.border,
-            text_color: Some(p.bright.surface),
+            border_color: p.border,
+            text_color: Some(p.text),
         };
         match style {
             CheckBox::Normal => default,
             CheckBox::Inverted => checkbox::Appearance {
-                background: p.base.foreground.into(),
+                background: p.foreground.into(),
                 ..default
             },
         }
@@ -182,18 +182,18 @@ impl checkbox::StyleSheet for Theme {
         let p = self.inner();
 
         let from_appearance = checkbox::Appearance {
-            background: p.base.background.into(),
-            icon_color: p.bright.primary,
+            background: p.middleground.into(),
+            icon_color: p.accent,
             border_radius: BORDER_RADIUS.into(),
             border_width: 2.0,
-            border_color: p.bright.primary,
-            text_color: Some(p.bright.surface),
+            border_color: p.accent,
+            text_color: Some(p.text),
         };
 
         match style {
             CheckBox::Normal => from_appearance,
             CheckBox::Inverted => checkbox::Appearance {
-                background: p.base.foreground.into(),
+                background: p.foreground.into(),
                 ..from_appearance
             },
         }
@@ -215,18 +215,18 @@ impl container::StyleSheet for Theme {
         match style {
             Container::Invisible => container::Appearance::default(),
             Container::Frame => container::Appearance {
-                background: Some(Background::Color(self.inner().base.foreground)),
-                text_color: Some(self.inner().bright.surface),
-                border_color: self.inner().base.border,
+                background: Some(Background::Color(self.inner().foreground)),
+                text_color: Some(self.inner().text),
+                border_color: self.inner().border,
                 border_radius: BORDER_RADIUS.into(),
                 border_width: BORDER_WIDTH,
             },
             Container::Black => container::Appearance {
-                background: Some(self.inner().base.dark.into()),
-                text_color: Some(self.inner().bright.surface),
+                background: Some(self.inner().background.into()),
+                text_color: Some(self.inner().text),
                 border_radius: BORDER_RADIUS.into(),
                 border_width: BORDER_WIDTH,
-                border_color: self.inner().base.border,
+                border_color: self.inner().border,
             },
         }
     }
@@ -237,15 +237,15 @@ impl overlay::menu::StyleSheet for Theme {
 
     fn appearance(&self, _style: &Self::Style) -> overlay::menu::Appearance {
         overlay::menu::Appearance {
-            text_color: self.inner().bright.surface,
-            background: self.inner().base.background.into(),
+            text_color: self.inner().text,
+            background: self.inner().middleground.into(),
             border_width: BORDER_WIDTH,
             border_radius: BORDER_RADIUS.into(),
-            border_color: self.inner().base.border,
-            selected_text_color: self.inner().bright.surface,
+            border_color: self.inner().border,
+            selected_text_color: self.inner().text,
             selected_background: Color {
                 a: 0.25,
-                ..self.inner().bright.primary
+                ..self.inner().accent
             }
             .into(),
         }
@@ -259,20 +259,20 @@ impl pick_list::StyleSheet for Theme {
         let p = self.inner();
 
         pick_list::Appearance {
-            text_color: p.bright.surface,
-            background: p.base.background.into(),
+            text_color: p.text,
+            background: p.middleground.into(),
             border_width: BORDER_WIDTH,
-            border_color: p.base.border,
+            border_color: p.border,
             border_radius: BORDER_RADIUS.into(),
-            handle_color: p.bright.surface,
-            placeholder_color: p.bright.surface,
+            handle_color: p.text,
+            placeholder_color: p.text,
         }
     }
 
     fn hovered(&self, style: &Self::Style) -> pick_list::Appearance {
         let active = self.active(style);
         pick_list::Appearance {
-            border_color: self.inner().bright.primary,
+            border_color: self.inner().accent,
             border_width: 2.0,
             ..active
         }
@@ -293,8 +293,8 @@ impl progress_bar::StyleSheet for Theme {
         let p = self.inner();
 
         progress_bar::Appearance {
-            background: Background::Color(p.base.background),
-            bar: Background::Color(p.normal.primary),
+            background: Background::Color(p.middleground),
+            bar: Background::Color(p.accent),
             border_radius: 64.0.into(),
         }
     }
@@ -308,9 +308,9 @@ impl radio::StyleSheet for Theme {
 
         radio::Appearance {
             background: Color::TRANSPARENT.into(),
-            dot_color: p.bright.primary,
+            dot_color: p.accent,
             border_width: BORDER_WIDTH,
-            border_color: p.bright.primary,
+            border_color: p.accent,
             text_color: None,
         }
     }
@@ -320,8 +320,8 @@ impl radio::StyleSheet for Theme {
         let p = self.inner();
 
         radio::Appearance {
-            dot_color: p.bright.primary,
-            border_color: p.bright.primary,
+            dot_color: p.accent,
+            border_color: p.accent,
             border_width: 2.0,
             ..active
         }
@@ -333,7 +333,7 @@ impl rule::StyleSheet for Theme {
 
     fn appearance(&self, _style: &Self::Style) -> rule::Appearance {
         rule::Appearance {
-            color: self.inner().base.border,
+            color: self.inner().border,
             width: 1,
             radius: 1.0.into(),
             fill_mode: rule::FillMode::Full,
@@ -363,11 +363,11 @@ impl scrollable::StyleSheet for Theme {
                 color: d,
                 border_radius: BORDER_RADIUS.into(),
                 border_width: BORDER_WIDTH,
-                border_color: p.base.border,
+                border_color: p.border,
             },
         };
 
-        let color = (p.base.background, p.base.foreground);
+        let color = (p.middleground, p.foreground);
 
         match style {
             Scrollable::Description => from_appearance(color.0, color.1),
@@ -381,7 +381,7 @@ impl scrollable::StyleSheet for Theme {
         scrollable::Scrollbar {
             scroller: scrollable::Scroller {
                 color: if is_mouse_over_scrollbar {
-                    p.normal.primary
+                    p.accent
                 } else {
                     self.active(style).scroller.color
                 },
@@ -409,15 +409,15 @@ impl slider::StyleSheet for Theme {
 
         vertical_slider::Appearance {
             rail: slider::Rail {
-                colors: (p.normal.primary, p.normal.primary),
+                colors: (p.accent, p.accent),
                 width: 3.0,
                 border_radius: Default::default(),
             },
             handle: vertical_slider::Handle {
                 shape: vertical_slider::HandleShape::Circle { radius: 3.0 },
-                color: p.normal.primary,
+                color: p.accent,
                 border_width: 3.0,
-                border_color: p.normal.primary,
+                border_color: p.accent,
             },
         }
     }
@@ -436,6 +436,7 @@ pub enum Text {
     #[default]
     Default,
     Error,
+    Warning,
     Color(Color),
 }
 
@@ -453,10 +454,9 @@ impl text::StyleSheet for Theme {
 
         match style {
             Text::Default => Default::default(),
-            Text::Error => text::Appearance {
-                color: Some(p.bright.error),
-            },
-            Text::Color(c) => text::Appearance { color: Some(c) },
+            Text::Error => text::Appearance { color: Some(p.error) },
+            Text::Warning => text::Appearance { color: Some(p.warning) },
+            Text::Color(c) => text::Appearance { color: Some(c) }, 
         }
     }
 }
@@ -475,17 +475,17 @@ impl text_input::StyleSheet for Theme {
         let p = self.inner();
 
         let default = text_input::Appearance {
-            background: Background::Color(p.base.foreground),
+            background: Background::Color(p.foreground),
             border_radius: BORDER_RADIUS.into(),
             border_width: BORDER_WIDTH,
-            border_color: p.base.border,
-            icon_color: p.base.foreground,
+            border_color: p.border,
+            icon_color: p.foreground,
         };
 
         match style {
             TextInputStyle::Normal => default,
             TextInputStyle::Inverted => text_input::Appearance {
-                background: p.base.background.into(),
+                background: p.middleground.into(),
                 border_radius: BORDER_RADIUS.into(),
                 ..default
             },
@@ -496,25 +496,28 @@ impl text_input::StyleSheet for Theme {
         let p = self.inner();
 
         text_input::Appearance {
-            border_color: p.bright.primary,
+            border_color: p.accent,
             ..self.active(style)
         }
     }
 
     fn placeholder_color(&self, _style: &Self::Style) -> iced::Color {
-        self.inner().normal.surface
+        self.inner().text
     }
 
     fn value_color(&self, _style: &Self::Style) -> iced::Color {
-        self.inner().normal.primary
+        self.inner().accent
     }
 
     fn disabled_color(&self, _style: &Self::Style) -> iced::Color {
-        self.inner().normal.surface
+        self.inner().text
     }
 
     fn selection_color(&self, _style: &Self::Style) -> iced::Color {
-        Color { a: 0.5, ..self.inner().normal.primary}
+        Color {
+            a: 0.5,
+            ..self.inner().accent
+        }
     }
 
     fn disabled(&self, style: &Self::Style) -> text_input::Appearance {

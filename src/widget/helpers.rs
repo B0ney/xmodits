@@ -31,7 +31,7 @@ pub fn centered_text<'a>(input: impl ToString) -> Text<'a> {
 }
 
 pub fn warning<'a>(predicate: impl Fn() -> bool, warning: impl ToString) -> Option<Text<'a>> {
-    predicate().then_some(text(warning).style(theme::Text::Error))
+    predicate().then_some(text(warning).style(theme::Text::Warning))
 }
 
 pub fn centered_container<'a, Message>(content: impl Into<Element<'a, Message>>) -> Container<'a, Message> {
