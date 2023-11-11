@@ -370,7 +370,7 @@ impl scrollable::StyleSheet for Theme {
             border_color: Color::TRANSPARENT,
             scroller: scrollable::Scroller {
                 color: d,
-                border_radius: BORDER_RADIUS.into(),
+                border_radius: 3.0.into(),
                 border_width: BORDER_WIDTH,
                 border_color: p.border,
             },
@@ -390,9 +390,14 @@ impl scrollable::StyleSheet for Theme {
         scrollable::Scrollbar {
             scroller: scrollable::Scroller {
                 color: if is_mouse_over_scrollbar {
-                    p.accent
+                    Color { a: 0.5, ..p.accent }
                 } else {
                     self.active(style).scroller.color
+                },
+                border_color: if is_mouse_over_scrollbar {
+                    Color { a: 0.75, ..p.accent }
+                } else {
+                    self.active(style).scroller.border_color
                 },
                 ..self.active(style).scroller
             },

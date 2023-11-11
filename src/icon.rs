@@ -1,5 +1,5 @@
 use iced::alignment;
-use iced::widget::{image, text};
+use iced::widget::{image, text, Image};
 
 use crate::font;
 use crate::widget::Text;
@@ -67,12 +67,12 @@ fn icon(unicode: char) -> Text<'static> {
         .horizontal_alignment(alignment::Horizontal::Center)
 }
 
-pub fn xmodits_logo() -> image::Handle {
-    get_img("xmodits")
+pub fn xmodits_logo() -> Image<image::Handle> {
+    image(get_img("xmodits"))
 }
 
-pub fn vbee3() -> image::Handle {
-    get_img("vbee3")
+pub fn vbee3() -> Image<image::Handle> {
+    image(get_img("vbee3"))
 }
 
 fn get_img(src: &str) -> image::Handle {

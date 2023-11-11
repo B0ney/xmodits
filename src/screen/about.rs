@@ -13,9 +13,9 @@ use super::build_info;
 
 pub fn view<'a>() -> Element<'a, Message> {
     let title = row![
-        image(vbee3()),
+        vbee3(),
         centered_text("XMODITS - by B0ney"),
-        image(vbee3()),
+        vbee3(),
     ]
     .align_items(iced::Alignment::Center)
     .spacing(8);
@@ -24,7 +24,7 @@ pub fn view<'a>() -> Element<'a, Message> {
         .on_press(Message::Open(String::from(env!("CARGO_PKG_REPOSITORY"))))
         .style(theme::Button::HyperlinkInverted);
     let version = centered_text(format!("version: {}", env!("CARGO_PKG_VERSION")));
-    let image = image(xmodits_logo());
+    let image = xmodits_logo();
     let about = centered_container(centered_column_x(column![
         title, version, image, about, repo,
     ]))

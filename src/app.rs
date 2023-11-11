@@ -425,7 +425,7 @@ impl Application for XMODITS {
 
     fn view(&self) -> Element<Message> {
         let top_left_menu = row![
-            button("Configure").on_press(Message::ConfigPressed),
+            button("Ripping").on_press(Message::ConfigPressed),
             button("Filters").on_press(Message::FilterPressed),
             // button("History").on_press(Message::HistoryPressed),
             button("Settings").on_press(Message::SettingsPressed),
