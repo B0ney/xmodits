@@ -436,6 +436,7 @@ pub enum Text {
     #[default]
     Default,
     Error,
+    Warning,
     Color(Color),
 }
 
@@ -454,7 +455,8 @@ impl text::StyleSheet for Theme {
         match style {
             Text::Default => Default::default(),
             Text::Error => text::Appearance { color: Some(p.error) },
-            Text::Color(c) => text::Appearance { color: Some(c) },
+            Text::Warning => text::Appearance { color: Some(p.warning) },
+            Text::Color(c) => text::Appearance { color: Some(c) }, 
         }
     }
 }
