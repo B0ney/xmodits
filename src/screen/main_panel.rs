@@ -44,7 +44,8 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
     let check = checkbox("", entry.selected, move |selected| Message::Select {
         index,
         selected,
-    });
+    })
+    .style(theme::CheckBox::Entry);
 
     let filename = text(entry.filename());
 

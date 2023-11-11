@@ -115,7 +115,10 @@ impl button::StyleSheet for Theme {
         match style {
             Button::Primary => hover_appearance(p.accent, Some(p.text)),
             Button::Unavailable => hover_appearance(p.error, None),
-            Button::Entry => hover_appearance(p.accent, Some(p.text)),
+            Button::Entry => button::Appearance {
+                border_color: Color { a: 0.5, ..p.accent },
+                ..hover_appearance(p.accent, Some(p.text))
+            },
             Button::Hyperlink => button::Appearance {
                 background: None,
                 ..hover_appearance(p.accent, None)
@@ -153,6 +156,7 @@ pub enum CheckBox {
     #[default]
     Normal,
     Inverted,
+    Entry,
 }
 
 impl checkbox::StyleSheet for Theme {
@@ -175,13 +179,17 @@ impl checkbox::StyleSheet for Theme {
                 background: p.foreground.into(),
                 ..default
             },
+            CheckBox::Entry => checkbox::Appearance {
+                // border_color: Color { a: 0.25, ..p.accent },
+                ..default
+            },
         }
     }
 
     fn hovered(&self, style: &Self::Style, _is_checked: bool) -> checkbox::Appearance {
         let p = self.inner();
 
-        let from_appearance = checkbox::Appearance {
+        let default = checkbox::Appearance {
             background: p.middleground.into(),
             icon_color: p.accent,
             border_radius: BORDER_RADIUS.into(),
@@ -191,11 +199,12 @@ impl checkbox::StyleSheet for Theme {
         };
 
         match style {
-            CheckBox::Normal => from_appearance,
+            CheckBox::Normal => default,
             CheckBox::Inverted => checkbox::Appearance {
                 background: p.foreground.into(),
-                ..from_appearance
+                ..default
             },
+            CheckBox::Entry => default,
         }
     }
 }
@@ -455,8 +464,10 @@ impl text::StyleSheet for Theme {
         match style {
             Text::Default => Default::default(),
             Text::Error => text::Appearance { color: Some(p.error) },
-            Text::Warning => text::Appearance { color: Some(p.warning) },
-            Text::Color(c) => text::Appearance { color: Some(c) }, 
+            Text::Warning => text::Appearance {
+                color: Some(p.warning),
+            },
+            Text::Color(c) => text::Appearance { color: Some(c) },
         }
     }
 }
