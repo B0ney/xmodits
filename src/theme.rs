@@ -353,7 +353,7 @@ impl rule::StyleSheet for Theme {
 #[derive(Default, Debug, Clone, Copy)]
 pub enum Scrollable {
     #[default]
-    Description,
+    Normal,
     Dark,
 }
 
@@ -379,7 +379,7 @@ impl scrollable::StyleSheet for Theme {
         let color = (p.middleground, p.foreground);
 
         match style {
-            Scrollable::Description => from_appearance(color.0, color.1),
+            Scrollable::Normal => from_appearance(color.0, color.1),
             Scrollable::Dark => from_appearance(color.1, color.0),
         }
     }

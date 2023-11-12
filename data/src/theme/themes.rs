@@ -30,7 +30,7 @@ impl Themes {
                 middleground: color!(0x272727),
                 foreground: color!(0x353535),
                 background: color!(0x151515),
-                border: color!(0x474747),
+                border: color!(0x555555),
                 accent: color!(0xBA84FC),
                 text: color!(0xE0E0E0),
                 error: color!(0xff5555),

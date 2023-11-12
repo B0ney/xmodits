@@ -65,7 +65,7 @@ pub fn view_destination_bar(ripping_cfg: &SampleRippingConfig) -> Element<Messag
             Message::Destination(Some(destination))
         });
 
-    let button = centered_button("Select").on_press(Message::DestinationDialog);
+    let button = centered_button("Open").on_press(Message::DestinationDialog);
 
     row![input, button]
         .spacing(5)
