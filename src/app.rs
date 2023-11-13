@@ -244,6 +244,7 @@ pub enum View {
 #[derive(Debug, Clone)]
 pub enum Message {
     AboutPressed,
+    About(about::Message),
     Add(Option<Vec<PathBuf>>),
     #[cfg(feature = "audio")]
     Audio(),
@@ -327,6 +328,7 @@ impl Application for XMODITS {
             Message::Select { index, selected } => self.entries.select(index, selected),
             Message::SelectAll(selected) => self.entries.select_all(selected),
             Message::SetState(state) => self.state = state,
+            Message::About(msg) => return about::update(msg).map(Message::About),
             Message::FileDialog => {
                 return Command::perform(files_dialog(), Message::Add);
             }
@@ -482,7 +484,7 @@ impl Application for XMODITS {
             .spacing(8)
             .into(),
             View::Settings => settings::view(&self.general_cfg).map(Message::GeneralCfg),
-            View::About => about::view(),
+            View::About => about::view().map(Message::About),
             View::Help => todo!(),
         };
 

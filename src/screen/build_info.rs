@@ -1,33 +1,79 @@
 //! Provide information about the application
 
 use crate::widget::Element;
-use iced::widget::{column, container, text, scrollable};
 
 #[cfg(feature = "build_info")]
-pub mod info {
-    include!(concat!(env!("OUT_DIR"), "/built.rs"));
-}
+mod build_info_inner {
+    use std::{collections::HashMap, path::PathBuf};
 
-#[cfg(feature = "build_info")]
-pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
-    let info = [
-        ("License", info::PKG_LICENSE),
-        ("Git Hash", info::GIT_COMMIT_HASH.unwrap_or("none")),
-        ("Rustc Version", info::RUSTC_VERSION),
-        ("Target Architecture", info::CFG_TARGET_ARCH),
-        ("Build Date", info::BUILT_TIME_UTC),
-    ];
+    use super::Element;
+    use iced::widget::{column, container, scrollable, text};
+    use once_cell::sync::Lazy;
+    use tokio::{fs::File, io::AsyncWriteExt};
 
-    let information = info
+    pub mod info {
+        include!(concat!(env!("OUT_DIR"), "/built.rs"));
+    }
+
+    static INFO: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
+        HashMap::from_iter([
+            ("build_time", info::BUILT_TIME_UTC),
+            ("rustc", info::RUSTC_VERSION),
+            ("git", info::GIT_COMMIT_HASH.unwrap_or("None")),
+            ("git_short", info::GIT_COMMIT_HASH_SHORT.unwrap_or("None")),
+            ("features", info::FEATURES_LOWERCASE_STR),
+            ("license", info::PKG_LICENSE),
+        ])
+    });
+
+    pub fn info(verbose: bool) -> impl Iterator<Item = (&'static str, &'static str)> {
+        let rustc = if verbose { "Rustc version" } else { "With" };
+        let git = if verbose { "git" } else { "git_short" };
+        let features = if verbose { "features" } else { "" };
+
+        [
+            ("Built", "build_time"),
+            (rustc, "rustc"),
+            ("Git", git),
+            ("Features", features),
+            ("License", "license"),
+        ]
         .into_iter()
-        .fold(column![].spacing(4), |col, (label, value)| {
-            col.push(text(format!("{label}: {value}")))
-        });
+        .filter_map(|(label, key)| Some((label, *INFO.get(key)?)))
+    }
 
-    Some(container(scrollable(information)).into())
+    pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
+        let information = info(false)
+            .into_iter()
+            .fold(column![].spacing(4), |col, (label, value)| {
+                col.push(text(format!("{label}: {value}")).size(12))
+            });
+
+        Some(container(scrollable(information)).into())
+    }
+
+    pub async fn export_build(path: PathBuf) -> Result<(), String> {
+        let mut file = File::create(path).await.map_err(|f| f.to_string())?;
+
+        for (label, value) in info(true) {
+            file.write_all(format!("{label}: {value}\n").as_bytes())
+                .await
+                .map_err(|f| f.to_string())?;
+        }
+
+        Ok(())
+    }
 }
+
+#[cfg(feature = "build_info")]
+pub use build_info_inner::*;
 
 #[cfg(not(feature = "build_info"))]
 pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
     None
+}
+
+#[cfg(not(feature = "build_info"))]
+pub async fn export_build(_path: std::path::PathBuf) -> Result<(), String> {
+    Ok(())
 }
