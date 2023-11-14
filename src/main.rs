@@ -19,7 +19,7 @@ use app::XMODITS;
 use std::env;
 
 #[cfg(all(feature = "jemallocator", not(target_env = "msvc")))]
-use tikv_jemallocator::Jemalloc;
+use jemallocator::Jemalloc;
 
 #[cfg(all(feature = "jemallocator", not(target_env = "msvc")))]
 #[global_allocator]
