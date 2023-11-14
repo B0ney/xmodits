@@ -78,12 +78,12 @@ pub fn vbee3() -> Image<image::Handle> {
 fn get_img(src: &str) -> image::Handle {
     use once_cell::sync::Lazy;
     use std::collections::HashMap;
-    
+
     static MAP: Lazy<HashMap<&'static str, image::Handle>> = Lazy::new(|| {
         let load = |bytes: &'static [u8]| image::Handle::from_memory(bytes);
 
         HashMap::from([
-            ("xmodits",load(include_bytes!("../assets/img/logos/icon.png"))),
+            ("xmodits", load(include_bytes!("../assets/img/logos/icon.png"))),
             ("vbee3", load(include_bytes!("../assets/img/vbee3.png"))),
         ])
     });

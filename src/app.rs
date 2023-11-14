@@ -169,10 +169,9 @@ fn icon() -> iced::window::Icon {
 pub fn settings(config: Config) -> iced::Settings<Config> {
     iced::Settings {
         fonts: vec![
-            include_bytes!("../assets/font/icons.ttf").as_slice().into(),
-            include_bytes!("../assets/font/JetBrainsMono-Regular.ttf")
-                .as_slice()
-                .into(),
+            font::bytes::JETBRAINS_MONO.into(),
+            font::bytes::ICONS.into(),
+            font::bytes::ICED_AW_ICONS.into(),
         ],
         default_font: font::JETBRAINS_MONO,
         default_text_size: 13.0.into(),

@@ -2,7 +2,7 @@
 
 use crate::widget::Element;
 
-#[cfg(feature = "build_info")]
+#[cfg(feature = "built")]
 mod build_info_inner {
     use std::{collections::HashMap, path::PathBuf};
 
@@ -65,15 +65,15 @@ mod build_info_inner {
     }
 }
 
-#[cfg(feature = "build_info")]
+#[cfg(feature = "built")]
 pub use build_info_inner::*;
 
-#[cfg(not(feature = "build_info"))]
+#[cfg(not(feature = "built"))]
 pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
     None
 }
 
-#[cfg(not(feature = "build_info"))]
+#[cfg(not(feature = "built"))]
 pub async fn export_build(_path: std::path::PathBuf) -> Result<(), String> {
     Ok(())
 }

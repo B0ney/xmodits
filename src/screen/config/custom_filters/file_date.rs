@@ -10,9 +10,13 @@ use iced::widget::{
     button, checkbox, column, horizontal_rule, pick_list, row, slider, text, text_input, tooltip,
 };
 
+use iced_aw::{date_picker::Date, helpers::date_picker};
+
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
     DatePicker,
+    Date,
+    SubmitDate(Date),
 }
 
 pub fn update(msg: Message) {}
@@ -20,36 +24,38 @@ pub fn update(msg: Message) {}
 pub fn view<'a>() -> Element<'a, Message> {
     // IDEA: buttons could have a tooltip showing the date&time in more detail
     // TODO: buttons must bring up date and time picker, should be an overlay
+    let settings = row![
+        pick_list(["Created", "Modified"].as_slice(), Some("Created"), |_| {
+            Message::DatePicker
+        }),
+        tooltip(
+            button("2005-12-12")
+                .on_press(Message::DatePicker)
+                .padding(8)
+                .style(theme::Button::Dark),
+            "12 December 2005 @ 19:00",
+            Position::Bottom,
+        )
+        .padding(6)
+        .style(theme::Container::Frame),
+        "-",
+        tooltip(
+            button("2009-12-12")
+                .on_press(Message::DatePicker)
+                .padding(8)
+                .style(theme::Button::Dark),
+            "12 December 2009 @ 13:00",
+            Position::Bottom,
+        )
+        .padding(6)
+        .style(theme::Container::Frame),
+    ]
+    .align_items(iced::Alignment::Center)
+    .spacing(8);
+
     control(
         "File Date",
-        row![
-            pick_list(["Created", "Modified"].as_slice(), Some("Created"), |_| {
-                Message::DatePicker
-            }),
-            tooltip(
-                button("2005-12-12")
-                    .on_press(Message::DatePicker)
-                    .padding(8)
-                    .style(theme::Button::Dark),
-                "12 December 2005 @ 19:00",
-                Position::Bottom,
-            )
-            .padding(6)
-            .style(theme::Container::Frame),
-            "-",
-            tooltip(
-                button("2009-12-12")
-                    .on_press(Message::DatePicker)
-                    .padding(8)
-                    .style(theme::Button::Dark),
-                "12 December 2009 @ 13:00",
-                Position::Bottom,
-            )
-            .padding(6)
-            .style(theme::Container::Frame),
-        ]
-        .align_items(iced::Alignment::Center)
-        .spacing(8),
+        date_picker(true, Date::today(), settings, Message::Date, Message::SubmitDate),
     )
     .into()
 }

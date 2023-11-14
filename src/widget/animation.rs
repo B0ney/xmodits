@@ -9,25 +9,31 @@ use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::path::Path;
 use tracing::{error, info};
-use std::sync::OnceLock;
 
-#[cfg(feature = "custom_anim")]
+#[cfg(feature = "iced_gif")]
 use iced_gif::gif;
 
-// pub static GIF: Lazy<Animation> = Lazy::new(|| Animation::new());
-// pub static anim: OnceLock<Animation> = OnceLock::new();
+pub static GIF: Lazy<Animation> = Lazy::new(|| Animation::new());
 
 pub struct Animation {
-    #[cfg(feature = "custom_anim")]
+    #[cfg(feature = "iced_gif")]
     pub gifs: HashMap<&'static str, iced_gif::Frames>,
 }
 
-#[cfg(feature = "custom_anim")]
+#[cfg(feature = "iced_gif")]
 impl Animation {
     pub fn init_lazy(&self) {}
 
+    pub fn ripping(&self) -> Option<iced_gif::Gif> {
+        Some(iced_gif::gif(self.gifs.get("ripping").unwrap()))
+    }
+
+    pub fn idle(&self) -> Option<iced_gif::Gif> {
+        Some(iced_gif::gif(self.gifs.get("idle").unwrap()))
+    }
+
     /// Allow loading custom animations
-    pub fn new() -> Self {
+    fn new() -> Self {
         let idle_gif = config_dir().join("idle.gif");
         let ripping_gif = config_dir().join("ripping.gif");
 
@@ -39,7 +45,7 @@ impl Animation {
             ("idle", idle),
             ("ripping", ripping),
         ]) }
-    }
+    }   
 
     fn load(path: impl AsRef<Path>) -> anyhow::Result<iced_gif::Frames> {
         const MAX_SIZE: u64 = 2 * 1024 * 1024;
@@ -67,5 +73,20 @@ impl Animation {
     fn default_ripping() -> iced_gif::Frames {
         gif::Frames::from_bytes(include_bytes!("../../assets/img/gif/white_walk_8fps.gif").to_vec())
             .unwrap()
+    }
+}
+
+#[cfg(not(feature = "iced_gif"))]
+impl Animation {
+    pub fn idle<Message>(&self) -> Option<Element<Message>> {
+        None
+    }
+
+    pub fn ripping<Message>(&self) -> Option<Element<Message>> {
+        None
+    }
+
+    pub fn new() -> Self {
+        Self {}
     }
 }

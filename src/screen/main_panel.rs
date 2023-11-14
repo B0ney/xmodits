@@ -11,7 +11,7 @@ use crate::app::{Message, State};
 use crate::ripper::extraction::error::Reason;
 use crate::ripper::subscription::CompleteState;
 use crate::widget::helpers::{centered_column_x, centered_container, centered_text, fill_container};
-use crate::widget::{Collection, Element};
+use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
 
 use iced::widget::{button, checkbox, column, container, progress_bar, row, scrollable, text, Space};
@@ -25,9 +25,13 @@ pub fn view_entries(entries: &Entries) -> Element<Message> {
     let entries = &entries.entries;
 
     if entries.is_empty() {
-        return centered_container(centered_text("Drag and Drop"))
-            .style(theme::Container::Black)
-            .into();
+        return centered_container(
+            column![]
+                .push(centered_text("Drag and Drop"))
+                .push_maybe(widget::animation::GIF.idle()),
+        )
+        .style(theme::Container::Black)
+        .into();
     }
 
     fill_container(scrollable(
@@ -78,11 +82,11 @@ pub fn view_ripping<'a>(message: &Option<String>, progress: f32, total_errors: u
 
     let view = column![
         centered_text(message.as_deref().unwrap_or("Ripping...")),
+        centered_text(format!("Errors: {}", total_errors)),
         progress_bar(0.0..=100.0, progress).height(5).width(200),
         cancel_ripping_button,
-        centered_text(format!("Errors: {}", total_errors)),
-        // gif(&GIF.ripping)
     ]
+    .push_maybe(widget::animation::GIF.ripping())
     .spacing(8)
     .align_items(Alignment::Center);
 
