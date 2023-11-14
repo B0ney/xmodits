@@ -52,7 +52,7 @@ impl Animation {
 
         if std::fs::metadata(path.as_ref())?.len() > MAX_SIZE {
             error!("Custom animation is over 2MB");
-            todo!();
+            anyhow::bail!("Over 2MB");
         }
 
         let result = gif::Frames::from_bytes(std::fs::read(path.as_ref())?);

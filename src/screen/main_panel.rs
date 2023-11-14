@@ -28,7 +28,8 @@ pub fn view_entries(entries: &Entries) -> Element<Message> {
         return centered_container(
             column![]
                 .push(centered_text("Drag and Drop"))
-                .push_maybe(widget::animation::GIF.idle()),
+                .push_maybe(widget::animation::GIF.idle())
+                .align_items(Alignment::Center),
         )
         .style(theme::Container::Black)
         .into();
