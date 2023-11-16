@@ -15,6 +15,9 @@ use crate::utils::{extension, filename};
 use crate::widget::helpers::{control_filled, text_icon};
 use crate::widget::{helpers::control, Element};
 
+use self::file_date::DateFilter;
+use self::file_name::NameFilter;
+
 pub struct Filters(Vec<Box<dyn Filter>>);
 
 impl Filters {
@@ -32,7 +35,7 @@ impl Filters {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Message {
     FileSize(file_size::Message),
     FileName(file_name::Message),
@@ -41,8 +44,9 @@ pub enum Message {
 
 #[derive(Default, Debug)]
 pub struct CustomFilters {
-    filesize: Size,
-    filename: Name,
+    pub filesize: Size,
+    pub filename: NameFilter,
+    pub date: DateFilter,
 }
 
 impl CustomFilters {
@@ -50,7 +54,7 @@ impl CustomFilters {
         match msg {
             Message::FileSize(filesize) => file_size::update(&mut self.filesize, filesize),
             Message::FileName(filename) => file_name::update(&mut self.filename, filename),
-            Message::FileDate(filedate) => file_date::update(filedate),
+            Message::FileDate(filedate) => self.date.update(filedate),
         }
     }
     pub fn view_file_size(&self) -> Element<Message> {
@@ -62,7 +66,7 @@ impl CustomFilters {
     }
 
     pub fn view_file_date(&self) -> Element<Message> {
-        file_date::view().map(Message::FileDate)
+        self.date.view().map(Message::FileDate)
     }
 }
 

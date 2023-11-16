@@ -289,7 +289,7 @@ dependencies = [
  "futures-lite 2.0.1",
  "parking",
  "polling 3.3.0",
- "rustix 0.38.23",
+ "rustix 0.38.24",
  "slab",
  "tracing",
  "waker-fn",
@@ -329,7 +329,7 @@ dependencies = [
  "cfg-if",
  "event-listener 3.1.0",
  "futures-lite 1.13.0",
- "rustix 0.38.23",
+ "rustix 0.38.24",
  "windows-sys 0.48.0",
 ]
 
@@ -356,7 +356,7 @@ dependencies = [
  "cfg-if",
  "futures-core",
  "futures-io",
- "rustix 0.38.23",
+ "rustix 0.38.24",
  "signal-hook-registry",
  "slab",
  "windows-sys 0.48.0",
@@ -442,9 +442,9 @@ dependencies = [
 
 [[package]]
 name = "bindgen"
-version = "0.68.1"
+version = "0.69.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "726e4313eb6ec35d2730258ad4e15b547ee75d6afaa1361a922e78e59b7d8078"
+checksum = "9ffcebc3849946a7170a05992aac39da343a90676ab392c51a4280981d6379c2"
 dependencies = [
  "bitflags 2.4.1",
  "cexpr",
@@ -607,10 +607,11 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.84"
+version = "1.0.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f8e7c90afad890484a21653d08b6e209ae34770fb5ee298f9c699fcc1e5c856"
+checksum = "f1174fb0b6ec23863f8b971027804a42614e347eafb0a95bf0b12cdae21fc4d0"
 dependencies = [
+ "jobserver",
  "libc",
 ]
 
@@ -832,9 +833,9 @@ dependencies = [
 
 [[package]]
 name = "coreaudio-sys"
-version = "0.2.13"
+version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8478e5bdad14dce236b9898ea002eabfa87cbe14f0aa538dbe3b6a4bec4332d"
+checksum = "f3120ebb80a9de008e638ad833d4127d50ea3d3a960ea23ea69bc66d9358a028"
 dependencies = [
  "bindgen",
 ]
@@ -1196,9 +1197,9 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
 name = "errno"
-version = "0.3.6"
+version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c18ee0ed65a5f1f81cac6b1d213b69c35fa47d4252ad41f1486dbd8226fe36e"
+checksum = "f258a7194e7f7c2a7837a8913aeab7fd8c383457034fa20ce4dd3dcb813e8eb8"
 dependencies = [
  "libc",
  "windows-sys 0.48.0",
@@ -1807,7 +1808,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -1831,7 +1832,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "bitflags 1.3.2",
  "instant",
@@ -1845,7 +1846,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "futures",
  "iced_core",
@@ -1870,7 +1871,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
@@ -1892,7 +1893,7 @@ dependencies = [
 [[package]]
 name = "iced_renderer"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "iced_graphics",
  "iced_tiny_skia",
@@ -1905,7 +1906,7 @@ dependencies = [
 [[package]]
 name = "iced_runtime"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -1915,7 +1916,7 @@ dependencies = [
 [[package]]
 name = "iced_style"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "iced_core",
  "once_cell",
@@ -1925,7 +1926,7 @@ dependencies = [
 [[package]]
 name = "iced_tiny_skia"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -1942,7 +1943,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
@@ -1960,7 +1961,7 @@ dependencies = [
 [[package]]
 name = "iced_widget"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "iced_renderer",
  "iced_runtime",
@@ -1973,7 +1974,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#817f72868746461891ca4e74473c555f3b5c5703"
+source = "git+https://github.com/iced-rs/iced.git#7dd32f3be43c72e11dac5e07918e9ad6d36b6555"
 dependencies = [
  "iced_graphics",
  "iced_runtime",
@@ -2122,6 +2123,15 @@ name = "jni-sys"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8eaf4bc02d17cbdd7ff4c7438cafcdf7fb9a4613313ad11b4f8fefe7d3fa0130"
+
+[[package]]
+name = "jobserver"
+version = "0.1.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8c37f63953c4c63420ed5fd3d6d398c719489b9f872b9fa683262f8edd363c7d"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "jpeg-decoder"
@@ -2441,9 +2451,9 @@ checksum = "16cf681a23b4d0a43fc35024c176437f9dcd818db34e0f42ab456a0ee5ad497b"
 
 [[package]]
 name = "naga"
-version = "0.14.0"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61d829abac9f5230a85d8cc83ec0879b4c09790208ae25b5ea031ef84562e071"
+checksum = "6cd05939c491da968a42986204b7431678be21fdcd4b10cc84997ba130ada5a4"
 dependencies = [
  "bit-set",
  "bitflags 2.4.1",
@@ -3054,7 +3064,7 @@ dependencies = [
  "cfg-if",
  "concurrent-queue",
  "pin-project-lite",
- "rustix 0.38.23",
+ "rustix 0.38.24",
  "tracing",
  "windows-sys 0.48.0",
 ]
@@ -3386,9 +3396,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.23"
+version = "0.38.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffb93593068e9babdad10e4fce47dc9b3ac25315a72a59766ffd9e9a71996a04"
+checksum = "9ad981d6c340a49cdc40a1028d9c6084ec7e9fa33fcb839cab656a267071e234"
 dependencies = [
  "bitflags 2.4.1",
  "errno",
@@ -3737,7 +3747,7 @@ dependencies = [
  "cfg-if",
  "fastrand 2.0.1",
  "redox_syscall 0.4.1",
- "rustix 0.38.23",
+ "rustix 0.38.24",
  "windows-sys 0.48.0",
 ]
 
@@ -4385,9 +4395,9 @@ dependencies = [
 
 [[package]]
 name = "wgpu-core"
-version = "0.18.0"
+version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "837e02ddcdc6d4a9b56ba4598f7fd4202a7699ab03f6ef4dcdebfad2c966aea6"
+checksum = "ef91c1d62d1e9e81c79e600131a258edf75c9531cbdbde09c44a011a47312726"
 dependencies = [
  "arrayvec",
  "bit-vec",
@@ -4943,18 +4953,18 @@ checksum = "dd15f8e0dbb966fd9245e7498c7e9e5055d9e5c8b676b95bd67091cd11a1e697"
 
 [[package]]
 name = "zerocopy"
-version = "0.7.25"
+version = "0.7.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cd369a67c0edfef15010f980c3cbe45d7f651deac2cd67ce097cd801de16557"
+checksum = "e97e415490559a91254a2979b4829267a57d2fcd741a98eee8b722fb57289aa0"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.7.25"
+version = "0.7.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2f140bda219a26ccc0cdb03dba58af72590c53b22642577d88a927bc5c87d6b"
+checksum = "dd7e48ccf166952882ca8bd778a43502c64f33bf94c12ebe2a7f08e5a0f6689f"
 dependencies = [
  "proc-macro2",
  "quote",
