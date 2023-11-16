@@ -1,11 +1,12 @@
 //! Define what kind of files XMODITS should keep when scanning files
 
+mod file_date;
 mod file_name;
 mod file_size;
-mod file_date;
 mod regex;
 
 use data::config::filters::{Filter, Name, Size};
+use iced::Command;
 use std::path::Path;
 
 use iced::widget::{column, horizontal_rule, row};
@@ -50,23 +51,23 @@ pub struct CustomFilters {
 }
 
 impl CustomFilters {
-    pub fn update(&mut self, msg: Message) {
+    pub fn update(&mut self, msg: Message) -> Command<Message> {
         match msg {
             Message::FileSize(filesize) => file_size::update(&mut self.filesize, filesize),
-            Message::FileName(filename) => file_name::update(&mut self.filename, filename),
+            Message::FileName(filename) => return self.filename.update(filename).map(Message::FileName),
             Message::FileDate(filedate) => self.date.update(filedate),
         }
+        Command::none()
     }
     pub fn view_file_size(&self) -> Element<Message> {
         file_size::view(&self.filesize).map(Message::FileSize)
     }
 
     pub fn view_file_name(&self) -> Element<Message> {
-        file_name::view(&self.filename).map(Message::FileName)
+        self.filename.view().map(Message::FileName)
     }
 
     pub fn view_file_date(&self) -> Element<Message> {
         self.date.view().map(Message::FileDate)
     }
 }
-

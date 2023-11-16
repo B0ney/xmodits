@@ -341,7 +341,7 @@ impl Application for XMODITS {
                 return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
             }
             Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
-            Message::CustomFilter(msg) => self.custom_filters.update(msg),
+            Message::CustomFilter(msg) => return self.custom_filters.update(msg).map(Message::CustomFilter),
             Message::SetTheme => todo!(),
             Message::Open(link) => {
                 if let Err(err) = open::that_detached(link) {

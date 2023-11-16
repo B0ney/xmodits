@@ -13,11 +13,11 @@ pub struct Size {
 }
 
 impl Size {
-    fn min_as_bytes(&self) -> u64 {
+    pub fn min_as_bytes(&self) -> u64 {
         self.min * self.min_modifier as u64
     }
 
-    fn max_as_bytes(&self) -> u64 {
+    pub fn max_as_bytes(&self) -> u64 {
         self.max * self.max_modifier as u64
     }
 }
@@ -57,7 +57,7 @@ pub enum Modifier {
 }
 
 impl Modifier {
-    pub const ALL: &[Self] = &[Self::B, Self::KB, Self::MB];
+    pub const ALL: &'static [Self] = &[Self::B, Self::KB, Self::MB];
 }
 
 impl std::fmt::Display for Modifier {

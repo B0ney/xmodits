@@ -31,7 +31,7 @@ pub enum Condition {
 }
 
 impl Condition {
-    pub const ALL: &[Self] = &[Self::Created, Self::Modified];
+    pub const ALL: &'static [Self] = &[Self::Created, Self::Modified];
 }
 
 impl std::fmt::Display for Condition {
