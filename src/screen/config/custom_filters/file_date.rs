@@ -98,27 +98,27 @@ impl DateFilter {
 
         control(
             "File Date",
-            show_date_picker(self, settings),
+            settings,
         )
         .into()
     }
 }
 
-pub fn show_date_picker<'a>(
-    filter: &'a DateFilter,
-    underlay: impl Into<Element<'a, Message>>,
-) -> Element<'a, Message> {
-    let date = match filter.date_picker {
-        DateKind::Before => filter.inner.before(),
-        DateKind::After => filter.inner.after(),
-    };
+// pub fn show_date_picker<'a>(
+//     filter: &'a DateFilter,
+//     underlay: impl Into<Element<'a, Message>>,
+// ) -> Element<'a, Message> {
+//     let date = match filter.date_picker {
+//         DateKind::Before => filter.inner.before(),
+//         DateKind::After => filter.inner.after(),
+//     };
 
-    let show = filter.show_date_picker;
-    let kind = filter.date_picker;
+//     let show = filter.show_date_picker;
+//     let kind = filter.date_picker;
 
-    date_picker(show, date, underlay, Message::CancelPicker, move |date| Message::SubmitDate {
-        kind,
-        date,
-    })
-    .into()
-}
+//     date_picker(show, date, underlay, Message::CancelPicker, move |date| Message::SubmitDate {
+//         kind,
+//         date,
+//     })
+//     .into()
+// }

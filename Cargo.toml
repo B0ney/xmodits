@@ -9,7 +9,7 @@ license = "GPLv3"
 repository = "https://github.com/B0ney/xmodits"
 
 [features]
-default = ["built", "iced_gif"]
+default = ["built"]
 audio = ["audio_engine"]
 wgpu = ["iced/wgpu"]
 
@@ -32,7 +32,7 @@ features = ["serde"]
 # version = "0.12.0"
 git = "https://github.com/iced-rs/iced.git"
 default-features = false
-features = ["image", "tokio"]
+features = ["image", "tokio", "multi-window"]
 
 [dependencies.iced_aw]
 git = "https://github.com/B0ney/iced_aw.git"

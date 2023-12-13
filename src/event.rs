@@ -36,7 +36,7 @@ pub fn filter(event: iced::Event, status: event::Status) -> Option<Event> {
             keyboard::KeyCode::S if modifiers.command() => Some(Event::Save),
             _ => None,
         },
-        iced::Event::Window(event) => match event {
+        iced::Event::Window(id, event) => match event {
             window::Event::FileDropped(file) if ignored(status) => Some(Event::FileDropped(file)),
             window::Event::CloseRequested => Some(Event::CloseRequested),
             _ => None,

@@ -171,16 +171,15 @@ pub fn settings(config: Config) -> iced::Settings<Config> {
         fonts: vec![
             font::bytes::JETBRAINS_MONO.into(),
             font::bytes::ICONS.into(),
-            font::bytes::ICED_AW_ICONS.into(),
+            // font::bytes::ICED_AW_ICONS.into(),
         ],
         default_font: font::JETBRAINS_MONO,
         default_text_size: 13.0.into(),
-        exit_on_close_request: true,
         flags: config,
         window: window::Settings {
             icon: Some(icon()),
-            size: (780, 720),
-            min_size: Some((780, 720)),
+            size: [780, 720].into(),
+            min_size: Some([780, 720].into()),
             ..Default::default()
         },
         ..Default::default()
