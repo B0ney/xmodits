@@ -9,7 +9,7 @@ license = "GPLv3"
 repository = "https://github.com/B0ney/xmodits"
 
 [features]
-default = ["built", "audio_engine"]
+default = ["built", "audio"]
 audio = ["audio_engine"]
 wgpu = ["iced/wgpu"]
 

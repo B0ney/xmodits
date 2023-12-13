@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use crate::sample::TrackerSample;
 
+// TODO: Don't panic if there are no audio devices
 pub struct SamplePlayer {
     _stream: rodio::OutputStream,
     _handle: rodio::OutputStreamHandle,
@@ -23,6 +24,18 @@ impl SamplePlayer {
     pub fn play(&self, source: TrackerSample) {
         self.sink.append(source);
     }
+
+    pub fn stop(&self) {
+        self.sink.stop();
+    }
+
+    pub fn pause(&self) {
+        self.sink.pause();
+    }
+
+    pub fn set_volume(&self, volume: f32) {
+        self.sink.set_volume(volume)
+    }
 }
 
 
@@ -33,7 +46,7 @@ mod tests {
 
     use crate::sample_pack::SamplePack;
 
-    use super::{SamplePlayer};
+    use super::SamplePlayer;
     
 
     #[test]
@@ -46,8 +59,9 @@ mod tests {
         for (info, sample) in sample_pack.samples.iter().filter_map(|s| s.as_ref().ok()) {
             dbg!(info);
             player.play(sample.clone());
+            player.sink.sleep_until_end();
         }
-        player.sink.sleep_until_end();
+        
 
     }
 }

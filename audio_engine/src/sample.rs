@@ -5,7 +5,7 @@ use rodio::Source;
 
 use self::buffer::SampleBuffer;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TrackerSample {
     pub buf: Arc<SampleBuffer>,
     pub is_reversed: bool,

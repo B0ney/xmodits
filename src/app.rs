@@ -1,20 +1,20 @@
 #[cfg(windows)]
 mod simple;
 
-use std::path::PathBuf;
-
 use crate::event;
 use crate::font;
 use crate::icon;
 use crate::logger;
 use crate::ripper;
 use crate::ripper::subscription::{CompleteState, ErrorHandler};
+use crate::screen;
 use crate::screen::config::custom_filters;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
 use crate::screen::config::sample_ripping::{self, DESTINATION_BAR_ID};
 use crate::screen::history::History;
 use crate::screen::main_panel;
+use crate::screen::sample_player;
 use crate::screen::settings;
 use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, main_panel::entry::Entries};
@@ -23,11 +23,13 @@ use crate::utils::{create_file_dialog, files_dialog, folders_dialog};
 use crate::widget::helpers::{action, text_icon, warning};
 use crate::widget::{Collection, Container, Element};
 
+use std::path::PathBuf;
 use data::Config;
 
 use iced::widget::{button, checkbox, column, row, text, text_input, Space};
 use iced::Alignment;
 use iced::{window, Application, Command, Length, Subscription};
+// use iced::multi_window::Application;
 
 const TITLE: &str = "XMODITS";
 
@@ -35,19 +37,17 @@ const TITLE: &str = "XMODITS";
 #[derive(Default)]
 pub struct XMODITS {
     entries: Entries,
-    history: History,
+    // history: History,
     state: State,
     view: View,
     ripper: ripper::Handle,
-    // #[cfg(feature = "audio")]
-    audio: audio_engine::SamplePlayer,
-    // sample_pack: audio_engine::SamplePack,
     tracker_info: Option<TrackerInfo>,
     theme: theme::Theme,
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
     custom_filters: custom_filters::CustomFilters,
+    sample_player: sample_player::SamplePreviewWindow,
 }
 
 impl XMODITS {
@@ -244,8 +244,6 @@ pub enum Message {
     AboutPressed,
     About(about::Message),
     Add(Option<Vec<PathBuf>>),
-    #[cfg(feature = "audio")]
-    Audio(),
     Cancel,
     Clear,
     ConfigPressed,
@@ -265,14 +263,12 @@ pub enum Message {
     Probe(usize),
     ProbeResult(TrackerInfo),
     RippingCfg(sample_ripping::Message),
+    SamplePlayer(sample_player::Message),
     SaveConfig,
     SaveConfigResult(),
     SaveErrors,
     SaveErrorsResult(Result<(), String>),
-    Select {
-        index: usize,
-        selected: bool,
-    },
+    Select { index: usize, selected: bool },
     SelectAll(bool),
     SetState(State),
     SetTheme,
@@ -363,6 +359,7 @@ impl Application for XMODITS {
                 return Command::perform(tracker_info::probe(path.to_owned()), Message::ProbeResult);
             }
             Message::ProbeResult(probe) => self.tracker_info = Some(probe),
+            Message::SamplePlayer(msg) => return self.sample_player.update(msg).map(Message::SamplePlayer),
             Message::SaveConfig => {
                 return self.save_cfg();
             }

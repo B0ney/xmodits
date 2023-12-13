@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{fmt::Debug, time::Duration};
 
 #[derive(Clone)]
 pub struct SampleBuffer {
@@ -43,5 +43,14 @@ impl From<xmodits_lib::dsp::SampleBuffer> for SampleBuffer {
     fn from(sb: xmodits_lib::dsp::SampleBuffer) -> Self {
         let rate = sb.rate_original().clamp(1, u32::MAX);
         Self::new(sb.buf, rate)
+    }
+}
+
+impl Debug for SampleBuffer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SampleBuffer")
+            .field("duration", &self.duration())
+            .field("rate", &self.rate)
+            .finish()
     }
 }
