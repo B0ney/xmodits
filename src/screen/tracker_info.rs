@@ -2,16 +2,13 @@
 //!
 //! Also allows the user to play the different samples.
 
-use std::{
-    fmt::Debug,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use crate::utils::filename;
 use crate::widget::helpers::{centered_column_x, centered_text, control_filled};
 use crate::widget::Element;
+use iced::widget::{button, column, row, text, Space};
 use xmodits_lib::common::info::Info;
-use iced::widget::{button, column, text, Space};
 
 use crate::app::Message;
 use crate::widget::helpers::centered_container;
@@ -43,20 +40,15 @@ impl TrackerInfo {
     }
 
     pub fn invalid(error: String, path: PathBuf) -> Self {
-        Self::Invalid {
-            reason: error,
-            path,
-        }
+        Self::Invalid { reason: error, path }
     }
 }
 
 pub fn view<'a>(tracker_info: Option<&TrackerInfo>) -> Element<'a, Message> {
+    let title = "Current Tracker Information";
+
     let Some(info) = tracker_info else {
-        return control_filled(
-            "Current Tracker Information",
-            centered_container(text("None Selected")),
-        )
-        .into();
+        return control_filled(title, centered_container(text("None Selected"))).into();
     };
 
     let content = match info {
@@ -90,7 +82,7 @@ pub fn view<'a>(tracker_info: Option<&TrackerInfo>) -> Element<'a, Message> {
 
     let content = centered_container(centered_column_x(content)).padding(8);
 
-    control_filled("Current Tracker Information", content).into()
+    control_filled(title, content).into()
 }
 
 pub async fn probe(path: PathBuf) -> TrackerInfo {

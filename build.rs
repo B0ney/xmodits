@@ -10,6 +10,6 @@ fn main() {
             .expect("embed Windows resources");
     }
 
-    #[cfg(feature = "build_info")]
+    #[cfg(feature = "built")]
     built::write_built_file().expect("Failed to acquire build-time information");
 }

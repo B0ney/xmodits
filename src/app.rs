@@ -20,7 +20,7 @@ use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, main_panel::entry::Entries};
 use crate::theme;
 use crate::utils::{create_file_dialog, files_dialog, folders_dialog};
-use crate::widget::helpers::{action, spaced_row, warning};
+use crate::widget::helpers::{action, text_icon, warning};
 use crate::widget::{Collection, Container, Element};
 
 use data::Config;
@@ -47,6 +47,7 @@ pub struct XMODITS {
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
+    custom_filters: custom_filters::CustomFilters,
 }
 
 impl XMODITS {
@@ -135,6 +136,28 @@ impl XMODITS {
 
         Command::perform(async move { config.save().await }, |_| Message::Ignore)
     }
+
+    pub fn start_ripping(&mut self) -> Command<Message> {
+        if self.state.is_ripping() | self.entries.is_empty() | !self.ripper.is_active() {
+            return Command::none();
+        }
+
+        if !sample_ripping::destination_is_valid(&self.ripping_cfg) {
+            tracing::error!("The provided destination is not valid. The *parent* folder must exist.");
+            return text_input::focus(DESTINATION_BAR_ID.clone());
+        }
+
+        let start_signal = self.build_start_signal();
+        let _ = self.ripper.send(start_signal);
+
+        self.state = State::Ripping {
+            message: None,
+            progress: 0.0,
+            errors: 0,
+        };
+
+        Command::none()
+    }
 }
 
 /// TODO: allow the user to customize their application icon
@@ -146,8 +169,9 @@ fn icon() -> iced::window::Icon {
 pub fn settings(config: Config) -> iced::Settings<Config> {
     iced::Settings {
         fonts: vec![
-            include_bytes!("../assets/font/icons.ttf").as_slice().into(),
-            include_bytes!("../assets/font/JetBrainsMono-Regular.ttf").as_slice().into(),
+            font::bytes::JETBRAINS_MONO.into(),
+            font::bytes::ICONS.into(),
+            font::bytes::ICED_AW_ICONS.into(),
         ],
         default_font: font::JETBRAINS_MONO,
         default_text_size: 13.0.into(),
@@ -210,6 +234,7 @@ impl State {
 pub enum View {
     #[default]
     Configure,
+    Filters,
     Settings,
     About,
     Help,
@@ -218,15 +243,18 @@ pub enum View {
 #[derive(Debug, Clone)]
 pub enum Message {
     AboutPressed,
+    About(about::Message),
     Add(Option<Vec<PathBuf>>),
     #[cfg(feature = "audio")]
     Audio(),
     Cancel,
     Clear,
     ConfigPressed,
+    CustomFilter(custom_filters::Message),
     DeleteSelected,
     Event(event::Event),
     FileDialog,
+    FilterPressed,
     FolderDialog,
     GeneralCfg(settings::Message),
     HistoryPressed,
@@ -279,6 +307,10 @@ impl Application for XMODITS {
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::AboutPressed => self.view = View::About,
+            Message::ConfigPressed => self.view = View::Configure,
+            Message::FilterPressed => self.view = View::Filters,
+            Message::SettingsPressed => self.view = View::Settings,
+            Message::HistoryPressed => {}
             Message::Add(paths) => {
                 if self.state.is_ripping() {
                     return Command::none();
@@ -287,35 +319,30 @@ impl Application for XMODITS {
                 if let Some(paths) = paths {
                     self.entries.add_multiple(paths)
                 }
-                // todo: change state to idlde?
-            }
-            Message::Cancel => {
-                self.state.set_message("Cancelling...");
-                self.ripper.cancel();
+                // todo: change state to idle?
             }
             Message::Clear => self.clear_entries(),
-            Message::ConfigPressed => self.view = View::Configure,
             Message::DeleteSelected => self.delete_selected_entries(),
-            Message::Event(event) => match event {
-                event::Event::Clear => self.clear_entries(),
-                event::Event::CloseRequested => {}
-                event::Event::Delete => self.delete_selected_entries(),
-                event::Event::FileDropped(file) => self.entries.add(file),
-                event::Event::Save => return self.save_cfg(),
-                event::Event::Start => {}
-            },
-            Message::FileDialog => return Command::perform(files_dialog(), Message::Add),
-            Message::FolderDialog => return Command::perform(folders_dialog(), Message::Add),
+            Message::InvertSelection => self.entries.invert(),
+            Message::Select { index, selected } => self.entries.select(index, selected),
+            Message::SelectAll(selected) => self.entries.select_all(selected),
+            Message::SetState(state) => self.state = state,
+            Message::About(msg) => return about::update(msg).map(Message::About),
+            Message::FileDialog => {
+                return Command::perform(files_dialog(), Message::Add);
+            }
+            Message::FolderDialog => {
+                return Command::perform(folders_dialog(), Message::Add);
+            }
             Message::GeneralCfg(cfg) => {
                 return settings::update(&mut self.general_cfg, cfg).map(Message::GeneralCfg)
             }
-            Message::HistoryPressed => {}
-            Message::Ignore => (),
             Message::RippingCfg(msg) => {
                 return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
             }
-            Message::InvertSelection => self.entries.invert(),
             Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
+            Message::CustomFilter(msg) => return self.custom_filters.update(msg).map(Message::CustomFilter),
+            Message::SetTheme => todo!(),
             Message::Open(link) => {
                 if let Err(err) = open::that_detached(link) {
                     tracing::warn!("Could not open external link: {:?}", err)
@@ -362,39 +389,25 @@ impl Application for XMODITS {
                 );
             }
             Message::SaveErrorsResult(result) => {
-                // todo
-                match result {
-                    Ok(_) => {
-                        self.state = State::Idle; // todo
-                        return Command::none();
-                    }
-                    Err(_) => {}
+                if result.is_ok() {
+                    self.state = State::Idle;
                 }
             }
-            Message::Select { index, selected } => self.entries.select(index, selected),
-            Message::SelectAll(selected) => self.entries.select_all(selected),
-            Message::SetState(state) => self.state = state,
-            Message::SetTheme => todo!(),
-            Message::SettingsPressed => self.view = View::Settings,
             Message::StartRipping => {
-                if self.state.is_ripping() | self.entries.is_empty() | !self.ripper.is_active() {
-                    return Command::none();
-                }
-
-                if !sample_ripping::destination_is_valid(&self.ripping_cfg) {
-                    tracing::error!("The provided destination is not valid. The *parent* folder must exist.");
-                    return text_input::focus(DESTINATION_BAR_ID.clone());
-                }
-
-                let start_signal = self.build_start_signal();
-                let _ = self.ripper.send(start_signal);
-
-                self.state = State::Ripping {
-                    message: None,
-                    progress: 0.0,
-                    errors: 0,
-                }
+                return self.start_ripping();
             }
+            Message::Cancel => {
+                self.state.set_message("Cancelling...");
+                self.ripper.cancel();
+            }
+            Message::Event(event) => match event {
+                event::Event::Clear => self.clear_entries(),
+                event::Event::CloseRequested => {}
+                event::Event::Delete => self.delete_selected_entries(),
+                event::Event::FileDropped(file) => self.entries.add(file),
+                event::Event::Save => return self.save_cfg(),
+                event::Event::Start => return self.start_ripping(),
+            },
             Message::Subscription(msg) => match msg {
                 ripper::Message::Ready(sender) => self.ripper.set_sender(sender),
                 ripper::Message::Info(info) => self.state.update_message(info),
@@ -406,13 +419,15 @@ impl Application for XMODITS {
                     self.state = State::Finished { state, time };
                 }
             },
+            Message::Ignore => (),
         }
         Command::none()
     }
 
     fn view(&self) -> Element<Message> {
         let top_left_menu = row![
-            button("Configure").on_press(Message::ConfigPressed),
+            button("Ripping").on_press(Message::ConfigPressed),
+            button("Filters").on_press(Message::FilterPressed),
             // button("History").on_press(Message::HistoryPressed),
             button("Settings").on_press(Message::SettingsPressed),
             button("About").on_press(Message::AboutPressed),
@@ -423,20 +438,21 @@ impl Application for XMODITS {
 
         let not_ripping = !self.state.is_ripping();
 
+        let bottom_left_buttons = row![
+            button(text_icon("Save Settings", icon::save()))
+                .on_press(Message::SaveConfig)
+                .width(Length::FillPortion(2))
+                .padding(8),
+            button(text_icon("START", icon::download()))
+                .on_press_maybe(not_ripping.then_some(Message::StartRipping))
+                .style(theme::Button::Start)
+                .width(Length::FillPortion(2))
+                .padding(8)
+        ]
+        .spacing(8);
+
         let left_view = match self.view {
             View::Configure => {
-                let bottom_left_buttons = row![
-                    button(spaced_row(row!["Save Configuration", icon::save()]))
-                        .on_press(Message::SaveConfig),
-                    action(
-                        spaced_row(row!["START", icon::download()]),
-                        not_ripping.then_some(Message::StartRipping),
-                    )
-                    .style(theme::Button::Start)
-                    .width(Length::Fill)
-                ]
-                .spacing(8);
-
                 let naming_cfg = {
                     let name_preview = name_preview::preview_name(
                         &self.general_cfg.sample_name_params,
@@ -453,14 +469,21 @@ impl Application for XMODITS {
                     tracker_info::view(self.tracker_info.as_ref()),
                     naming_cfg,
                     ripping_cfg,
-                    // custom_filters::view().map(|_| Message::Ignore),
                     bottom_left_buttons,
                 ]
                 .spacing(8)
                 .into()
             }
+            View::Filters => column![
+                self.custom_filters.view_file_size().map(Message::CustomFilter),
+                self.custom_filters.view_file_date().map(Message::CustomFilter),
+                self.custom_filters.view_file_name().map(Message::CustomFilter),
+                bottom_left_buttons,
+            ]
+            .spacing(8)
+            .into(),
             View::Settings => settings::view(&self.general_cfg).map(Message::GeneralCfg),
-            View::About => about::view(),
+            View::About => about::view().map(Message::About),
             View::Help => todo!(),
         };
 
@@ -471,37 +494,43 @@ impl Application for XMODITS {
         let destination = sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
 
         let top_right_buttons = row![
-            text(format!("Entries: {}", self.entries.len())),
-            text(format!("Selected: {}", self.entries.total_selected())),
+            text(format!(
+                "Entries: {}, Selected: {}",
+                self.entries.len(),
+                self.entries.total_selected()
+            )),
             Space::with_width(Length::Fill),
             button("Invert").on_press(Message::InvertSelection),
             checkbox("Select All", self.entries.all_selected, Message::SelectAll)
+                .style(theme::CheckBox::Inverted)
         ]
-        .spacing(15)
+        .spacing(8)
         .align_items(Alignment::Center);
 
         let bottom_right_buttons = row![
-            action("Add File", not_ripping.then_some(Message::FileDialog)),
-            action("Add Folder", not_ripping.then_some(Message::FolderDialog)),
+            action("Add File", not_ripping.then_some(Message::FileDialog)).padding(8),
+            action("Add Folder", not_ripping.then_some(Message::FolderDialog)).padding(8),
             Space::with_width(Length::Fill),
-            action("Delete Selected", not_ripping.then_some(Message::DeleteSelected)),
-            action("Clear", not_ripping.then_some(Message::Clear)),
+            action("Delete Selected", not_ripping.then_some(Message::DeleteSelected)).padding(8),
+            action("Clear", not_ripping.then_some(Message::Clear)).padding(8),
         ]
         .spacing(5);
 
         let main_view = match &self.state {
             State::Idle => main_panel::view_entries(&self.entries),
             State::SamplePreview() => todo!(), // list samples
-            State::Ripping { message, progress, errors} => {
-                main_panel::view_ripping(message, *progress, *errors)
-            }
+            State::Ripping {
+                message,
+                progress,
+                errors,
+            } => main_panel::view_ripping(message, *progress, *errors),
             State::Finished { state, time } => main_panel::view_finished(state, time),
         };
 
         let allow_warnings = !self.general_cfg.suppress_warnings;
 
         let bad_cfg_warning = warning(
-            || allow_warnings && !self.ripping_cfg.self_contained,
+            || allow_warnings && (!self.ripping_cfg.self_contained && !self.naming_cfg.prefix),
             "\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
         );
 

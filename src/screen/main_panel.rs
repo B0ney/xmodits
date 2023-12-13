@@ -10,15 +10,11 @@ use self::entry::Entry;
 use crate::app::{Message, State};
 use crate::ripper::extraction::error::Reason;
 use crate::ripper::subscription::CompleteState;
-use crate::widget::helpers::{
-    centered_column_x, centered_container, centered_text, fill_container,
-};
-use crate::widget::{Collection, Element};
+use crate::widget::helpers::{centered_column_x, centered_container, centered_text, fill_container};
+use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
 
-use iced::widget::{
-    button, checkbox, column, container, progress_bar, row, scrollable, text, Space,
-};
+use iced::widget::{button, checkbox, column, container, progress_bar, row, scrollable, text, Space};
 use iced::{Alignment, Length};
 
 pub fn view_samples<'a>() -> Element<'a, Message> {
@@ -29,9 +25,14 @@ pub fn view_entries(entries: &Entries) -> Element<Message> {
     let entries = &entries.entries;
 
     if entries.is_empty() {
-        return centered_container(centered_text("Drag and Drop"))
-            .style(theme::Container::Black)
-            .into();
+        return centered_container(
+            column![]
+                .push(centered_text("Drag and Drop"))
+                .push_maybe(widget::animation::GIF.idle())
+                .align_items(Alignment::Center),
+        )
+        .style(theme::Container::Black)
+        .into();
     }
 
     fill_container(scrollable(
@@ -48,7 +49,8 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
     let check = checkbox("", entry.selected, move |selected| Message::Select {
         index,
         selected,
-    });
+    })
+    .style(theme::CheckBox::Entry);
 
     let filename = text(entry.filename());
 
@@ -56,9 +58,10 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
         .push_maybe(
             entry
                 .is_dir()
-                .then(|| row![Space::with_width(Length::Fill), icon::folder()]),
+                .then(|| row![Space::with_width(Length::Fill), icon::folder().size(14)]),
         )
-        .spacing(1)
+        .spacing(4)
+        .padding(1)
         .align_items(Alignment::Center);
 
     row![
@@ -72,11 +75,7 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
     .into()
 }
 
-pub fn view_ripping<'a>(
-    message: &Option<String>,
-    progress: f32,
-    total_errors: u64,
-) -> Element<'a, Message> {
+pub fn view_ripping<'a>(message: &Option<String>, progress: f32, total_errors: u64) -> Element<'a, Message> {
     let cancel_ripping_button = button("Cancel")
         .on_press(Message::Cancel)
         .style(theme::Button::Cancel)
@@ -84,31 +83,24 @@ pub fn view_ripping<'a>(
 
     let view = column![
         centered_text(message.as_deref().unwrap_or("Ripping...")),
+        centered_text(format!("Errors: {}", total_errors)),
         progress_bar(0.0..=100.0, progress).height(5).width(200),
         cancel_ripping_button,
-        centered_text(format!("Errors: {}", total_errors)),
-        // gif(&GIF.ripping)
     ]
+    .push_maybe(widget::animation::GIF.ripping())
     .spacing(8)
     .align_items(Alignment::Center);
 
-    centered_container(view)
-        .style(theme::Container::Black)
-        .into()
+    centered_container(view).style(theme::Container::Black).into()
 }
 
 /// XMODITS has finished extracting the samples
-pub fn view_finished<'a>(
-    complete_state: &'a CompleteState,
-    time: &'a Time,
-) -> Element<'a, Message> {
+pub fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Element<'a, Message> {
     let continue_button = button("Continue")
         .on_press(Message::SetState(State::Idle))
         .padding(5);
 
-    let save_errors_button = button("Save Errors")
-        .on_press(Message::SaveErrors)
-        .padding(5);
+    let save_errors_button = button("Save Errors").on_press(Message::SaveErrors).padding(5);
 
     match complete_state {
         CompleteState::NoErrors => centered_container(
@@ -197,17 +189,13 @@ pub fn view_finished<'a>(
                 centered_text(format!("{} errors written", total)),
                 text(format!("{}", time)),
                 // space,
-                row![continue_button]
-                    .padding(4)
-                    .align_items(Alignment::Center)
+                row![continue_button].padding(4).align_items(Alignment::Center)
             ]
             .align_items(Alignment::Center)
             .padding(4)
             .spacing(6);
 
-            centered_container(view)
-                .style(theme::Container::Black)
-                .into()
+            centered_container(view).style(theme::Container::Black).into()
         }
 
         CompleteState::TooMuchErrorsNoLog {
@@ -216,20 +204,10 @@ pub fn view_finished<'a>(
             discarded,
             manually_saved,
         } => {
-            let error_message = match errors.len() {
-                0 => match manually_saved {
-                    false => text("Manually Saving errors..."),
-                    true => text("Errors saved manually :D"),
-                },
-                n => text(format!("{} stored errors", n)),
-            };
-
+            let error_message = text(format!("{} stored errors", errors.len()));
             let discarded_errors = match discarded {
                 0 => text("No errors were discarded."),
-                n => text(format!(
-                    "I had to discard {} error(s) to save memory. >_<",
-                    n
-                )), // .style(style::text::Text::Error),
+                n => text(format!("I had to discard {} error(s) to save memory. >_<", n)), // .style(style::text::Text::Error),
             };
 
             let buttons = match manually_saved {
@@ -254,9 +232,7 @@ pub fn view_finished<'a>(
             .padding(4)
             .spacing(6);
 
-            centered_container(view)
-                .style(theme::Container::Black)
-                .into()
+            centered_container(view).style(theme::Container::Black).into()
         }
     }
 }

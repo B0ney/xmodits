@@ -11,6 +11,17 @@ pub struct Name {
     pub extensions: Vec<String>,
 }
 
+impl Default for Name {
+    fn default() -> Self {
+        Self {
+            contains: (0..30).into_iter().map(|f| format!("test{f}")).collect(),
+            starts_with: ["test", "test2", "test3"].into_iter().map(String::from).collect(),
+            ends_with: (0..50).into_iter().map(|f| f.to_string()).collect(),
+            extensions: (0..10).into_iter().map(|f| f.to_string()).collect(),
+        }
+    }
+}
+
 impl Filter for Name {
     fn matches(&self, path: &Path) -> bool {
         let filename = filename(path);
@@ -26,10 +37,7 @@ impl Filter for Name {
 /// Returns true if items contains an element that satisfies the given predicate OR
 /// the items is empty.
 fn contains(items: &[String], predicate: impl Fn(&String) -> bool) -> bool {
-    match items.is_empty() {
-        true => true,
-        false => items.iter().any(predicate),
-    }
+    items.is_empty() || items.iter().any(predicate)
 }
 
 fn filename(path: &Path) -> &str {
