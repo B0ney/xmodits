@@ -39,10 +39,10 @@ pub struct XMODITS {
     state: State,
     view: View,
     ripper: ripper::Handle,
-    #[cfg(feature = "audio")]
-    audio: audio_engine::Handle,
+    // #[cfg(feature = "audio")]
+    audio: audio_engine::SamplePlayer,
+    // sample_pack: audio_engine::SamplePack,
     tracker_info: Option<TrackerInfo>,
-    // sample_pack: (),
     theme: theme::Theme,
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
