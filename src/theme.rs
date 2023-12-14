@@ -215,12 +215,20 @@ pub enum Container {
     Invisible,
     Frame,
     Black,
+    BlackHovered(bool),
 }
 
 impl container::StyleSheet for Theme {
     type Style = Container;
 
     fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        let dark = container::Appearance {
+            background: Some(self.inner().background.into()),
+            text_color: Some(self.inner().text),
+            border_radius: BORDER_RADIUS.into(),
+            border_width: BORDER_WIDTH,
+            border_color: self.inner().border,
+        };
         match style {
             Container::Invisible => container::Appearance::default(),
             Container::Frame => container::Appearance {
@@ -230,12 +238,17 @@ impl container::StyleSheet for Theme {
                 border_radius: BORDER_RADIUS.into(),
                 border_width: BORDER_WIDTH,
             },
-            Container::Black => container::Appearance {
-                background: Some(self.inner().background.into()),
-                text_color: Some(self.inner().text),
-                border_radius: BORDER_RADIUS.into(),
-                border_width: BORDER_WIDTH,
-                border_color: self.inner().border,
+            Container::Black => dark,
+            Container::BlackHovered(hovered) => match hovered {
+                true => container::Appearance {
+                    border_color: Color {
+                        a: 0.80,
+                        ..self.inner().accent
+                    },
+                    border_width: 2.0,
+                    ..dark
+                },
+                false => dark,
             },
         }
     }

@@ -10,6 +10,8 @@ pub enum Event {
     CloseRequested,
     Delete,
     FileDropped(PathBuf),
+    FileHovered,
+    FileHoveredLeft,
     Save,
     Start,
 }
@@ -39,6 +41,8 @@ pub fn filter(event: iced::Event, status: event::Status) -> Option<Event> {
         iced::Event::Window(id, event) => match event {
             window::Event::FileDropped(file) if ignored(status) => Some(Event::FileDropped(file)),
             window::Event::CloseRequested => Some(Event::CloseRequested),
+            window::Event::FileHovered(_) => Some(Event::FileHovered),
+            window::Event::FilesHoveredLeft => Some(Event::FileHoveredLeft),
             _ => None,
         },
         _ => None,

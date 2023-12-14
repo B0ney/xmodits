@@ -48,6 +48,7 @@ pub struct XMODITS {
     general_cfg: data::config::GeneralConfig,
     custom_filters: custom_filters::CustomFilters,
     sample_player: sample_player::SamplePreviewWindow,
+    file_hovered: bool,
 }
 
 impl XMODITS {
@@ -400,7 +401,12 @@ impl Application for XMODITS {
                 event::Event::Clear => self.clear_entries(),
                 event::Event::CloseRequested => {}
                 event::Event::Delete => self.delete_selected_entries(),
-                event::Event::FileDropped(file) => self.entries.add(file),
+                event::Event::FileHoveredLeft => self.file_hovered = false,
+                event::Event::FileHovered => self.file_hovered = true,
+                event::Event::FileDropped(file) => {
+                    self.entries.add(file);
+                    self.file_hovered = false;
+                },
                 event::Event::Save => return self.save_cfg(),
                 event::Event::Start => return self.start_ripping(),
             },
@@ -513,7 +519,7 @@ impl Application for XMODITS {
         .spacing(5);
 
         let main_view = match &self.state {
-            State::Idle => main_panel::view_entries(&self.entries),
+            State::Idle => main_panel::view_entries(&self.entries, self.file_hovered),
             State::SamplePreview() => todo!(), // list samples
             State::Ripping {
                 message,

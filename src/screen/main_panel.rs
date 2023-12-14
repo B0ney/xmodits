@@ -17,11 +17,7 @@ use crate::{icon, theme};
 use iced::widget::{button, checkbox, column, container, progress_bar, row, scrollable, text, Space};
 use iced::{Alignment, Length};
 
-pub fn view_samples<'a>() -> Element<'a, Message> {
-    todo!()
-}
-
-pub fn view_entries(entries: &Entries) -> Element<Message> {
+pub fn view_entries(entries: &Entries, hovered: bool) -> Element<Message> {
     let entries = &entries.entries;
 
     if entries.is_empty() {
@@ -31,7 +27,7 @@ pub fn view_entries(entries: &Entries) -> Element<Message> {
                 .push_maybe(widget::animation::GIF.idle())
                 .align_items(Alignment::Center),
         )
-        .style(theme::Container::Black)
+        .style(theme::Container::BlackHovered(hovered))
         .into();
     }
 
@@ -40,7 +36,7 @@ pub fn view_entries(entries: &Entries) -> Element<Message> {
             .spacing(10)
             .padding(5),
     ))
-    .style(theme::Container::Black)
+    .style(theme::Container::BlackHovered(hovered))
     .padding(5)
     .into()
 }
