@@ -29,7 +29,7 @@ impl SampleBuffer {
     }
 
     pub fn duration(&self) -> std::time::Duration {
-        Duration::from_micros(((self.frames() as f64 / self.rate as f64) * 1_000_000.0) as u64)
+        Duration::from_nanos(((self.frames() as f64 / self.rate as f64) * 1_000_000_000.0) as u64)
     }
 
     pub fn get_sample(&self, frame: usize) -> Option<f32> {

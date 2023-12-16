@@ -7,7 +7,6 @@ use crate::icon;
 use crate::logger;
 use crate::ripper;
 use crate::ripper::subscription::{CompleteState, ErrorHandler};
-use crate::screen;
 use crate::screen::config::custom_filters;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
@@ -29,9 +28,11 @@ use std::path::PathBuf;
 use iced::multi_window::Application;
 use iced::widget::{button, checkbox, column, row, text, text_input, Space};
 use iced::Alignment;
+use iced::Size;
 use iced::{window, Command, Length, Subscription};
 
 const TITLE: &str = "XMODITS";
+const WINDOW_SIZE: Size = Size::new(780.0, 720.0);
 
 /// XMODITS graphical application
 #[derive(Default)]
@@ -40,15 +41,15 @@ pub struct XMODITS {
     // history: History,
     state: State,
     view: View,
+    file_hovered: bool,
     ripper: ripper::Handle,
     tracker_info: Option<TrackerInfo>,
+    sample_player: sample_player::SamplePreview,
     theme: theme::Theme,
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
     custom_filters: custom_filters::CustomFilters,
-    sample_player: sample_player::SamplePreview,
-    file_hovered: bool,
 }
 
 impl XMODITS {
@@ -180,8 +181,8 @@ pub fn settings(config: Config) -> iced::Settings<Config> {
         flags: config,
         window: window::Settings {
             icon: Some(application_icon()),
-            size: [780, 720].into(),
-            min_size: Some([780, 720].into()),
+            size: WINDOW_SIZE,
+            min_size: Some(WINDOW_SIZE),
             ..Default::default()
         },
         ..Default::default()
@@ -293,7 +294,7 @@ impl Application for XMODITS {
     fn title(&self, id: window::Id) -> String {
         match id == window::Id::MAIN {
             true => self.app_title(),
-            false => self.sample_player.get_title(id)
+            false => self.sample_player.get_title(id),
         }
     }
 
@@ -347,7 +348,10 @@ impl Application for XMODITS {
                 };
             }
             Message::PreviewSamples(path) => {
-                return self.sample_player.create_instance(path).map(Message::SamplePlayer);
+                return self
+                    .sample_player
+                    .create_instance(path)
+                    .map(Message::SamplePlayer);
             }
             Message::Probe(idx) => {
                 let path = self.entries.get(idx).unwrap();
@@ -418,19 +422,19 @@ impl Application for XMODITS {
                     true => self.file_hovered = true,
                     false => self.sample_player.set_hovered(id, true),
                 },
-                event::Event::FileDropped(id, file) => {
-                    match id == window::Id::MAIN {
-                        true => {
-                            self.entries.add(file);
-                            self.file_hovered = false;
-                        },
-                        false => {
-                            self.sample_player.set_hovered(id, false);
-                            return self.sample_player.load_samples(id, file).map(Message::SamplePlayer);
-                        },
+                event::Event::FileDropped(id, file) => match id == window::Id::MAIN {
+                    true => {
+                        self.entries.add(file);
+                        self.file_hovered = false;
                     }
-                    
-                }
+                    false => {
+                        self.sample_player.set_hovered(id, false);
+                        return self
+                            .sample_player
+                            .load_samples(id, file)
+                            .map(Message::SamplePlayer);
+                    }
+                },
                 event::Event::Save => return self.save_cfg(),
                 event::Event::Start => return self.start_ripping(),
             },

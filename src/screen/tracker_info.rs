@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 
 use crate::utils::filename;
 use crate::widget::helpers::{centered_column_x, centered_text, control_filled};
-use crate::widget::Element;
-use iced::widget::{button, column, row, text, Space};
+use crate::widget::{Button, Collection, Element};
+use iced::widget::{button, column, text, Space};
 use xmodits_lib::common::info::Info;
 
 use crate::app::Message;
@@ -65,18 +65,23 @@ pub fn view<'a>(tracker_info: Option<&TrackerInfo>) -> Element<'a, Message> {
             samples,
             total_sample_size,
         } => {
-            let view_samples_button = button("View Samples")
-                .on_press(Message::PreviewSamples(path.to_owned()))
-                .padding(5);
+            #[cfg(feature = "audio")]
+            let view_samples_button = Some(
+                button("View Samples")
+                    .on_press(Message::PreviewSamples(path.to_owned()))
+                    .padding(5),
+            );
+
+            #[cfg(not(feature = "audio"))]
+            let view_samples_button: Option<Button<Message>> = None;
 
             column![
                 centered_text(format!("Module Name: {}", name.trim())),
                 centered_text(format!("Format: {}", format)),
                 centered_text(format!("Samples: {}", samples)),
                 centered_text(format!("Total Sample Size: {} KiB", total_sample_size)),
-                Space::with_width(15),
-                view_samples_button,
             ]
+            .push_maybe(view_samples_button.map(|btn| column![Space::with_width(15), btn]))
         }
     };
 
