@@ -5,5 +5,5 @@ mod sample_pack;
 mod player;
 
 
-pub use player::SamplePlayer;
+pub use player::{SamplePlayer, PlayerHandle};
 pub use sample_pack::SamplePack;

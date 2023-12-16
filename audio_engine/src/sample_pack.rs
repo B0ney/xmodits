@@ -8,11 +8,11 @@ use crate::sample::TrackerSample;
 
 #[derive(Debug)]
 pub struct SamplePack {
-    name: String,
-    format: String,
-    total_samples: usize,
-    total_sample_size: usize,
-    path: Option<PathBuf>,
+    pub name: String,
+    pub format: String,
+    pub total_samples: usize,
+    pub total_sample_size: usize,
+    pub path: Option<PathBuf>,
     pub samples: Vec<Result<(Sample, TrackerSample), xmodits_lib::Error>>,
 }
 

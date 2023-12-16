@@ -23,13 +23,14 @@ use crate::utils::{create_file_dialog, files_dialog, folders_dialog};
 use crate::widget::helpers::{action, text_icon, warning};
 use crate::widget::{Collection, Container, Element};
 
-use std::path::PathBuf;
 use data::Config;
+use std::path::PathBuf;
 
+use iced::futures::FutureExt;
+use iced::multi_window::Application;
 use iced::widget::{button, checkbox, column, row, text, text_input, Space};
 use iced::Alignment;
-use iced::{window, Application, Command, Length, Subscription};
-// use iced::multi_window::Application;
+use iced::{window, Command, Length, Subscription};
 
 const TITLE: &str = "XMODITS";
 
@@ -47,7 +48,7 @@ pub struct XMODITS {
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
     custom_filters: custom_filters::CustomFilters,
-    sample_player: sample_player::SamplePreviewWindow,
+    sample_player: sample_player::SamplePreview,
     file_hovered: bool,
 }
 
@@ -112,7 +113,7 @@ impl XMODITS {
 
     pub fn app_title(&self) -> String {
         let modifiers: Option<String> = match &self.state {
-            State::Idle | State::SamplePreview(..) | State::Finished { .. } => None,
+            State::Idle | State::Finished { .. } => None,
             State::Ripping {
                 message, progress, ..
             } => Some(format!(
@@ -162,13 +163,14 @@ impl XMODITS {
 }
 
 /// TODO: allow the user to customize their application icon
-fn icon() -> iced::window::Icon {
+pub fn application_icon() -> iced::window::Icon {
     let icon = include_bytes!("../assets/img/logos/icon.png");
     iced::window::icon::from_file_data(icon, None).unwrap()
 }
 
 pub fn settings(config: Config) -> iced::Settings<Config> {
     iced::Settings {
+        //     id: Some(window::Id::MAIN),
         fonts: vec![
             font::bytes::JETBRAINS_MONO.into(),
             font::bytes::ICONS.into(),
@@ -178,7 +180,7 @@ pub fn settings(config: Config) -> iced::Settings<Config> {
         default_text_size: 13.0.into(),
         flags: config,
         window: window::Settings {
-            icon: Some(icon()),
+            icon: Some(application_icon()),
             size: [780, 720].into(),
             min_size: Some([780, 720].into()),
             ..Default::default()
@@ -192,8 +194,6 @@ pub fn settings(config: Config) -> iced::Settings<Config> {
 pub enum State {
     #[default]
     Idle,
-    /// The user is previewing some samples
-    SamplePreview(/* TODO */),
     /// The application is currently ripping samples
     Ripping {
         message: Option<String>,
@@ -291,11 +291,14 @@ impl Application for XMODITS {
         (app, Command::none())
     }
 
-    fn title(&self) -> String {
-        self.app_title()
+    fn title(&self, id: window::Id) -> String {
+        match id == window::Id::MAIN {
+            true => self.app_title(),
+            false => self.sample_player.get_title(id)
+        }
     }
 
-    fn theme(&self) -> Self::Theme {
+    fn theme(&self, _id: window::Id) -> Self::Theme {
         // todo...
         theme::Theme(self.general_cfg.theme.palette()).clone()
     }
@@ -344,7 +347,9 @@ impl Application for XMODITS {
                     tracing::warn!("Could not open external link: {:?}", err)
                 };
             }
-            Message::PreviewSamples(_) => (),
+            Message::PreviewSamples(path) => {
+                return self.sample_player.create_instance(path).map(Message::SamplePlayer);
+            }
             Message::Probe(idx) => {
                 let path = self.entries.get(idx).unwrap();
 
@@ -399,14 +404,34 @@ impl Application for XMODITS {
             }
             Message::Event(event) => match event {
                 event::Event::Clear => self.clear_entries(),
+                event::Event::Closed(id) => {
+                    if id != window::Id::MAIN {
+                        self.sample_player.close(id);
+                    }
+                }
                 event::Event::CloseRequested => {}
                 event::Event::Delete => self.delete_selected_entries(),
-                event::Event::FileHoveredLeft => self.file_hovered = false,
-                event::Event::FileHovered => self.file_hovered = true,
-                event::Event::FileDropped(file) => {
-                    self.entries.add(file);
-                    self.file_hovered = false;
+                event::Event::FileHoveredLeft(id) => match id == window::Id::MAIN {
+                    true => self.file_hovered = false,
+                    false => self.sample_player.set_hovered(id, false),
                 },
+                event::Event::FileHovered(id, _) => match id == window::Id::MAIN {
+                    true => self.file_hovered = true,
+                    false => self.sample_player.set_hovered(id, true),
+                },
+                event::Event::FileDropped(id, file) => {
+                    match id == window::Id::MAIN {
+                        true => {
+                            self.entries.add(file);
+                            self.file_hovered = false;
+                        },
+                        false => {
+                            self.sample_player.set_hovered(id, false);
+                            return self.sample_player.load_samples(id, file).map(Message::SamplePlayer);
+                        },
+                    }
+                    
+                }
                 event::Event::Save => return self.save_cfg(),
                 event::Event::Start => return self.start_ripping(),
             },
@@ -426,7 +451,11 @@ impl Application for XMODITS {
         Command::none()
     }
 
-    fn view(&self) -> Element<Message> {
+    fn view(&self, id: window::Id) -> Element<Message> {
+        if id > window::Id::MAIN {
+            return self.sample_player.view(id).map(Message::SamplePlayer);
+        }
+
         let top_left_menu = row![
             button("Ripping").on_press(Message::ConfigPressed),
             button("Filters").on_press(Message::FilterPressed),
@@ -520,7 +549,6 @@ impl Application for XMODITS {
 
         let main_view = match &self.state {
             State::Idle => main_panel::view_entries(&self.entries, self.file_hovered),
-            State::SamplePreview() => todo!(), // list samples
             State::Ripping {
                 message,
                 progress,
