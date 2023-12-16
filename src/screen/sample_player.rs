@@ -1,5 +1,6 @@
 #[cfg(feature = "audio")]
 mod sample_player_inner {
+    use iced::widget::{button, row};
     use iced::window::Action;
     use iced::{window, Command, Length};
 
@@ -17,6 +18,7 @@ mod sample_player_inner {
 
     #[derive(Debug, Clone)]
     pub enum Message {
+        ResetEngine,
         Window(window::Id, PreviewWindowMessage),
     }
 
@@ -28,16 +30,21 @@ mod sample_player_inner {
     }
 
     impl SamplePreview {
+        
+
         pub fn update(&mut self, msg: Message) -> Command<Message> {
             match msg {
-                Message::Window(id, msg) => self.windows.get_mut(&id).unwrap().update_with_id(id, msg),
+                Message::Window(id, msg) => self.update_window(id, msg),
+                Message::ResetEngine => todo!(),
             }
         }
 
+        pub fn update_window(&mut self, id: window::Id, msg: PreviewWindowMessage) -> Command<Message> {
+            self.get_window_mut(id).update(msg).map(move |msg| Message::Window(id, msg))
+        }
+
         pub fn view(&self, id: window::Id) -> Element<Message> {
-            self.windows
-                .get(&id)
-                .expect("View sample preview window")
+            self.get_window(id)
                 .view()
                 .map(move |msg| Message::Window(id, msg))
         }
@@ -56,7 +63,6 @@ mod sample_player_inner {
                 size: [640, 480].into(),
                 min_size: Some([640, 480].into()),
                 icon: Some(application_icon()),
-                // platform_specific: todo!(),
                 exit_on_close_request: true,
                 ..Default::default()
             });
@@ -70,26 +76,33 @@ mod sample_player_inner {
         }
 
         pub fn get_title(&self, id: window::Id) -> String {
-            self.windows.get(&id).expect("View sample preview window").title()
+            self.get_window(id).title()
         }
 
         pub fn set_hovered(&mut self, id: window::Id, hovered: bool) {
-            self.windows.get_mut(&id).unwrap().hovered = hovered;
+            self.get_window_mut(id).hovered = hovered;
         }
 
         pub fn load_samples(&self, id: window::Id, path: PathBuf) -> Command<Message> {
-            self.windows
-                .get(&id)
-                .unwrap()
+            self.get_window(id)
                 .load_sample_pack(path)
                 .map(move |result| Message::Window(id, result))
         }
 
+        // find a window that already has a tracker loaded
         pub fn find(&self, path: &Path) -> Option<window::Id> {
             self.windows
                 .iter()
                 .find_map(|(id, window)| window.matches_path(path).then_some(id))
                 .copied()
+        }
+        
+        pub fn get_window(&self, id: window::Id) -> &SamplePreviewWindow {
+            self.windows.get(&id).expect("View sample preview window")
+        }
+
+        pub fn get_window_mut(&mut self, id: window::Id) -> &mut SamplePreviewWindow {
+            self.windows.get_mut(&id).expect("View sample preview window")
         }
     }
 
@@ -98,8 +111,14 @@ mod sample_player_inner {
         Play(usize),
         Pause,
         Stop,
+        Volume(f32),
         Loaded(Arc<Result<SamplePack, xmodits_lib::Error>>),
         Load(PathBuf),
+    }
+
+    enum State {
+        Play,
+        Paused,
     }
 
     // #[derive(Default)]
@@ -108,6 +127,7 @@ mod sample_player_inner {
         sample_pack: Option<SamplePack>,
         id: window::Id,
         hovered: bool,
+        state: State,
     }
 
     impl SamplePreviewWindow {
@@ -117,12 +137,14 @@ mod sample_player_inner {
                 id,
                 hovered: false,
                 sample_pack: None,
+                state: State::Play,
             }
         }
 
-        pub fn update_with_id(&mut self, id: window::Id, msg: PreviewWindowMessage) -> Command<Message> {
-            self.update(msg).map(move |msg| Message::Window(id, msg))
-        }
+        // pub fn update_with_id(&mut self, msg: PreviewWindowMessage) -> Command<Message> {
+        //     let id = self.id;
+        //     self.update(msg).map(move |msg| Message::Window(id, msg))
+        // }
 
         pub fn update(&mut self, msg: PreviewWindowMessage) -> Command<PreviewWindowMessage> {
             match msg {
@@ -136,8 +158,11 @@ mod sample_player_inner {
                         self.player.play(sample.clone());
                     };
                 }
-                PreviewWindowMessage::Pause => self.player.pause(),
+                PreviewWindowMessage::Pause => {
+                    self.player.pause()
+                },
                 PreviewWindowMessage::Stop => self.player.stop(),
+                PreviewWindowMessage::Volume(vol) => self.player.set_volume(vol),
                 PreviewWindowMessage::Load(path) => {
                     if self.sample_pack.as_ref().is_some_and(|f| !f.matches_path(&path)) {
                         return load_sample_pack(path);
@@ -152,7 +177,13 @@ mod sample_player_inner {
         }
 
         pub fn view(&self) -> Element<PreviewWindowMessage> {
-            let main = Container::new("s")
+            let play = button("PLAY").on_press(PreviewWindowMessage::Play(0));
+            let pause = button("PAUSE").on_press(PreviewWindowMessage::Pause);
+            let stop = button("STOP").on_press(PreviewWindowMessage::Stop);
+
+
+            let controls = row![play, pause, stop];
+            let main = Container::new(controls)
                 .padding(5)
                 .style(theme::Container::BlackHovered(self.hovered))
                 .width(Length::Fill)

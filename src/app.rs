@@ -26,7 +26,6 @@ use crate::widget::{Collection, Container, Element};
 use data::Config;
 use std::path::PathBuf;
 
-use iced::futures::FutureExt;
 use iced::multi_window::Application;
 use iced::widget::{button, checkbox, column, row, text, text_input, Space};
 use iced::Alignment;

@@ -11,10 +11,7 @@ impl Default for SamplePlayer {
     fn default() -> Self {
         let (_stream, _handle) = rodio::OutputStream::try_default().unwrap();
 
-        Self {
-            _stream,
-            _handle,
-        }
+        Self { _stream, _handle }
     }
 }
 
@@ -40,7 +37,10 @@ impl PlayerHandle {
     }
 
     pub fn pause(&self) {
-        self.sink.pause();
+        match self.sink.is_paused() {
+            true => self.sink.play(),
+            false => self.sink.pause(),
+        }
     }
 
     pub fn set_volume(&self, volume: f32) {
@@ -49,8 +49,8 @@ impl PlayerHandle {
 }
 
 mod tests {
+    use std::fs::File;
     use std::sync::Arc;
-    use std::{fs::File};
 
     use xmodits_lib::load_module;
 
@@ -74,17 +74,15 @@ mod tests {
             for (info, sample) in a.samples.iter().filter_map(|s| s.as_ref().ok()) {
                 handle.play(sample.clone());
                 handle.sink.sleep_until_end();
-            };
+            }
         });
-
-
 
         let t2 = std::thread::spawn(move || {
             std::thread::sleep(std::time::Duration::from_secs(2));
             for (info, sample) in b.clone().samples.iter().filter_map(|s| s.as_ref().ok()) {
                 handle2.play(sample.clone());
                 handle2.sink.sleep_until_end();
-            };
+            }
         });
 
         t1.join();
