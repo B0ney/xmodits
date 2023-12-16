@@ -198,7 +198,6 @@ pub fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> E
             reason,
             errors,
             discarded,
-            manually_saved,
         } => {
             let error_message = text(format!("{} stored errors", errors.len()));
             let discarded_errors = match discarded {
@@ -206,13 +205,10 @@ pub fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> E
                 n => text(format!("I had to discard {} error(s) to save memory. >_<", n)), // .style(style::text::Text::Error),
             };
 
-            let buttons = match manually_saved {
-                true => row![continue_button],
-                false => row![continue_button, save_errors_button],
-            }
-            .padding(4)
-            .spacing(6)
-            .align_items(Alignment::Center);
+            let buttons = row![continue_button, save_errors_button]
+                .padding(4)
+                .spacing(6)
+                .align_items(Alignment::Center);
 
             let view = column![
                 text("Done..."),

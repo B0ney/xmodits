@@ -48,7 +48,6 @@ pub enum CompleteState {
         reason: String,
         errors: Vec<Failed>,
         discarded: u64,
-        manually_saved: bool,
     },
 }
 
@@ -63,12 +62,6 @@ impl CompleteState {
             _ => None,
         }
     }
-
-    // pub fn set_manually_saved(&mut self) {
-    //     if let Self::TooMuchErrorsNoLog { manually_saved, .. } = self {
-    //         *manually_saved = true;
-    //     }
-    // }
 }
 
 impl From<ErrorHandler> for CompleteState {
@@ -87,7 +80,6 @@ impl From<ErrorHandler> for CompleteState {
                 reason,
                 errors,
                 discarded,
-                manually_saved: false,
             },
         }
     }
