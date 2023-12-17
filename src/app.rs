@@ -170,12 +170,6 @@ pub fn application_icon() -> iced::window::Icon {
 
 pub fn settings(config: Config) -> iced::Settings<Config> {
     iced::Settings {
-        //     id: Some(window::Id::MAIN),
-        fonts: vec![
-            font::bytes::JETBRAINS_MONO.into(),
-            font::bytes::ICONS.into(),
-            // font::bytes::ICED_AW_ICONS.into(),
-        ],
         default_font: font::JETBRAINS_MONO,
         default_text_size: 13.0.into(),
         flags: config,
@@ -254,6 +248,7 @@ pub enum Message {
     FileDialog,
     FilterPressed,
     FolderDialog,
+    FontLoaded(Result<(), iced::font::Error>),
     GeneralCfg(settings::Message),
     HistoryPressed,
     Ignore,
@@ -288,7 +283,7 @@ impl Application for XMODITS {
         let mut app = Self::default();
         app.load_cfg(flags);
 
-        (app, Command::none())
+        (app, font::load().map(Message::FontLoaded))
     }
 
     fn title(&self, id: window::Id) -> String {
@@ -450,6 +445,11 @@ impl Application for XMODITS {
                 }
             },
             Message::Ignore => (),
+            Message::FontLoaded(result) => {
+                if let Err(e) = result {
+                    tracing::error!("Failed to load font: {:#?}", e);
+                }
+            },
         }
         Command::none()
     }
