@@ -18,7 +18,7 @@ pub struct SamplePack {
 
 impl SamplePack {
     pub fn build(module: &dyn Module) -> Self {
-        let name = module.name().to_owned();
+        let name = module.name().trim().to_owned();
         let format = module.format().to_owned();
         let total_samples = module.total_samples();
         let total_sample_size = module.samples().iter().map(|m| m.length as usize).sum();

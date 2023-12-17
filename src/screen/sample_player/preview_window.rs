@@ -116,20 +116,21 @@ impl SamplePreviewWindow {
 }
 
 fn load_sample_pack(path: PathBuf) -> Command<Message> {
-    let task = async {
-        tracing::info!("loading samples...");
-        tokio::task::spawn_blocking(move || {
-            let mut file = File::open(&path)?;
-            let module = xmodits_lib::load_module(&mut file)?;
-            let sample_pack = SamplePack::build(&*module).with_path(path);
-            tracing::debug!("{:#?}", &sample_pack);
+    Command::perform(
+        async {
+            tracing::info!("loading samples...");
+            tokio::task::spawn_blocking(move || {
+                let mut file = File::open(&path)?;
+                let module = xmodits_lib::load_module(&mut file)?;
+                let sample_pack = SamplePack::build(&*module).with_path(path);
+                tracing::debug!("{:#?}", &sample_pack);
 
-            Ok(sample_pack)
-        })
-        .await
-        .map(Arc::new)
-        .unwrap()
-    };
-
-    Command::perform(task, Message::Loaded)
+                Ok(sample_pack)
+            })
+            .await
+            .map(Arc::new)
+            .unwrap()
+        },
+        Message::Loaded,
+    )
 }
