@@ -46,6 +46,9 @@ pub enum Button {
     Start,
     Delete,
     Dark,
+    MediaStart,
+    MediaMiddle,
+    MediaEnd,
 }
 
 impl button::StyleSheet for Theme {
@@ -98,6 +101,15 @@ impl button::StyleSheet for Theme {
                 border_color: p.middleground,
                 ..appearance
             },
+            Button::MediaStart => button::Appearance {
+                border_radius: [8.0, BORDER_RADIUS, BORDER_RADIUS, 8.0].into(),
+                ..active_appearance(None, p.accent)
+            },
+            Button::MediaMiddle => active_appearance(None, p.accent),
+            Button::MediaEnd => button::Appearance {
+                border_radius: [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into(),
+                ..active_appearance(None, p.accent)
+            },
         }
     }
 
@@ -135,6 +147,15 @@ impl button::StyleSheet for Theme {
                 background: Some(p.background.into()),
                 text_color: p.accent,
                 ..active
+            },
+            Button::MediaStart => button::Appearance {
+                border_radius: [8.0, BORDER_RADIUS, BORDER_RADIUS, 8.0].into(),
+                ..hover_appearance(p.accent, Some(p.text))
+            },
+            Button::MediaMiddle => hover_appearance(p.accent, Some(p.text)),
+            Button::MediaEnd => button::Appearance {
+                border_radius: [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into(),
+                ..hover_appearance(p.accent, Some(p.text))
             },
         }
     }

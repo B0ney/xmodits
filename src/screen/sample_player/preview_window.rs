@@ -3,13 +3,13 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use audio_engine::{PlayerHandle, SamplePack};
-
-use iced::widget::{button, row};
+use iced::widget::{button, column, row};
 use iced::window::Id;
 use iced::{Command, Length};
 
-use crate::theme;
-use crate::widget::{Container, Element};
+use crate::widget::helpers::warning;
+use crate::widget::{Button, Collection, Container, Element, Row};
+use crate::{icon, theme};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -74,16 +74,52 @@ impl SamplePreviewWindow {
     }
 
     pub fn view(&self) -> Element<Message> {
-        let play = button("PLAY").on_press(Message::Play(0));
-        let pause = button("PAUSE").on_press(Message::Pause);
-        let stop = button("STOP").on_press(Message::Stop);
-
-        let controls = row![play, pause, stop];
-        let main = Container::new(controls)
-            .padding(5)
+        let top_left = Container::new("Information about selected sample")
+            .padding(8)
             .style(theme::Container::BlackHovered(self.hovered))
             .width(Length::Fill)
             .height(Length::Fill);
+
+        let controls = media_button([
+            (icon::play().size(18), Message::Play(0)),
+            (icon::stop().size(18), Message::Stop),
+            (icon::pause().size(18), Message::Pause),
+            (icon::repeat().size(18), Message::Stop),
+        ]);
+
+        let control_panel = Container::new(controls)
+            .padding(8)
+            .style(theme::Container::BlackHovered(self.hovered))
+            .width(Length::Fill)
+            .height(Length::Shrink);
+
+        let top_left = column![top_left, control_panel].spacing(5).width(Length::Fill);
+
+        let top_right = Container::new("Sample list")
+            .padding(8)
+            .style(theme::Container::BlackHovered(self.hovered))
+            .width(Length::Fill)
+            .height(Length::Fill);
+
+        let bottom = Container::new("Really cool looking waveform")
+            .padding(8)
+            .style(theme::Container::BlackHovered(self.hovered))
+            .width(Length::Fill)
+            .height(Length::FillPortion(2));
+
+        let warning = warning(
+            || true,
+            "Whoops! This is a placeholder error in case something bad happens...",
+        );
+
+        let main = column![
+            row![top_left, top_right]
+                .height(Length::FillPortion(3))
+                .spacing(5),
+            bottom
+        ]
+        .push_maybe(warning)
+        .spacing(5);
 
         Container::new(main)
             .width(Length::Fill)
@@ -113,6 +149,31 @@ impl SamplePreviewWindow {
             false => load_sample_pack(path),
         }
     }
+}
+
+fn media_button<'a, Label, R, Message>(rows: R) -> Element<'a, Message>
+where
+    Message: Clone + 'a,
+    Label: Into<Element<'a, Message>>,
+    R: IntoIterator<Item = (Label, Message)>,
+{
+    let mut media_row: Row<'a, Message> = Row::new().spacing(4.0);
+    let elements: Vec<(Label, Message)> = rows.into_iter().collect();
+    let end_indx = elements.len() - 1;
+
+    for (idx, (label, message)) in elements.into_iter().enumerate() {
+        let style = if idx == 0 {
+            theme::Button::MediaStart
+        } else if idx == end_indx {
+            theme::Button::MediaEnd
+        } else {
+            theme::Button::MediaMiddle
+        };
+        let button = Button::new(label).padding(8.0).on_press(message).style(style);
+        media_row = media_row.push(button);
+    }
+
+    media_row.into()
 }
 
 fn load_sample_pack(path: PathBuf) -> Command<Message> {
