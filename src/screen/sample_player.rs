@@ -1,7 +1,7 @@
 #[cfg(feature = "audio")]
-mod preview_window;
-#[cfg(feature = "audio")]
 mod preview_manager;
+#[cfg(feature = "audio")]
+mod preview_window;
 
 #[cfg(feature = "audio")]
 pub use preview_manager::*;
@@ -32,6 +32,10 @@ pub mod preview_manager_dummy {
         pub fn create_instance(&mut self, _path: PathBuf) -> Command<Message> {
             Command::none()
         }
+        pub fn close_all(&self) -> Command<Message> {
+            Command::none()
+        }
+        pub fn remove_instance(&self, _id: Id) {}
         pub fn set_hovered(&mut self, _id: Id, _hovered: bool) {}
         pub fn close(&mut self, _id: Id) {}
         pub fn get_title(&self, _id: Id) -> String {
