@@ -5,11 +5,12 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use crate::{app::application_icon, widget::Element};
+
 use audio_engine::SamplePlayer;
 
 use super::preview_window::{self, SamplePreviewWindow};
 
-const WINDOW_SIZE: Size = Size::new(640.0, 480.0);
+const WINDOW_SIZE: Size = Size::new(640.0, 500.0);
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -44,7 +45,7 @@ impl SamplePreview {
             .map(move |msg| Message::Window(id, msg))
     }
 
-    pub fn close(&mut self, id: Id) {
+    pub fn remove_instance(&mut self, id: Id) {
         self.windows.remove_entry(&id);
     }
 
@@ -98,5 +99,11 @@ impl SamplePreview {
 
     pub fn get_window_mut(&mut self, id: Id) -> &mut SamplePreviewWindow {
         self.windows.get_mut(&id).expect("View sample preview window")
+    }
+
+    pub fn close_all(&mut self) -> Command<Message> {
+        let command = Command::batch(self.windows.iter().map(|(id, _)| window::close(*id)));
+        self.windows.clear();
+        return command;
     }
 }

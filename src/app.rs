@@ -402,11 +402,10 @@ impl Application for XMODITS {
             }
             Message::Event(event) => match event {
                 event::Event::Clear => self.clear_entries(),
-                event::Event::Closed(id) => {
-                    if id != window::Id::MAIN {
-                        self.sample_player.close(id);
-                    }
-                }
+                event::Event::Closed(id) => match id != window::Id::MAIN {
+                    true => self.sample_player.remove_instance(id),
+                    false => return self.sample_player.close_all().map(Message::SamplePlayer),
+                },
                 event::Event::CloseRequested => {}
                 event::Event::Delete => self.delete_selected_entries(),
                 event::Event::FileHoveredLeft(id) => match id == window::Id::MAIN {
@@ -449,7 +448,7 @@ impl Application for XMODITS {
                 if let Err(e) = result {
                     tracing::error!("Failed to load font: {:#?}", e);
                 }
-            },
+            }
         }
         Command::none()
     }
