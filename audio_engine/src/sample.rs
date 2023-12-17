@@ -3,7 +3,7 @@ pub mod buffer;
 
 use rodio::Source;
 
-use self::buffer::SampleBuffer;
+pub use self::buffer::SampleBuffer;
 
 #[derive(Debug, Clone)]
 pub struct TrackerSample {
