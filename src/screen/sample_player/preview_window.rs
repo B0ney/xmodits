@@ -7,7 +7,7 @@ use iced::widget::{button, checkbox, column, row, scrollable, text, Space};
 use iced::window::Id;
 use iced::{Command, Length};
 
-use crate::widget::helpers::{centered_container, centered_text, warning};
+use crate::widget::helpers::{centered_container, centered_text, fill_container, warning};
 use crate::widget::{Button, Collection, Container, Element, Row};
 use crate::{icon, theme};
 
@@ -100,11 +100,9 @@ impl SamplePreviewWindow {
     }
 
     pub fn view(&self) -> Element<Message> {
-        let top_left = Container::new(view_sample_info(self.selected.as_ref().map(|(_, smp)| smp)))
+        let top_left = fill_container(view_sample_info(self.selected.as_ref().map(|(_, smp)| smp)))
             .padding(8)
-            .style(theme::Container::BlackHovered(self.hovered))
-            .width(Length::Fill)
-            .height(Length::Fill);
+            .style(theme::Container::BlackHovered(self.hovered));
 
         let controls = media_button([
             (icon::play().size(18), Message::Play),
@@ -128,18 +126,15 @@ impl SamplePreviewWindow {
 
         let play_on_select = checkbox("Play on Selection", self.play_on_select, Message::SetPlayOnSelect);
 
-        let top_right = Container::new(sample_list)
+        let top_right = fill_container(sample_list)
             .padding(8)
-            .style(theme::Container::BlackHovered(self.hovered))
-            .width(Length::Fill)
-            .height(Length::Fill);
+            .style(theme::Container::BlackHovered(self.hovered));
 
         let top_right = column![top_right, play_on_select,].spacing(5).width(Length::Fill);
 
-        let bottom = Container::new("Really cool looking waveform")
+        let bottom = fill_container("Really cool looking waveform")
             .padding(8)
             .style(theme::Container::BlackHovered(self.hovered))
-            .width(Length::Fill)
             .height(Length::FillPortion(2));
 
         let warning = warning(
@@ -156,11 +151,7 @@ impl SamplePreviewWindow {
         .push_maybe(warning)
         .spacing(5);
 
-        Container::new(main)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .padding(15)
-            .into()
+        fill_container(main).padding(15).into()
     }
 
     pub fn title(&self) -> String {
