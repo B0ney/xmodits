@@ -146,19 +146,17 @@ impl SamplePreviewWindow {
             .padding(8)
             .style(theme::Container::BlackHovered(self.hovered));
 
-        let top_right = column![top_right, play_on_select,].spacing(5).width(Length::Fill);
+        let top_right = column![top_right, play_on_select].spacing(5).width(Length::Fill);
 
-        let wave_form = column![].push_maybe(
+        let waveform_viewer = WaveformViewer::new_maybe(
             self.selected
                 .as_ref()
-                .map(|(idx, _)| self.wave_cache.cache.get(&idx).map(WaveformViewer::new))
+                .map(|(idx, _)| self.wave_cache.cache.get(&idx))
                 .flatten(),
-        );
+        )
+        .style(theme::WaveformView::Hovered(self.hovered));
 
-        let bottom = fill_container(wave_form)
-            .padding(8)
-            .style(theme::Container::BlackHovered(self.hovered))
-            .height(Length::FillPortion(2));
+        let bottom = fill_container(waveform_viewer).height(Length::FillPortion(2));
 
         let warning = warning(
             || true,

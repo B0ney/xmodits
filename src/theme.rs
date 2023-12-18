@@ -621,20 +621,34 @@ impl text_input::StyleSheet for Theme {
     }
 }
 
+#[derive(Default)]
+pub enum WaveformView {
+    #[default]
+    Normal,
+    Hovered(bool)
+}
 
 impl waveform_view::StyleSheet for Theme {
-    type Style = ();
+    type Style = WaveformView;
 
-    fn appearance(&self, _style: &Self::Style) -> waveform_view::Appearance {
+    fn appearance(&self, style: &Self::Style) -> waveform_view::Appearance {
         let p = self.inner();
 
-        waveform_view::Appearance {
+        let default = waveform_view::Appearance {
             background: Background::Color(p.background),
             wave_color: p.accent,
             cursor_color: p.text,
             border_radius: BORDER_RADIUS.into(),
             border_width: BORDER_WIDTH,
             border_color: p.border,
+        };
+
+        match style {
+            WaveformView::Normal => default,
+            WaveformView::Hovered(hovered) => waveform_view::Appearance {
+                border_color: if *hovered { p.accent } else { p.border },
+                ..default
+            }
         }
     }
 }

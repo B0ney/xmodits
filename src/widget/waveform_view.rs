@@ -20,7 +20,7 @@ where
     Renderer: renderer::Renderer,
     Renderer::Theme: StyleSheet,
 {
-    wave: &'a WaveData,
+    wave: Option<&'a WaveData>,
     // cursors: &'a [Cursor],
     width: Length,
     height: Length,
@@ -34,6 +34,10 @@ where
     Renderer::Theme: StyleSheet,
 {
     pub fn new(wave: &'a WaveData) -> Self {
+        Self::new_maybe(Some(wave))
+    }
+
+    pub fn new_maybe(wave: Option<&'a WaveData>) -> Self {
         Self {
             wave,
             width: Length::Fill,
@@ -41,6 +45,11 @@ where
             on_cursor_drag: None,
             style: Default::default(),
         }
+    }
+
+    pub fn style(mut self, style: <Renderer::Theme as StyleSheet>::Style) -> Self {
+        self.style = style;
+        self
     }
 
     pub fn on_cursor_drag<F>(mut self, callback: F) -> Self
@@ -106,7 +115,7 @@ where
         _style: &renderer::Style,
         layout: Layout<'_>,
         cursor: iced::advanced::mouse::Cursor,
-        viewport: &iced::Rectangle,
+        _viewport: &iced::Rectangle,
     ) {
         // let state = tree.state.downcast_ref::<State>();
 
@@ -123,55 +132,59 @@ where
             appearance.background,
         );
 
-        // Draw waveform
         let width = layout.bounds().width;
         let height = layout.bounds().height;
-
         let dc_offset_y = layout.bounds().y + (height / 2.0);
 
-        let a = &self.wave.0[0];
-        let bar_width = 2.0;
+        // Draw waveform
+        if let Some(waveform) = self.wave {
+            let a = &waveform.0[0];
+            let bar_width = 1.0;
+            let overlap = 0.5;
 
-        for offset in 0..a.len() {
-            let wave_height = ((height * 0.90) / 2.0) * a[offset];
-            let x_pos = layout.bounds().x + offset as f32 * bar_width;
+            for offset in 0..a.len() {
+                let wave_height = ((height * 0.90) / 2.0) * a[offset];
+                let x_pos = layout.bounds().x + offset as f32 * bar_width;
 
-            if x_pos > width + 12.0 {
-                break;
+                if !layout.bounds().contains([x_pos + overlap, dc_offset_y].into()) {
+                    break;
+                }
+
+                // Make the wave lines slightly overlap (width + 0.5)
+
+                // Draw bottom half
+                renderer.fill_quad(
+                    renderer::Quad {
+                        bounds: Rectangle {
+                            x: x_pos,
+                            y: dc_offset_y,
+                            width: bar_width + overlap,
+                            height: wave_height,
+                        },
+                        border_radius: 0.0.into(),
+                        border_width: 0.0,
+                        border_color: Color::TRANSPARENT,
+                    },
+                    appearance.wave_color,
+                );
+
+                // Draw top half
+                renderer.fill_quad(
+                    renderer::Quad {
+                        bounds: Rectangle {
+                            x: x_pos,
+                            y: dc_offset_y - wave_height,
+                            width: bar_width + overlap,
+                            height: wave_height,
+                        },
+                        border_radius: 0.0.into(),
+                        border_width: 0.0,
+                        border_color: Color::TRANSPARENT,
+                    },
+                    appearance.wave_color,
+                );
             }
-
-            // Draw bottom half
-            renderer.fill_quad(
-                renderer::Quad {
-                    bounds: Rectangle {
-                        x: x_pos,
-                        y: dc_offset_y,
-                        width: bar_width,
-                        height: wave_height,
-                    },
-                    border_radius: 0.0.into(),
-                    border_width: 0.0,
-                    border_color: Color::TRANSPARENT,
-                },
-                appearance.wave_color,
-            );
-
-            // Draw top half
-            renderer.fill_quad(
-                renderer::Quad {
-                    bounds: Rectangle {
-                        x: x_pos,
-                        y: dc_offset_y - wave_height,
-                        width: bar_width,
-                        height: wave_height,
-                    },
-                    border_radius: 0.0.into(),
-                    border_width: 0.0,
-                    border_color: Color::TRANSPARENT,
-                },
-                appearance.wave_color,
-            );
-        }
+        }      
 
         // Draw DC line
         let line_thickness = 2.0;
@@ -179,10 +192,8 @@ where
             renderer::Quad {
                 bounds: Rectangle {
                     x: layout.bounds().x,
-
-                    // centre line to hide ugly gap between the two halves
+                    // Center line to hide ugly gap between the two halves
                     y: dc_offset_y - (line_thickness / 2.0),
-
                     width,
                     height: line_thickness,
                 },
