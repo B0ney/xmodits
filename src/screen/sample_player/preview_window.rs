@@ -22,7 +22,7 @@ pub enum Message {
     Pause,
     Stop,
     Volume(f32),
-    Loaded(Arc<Result<SamplePack, xmodits_lib::Error>>),
+    Loaded(Arc<Result<(SamplePack, WaveCache), xmodits_lib::Error>>),
     Load(PathBuf),
     Info((usize, SampleInfo)),
     SetPlayOnSelect(bool),
@@ -91,15 +91,9 @@ impl SamplePreviewWindow {
                 }
             }
             Message::Loaded(result) => match Arc::into_inner(result).unwrap() {
-                Ok(sample_pack) => {
-                    self.wave_cache.cache.clear();
+                Ok((sample_pack, wave_cache)) => {
                     self.sample_pack = Some(sample_pack);
-
-                    for (idx, result) in self.sample_pack.as_ref().unwrap().samples.iter().enumerate() {
-                        if let Ok((_, sample)) = result {
-                            self.wave_cache.generate(idx, sample)
-                        }
-                    }
+                    self.wave_cache = wave_cache;
                 }
                 Err(err) => tracing::error!("{}", err),
             },
@@ -231,9 +225,10 @@ fn load_sample_pack(path: PathBuf) -> Command<Message> {
                 let mut file = File::open(&path)?;
                 let module = xmodits_lib::load_module(&mut file)?;
                 let sample_pack = SamplePack::build(&*module).with_path(path);
-                tracing::debug!("{:#?}", &sample_pack);
+                let wave_cache = WaveCache::from_sample_pack(&sample_pack);
+                // tracing::debug!("{:#?}", &sample_pack);
 
-                Ok(sample_pack)
+                Ok((sample_pack, wave_cache))
             })
             .await
             .map(Arc::new)

@@ -133,8 +133,8 @@ where
         let layout_height = layout.bounds().height;
 
         let dc_offset = Point {
-            x: layout.bounds().x + (layout.bounds().width / 2.0),
-            y: layout.bounds().y + (layout.bounds().height / 2.0),
+            x: layout.bounds().x + (layout_width / 2.0),
+            y: layout.bounds().y + (layout_height / 2.0),
         };
 
         // Draw waveform
