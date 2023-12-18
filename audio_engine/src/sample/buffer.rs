@@ -38,7 +38,7 @@ impl SampleBuffer {
             .copied()
     }
 
-    pub fn peaks(&self, interval: Duration) -> Vec<Vec<f32>> {
+    pub fn peaks(&self, interval: Duration) -> Vec<Vec<(f32, f32)>> {
         self.buf
             .iter()
             .map(|channel| peak(channel, self.rate, interval))
@@ -46,18 +46,21 @@ impl SampleBuffer {
     }
 }
 
-fn peak(buf: &[f32], rate: u32, interval: Duration) -> Vec<f32> {
+fn peak(buf: &[f32], rate: u32, interval: Duration) -> Vec<(f32, f32)> {
     let chunks = ((rate as f64 / 1000.0) * (interval.as_millis() as f64)).round() as usize;
 
-    let find_max = |x: &[f32]| -> f32 {
+    let find_max = |x: &[f32]| -> (f32, f32) {
         let mut max = 0.0;
+        let mut min = 0.0; 
 
-        for i in x.iter().map(|f|f.abs()) {
+        for i in x.iter().copied() {
             if i > max {
                 max = i;
+            } else if i < min {
+                min = i;
             }
         }
-        max
+        (max, min)
     };
 
     buf.chunks(chunks)

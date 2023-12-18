@@ -16,6 +16,6 @@ pub struct WaveCache {
 impl WaveCache {
     pub fn generate(&mut self, index: usize, sample: &TrackerSample) {
         let peaks = sample.buf.peaks(Duration::from_millis(5));
-        self.cache.insert(index, WaveData(peaks));
+        self.cache.insert(index, WaveData::from(peaks));
     }
 }

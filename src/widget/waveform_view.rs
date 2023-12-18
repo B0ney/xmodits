@@ -1,5 +1,5 @@
 //! Simple Widget to view waveform
-//! 
+//!
 
 mod cursor;
 mod style;
@@ -117,11 +117,8 @@ where
         cursor: iced::advanced::mouse::Cursor,
         _viewport: &iced::Rectangle,
     ) {
-        // let state = tree.state.downcast_ref::<State>();
-
-        let appearance = theme.appearance(&self.style);
-
         // Draw background
+        let appearance = theme.appearance(&self.style);      
         renderer.fill_quad(
             renderer::Quad {
                 bounds: layout.bounds(),
@@ -132,50 +129,38 @@ where
             appearance.background,
         );
 
-        let width = layout.bounds().width;
-        let height = layout.bounds().height;
-        let dc_offset_y = layout.bounds().y + (height / 2.0);
+        let layout_width = layout.bounds().width;
+        let layout_height = layout.bounds().height;
+
+        let dc_offset = Point {
+            x: layout.bounds().x + (layout.bounds().width / 2.0),
+            y: layout.bounds().y + (layout.bounds().height / 2.0),
+        };
 
         // Draw waveform
         if let Some(waveform) = self.wave {
-            let a = &waveform.0[0];
+            let wave = &waveform.0[0];
             let bar_width = 1.0;
             let overlap = 0.5;
 
-            for offset in 0..a.len() {
-                let wave_height = ((height * 0.90) / 2.0) * a[offset];
-                let x_pos = layout.bounds().x + offset as f32 * bar_width;
+            for offset in 0..wave.len() {
+                let wave_maxima = ((layout_height * 0.90) / 2.0) * wave[offset].maxima;
+                let wave_minima = ((layout_height * 0.90) / 2.0) * wave[offset].minima.abs();
 
-                if !layout.bounds().contains([x_pos + overlap, dc_offset_y].into()) {
+                let x = layout.bounds().x + offset as f32 * bar_width;
+
+                if !layout.bounds().contains([x + overlap, dc_offset.y].into()) {
                     break;
                 }
 
-                // Make the wave lines slightly overlap (width + 0.5)
-
-                // Draw bottom half
+                // Draw both top & bottom
                 renderer.fill_quad(
                     renderer::Quad {
                         bounds: Rectangle {
-                            x: x_pos,
-                            y: dc_offset_y,
+                            x,
+                            y: dc_offset.y - wave_maxima,
                             width: bar_width + overlap,
-                            height: wave_height,
-                        },
-                        border_radius: 0.0.into(),
-                        border_width: 0.0,
-                        border_color: Color::TRANSPARENT,
-                    },
-                    appearance.wave_color,
-                );
-
-                // Draw top half
-                renderer.fill_quad(
-                    renderer::Quad {
-                        bounds: Rectangle {
-                            x: x_pos,
-                            y: dc_offset_y - wave_height,
-                            width: bar_width + overlap,
-                            height: wave_height,
+                            height: wave_maxima + wave_minima,
                         },
                         border_radius: 0.0.into(),
                         border_width: 0.0,
@@ -184,17 +169,16 @@ where
                     appearance.wave_color,
                 );
             }
-        }      
+        }
 
         // Draw DC line
-        let line_thickness = 2.0;
+        let line_thickness = 1.5;
         renderer.fill_quad(
             renderer::Quad {
                 bounds: Rectangle {
                     x: layout.bounds().x,
-                    // Center line to hide ugly gap between the two halves
-                    y: dc_offset_y - (line_thickness / 2.0),
-                    width,
+                    y: dc_offset.y - (line_thickness / 2.0),
+                    width: layout_width,
                     height: line_thickness,
                 },
                 border_radius: 0.0.into(),
