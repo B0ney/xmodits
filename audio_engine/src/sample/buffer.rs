@@ -47,8 +47,7 @@ impl SampleBuffer {
 }
 
 fn peak(buf: &[f32], rate: u32, interval: Duration) -> Vec<f32> {
-    // let chunks = ((rate as f64 * 1000.0) / (interval.as_millis() as f64)).round() as usize;
-    let chunks = 64;
+    let chunks = ((rate as f64 / 1000.0) * (interval.as_millis() as f64)).round() as usize;
 
     let find_max = |x: &[f32]| -> f32 {
         let mut max = 0.0;
