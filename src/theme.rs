@@ -6,6 +6,8 @@ use iced::{application, overlay, Background, Color};
 
 use data::theme;
 
+use crate::widget::waveform;
+
 const BORDER_RADIUS: f32 = 5.0;
 const BORDER_WIDTH: f32 = 1.5;
 
@@ -616,5 +618,23 @@ impl text_input::StyleSheet for Theme {
 
     fn hovered(&self, style: &Self::Style) -> text_input::Appearance {
         self.focused(style)
+    }
+}
+
+
+impl waveform::StyleSheet for Theme {
+    type Style = ();
+
+    fn appearance(&self, _style: &Self::Style) -> waveform::Appearance {
+        let p = self.inner();
+
+        waveform::Appearance {
+            background: Background::Color(p.background),
+            wave_color: p.accent,
+            cursor_color: p.accent,
+            border_radius: BORDER_RADIUS.into(),
+            border_width: BORDER_WIDTH,
+            border_color: p.border,
+        }
     }
 }

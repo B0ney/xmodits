@@ -1,3 +1,5 @@
+mod wave_cache;
+
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -8,8 +10,11 @@ use iced::window::Id;
 use iced::{Command, Length};
 
 use crate::widget::helpers::{centered_container, centered_text, fill_container, warning};
+use crate::widget::waveform::{WaveData, Waveform};
 use crate::widget::{Button, Collection, Container, Element, Row};
 use crate::{icon, theme};
+
+use self::wave_cache::WaveCache;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -36,6 +41,7 @@ pub struct SamplePreviewWindow {
     selected: Option<(usize, SampleInfo)>,
     pub hovered: bool,
     play_on_select: bool,
+    wave_cache: WaveCache,
 }
 
 impl SamplePreviewWindow {
@@ -48,6 +54,7 @@ impl SamplePreviewWindow {
             state: State::Play,
             selected: None,
             play_on_select: true,
+            wave_cache: WaveCache::default(),
         }
     }
 
@@ -84,7 +91,10 @@ impl SamplePreviewWindow {
                 }
             }
             Message::Loaded(result) => match Arc::into_inner(result).unwrap() {
-                Ok(sample_pack) => self.sample_pack = Some(sample_pack),
+                Ok(sample_pack) => {
+                    self.wave_cache.cache.clear();
+                    self.sample_pack = Some(sample_pack)
+                }
                 Err(err) => tracing::error!("{}", err),
             },
             Message::Info(smp) => {
@@ -132,7 +142,14 @@ impl SamplePreviewWindow {
 
         let top_right = column![top_right, play_on_select,].spacing(5).width(Length::Fill);
 
-        let bottom = fill_container("Really cool looking waveform")
+        let wave_form = column![].push_maybe(
+            self.selected
+                .as_ref()
+                .map(|(idx, _)| self.wave_cache.cache.get(&idx).map(Waveform::new))
+                .flatten(),
+        );
+
+        let bottom = fill_container(wave_form)
             .padding(8)
             .style(theme::Container::BlackHovered(self.hovered))
             .height(Length::FillPortion(2));
