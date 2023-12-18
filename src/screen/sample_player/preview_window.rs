@@ -10,7 +10,7 @@ use iced::window::Id;
 use iced::{Command, Length};
 
 use crate::widget::helpers::{centered_container, centered_text, fill_container, warning};
-use crate::widget::waveform::{WaveData, Waveform};
+use crate::widget::waveform_view::{WaveData, WaveformViewer};
 use crate::widget::{Button, Collection, Container, Element, Row};
 use crate::{icon, theme};
 
@@ -93,7 +93,13 @@ impl SamplePreviewWindow {
             Message::Loaded(result) => match Arc::into_inner(result).unwrap() {
                 Ok(sample_pack) => {
                     self.wave_cache.cache.clear();
-                    self.sample_pack = Some(sample_pack)
+                    self.sample_pack = Some(sample_pack);
+
+                    for (idx, result) in self.sample_pack.as_ref().unwrap().samples.iter().enumerate() {
+                        if let Ok((_, sample)) = result {
+                            self.wave_cache.generate(idx, sample)
+                        }
+                    }
                 }
                 Err(err) => tracing::error!("{}", err),
             },
@@ -145,7 +151,7 @@ impl SamplePreviewWindow {
         let wave_form = column![].push_maybe(
             self.selected
                 .as_ref()
-                .map(|(idx, _)| self.wave_cache.cache.get(&idx).map(Waveform::new))
+                .map(|(idx, _)| self.wave_cache.cache.get(&idx).map(WaveformViewer::new))
                 .flatten(),
         );
 

@@ -2,8 +2,8 @@ use std::{fmt::Debug, time::Duration};
 
 #[derive(Clone)]
 pub struct SampleBuffer {
-    buf: Vec<Vec<f32>>,
-    rate: u32,
+    pub buf: Vec<Vec<f32>>,
+    pub rate: u32,
 }
 
 impl SampleBuffer {
@@ -37,6 +37,33 @@ impl SampleBuffer {
             .get(frame / self.channels())
             .copied()
     }
+
+    pub fn peaks(&self, interval: Duration) -> Vec<Vec<f32>> {
+        self.buf
+            .iter()
+            .map(|channel| peak(channel, self.rate, interval))
+            .collect()
+    }
+}
+
+fn peak(buf: &[f32], rate: u32, interval: Duration) -> Vec<f32> {
+    // let chunks = ((rate as f64 * 1000.0) / (interval.as_millis() as f64)).round() as usize;
+    let chunks = 64;
+
+    let find_max = |x: &[f32]| -> f32 {
+        let mut max = 0.0;
+
+        for i in x.iter().map(|f|f.abs()) {
+            if i > max {
+                max = i;
+            }
+        }
+        max
+    };
+
+    buf.chunks(chunks)
+        .map(find_max)
+        .collect()
 }
 
 impl From<xmodits_lib::dsp::SampleBuffer> for SampleBuffer {
