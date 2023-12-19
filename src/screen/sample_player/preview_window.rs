@@ -305,7 +305,7 @@ fn view_sample_info(info: Option<&SampleInfo>) -> Element<Message> {
                     "{} Hz, {}-bit ({}), {}",
                     smp.rate,
                     smp.bits(),
-                    if smp.is_signed() { "Singed" } else { "Unsigned" },
+                    if smp.is_signed() { "Signed" } else { "Unsigned" },
                     if smp.is_stereo() { "Stereo" } else { "Mono" },
                 ));
 
