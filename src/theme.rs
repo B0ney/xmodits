@@ -45,6 +45,7 @@ pub enum Button {
     HyperlinkInverted,
     Unavailable,
     Entry,
+    EntryError,
     Start,
     Delete,
     Dark,
@@ -112,6 +113,14 @@ impl button::StyleSheet for Theme {
                 border_radius: [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into(),
                 ..active_appearance(None, p.accent)
             },
+            Button::EntryError => button::Appearance {
+                background: Some(Background::Color(p.foreground)),
+                text_color: p.text,
+                border_radius: BORDER_RADIUS.into(),
+                border_width: BORDER_WIDTH,
+                border_color: p.border,
+                ..appearance
+            },
         }
     }
 
@@ -158,6 +167,10 @@ impl button::StyleSheet for Theme {
             Button::MediaEnd => button::Appearance {
                 border_radius: [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into(),
                 ..hover_appearance(p.accent, Some(p.text))
+            },
+            Button::EntryError => button::Appearance {
+                border_color: Color { a: 0.5, ..p.error },
+                ..hover_appearance(p.error, Some(p.text))
             },
         }
     }

@@ -1,20 +1,25 @@
+mod sample_info;
 mod wave_cache;
 
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::time::Duration;
 
 use audio_engine::{PlayerHandle, Sample, SamplePack, TrackerSample};
-use iced::widget::{button, checkbox, column, row, scrollable, text, Space};
+use iced::alignment::Horizontal;
+use iced::widget::scrollable::{Direction, Properties};
+use iced::widget::{button, checkbox, column, horizontal_rule, row, scrollable, text, Space};
 use iced::window::Id;
-use iced::{Command, Length};
+use iced::{Alignment, Command, Length};
 
 use crate::widget::helpers::{centered_container, centered_text, fill_container, warning};
 use crate::widget::waveform_view::{WaveData, WaveformViewer};
 use crate::widget::{Button, Collection, Container, Element, Row};
 use crate::{icon, theme};
 
-use self::wave_cache::WaveCache;
+use sample_info::SampleInfo;
+use wave_cache::WaveCache;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -81,17 +86,13 @@ impl SamplePreviewWindow {
             Message::Volume(vol) => self.player.set_volume(vol),
             Message::Load(path) => {
                 return match &self.sample_pack {
-                    Some(f) if !f.matches_path(&path) => {
-                        self.sample_pack = None;
-                        self.selected = None;
-
-                        load_sample_pack(path)
-                    }
+                    Some(f) if !f.matches_path(&path) => load_sample_pack(path),
                     _ => Command::none(),
                 }
             }
             Message::Loaded(result) => match Arc::into_inner(result).unwrap() {
                 Ok((sample_pack, wave_cache)) => {
+                    self.selected = None;
                     self.sample_pack = Some(sample_pack);
                     self.wave_cache = wave_cache;
                 }
@@ -125,7 +126,8 @@ impl SamplePreviewWindow {
             .padding(8)
             .style(theme::Container::BlackHovered(self.hovered))
             .width(Length::Fill)
-            .height(Length::Shrink);
+            .height(Length::Shrink)
+            .center_x();
 
         let sample_list = match &self.sample_pack {
             Some(pack) => view_samples(&pack.samples),
@@ -153,7 +155,7 @@ impl SamplePreviewWindow {
         let bottom = fill_container(waveform_viewer).height(Length::FillPortion(2));
 
         let warning = warning(
-            || true,
+            || false,
             "Whoops! This is a placeholder error in case something bad happens...",
         );
 
@@ -238,41 +240,6 @@ fn load_sample_pack(path: PathBuf) -> Command<Message> {
     )
 }
 
-#[derive(Debug, Clone)]
-pub enum SampleInfo {
-    Invalid { reason: String },
-    Sample(Sample),
-}
-
-impl SampleInfo {
-    pub fn title(&self) -> String {
-        match &self {
-            Self::Sample(smp) => smp.filename_pretty().to_string(),
-            Self::Invalid { .. } => "ERROR".into(),
-        }
-    }
-}
-
-impl From<&Result<(Sample, TrackerSample), xmodits_lib::Error>> for SampleInfo {
-    fn from(value: &Result<(Sample, TrackerSample), xmodits_lib::Error>) -> Self {
-        match value {
-            Ok((smp, _)) => Self::Sample(smp.to_owned()),
-            Err(e) => Self::Invalid {
-                reason: e.to_string(),
-            },
-        }
-    }
-}
-fn view_sample_info(info: Option<&SampleInfo>) -> Element<Message> {
-    match info {
-        None => centered_container("Nothing selected...").into(),
-        Some(info) => match info {
-            SampleInfo::Invalid { reason } => centered_container(text(reason)).into(),
-            SampleInfo::Sample(smp) => centered_container(text(smp.filename_pretty())).into(),
-        },
-    }
-}
-
 fn view_samples(a: &[Result<(Sample, TrackerSample), xmodits_lib::Error>]) -> Element<Message> {
     scrollable(
         column(a.into_iter().enumerate().map(view_sample).collect())
@@ -286,14 +253,86 @@ fn view_sample(
     (index, result): (usize, &Result<(Sample, TrackerSample), xmodits_lib::Error>),
 ) -> Element<Message> {
     let info = SampleInfo::from(result);
-    let name = info.title();
+
+    let error_icon = || {
+        row![]
+            .push(Space::with_width(Length::Fill))
+            .push(icon::warning())
+            .align_items(iced::Alignment::Center)
+    };
+
+    let title = row![]
+        .push(text(format!("{} - {}", index + 1, info.title())))
+        .push_maybe(info.is_error().then_some(error_icon()))
+        .spacing(5);
+
+    let theme = match info.is_error() {
+        true => theme::Button::EntryError,
+        false => theme::Button::Entry,
+    };
 
     row![
-        button(text(format!("{index} - {name}")))
+        button(title)
             .width(Length::Fill)
-            .on_press(Message::Info((index, info)))
-            .style(theme::Button::Entry),
+            .style(theme)
+            .on_press(Message::Info((index, info))),
         Space::with_width(15)
     ]
     .into()
+}
+
+fn view_sample_info(info: Option<&SampleInfo>) -> Element<Message> {
+    match info {
+        None => centered_container("Nothing selected...").into(),
+        Some(info) => match info {
+            SampleInfo::Invalid { reason } => centered_container(text(reason)).into(),
+            SampleInfo::Sample(smp) => {
+                let sample_name =
+                    (!smp.name.trim().is_empty()).then_some(text(format!("Name: {}", smp.name.trim())));
+
+                let sample_filename = smp
+                    .filename
+                    .as_ref()
+                    // .filter(|f| !f.is_empty())
+                    .map(|n| text(format!("File Name: {}", n.trim())));
+
+                let metadata = text(format!(
+                    "{} Hz, {}-bit ({}), {}",
+                    smp.rate,
+                    smp.bits(),
+                    if smp.is_signed() { "Singed" } else { "Unsigned" },
+                    if smp.is_stereo() { "Stereo" } else { "Mono" },
+                ));
+
+                let round_100th = |x: f32| (x * 100.0).round() / 100.0;
+
+                let duration = Duration::from_micros(
+                    ((smp.length_frames() as f64 / smp.rate as f64) * 1_000_000.0) as u64,
+                );
+                let duration_secs = round_100th(duration.as_secs_f32());
+                let plural = if duration_secs == 1.0 { "" } else { "s" };
+                let duration = text(format!("Duration: {} sec{plural}", duration_secs));
+
+                let size = match smp.length {
+                    l if l < 1000 => format!("{} bytes", l),
+                    l if l < 1_000_000 => format!("{} KB", round_100th(l as f32 / 1000.0)),
+                    l => format!("{} MB", round_100th(l as f32 / 1_000_000.0)),
+                };
+
+                let info = column![]
+                    .push_maybe(sample_name)
+                    .push_maybe(sample_filename)
+                    .push(duration)
+                    .push(text(format!("Size: {}", size)))
+                    .push(text(format!("Loop type: {:#?}", smp.looping.kind())))
+                    .push(text(format!("Internal Index: {}", smp.index_raw())))
+                    .push(horizontal_rule(1))
+                    .push(metadata)
+                    .push(horizontal_rule(1))
+                    .spacing(5)
+                    .align_items(Alignment::Center);
+                centered_container(info).into()
+            }
+        },
+    }
 }
