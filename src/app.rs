@@ -460,7 +460,7 @@ impl Application for XMODITS {
 
         let top_left_menu = row![
             button("Ripping").on_press(Message::ConfigPressed),
-            button("Filters").on_press(Message::FilterPressed),
+            // button("Filters").on_press(Message::FilterPressed),
             // button("History").on_press(Message::HistoryPressed),
             button("Settings").on_press(Message::SettingsPressed),
             button("About").on_press(Message::AboutPressed),
