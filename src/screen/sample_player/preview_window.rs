@@ -222,13 +222,18 @@ where
 fn load_sample_pack(path: PathBuf) -> Command<Message> {
     Command::perform(
         async {
-            tracing::info!("loading samples...");
             tokio::task::spawn_blocking(move || {
+                const MAX_SIZE: u64 = 40 * 1024 * 1024;
+
                 let mut file = File::open(&path)?;
+
+                if file.metadata()?.len() > MAX_SIZE {
+                    return Err(xmodits_lib::Error::io_error("File size is exceeds 40 MB").unwrap_err());
+                }
+
                 let module = xmodits_lib::load_module(&mut file)?;
                 let sample_pack = SamplePack::build(&*module).with_path(path);
                 let wave_cache = WaveCache::from_sample_pack(&sample_pack);
-                // tracing::debug!("{:#?}", &sample_pack);
 
                 Ok((sample_pack, wave_cache))
             })

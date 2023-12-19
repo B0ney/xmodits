@@ -34,9 +34,11 @@ impl SamplePreview {
     }
 
     pub fn update_window(&mut self, id: Id, msg: preview_window::Message) -> Command<Message> {
-        self.get_window_mut(id)
-            .update(msg)
-            .map(move |msg| Message::Window(id, msg))
+        // If the window has closed, discard the message
+        match self.windows.get_mut(&id) {
+            None => Command::none(),
+            Some(window) => window.update(msg).map(move |msg| Message::Window(id, msg)),
+        }
     }
 
     pub fn view(&self, id: Id) -> Element<Message> {
