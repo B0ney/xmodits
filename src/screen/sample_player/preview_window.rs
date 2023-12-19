@@ -14,7 +14,7 @@ use iced::window::Id;
 use iced::{Alignment, Command, Length};
 
 use crate::widget::helpers::{centered_container, centered_text, fill_container, warning};
-use crate::widget::waveform_view::{WaveData, WaveformViewer};
+use crate::widget::waveform_view::{WaveData, WaveformViewer, Marker};
 use crate::widget::{Button, Collection, Container, Element, Row};
 use crate::{icon, theme};
 
@@ -149,6 +149,14 @@ impl SamplePreviewWindow {
                 .as_ref()
                 .map(|(idx, _)| self.wave_cache.cache.get(&idx))
                 .flatten(),
+        )
+        .with_markers(
+            &[
+                Marker(0.5),
+                Marker(1.0),
+                Marker(0.3),
+                Marker(0.1),
+            ]
         )
         .style(theme::WaveformView::Hovered(self.hovered));
 
