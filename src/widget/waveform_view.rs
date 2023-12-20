@@ -20,6 +20,7 @@ pub use wave::WaveData;
 use self::wave::Local;
 
 const BAR_OVERLAP: f32 = 0.5;
+const SCALE: f32 = 1.1;
 
 pub struct WaveformViewer<'a, Message, Renderer>
 where
@@ -131,6 +132,7 @@ impl State {
         } else {
             self.interpolated = None;
             self.wave_id = 0;
+            self.zoom = 1.0;
         }
     }
 }
@@ -235,8 +237,8 @@ where
                     let mut zoom_wave = |y: f32| match self.wave {
                         Some(wave) => {
                             match y > 0.0 {
-                                true => state.zoom *= 1.2,
-                                false => state.zoom /= 1.2,
+                                true => state.zoom *= SCALE,
+                                false => state.zoom /= SCALE,
                             };
                             state.zoom_wave(wave);
                             iced::event::Status::Captured
@@ -254,7 +256,7 @@ where
             iced::Event::Keyboard(keyboard::Event::KeyReleased { key_code, .. }) => match key_code {
                 KeyCode::Up => match self.wave {
                     Some(wave) => {
-                        state.zoom *= 1.2;
+                        state.zoom *= SCALE;
                         state.zoom_wave(wave);
                         iced::event::Status::Captured
                     }
@@ -262,7 +264,7 @@ where
                 },
                 KeyCode::Down => match self.wave {
                     Some(wave) => {
-                        state.zoom /= 1.2;
+                        state.zoom /= SCALE;
                         state.zoom_wave(wave);
                         iced::event::Status::Captured
                     }
@@ -329,8 +331,8 @@ where
             let wave_offset = state.wave_offset.min(wave.len().saturating_sub(1));
 
             for offset in wave_offset..wave.len() {
-                let wave_maxima = ((layout_height * 0.90) / 2.0) * wave[offset].maxima;
-                let wave_minima = ((layout_height * 0.90) / 2.0) * wave[offset].minima.abs();
+                let wave_maxima = (layout_height/ 2.0) * wave[offset].maxima;
+                let wave_minima = (layout_height  / 2.0) * wave[offset].minima.abs();
 
                 let x = layout.bounds().x + offset as f32 - wave_offset as f32;
 
