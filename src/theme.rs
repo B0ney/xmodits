@@ -6,8 +6,6 @@ use iced::{application, overlay, Background, Color};
 
 use data::theme;
 
-use crate::widget::waveform_view;
-
 const BORDER_RADIUS: f32 = 5.0;
 const BORDER_WIDTH: f32 = 1.5;
 
@@ -635,19 +633,21 @@ impl text_input::StyleSheet for Theme {
 }
 
 #[derive(Default)]
+#[cfg(feature = "audio")]
 pub enum WaveformView {
     #[default]
     Normal,
     Hovered(bool)
 }
 
-impl waveform_view::StyleSheet for Theme {
+#[cfg(feature = "audio")]
+impl crate::widget::waveform_view::StyleSheet for Theme {
     type Style = WaveformView;
 
-    fn appearance(&self, style: &Self::Style) -> waveform_view::Appearance {
+    fn appearance(&self, style: &Self::Style) -> crate::widget::waveform_view::Appearance {
         let p = self.inner();
 
-        let default = waveform_view::Appearance {
+        let default = crate::widget::waveform_view::Appearance {
             background: Background::Color(p.background),
             wave_color: p.accent,
             cursor_color: p.text,
@@ -658,7 +658,7 @@ impl waveform_view::StyleSheet for Theme {
 
         match style {
             WaveformView::Normal => default,
-            WaveformView::Hovered(hovered) => waveform_view::Appearance {
+            WaveformView::Hovered(hovered) => crate::widget::waveform_view::Appearance {
                 border_color: if *hovered { p.accent } else { p.border },
                 ..default
             }

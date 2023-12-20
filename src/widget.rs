@@ -6,8 +6,9 @@
 
 pub mod animation;
 pub mod collection;
-pub mod context_menu;
 pub mod helpers;
+
+#[cfg(feature = "audio")]
 pub mod waveform_view;
 
 pub use self::collection::Collection;

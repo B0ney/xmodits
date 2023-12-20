@@ -10,7 +10,7 @@ repository = "https://github.com/B0ney/xmodits"
 
 [features]
 default = ["built", "audio", "iced_gif"]
-audio = ["audio_engine"]
+audio = ["audio_engine", "dasp"]
 wgpu = ["iced/wgpu"]
 
 [workspace]
@@ -69,6 +69,7 @@ parking_lot = "0.12"
 rayon = "1"
 once_cell = "1"
 tempfile = "3"
+dasp = { version = "0.11.0", features = ["interpolate-linear"], optional = true }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.48", features = ["Win32_System_Console", "Win32_Foundation"] }

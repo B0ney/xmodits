@@ -1,17 +1,72 @@
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static ID: AtomicU64 = AtomicU64::new(0);
+
+fn unique_id() -> u64 {
+    ID.fetch_add(1, Ordering::Relaxed)
+}
+
 #[derive(Debug, Clone)]
-pub struct WaveData(pub Vec<Vec<Local>>);
+pub struct WaveData {
+    id: u64,
+    peaks: Vec<Vec<Local>>,
+}
+
+impl WaveData {
+    pub fn new<L>(wave: Vec<Vec<L>>) -> Self
+    where
+        Local: From<L>,
+    {
+        Self::from(wave)
+    }
+
+    pub fn peaks(&self) -> &Vec<Vec<Local>> {
+        &self.peaks
+    }
+
+    pub fn id(&self) -> u64 {
+        self.id
+    }
+}
+
+
+pub fn zoom(wave: &WaveData, factor: f32) -> WaveData {
+    use dasp::interpolate::linear::Linear;
+    use dasp::signal::{self, Signal};
+    use signal::interpolate::Converter;
+
+    let locals: Vec<Vec<Local>> = wave
+        .peaks()
+        .iter()
+        .map(|wave| {
+            let signal_ = signal::from_iter(wave.iter().map(|f| [f.maxima, f.minima]));
+            let interpolator = Linear::new([0.0, 0.0], [0.0, 0.0]);
+            let mut converter = Converter::scale_playback_hz(signal_, interpolator, 1.0 / factor as f64);
+
+            let mut output: Vec<Local> = Vec::new();
+
+            while !converter.is_exhausted() {
+                output.push(converter.next().into())
+            }
+            output
+        })
+        .collect();
+
+    WaveData::from(locals)
+}
 
 impl<L> From<Vec<Vec<L>>> for WaveData
 where
     Local: From<L>,
 {
     fn from(value: Vec<Vec<L>>) -> Self {
-        Self(
-            value
+        Self {
+            id: unique_id(),
+            peaks: value
                 .into_iter()
                 .map(|f| f.into_iter().map(Local::from).collect())
                 .collect(),
-        )
+        }
     }
 }
 
