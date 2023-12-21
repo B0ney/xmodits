@@ -32,7 +32,7 @@ features = ["serde"]
 # version = "0.12.0"
 git = "https://github.com/iced-rs/iced.git"
 default-features = false
-features = ["image", "tokio", "multi-window", "advanced"]
+features = ["image", "tokio", "multi-window", "advanced", "canvas"]
 
 # [dependencies.iced_aw]
 # git = "https://github.com/B0ney/iced_aw.git"

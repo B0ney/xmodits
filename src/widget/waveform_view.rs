@@ -6,12 +6,13 @@ mod style;
 mod wave;
 
 use iced::advanced::layout::{self, Layout};
-use iced::advanced::renderer;
+use iced::advanced::renderer::{self, Renderer as _};
 use iced::advanced::widget::{self, Widget};
 use iced::keyboard::KeyCode;
 use iced::mouse::Button;
+use iced::widget::canvas::{self, Cache, Renderer as _};
 use iced::window::Action;
-use iced::{keyboard, BorderRadius, Color, Element, Length, Point, Rectangle};
+use iced::{keyboard, BorderRadius, Color, Element, Length, Point, Rectangle, Renderer};
 
 pub use marker::Marker;
 pub use style::{Appearance, StyleSheet};
@@ -22,23 +23,21 @@ use self::wave::Local;
 const BAR_OVERLAP: f32 = 0.5;
 const SCALE: f32 = 1.1;
 
-pub struct WaveformViewer<'a, Message, Renderer>
+pub struct WaveformViewer<'a, Message, Theme>
 where
-    Renderer: renderer::Renderer,
-    Renderer::Theme: StyleSheet,
+    Theme: StyleSheet,
 {
     wave: Option<&'a WaveData>,
     markers: Option<Vec<Marker>>,
     width: Length,
     height: Length,
     on_cursor_click: Option<Box<dyn Fn(f32) -> Message + 'a>>,
-    style: <Renderer::Theme as StyleSheet>::Style,
+    style: Theme::Style,
 }
 
-impl<'a, Message, Renderer> WaveformViewer<'a, Message, Renderer>
+impl<'a, Message, Theme> WaveformViewer<'a, Message, Theme>
 where
-    Renderer: renderer::Renderer,
-    Renderer::Theme: StyleSheet,
+    Theme: StyleSheet,
 {
     pub fn new(wave: &'a WaveData) -> Self {
         Self::new_maybe(Some(wave))
@@ -85,7 +84,7 @@ where
         }
     }
 
-    pub fn style(mut self, style: <Renderer::Theme as StyleSheet>::Style) -> Self {
+    pub fn style(mut self, style: Theme::Style) -> Self {
         self.style = style;
         self
     }
@@ -120,6 +119,7 @@ struct State {
     zoom: f32,
     interpolated: Option<WaveData>,
     wave_id: u64,
+    cache: Cache,
 }
 
 impl State {
@@ -148,10 +148,9 @@ impl State {
     }
 }
 
-impl<'a, Message, Renderer> Widget<Message, Renderer> for WaveformViewer<'a, Message, Renderer>
+impl<'a, Message, Theme> Widget<Message, Renderer<Theme>> for WaveformViewer<'a, Message, Theme>
 where
-    Renderer: renderer::Renderer,
-    Renderer::Theme: StyleSheet,
+    Theme: StyleSheet,
 {
     fn tag(&self) -> widget::tree::Tag {
         widget::tree::Tag::of::<State>()
@@ -168,7 +167,7 @@ where
     fn layout(
         &self,
         _tree: &mut widget::Tree,
-        _renderer: &Renderer,
+        _renderer: &Renderer<Theme>,
         limits: &layout::Limits,
     ) -> iced::advanced::layout::Node {
         layout::Node::new(limits.max())
@@ -182,6 +181,7 @@ where
         let state = tree.state.downcast_mut::<State>();
 
         let Some(wave) = self.wave else {
+            state.cache.clear();
             state.interpolated = None;
             state.wave_id = 0;
             state.zoom = 1.0;
@@ -189,6 +189,7 @@ where
         };
 
         if state.interpolated.is_some() && state.wave_id != wave.id() {
+            state.cache.clear();
             state.zoom_wave(wave);
             state.wave_id = wave.id();
         }
@@ -200,7 +201,7 @@ where
         event: iced::Event,
         layout: Layout<'_>,
         cursor: iced::advanced::mouse::Cursor,
-        _renderer: &Renderer,
+        _renderer: &Renderer<Theme>,
         _clipboard: &mut dyn iced::advanced::Clipboard,
         shell: &mut iced::advanced::Shell<'_, Message>,
         _viewport: &Rectangle,
@@ -305,8 +306,8 @@ where
     fn draw(
         &self,
         tree: &widget::Tree,
-        renderer: &mut Renderer,
-        theme: &Renderer::Theme,
+        renderer: &mut Renderer<Theme>,
+        theme: &Theme,
         _style: &renderer::Style,
         layout: Layout<'_>,
         cursor: iced::advanced::mouse::Cursor,
@@ -352,7 +353,7 @@ where
         );
 
         // Draw waveform
-        if let Some(waveform) = self.get_wave(state) {
+        if let Some(waveform) = self.get_wave(state) {    
             let wave = &waveform.peaks()[0];
             let wave_offset = state.wave_offset.min(wave.len().saturating_sub(1));
 
@@ -438,13 +439,12 @@ where
     }
 }
 
-impl<'a, Message, Renderer> From<WaveformViewer<'a, Message, Renderer>> for Element<'a, Message, Renderer>
+impl<'a, Message, Theme> From<WaveformViewer<'a, Message, Theme>> for Element<'a, Message, Renderer<Theme>>
 where
     Message: 'a,
-    Renderer: renderer::Renderer + 'a,
-    Renderer::Theme: StyleSheet,
+    Theme: StyleSheet + 'a,
 {
-    fn from(wave_form: WaveformViewer<'a, Message, Renderer>) -> Self {
+    fn from(wave_form: WaveformViewer<'a, Message, Theme>) -> Self {
         Self::new(wave_form)
     }
 }
