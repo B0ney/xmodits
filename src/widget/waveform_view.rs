@@ -28,7 +28,7 @@ where
     Renderer::Theme: StyleSheet,
 {
     wave: Option<&'a WaveData>,
-    markers: Option<&'a [Marker]>,
+    markers: Option<Vec<Marker>>,
     width: Length,
     height: Length,
     on_cursor_click: Option<Box<dyn Fn(f32) -> Message + 'a>>,
@@ -55,9 +55,34 @@ where
         }
     }
 
-    pub fn with_markers(mut self, marker: &'a [Marker]) -> Self {
-        self.markers = Some(marker);
+    pub fn markers<I>(mut self, markers: I) -> Self
+    where
+        I: IntoIterator<Item = Marker>,
+    {
+        self.markers.get_or_insert(Vec::new()).extend(markers);
         self
+    }
+
+    pub fn markers_maybe<I>(self, markers: Option<I>) -> Self
+    where
+        I: IntoIterator<Item = Marker>,
+    {
+        match markers {
+            Some(markers) => self.markers(markers),
+            None => self,
+        }
+    }
+
+    pub fn marker(mut self, marker: Marker) -> Self {
+        self.markers.get_or_insert(Vec::new()).push(marker);
+        self
+    }
+
+    pub fn marker_maybe(self, marker: Option<Marker>) -> Self {
+        match marker {
+            Some(marker) => self.marker(marker),
+            None => self,
+        }
     }
 
     pub fn style(mut self, style: <Renderer::Theme as StyleSheet>::Style) -> Self {
@@ -123,16 +148,16 @@ impl State {
     }
 
     fn update_wave_on_diff(&mut self, wave: Option<&WaveData>) {
-        // update the wave
-        if let Some(wave) = wave {
-            if self.interpolated.is_some() && self.wave_id != wave.id() {
-                self.zoom_wave(wave);
-                self.wave_id = wave.id();
-            }
-        } else {
+        let Some(wave) = wave else {
             self.interpolated = None;
             self.wave_id = 0;
             self.zoom = 1.0;
+            return;
+        };
+
+        if self.interpolated.is_some() && self.wave_id != wave.id() {
+            self.zoom_wave(wave);
+            self.wave_id = wave.id();
         }
     }
 }
@@ -331,8 +356,8 @@ where
             let wave_offset = state.wave_offset.min(wave.len().saturating_sub(1));
 
             for offset in wave_offset..wave.len() {
-                let wave_maxima = (layout_height/ 2.0) * wave[offset].maxima;
-                let wave_minima = (layout_height  / 2.0) * wave[offset].minima.abs();
+                let wave_maxima = (layout_height / 2.0) * wave[offset].maxima;
+                let wave_minima = (layout_height / 2.0) * wave[offset].minima.abs();
 
                 let x = layout.bounds().x + offset as f32 - wave_offset as f32;
 
@@ -358,7 +383,7 @@ where
             }
 
             // Draw markers - only do so if we're rendering the waveform
-            if let Some(markers) = self.markers {
+            if let Some(markers) = &self.markers {
                 let wave_width = wave.len() as f32;
 
                 for marker in markers {

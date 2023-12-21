@@ -29,7 +29,7 @@ impl WaveData {
     }
 }
 
-
+// use linear interpolation to regenerate wave peaks at the desired scale
 pub fn zoom(wave: &WaveData, factor: f32) -> WaveData {
     use dasp::interpolate::linear::Linear;
     use dasp::signal::{self, Signal};
@@ -39,15 +39,18 @@ pub fn zoom(wave: &WaveData, factor: f32) -> WaveData {
         .peaks()
         .iter()
         .map(|wave| {
-            let signal_ = signal::from_iter(wave.iter().map(|f| [f.maxima, f.minima]));
-            let interpolator = Linear::new([0.0, 0.0], [0.0, 0.0]);
-            let mut converter = Converter::scale_playback_hz(signal_, interpolator, 1.0 / factor as f64);
-
-            let mut output: Vec<Local> = Vec::new();
+            let mut output = Vec::new();
+            let signal = wave.iter().map(|f| [f.maxima, f.minima]);
+            let mut converter = Converter::scale_playback_hz(
+                signal::from_iter(signal),
+                Linear::new([0.0, 0.0], [0.0, 0.0]),
+                1.0 / factor as f64,
+            );          
 
             while !converter.is_exhausted() {
                 output.push(converter.next().into())
             }
+
             output
         })
         .collect();

@@ -4,17 +4,18 @@ mod wave_cache;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use audio_engine::{PlayerHandle, Sample, SamplePack, TrackerSample};
 use iced::alignment::Horizontal;
 use iced::widget::scrollable::{Direction, Properties};
 use iced::widget::{button, checkbox, column, horizontal_rule, row, scrollable, text, Space};
 use iced::window::Id;
-use iced::{Alignment, Command, Length};
+use iced::{command, Alignment, Command, Length};
+use tokio::sync::mpsc::{self, Receiver, UnboundedReceiver};
 
 use crate::widget::helpers::{centered_container, centered_text, fill_container, warning};
-use crate::widget::waveform_view::{WaveData, WaveformViewer, Marker};
+use crate::widget::waveform_view::{Marker, WaveData, WaveformViewer};
 use crate::widget::{Button, Collection, Container, Element, Row};
 use crate::{icon, theme};
 
@@ -27,6 +28,7 @@ pub enum Message {
     Pause,
     Stop,
     Volume(f32),
+    Progress(Option<f32>),
     Loaded(Arc<Result<(SamplePack, WaveCache), xmodits_lib::Error>>),
     Load(PathBuf),
     Info((usize, SampleInfo)),
@@ -47,6 +49,7 @@ pub struct SamplePreviewWindow {
     pub hovered: bool,
     play_on_select: bool,
     wave_cache: WaveCache,
+    progress: Option<f32>,
 }
 
 impl SamplePreviewWindow {
@@ -60,27 +63,29 @@ impl SamplePreviewWindow {
             selected: None,
             play_on_select: true,
             wave_cache: WaveCache::default(),
+            progress: None,
         }
     }
 
-    pub fn play(&self) {
+    pub fn play(&mut self) -> Command<Message> {
         self.player.stop();
         let Some(sample_pack) = &self.sample_pack else {
-            return;
+            return Command::none();
         };
 
         let Some((index, _)) = self.selected else {
-            return;
+            return Command::none();
         };
 
-        if let Ok((_, sample)) = &sample_pack.samples[index] {
-            self.player.play(sample.clone());
-        };
+        match &sample_pack.samples[index] {
+            Ok((_, sample)) => play_sample(&self.player, sample.clone()),
+            _ => return Command::none(),
+        }
     }
 
     pub fn update(&mut self, msg: Message) -> Command<Message> {
         match msg {
-            Message::Play => self.play(),
+            Message::Play => return self.play(),
             Message::Pause => self.player.pause(),
             Message::Stop => self.player.stop(),
             Message::Volume(vol) => self.player.set_volume(vol),
@@ -102,10 +107,11 @@ impl SamplePreviewWindow {
                 self.selected = Some(smp);
 
                 if self.play_on_select {
-                    self.play();
+                    return self.play();
                 }
             }
             Message::SetPlayOnSelect(play_on_select) => self.play_on_select = play_on_select,
+            Message::Progress(progress) => self.progress = progress,
         }
         Command::none()
     }
@@ -144,28 +150,19 @@ impl SamplePreviewWindow {
 
         let top_right = column![top_right, play_on_select].spacing(5).width(Length::Fill);
 
-        let waveform_viewer = WaveformViewer::new_maybe(
-            self.selected
-                .as_ref()
-                .map(|(idx, _)| self.wave_cache.cache.get(&idx))
-                .flatten(),
-        )
-        .with_markers(
-            &[
-                Marker(0.5),
-                Marker(1.0),
-                Marker(0.3),
-                Marker(0.1),
-            ]
-        )
-        .style(theme::WaveformView::Hovered(self.hovered));
+        let waveform = self
+            .selected
+            .as_ref()
+            .map(|(idx, _)| self.wave_cache.cache.get(&idx))
+            .flatten();
+
+        let waveform_viewer = WaveformViewer::new_maybe(waveform)
+            .marker_maybe(self.progress.map(Marker))
+            .style(theme::WaveformView::Hovered(self.hovered));
 
         let bottom = fill_container(waveform_viewer).height(Length::FillPortion(2));
 
-        let warning = warning(
-            || false,
-            "Whoops! This is a placeholder error in case something bad happens...",
-        );
+        let warning = warning(|| false, "WARNING - This sample is most likely static noise.");
 
         let main = column![
             row![top_left, top_right]
@@ -225,6 +222,32 @@ where
     }
 
     media_row.into()
+}
+
+const PLAY_CURSOR_FPS: f32 = 60.0;
+
+fn play_sample(handle: &PlayerHandle, source: TrackerSample) -> Command<Message> {
+    let (sender, mut receiver) = mpsc::unbounded_channel::<f32>();
+
+    let callback = move |sample: &TrackerSample, duration: &mut Instant| {
+        let fps_interval: Duration =
+            Duration::from_millis(((1.0_f32 / PLAY_CURSOR_FPS) * 1000.0).round() as u64);
+
+        if duration.elapsed().as_millis() > fps_interval.as_millis() {
+            *duration = Instant::now();
+            let progress = sample.frame() as f32 / sample.buf.frames() as f32;
+            let _ = sender.send(progress);
+        }
+    };
+
+    handle.play_with_callback(source, callback);
+
+    command::channel(256, |mut s| async move {
+        while let Some(new_progress) = receiver.recv().await {
+            let _ = s.try_send(Message::Progress(Some(new_progress)));
+        }
+        let _ = s.try_send(Message::Progress(None));
+    })
 }
 
 fn load_sample_pack(path: PathBuf) -> Command<Message> {

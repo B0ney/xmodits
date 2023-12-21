@@ -1,4 +1,6 @@
-use crate::sample::TrackerSample;
+use std::time::Instant;
+
+use crate::sample::{FramesIter, TrackerSample};
 
 // TODO: Don't panic if there are no audio devices
 pub struct SamplePlayer {
@@ -28,7 +30,22 @@ pub struct PlayerHandle {
 
 impl PlayerHandle {
     pub fn play(&self, source: TrackerSample) {
-        self.sink.append(source);
+        self.sink.append(FramesIter {
+            sample: source,
+            timer: Instant::now(),
+            callback: None,
+        });
+    }
+
+    pub fn play_with_callback<F>(&self, source: TrackerSample, callback: F)
+    where
+        F: Fn(&TrackerSample, &mut Instant) + Send + 'static,
+    {
+        self.sink.append(FramesIter {
+            sample: source,
+            timer: Instant::now(),
+            callback: Some(Box::new(callback)),
+        });
     }
 
     pub fn stop(&self) {

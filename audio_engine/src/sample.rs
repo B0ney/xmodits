@@ -1,9 +1,9 @@
-use std::sync::Arc;
 pub mod buffer;
 
-use rodio::Source;
+use std::sync::Arc;
+use std::time::{Duration, Instant};
 
-pub use self::buffer::SampleBuffer;
+pub use buffer::SampleBuffer;
 
 #[derive(Debug, Clone)]
 pub struct TrackerSample {
@@ -22,32 +22,51 @@ impl TrackerSample {
             frame: 0,
         }
     }
+
+    pub fn channels(&self) -> usize {
+        self.buf.channels()
+    }
+
+    pub fn frame(&self) -> usize {
+        self.frame / self.buf.channels()
+    }
 }
 
-impl Iterator for TrackerSample {
+pub(crate) struct FramesIter {
+    pub sample: TrackerSample,
+    pub timer: Instant,
+    pub callback: Option<Box<dyn Fn(&TrackerSample, &mut Instant) + Send>>,
+}
+
+impl Iterator for FramesIter {
     type Item = f32;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let sample = self.buf.get_sample(self.frame);
-        self.frame += 1;
+        let tracker_sample = &mut self.sample;
+        let sample = tracker_sample.buf.get_sample(tracker_sample.frame);
+
+        if let Some(callback) = &self.callback {
+            callback(&tracker_sample, &mut self.timer);
+        }
+        tracker_sample.frame += 1;
         sample
     }
 }
 
-impl Source for TrackerSample {
+impl rodio::Source for FramesIter {
     fn current_frame_len(&self) -> Option<usize> {
         None
     }
 
     fn channels(&self) -> u16 {
-        self.buf.channels() as u16
+        self.sample.buf.channels() as u16
     }
 
     fn sample_rate(&self) -> u32 {
-        self.buf.rate()
+        self.sample.buf.rate()
     }
 
-    fn total_duration(&self) -> Option<std::time::Duration> {
-        Some(self.buf.duration())
+    fn total_duration(&self) -> Option<Duration> {
+        Some(self.sample.buf.duration())
     }
 }

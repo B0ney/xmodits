@@ -46,6 +46,7 @@ impl SampleBuffer {
     }
 }
 
+// calculate peaks and troughs from audio channel.
 fn peak(buf: &[f32], rate: u32, interval: Duration) -> Vec<(f32, f32)> {
     let chunks = ((rate as f64 / 1000.0) * (interval.as_millis() as f64)).round() as usize;
 
