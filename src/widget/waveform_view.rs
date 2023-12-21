@@ -146,20 +146,6 @@ impl State {
             self.interpolated = Some(interpolated);
         }
     }
-
-    fn update_wave_on_diff(&mut self, wave: Option<&WaveData>) {
-        let Some(wave) = wave else {
-            self.interpolated = None;
-            self.wave_id = 0;
-            self.zoom = 1.0;
-            return;
-        };
-
-        if self.interpolated.is_some() && self.wave_id != wave.id() {
-            self.zoom_wave(wave);
-            self.wave_id = wave.id();
-        }
-    }
 }
 
 impl<'a, Message, Renderer> Widget<Message, Renderer> for WaveformViewer<'a, Message, Renderer>
@@ -192,6 +178,22 @@ where
         widget::tree::State::new(State::new())
     }
 
+    fn diff(&self, tree: &mut widget::Tree) {
+        let state = tree.state.downcast_mut::<State>();
+
+        let Some(wave) = self.wave else {
+            state.interpolated = None;
+            state.wave_id = 0;
+            state.zoom = 1.0;
+            return;
+        };
+
+        if state.interpolated.is_some() && state.wave_id != wave.id() {
+            state.zoom_wave(wave);
+            state.wave_id = wave.id();
+        }
+    }
+
     fn on_event(
         &mut self,
         _state: &mut widget::Tree,
@@ -204,7 +206,6 @@ where
         _viewport: &Rectangle,
     ) -> iced::advanced::graphics::core::event::Status {
         let state = _state.state.downcast_mut::<State>();
-        state.update_wave_on_diff(self.wave);
 
         let cursor_in_bounds = || cursor.is_over(layout.bounds());
 
