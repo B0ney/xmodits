@@ -150,13 +150,7 @@ impl SamplePreviewWindow {
 
         let top_right = column![top_right, play_on_select].spacing(5).width(Length::Fill);
 
-        let waveform = self
-            .selected
-            .as_ref()
-            .map(|(idx, _)| self.wave_cache.cache.get(&idx))
-            .flatten();
-
-        let waveform_viewer = WaveformViewer::new_maybe(waveform)
+        let waveform_viewer = WaveformViewer::new_maybe(self.wave_cache())
             .marker_maybe(self.progress.map(Marker))
             .style(theme::WaveformView::Hovered(self.hovered));
 
@@ -197,6 +191,13 @@ impl SamplePreviewWindow {
             false => load_sample_pack(path),
         }
     }
+
+    fn wave_cache(&self) -> Option<&WaveData> {
+        self.selected
+            .as_ref()
+            .map(|(idx, _)| self.wave_cache.cache.get(&idx))
+            .flatten()
+    }
 }
 
 fn media_button<'a, Label, R, Message>(rows: R) -> Element<'a, Message>
@@ -230,8 +231,7 @@ fn play_sample(handle: &PlayerHandle, source: TrackerSample) -> Command<Message>
     let (sender, mut receiver) = mpsc::unbounded_channel::<f32>();
 
     let callback = move |sample: &TrackerSample, duration: &mut Instant| {
-        let fps_interval: Duration =
-            Duration::from_millis(((1.0_f32 / PLAY_CURSOR_FPS) * 1000.0).round() as u64);
+        let fps_interval = Duration::from_millis(((1.0 / PLAY_CURSOR_FPS) * 1000.0).round() as u64);
 
         if duration.elapsed().as_millis() > fps_interval.as_millis() {
             *duration = Instant::now();
