@@ -11,7 +11,6 @@ use crate::screen::config::custom_filters;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
 use crate::screen::config::sample_ripping::{self, DESTINATION_BAR_ID};
-use crate::screen::history::History;
 use crate::screen::main_panel;
 use crate::screen::sample_player;
 use crate::screen::settings;
@@ -38,7 +37,6 @@ const WINDOW_SIZE: Size = Size::new(780.0, 720.0);
 #[derive(Default)]
 pub struct XMODITS {
     entries: Entries,
-    // history: History,
     state: State,
     view: View,
     file_hovered: bool,
@@ -250,7 +248,6 @@ pub enum Message {
     FolderDialog,
     FontLoaded(Result<(), iced::font::Error>),
     GeneralCfg(settings::Message),
-    HistoryPressed,
     Ignore,
     InvertSelection,
     NamingCfg(sample_naming::Message),
@@ -304,7 +301,6 @@ impl Application for XMODITS {
             Message::ConfigPressed => self.view = View::Configure,
             Message::FilterPressed => self.view = View::Filters,
             Message::SettingsPressed => self.view = View::Settings,
-            Message::HistoryPressed => {}
             Message::Add(paths) => {
                 if self.state.is_ripping() {
                     return Command::none();
@@ -461,7 +457,6 @@ impl Application for XMODITS {
         let top_left_menu = row![
             button("Ripping").on_press(Message::ConfigPressed),
             // button("Filters").on_press(Message::FilterPressed),
-            // button("History").on_press(Message::HistoryPressed),
             button("Settings").on_press(Message::SettingsPressed),
             button("About").on_press(Message::AboutPressed),
         ]
