@@ -90,3 +90,32 @@ impl From<f32> for Local {
         }
     }
 }
+
+// use linear interpolation to regenerate wave peaks at the desired scale
+pub fn interpolate_zoom(wave: &WaveData, factor: f32) -> WaveData {
+    use dasp::interpolate::linear::Linear;
+    use dasp::signal::{self, Signal};
+    use signal::interpolate::Converter;
+
+    let locals: Vec<Vec<Local>> = wave
+        .peaks()
+        .iter()
+        .map(|wave| {
+            let mut output = Vec::new();
+            let signal = wave.iter().map(|f| [f.maxima, f.minima]);
+            let mut converter = Converter::scale_playback_hz(
+                signal::from_iter(signal),
+                Linear::new([0.0, 0.0], [0.0, 0.0]),
+                1.0 / factor as f64,
+            );          
+
+            while !converter.is_exhausted() {
+                output.push(converter.next().into())
+            }
+
+            output
+        })
+        .collect();
+
+    WaveData::from(locals)
+}

@@ -21,7 +21,7 @@ pub use wave::WaveData;
 use self::wave::Local;
 
 const BAR_OVERLAP: f32 = 0.5;
-const SCALE: f32 = 1.1;
+const SCALE: f32 = 1.5;
 
 pub struct WaveformViewer<'a, Message, Theme>
 where
@@ -96,6 +96,16 @@ where
         self.on_cursor_click = Some(Box::new(callback));
         self
     }
+
+    fn get_wave(&'a self, state: &'a State) -> Option<&'a WaveData>
+    where
+        Message: 'a,
+    {
+        match state.interpolated.as_ref() {
+            Some(wave) => Some(wave),
+            None => self.wave,
+        }
+    }
 }
 
 // Internal state of the widget
@@ -109,6 +119,7 @@ struct State {
     zoom: f32,
     wave_id: u64,
     cache: Cache,
+    interpolated: Option<WaveData>,
     wave: Option<canvas::Path>,
 }
 
@@ -122,12 +133,21 @@ impl State {
 
     fn reset_zoom(&mut self) {
         self.zoom = 1.0;
+        self.interpolated = None;
     }
 
     fn zoom_wave(&mut self) {
         const MAX: f32 = 10.0;
         self.zoom = self.zoom.clamp(0.05, 10.0);
         self.cache.clear();
+    }
+
+    fn zoom_in(&mut self) {
+
+    }
+
+    fn zoom_out(&mut self) {
+
     }
 }
 
@@ -140,7 +160,7 @@ fn build_waveform(peaks: &WaveData) -> canvas::Path {
     peaks.iter().enumerate().for_each(|(i, local)| {
         path.line_to(Point {
             x: i as f32,
-            y: 0.5 + ((1.0 / 2.0) * local.maxima.abs()),
+            y: 0.5 - ((1.0 / 2.0) * local.maxima.abs()),
         })
     });
 
@@ -148,7 +168,7 @@ fn build_waveform(peaks: &WaveData) -> canvas::Path {
     peaks.iter().enumerate().rev().for_each(|(i, local)| {
         path.line_to(Point {
             x: i as f32,
-            y: 0.5 - ((1.0 / 2.0) * local.minima.abs()),
+            y: 0.5 + ((1.0 / 2.0) * local.minima.abs()),
         })
     });
 
@@ -363,7 +383,7 @@ where
             appearance.wave_color,
         );
 
-        if let Some(peaks) = self.wave {
+        if let Some(peaks) = self.get_wave(state) {
             let waveform = state.cache.draw(renderer, layout.bounds().size(), |frame| {
                 // Get generated waveform
                 let path = state.wave.as_ref().expect("wave should be generated");
@@ -387,7 +407,7 @@ where
 
             // Draw markers - only do so if we're rendering the waveform
             if let Some(markers) = &self.markers {
-                let wave_width = peaks.peaks()[0].len() as f32;
+                let wave_width = peaks.peaks()[0].len() as f32 * state.zoom;
 
                 for marker in markers {
                     let x = layout.bounds().x + wave_width * marker.0 - state.wave_offset as f32;
