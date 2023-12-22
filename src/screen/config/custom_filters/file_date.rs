@@ -13,7 +13,7 @@ use iced::widget::{
     button, checkbox, column, horizontal_rule, pick_list, row, slider, text, text_input, tooltip,
 };
 
-use iced_aw::{date_picker::Date as icedDate, helpers::date_picker};
+// use iced_aw::{date_picker::Date as icedDate, helpers::date_picker};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Message {
@@ -21,7 +21,7 @@ pub enum Message {
     CancelPicker,
     SubmitDate {
         kind: DateKind,
-        date: iced_aw::core::date::Date,
+        // date: iced_aw::core::date::Date,
     },
     Condition(Condition),
 }
@@ -48,11 +48,11 @@ impl DateFilter {
                 self.show_date_picker = true;
             },
             Message::CancelPicker => self.show_date_picker = false,
-            Message::SubmitDate { date, kind } => {
-                match kind {
-                    DateKind::Before => self.inner.before = Some(date.into()),
-                    DateKind::After => self.inner.after = Some(date.into()),
-                }
+            Message::SubmitDate {  kind } => {
+                // match kind {
+                //     DateKind::Before => self.inner.before = Some(date.into()),
+                //     DateKind::After => self.inner.after = Some(date.into()),
+                // }
 
                 self.show_date_picker = false;
             },
