@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 use audio_engine::{PlayerHandle, Sample, SamplePack, TrackerSample};
 use iced::alignment::Horizontal;
 use iced::widget::scrollable::{Direction, Properties};
-use iced::widget::{button, checkbox, column, horizontal_rule, row, scrollable, text, Space};
+use iced::widget::{button, checkbox, column, horizontal_rule, progress_bar, row, scrollable, text, Space};
 use iced::window::Id;
 use iced::{command, Alignment, Command, Length};
 use tokio::sync::mpsc::{self, Receiver, UnboundedReceiver};
@@ -69,17 +69,10 @@ impl SamplePreviewWindow {
 
     pub fn play(&mut self) -> Command<Message> {
         self.player.stop();
-        let Some(sample_pack) = &self.sample_pack else {
-            return Command::none();
-        };
 
-        let Some((index, _)) = self.selected else {
-            return Command::none();
-        };
-
-        match &sample_pack.samples[index] {
-            Ok((_, sample)) => play_sample(&self.player, sample.clone()),
-            _ => return Command::none(),
+        match self.get_selected() {
+            Some(sample) => play_sample(&self.player, sample),
+            None => Command::none(),
         }
     }
 
@@ -162,7 +155,10 @@ impl SamplePreviewWindow {
             row![top_left, top_right]
                 .height(Length::FillPortion(3))
                 .spacing(5),
-            bottom
+            bottom,
+            progress_bar(0.0..=1.0, self.progress.unwrap_or_default())
+                .height(5.0)
+                .style(theme::ProgressBar::Dark)
         ]
         .push_maybe(warning)
         .spacing(5);
@@ -180,8 +176,7 @@ impl SamplePreviewWindow {
     pub fn matches_path(&self, path: &Path) -> bool {
         self.sample_pack
             .as_ref()
-            .map(|s| s.path.as_ref())
-            .flatten()
+            .and_then(|s| s.path.as_ref())
             .is_some_and(|s| s == path)
     }
 
@@ -195,8 +190,16 @@ impl SamplePreviewWindow {
     fn wave_cache(&self) -> Option<&WaveData> {
         self.selected
             .as_ref()
-            .map(|(idx, _)| self.wave_cache.cache.get(&idx))
-            .flatten()
+            .and_then(|(idx, _)| self.wave_cache.cache.get(idx))
+    }
+
+    fn get_selected(&self) -> Option<TrackerSample> {
+        let pack = self.sample_pack.as_ref()?;
+        let (index, _) = self.selected.as_ref()?;
+        pack.samples[*index]
+            .as_ref()
+            .ok()
+            .map(|(_, sample)| sample.clone())
     }
 }
 
@@ -233,7 +236,7 @@ fn play_sample(handle: &PlayerHandle, source: TrackerSample) -> Command<Message>
     let callback = move |sample: &TrackerSample, duration: &mut Instant| {
         let fps_interval = Duration::from_millis(((1.0 / PLAY_CURSOR_FPS) * 1000.0).round() as u64);
 
-        if duration.elapsed().as_millis() > fps_interval.as_millis() {
+        if duration.elapsed() > fps_interval {
             *duration = Instant::now();
             let progress = sample.frame() as f32 / sample.buf.frames() as f32;
             let _ = sender.send(progress);

@@ -89,6 +89,6 @@ fn get_img(src: &str) -> image::Handle {
     });
 
     MAP.get(src)
-        .expect(&format!("invalid key '{src}' provided"))
+        .unwrap_or_else(|| panic!("invalid key '{src}' provided"))
         .clone()
 }

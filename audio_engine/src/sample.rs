@@ -46,7 +46,7 @@ impl Iterator for FramesIter {
         let sample = tracker_sample.buf.get_sample(tracker_sample.frame);
 
         if let Some(callback) = &self.callback {
-            callback(&tracker_sample, &mut self.timer);
+            callback(tracker_sample, &mut self.timer);
         }
         tracker_sample.frame += 1;
         sample

@@ -379,19 +379,32 @@ impl pick_list::StyleSheet for Theme {
 pub enum ProgressBar {
     #[default]
     Default,
+    Dark,
     Disrupted,
 }
 
 impl progress_bar::StyleSheet for Theme {
     type Style = ProgressBar;
 
-    fn appearance(&self, _style: &Self::Style) -> progress_bar::Appearance {
+    fn appearance(&self, style: &Self::Style) -> progress_bar::Appearance {
         let p = self.inner();
 
-        progress_bar::Appearance {
+        let default = progress_bar::Appearance {
             background: Background::Color(p.middleground),
             bar: Background::Color(p.accent),
             border_radius: 64.0.into(),
+        };
+
+        match style {
+            ProgressBar::Default => default,
+            ProgressBar::Dark => progress_bar::Appearance {
+                background: Background::Color(p.background),
+                ..default
+            },
+            ProgressBar::Disrupted => progress_bar::Appearance {
+                bar: Background::Color(p.error),
+                ..default
+            },
         }
     }
 }
@@ -637,7 +650,7 @@ impl text_input::StyleSheet for Theme {
 pub enum WaveformView {
     #[default]
     Normal,
-    Hovered(bool)
+    Hovered(bool),
 }
 
 #[cfg(feature = "audio")]
@@ -661,7 +674,7 @@ impl crate::widget::waveform_view::StyleSheet for Theme {
             WaveformView::Hovered(hovered) => crate::widget::waveform_view::Appearance {
                 border_color: if *hovered { p.accent } else { p.border },
                 ..default
-            }
+            },
         }
     }
 }

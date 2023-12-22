@@ -44,7 +44,6 @@ mod build_info_inner {
 
     pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
         let information = info(false)
-            .into_iter()
             .fold(column![].spacing(4), |col, (label, value)| {
                 col.push(text(format!("{label}: {value}")).size(12))
             });

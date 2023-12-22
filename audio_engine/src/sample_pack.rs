@@ -28,7 +28,7 @@ impl SamplePack {
             .iter()
             .map(|smp| {
                 module.pcm(smp).map(|pcm| {
-                    let sample = dsp::SampleBuffer::from(dsp::RawSample::new(&smp, pcm));
+                    let sample = dsp::SampleBuffer::from(dsp::RawSample::new(smp, pcm));
                     let sample = TrackerSample::new(SampleBuffer::from(sample));
 
                     (smp.to_owned(), sample)

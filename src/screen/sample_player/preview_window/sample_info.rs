@@ -15,7 +15,7 @@ impl SampleInfo {
     }
     
     pub fn is_error(&self) -> bool {
-        return matches!(self, Self::Invalid { .. });
+        matches!(self, Self::Invalid { .. })
     }
 }
 

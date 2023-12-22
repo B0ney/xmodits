@@ -104,8 +104,8 @@ impl SamplePreview {
     }
 
     pub fn close_all(&mut self) -> Command<Message> {
-        let command = Command::batch(self.windows.iter().map(|(id, _)| window::close(*id)));
+        let command = Command::batch(self.windows.keys().map(|id| window::close(*id)));
         self.windows.clear();
-        return command;
+        command
     }
 }

@@ -13,7 +13,7 @@ use tracing::{error, info};
 #[cfg(feature = "iced_gif")]
 use iced_gif::gif;
 
-pub static GIF: Lazy<Animation> = Lazy::new(|| Animation::new());
+pub static GIF: Lazy<Animation> = Lazy::new(Animation::new);
 
 pub struct Animation {
     #[cfg(feature = "iced_gif")]
