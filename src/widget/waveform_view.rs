@@ -10,7 +10,7 @@ use iced::advanced::renderer::{self, Renderer as _};
 use iced::advanced::widget::{self, Widget};
 use iced::keyboard::KeyCode;
 use iced::mouse::Button;
-use iced::widget::canvas::{self, Cache, Renderer as _};
+use iced::widget::canvas::{self, Renderer as _};
 use iced::window::Action;
 use iced::{keyboard, BorderRadius, Color, Element, Length, Point, Rectangle, Renderer, Vector};
 
@@ -20,8 +20,9 @@ pub use wave::WaveData;
 
 use self::wave::Local;
 
-const BAR_OVERLAP: f32 = 0.5;
-const SCALE: f32 = 1.5;
+const SCALE: f32 = 1.2;
+const MAX_SCALE: f32 = 10.0;
+const MIN_SCALE: f32 = 0.01;
 
 pub struct WaveformViewer<'a, Message, Theme>
 where
@@ -118,9 +119,9 @@ struct State {
     wave_offset: usize,
     zoom: f32,
     wave_id: u64,
-    cache: Cache,
     interpolated: Option<WaveData>,
-    wave: Option<canvas::Path>,
+    canvas_cache: canvas::Cache,
+    waveform: Option<canvas::Path>,
 }
 
 impl State {
@@ -136,18 +137,29 @@ impl State {
         self.interpolated = None;
     }
 
-    fn zoom_wave(&mut self) {
-        const MAX: f32 = 10.0;
-        self.zoom = self.zoom.clamp(0.05, 10.0);
-        self.cache.clear();
+    fn update_zoom(&mut self, wave: &WaveData) {
+        self.zoom = self.zoom.clamp(MIN_SCALE, MAX_SCALE);
+
+        if self.zoom < 1.0 {
+            let interpolated = wave::interpolate_zoom(wave, self.zoom);
+            self.waveform = Some(build_waveform(&interpolated));
+            self.interpolated = Some(interpolated);
+        } else if self.interpolated.is_some() {
+            self.interpolated = None;
+            self.waveform = Some(build_waveform(&wave));
+        }
+
+        self.canvas_cache.clear();
     }
 
-    fn zoom_in(&mut self) {
-
+    fn zoom_in(&mut self, factor: f32, wave: &WaveData) {
+        self.zoom *= factor;
+        self.update_zoom(wave);
     }
 
-    fn zoom_out(&mut self) {
-
+    fn zoom_out(&mut self, factor: f32, wave: &WaveData) {
+        self.zoom /= factor;
+        self.update_zoom(wave);
     }
 }
 
@@ -209,18 +221,18 @@ where
         let state = tree.state.downcast_mut::<State>();
 
         let Some(wave) = self.wave else {
-            state.cache.clear();
+            state.canvas_cache.clear();
             state.wave_id = 0;
             state.zoom = 1.0;
 
-            state.wave = None;
+            state.waveform = None;
             return;
         };
 
         if state.wave_id != wave.id() {
-            state.wave = Some(build_waveform(wave));
-            state.cache.clear();
-            state.zoom_wave();
+            state.waveform = Some(build_waveform(wave));
+            state.canvas_cache.clear();
+            state.update_zoom(wave);
             state.wave_id = wave.id();
         }
     }
@@ -284,7 +296,7 @@ where
                             let wave = &wave.peaks()[0];
 
                             state.wave_offset = wave.len().saturating_sub(1).min(new_offset);
-                            state.cache.clear();
+                            state.canvas_cache.clear();
                         }
                     }
 
@@ -295,10 +307,9 @@ where
                     let mut zoom_wave = |y: f32| match self.wave {
                         Some(wave) => {
                             match y > 0.0 {
-                                true => state.zoom *= SCALE,
-                                false => state.zoom /= SCALE,
+                                true => state.zoom_in(SCALE, wave),
+                                false => state.zoom_out(SCALE, wave),
                             };
-                            state.zoom_wave();
                             iced::event::Status::Captured
                         }
                         None => iced::event::Status::Ignored,
@@ -313,17 +324,15 @@ where
             },
             iced::Event::Keyboard(keyboard::Event::KeyReleased { key_code, .. }) => match key_code {
                 KeyCode::Up => match self.wave {
-                    Some(_) => {
-                        state.zoom *= SCALE;
-                        state.zoom_wave();
+                    Some(wave) => {
+                        state.zoom_in(SCALE, wave);
                         iced::event::Status::Captured
                     }
                     None => iced::event::Status::Ignored,
                 },
                 KeyCode::Down => match self.wave {
-                    Some(_) => {
-                        state.zoom /= SCALE;
-                        state.zoom_wave();
+                    Some(wave) => {
+                        state.zoom_out(SCALE, wave);
                         iced::event::Status::Captured
                     }
                     None => iced::event::Status::Ignored,
@@ -384,22 +393,29 @@ where
         );
 
         if let Some(peaks) = self.get_wave(state) {
-            let waveform = state.cache.draw(renderer, layout.bounds().size(), |frame| {
-                // Get generated waveform
-                let path = state.wave.as_ref().expect("wave should be generated");
+            let waveform = state
+                .canvas_cache
+                .draw(renderer, layout.bounds().size(), |frame| {
+                    // Get generated waveform
+                    let path = state.waveform.as_ref().expect("wave should be generated");
 
-                // Scale and stretch waveform
-                frame.scale_nonuniform([state.zoom, layout_height]);
+                    // Scale and stretch waveform
+                    let zoom = match state.interpolated.is_none() {
+                        true => state.zoom,
+                        false => 1.0,
+                    };
 
-                // TODO: horizontally transform waveform
-                frame.translate(Vector {
-                    x: 0.0 - (state.wave_offset as f32 * state.zoom),
-                    y: 0.0,
+                    frame.scale_nonuniform([zoom, layout_height]);
+
+                    // TODO: horizontally transform waveform
+                    frame.translate(Vector {
+                        x: 0.0 - (state.wave_offset as f32),
+                        y: 0.0,
+                    });
+
+                    // color the waveform
+                    frame.fill(path, appearance.wave_color);
                 });
-
-                // color the waveform
-                frame.fill(path, appearance.wave_color);        
-            });
 
             renderer.with_translation(Vector::new(layout.bounds().x, layout.bounds().y), |renderer| {
                 renderer.draw(vec![waveform]);
