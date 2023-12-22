@@ -392,7 +392,10 @@ where
             appearance.wave_color,
         );
 
-        if let Some(peaks) = self.get_wave(state) {
+        if let Some((peaks, waveform)) = self
+            .get_wave(state)
+            .and_then(|wavedata| Some((wavedata, state.waveform.as_ref()?)))
+        {
             let zoom = match state.interpolated.is_none() {
                 true => state.zoom,
                 false => 1.0,
@@ -402,7 +405,7 @@ where
                 .canvas_cache
                 .draw(renderer, layout.bounds().size(), |frame| {
                     // Get generated waveform
-                    let path = state.waveform.as_ref().expect("wave should be generated");
+                    let path = waveform;
 
                     // Scale and stretch waveform
                     frame.scale_nonuniform([zoom, layout_height]);
