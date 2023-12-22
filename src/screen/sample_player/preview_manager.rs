@@ -18,11 +18,21 @@ pub enum Message {
     Window(Id, preview_window::Message),
 }
 
-#[derive(Default)]
+// #[derive(Default)]
 pub struct SamplePreview {
     audio_engine: SamplePlayer,
     windows: HashMap<Id, SamplePreviewWindow>,
     singleton: bool,
+}
+
+impl Default for SamplePreview {
+    fn default() -> Self {
+        Self {
+            audio_engine: Default::default(),
+            windows: Default::default(),
+            singleton: false,
+        }
+    }
 }
 
 impl SamplePreview {
@@ -57,6 +67,16 @@ impl SamplePreview {
             return window::gain_focus(old_id);
         }
 
+        match self.singleton {
+            true => match self.find_first_instance() {
+                Some(id) => Command::batch([window::gain_focus(id), self.load_samples(id, path)]),
+                None => self.new_instance(path),
+            },
+            false => self.new_instance(path),
+        }
+    }
+
+    fn new_instance(&mut self, path: PathBuf) -> Command<Message> {
         let (id, spawn_window) = window::spawn(window::Settings {
             size: WINDOW_SIZE,
             min_size: Some(WINDOW_SIZE),
@@ -107,5 +127,13 @@ impl SamplePreview {
         let command = Command::batch(self.windows.keys().map(|id| window::close(*id)));
         self.windows.clear();
         command
+    }
+
+    pub fn instances(&self) -> usize {
+        self.windows.len()
+    }
+
+    pub fn find_first_instance(&self) -> Option<Id> {
+        self.windows.keys().next().copied()
     }
 }
