@@ -393,6 +393,11 @@ where
         );
 
         if let Some(peaks) = self.get_wave(state) {
+            let zoom = match state.interpolated.is_none() {
+                true => state.zoom,
+                false => 1.0,
+            };
+
             let waveform = state
                 .canvas_cache
                 .draw(renderer, layout.bounds().size(), |frame| {
@@ -400,11 +405,6 @@ where
                     let path = state.waveform.as_ref().expect("wave should be generated");
 
                     // Scale and stretch waveform
-                    let zoom = match state.interpolated.is_none() {
-                        true => state.zoom,
-                        false => 1.0,
-                    };
-
                     frame.scale_nonuniform([zoom, layout_height]);
 
                     // TODO: horizontally transform waveform
@@ -423,7 +423,7 @@ where
 
             // Draw markers - only do so if we're rendering the waveform
             if let Some(markers) = &self.markers {
-                let wave_width = peaks.peaks()[0].len() as f32 * state.zoom;
+                let wave_width = peaks.peaks()[0].len() as f32 * zoom;
 
                 for marker in markers {
                     let x = layout.bounds().x + wave_width * marker.0 - state.wave_offset as f32;
