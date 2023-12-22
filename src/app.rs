@@ -544,13 +544,14 @@ impl Application for XMODITS {
         ]
         .spacing(5);
 
+        let show_gif = !self.general_cfg.hide_gif;
         let main_view = match &self.state {
-            State::Idle => main_panel::view_entries(&self.entries, self.file_hovered),
+            State::Idle => main_panel::view_entries(&self.entries, self.file_hovered, show_gif),
             State::Ripping {
                 message,
                 progress,
                 errors,
-            } => main_panel::view_ripping(message, *progress, *errors),
+            } => main_panel::view_ripping(message, *progress, *errors, show_gif),
             State::Finished { state, time } => main_panel::view_finished(state, time),
         };
 

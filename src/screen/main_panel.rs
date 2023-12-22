@@ -17,14 +17,14 @@ use crate::{icon, theme};
 use iced::widget::{button, checkbox, column, container, progress_bar, row, scrollable, text, Space};
 use iced::{Alignment, Length};
 
-pub fn view_entries(entries: &Entries, hovered: bool) -> Element<Message> {
+pub fn view_entries(entries: &Entries, hovered: bool, show_gif: bool) -> Element<Message> {
     let entries = &entries.entries;
 
     if entries.is_empty() {
         return centered_container(
             column![]
                 .push(centered_text("Drag and Drop"))
-                .push_maybe(widget::animation::GIF.idle())
+                .push_maybe(show_gif.then(|| widget::animation::GIF.idle()).flatten())
                 .align_items(Alignment::Center),
         )
         .style(theme::Container::BlackHovered(hovered))
@@ -71,7 +71,7 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
     .into()
 }
 
-pub fn view_ripping<'a>(message: &Option<String>, progress: f32, total_errors: u64) -> Element<'a, Message> {
+pub fn view_ripping<'a>(message: &Option<String>, progress: f32, total_errors: u64, show_gif: bool) -> Element<'a, Message> {
     let cancel_ripping_button = button("Cancel")
         .on_press(Message::Cancel)
         .style(theme::Button::Cancel)
@@ -83,7 +83,7 @@ pub fn view_ripping<'a>(message: &Option<String>, progress: f32, total_errors: u
         progress_bar(0.0..=100.0, progress).height(5).width(200),
         cancel_ripping_button,
     ]
-    .push_maybe(widget::animation::GIF.ripping())
+    .push_maybe(show_gif.then(|| widget::animation::GIF.ripping()).flatten())
     .spacing(8)
     .align_items(Alignment::Center);
 

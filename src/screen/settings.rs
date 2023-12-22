@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use crate::screen::config::name_preview;
 
 use crate::utils::folder_dialog;
-use crate::widget::helpers::{control, control_filled, labelled_picklist};
+use crate::widget::helpers::{control, control_filled, labelled_picklist, text_elem};
 use crate::widget::{Collection, Element};
 
 #[derive(Debug, Clone)]
@@ -31,16 +31,24 @@ TODO:
     * Load custom themes and pick a preset
 */
 pub fn view(general: &config::GeneralConfig) -> Element<Message> {
-    let settings = column![
-        // labelled_picklist("Themes", options, selected, on_selected)
-        checkbox("Show Animated GIFs", general.show_gif, Message::ShowAnimatedGIF),
-        checkbox(
+    #[cfg(feature = "iced_gif")]
+    let hide_gif = Some(checkbox(
+        "Hide Animated GIFs",
+        general.hide_gif,
+        Message::ShowAnimatedGIF,
+    ));
+
+    #[cfg(not(feature = "iced_gif"))]
+    let hide_gif: Option<Element<'_, Message>> = None;
+
+    let settings = column![]
+        .push(checkbox(
             "Suppress Warnings",
             general.suppress_warnings,
-            Message::SuppressWarnings
-        ),
-    ]
-    .spacing(8);
+            Message::SuppressWarnings,
+        ))
+        .push_maybe(hide_gif)
+        .spacing(8);
 
     column![control("Application Settings", settings)]
         .push(themes(general))
@@ -57,16 +65,11 @@ pub fn themes(general: &config::GeneralConfig) -> Element<Message> {
             Some(general.theme),
             Message::SetTheme
         ),
-        // Space::with_width(Length::Fill),
-        button("Load").on_press(Message::ImportTheme),
-        // button("Export").on_press(Message::ExportTheme),
+        // button("Load").on_press(Message::ImportTheme),
     ]
     .spacing(8)
     .align_items(iced::Alignment::Center);
-    column![control("Themes", settings)]
-        // .push(animated_gif(general))
-        .spacing(8)
-        .into()
+    column![control("Themes", settings)].spacing(8).into()
 }
 
 #[cfg(target_env = "msvc")]
@@ -102,10 +105,12 @@ pub enum GIFKind {
 
 // pub fn animated_gif(general: &config::GeneralConfig) -> Element<Message> {
 //     let settings = column![checkbox(
-//         "Show Animated GIFs",
-//         general.show_gif,
-//         Message::ToggleAnimatedGIF
-//     ),]
+//         "Hide Animated GIFs",
+//         general.hide_gif,
+//         Message::ShowAnimatedGIF
+//     ),
+//     ]
+
 //     // .push(button(
 //     //     general
 //     //         .logging_path
@@ -129,7 +134,7 @@ pub fn update(cfg: &mut config::GeneralConfig, message: Message) -> Command<Mess
             }
         }
         Message::SetLogFolderDialog => return Command::perform(folder_dialog(), Message::SetLogFolder),
-        Message::ShowAnimatedGIF(toggle) => cfg.show_gif = toggle,
+        Message::ShowAnimatedGIF(toggle) => cfg.hide_gif = toggle,
         Message::SuppressWarnings(toggle) => cfg.suppress_warnings = toggle,
         Message::SetGif { kind, path } => match kind {
             GIFKind::Idle => cfg.idle_gif = path,
