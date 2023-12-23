@@ -44,7 +44,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Local {
     pub maxima: f32,
     pub minima: f32,
@@ -53,9 +53,7 @@ pub struct Local {
 impl Local {
     pub fn check(mut self) -> Self {
         if self.minima > self.maxima {
-            let temp = self.maxima;
-            self.maxima = self.minima;
-            self.minima = temp;
+            std::mem::swap(&mut self.maxima, &mut self.minima);
         }
 
         self
@@ -69,6 +67,13 @@ impl From<(f32, f32)> for Local {
             minima: value.1,
         }
         .check()
+    }
+}
+
+impl From<Local> for [f32; 2] {
+    fn from(value: Local) -> Self {
+        let Local { maxima, minima } = value.check();
+        [maxima, minima]
     }
 }
 
@@ -102,15 +107,18 @@ pub fn interpolate_zoom(wave: &WaveData, factor: f32) -> WaveData {
         .iter()
         .map(|wave| {
             let mut output = Vec::new();
+            let first = wave[0].into();
+            let second = wave.get(1).cloned().unwrap_or_default().into();
+
             let signal = wave.iter().map(|f| [f.maxima, f.minima]);
             let mut converter = Converter::scale_playback_hz(
                 signal::from_iter(signal),
-                Linear::new([0.0, 0.0], [0.0, 0.0]),
+                Linear::new(first, second),
                 1.0 / factor as f64,
-            );          
+            );
 
             while !converter.is_exhausted() {
-                output.push(converter.next().into())
+                output.push(Local::from(converter.next()))
             }
 
             output
