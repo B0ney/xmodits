@@ -354,8 +354,13 @@ where
                             let new_offset = (start_offset - (current_cursor_x - previous_offset)) as usize;
 
                             let wave = &wave.peaks()[0];
-
-                            state.wave_offset = wave.len().saturating_sub(1).min(new_offset);
+                            
+                            let wave_len = match state.zoom > 1.0 {
+                                true => (wave.len() as f32 * state.zoom) as usize,
+                                false => wave.len(),
+                            };
+                            
+                            state.wave_offset = wave_len.saturating_sub(1).min(new_offset);
                             state.canvas_cache.clear();
                         }
                     }
