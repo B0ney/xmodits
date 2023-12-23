@@ -1,7 +1,7 @@
 use iced::{Background, BorderRadius, Color};
 
 /// The appearance of a waveform viewer.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Appearance {
     pub background: Background,
     pub wave_color: Color,

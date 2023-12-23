@@ -1,5 +1,4 @@
 //! Simple Widget to view waveform
-//!
 
 mod marker;
 mod style;
@@ -13,12 +12,11 @@ use iced::mouse::Button;
 use iced::widget::canvas::{self, Renderer as _};
 use iced::window::Action;
 use iced::{keyboard, BorderRadius, Color, Element, Length, Point, Rectangle, Renderer, Vector};
+use std::cell::RefCell;
 
 pub use marker::Marker;
 pub use style::{Appearance, StyleSheet};
-pub use wave::WaveData;
-
-use self::wave::Local;
+pub use wave::{Local, WaveData};
 
 const SCALE: f32 = 1.2;
 const MAX_SCALE: f32 = 10.0;
@@ -206,6 +204,7 @@ struct State {
     wave_id: u64,
     canvas_cache: canvas::Cache,
     waveform: WaveGeometry,
+    wave_color: RefCell<Color>,
 }
 
 impl State {
@@ -252,6 +251,21 @@ impl State {
         self.waveform.rebuild(wave);
         self.wave_id = wave.id();
         self.update_zoom(wave);
+    }
+
+    // Clear canvas cache if wave colors differ
+    fn update_wave_color(&self, appearance: &Appearance) {
+        use std::ops::DerefMut;
+
+        let new_color = appearance.wave_color;
+
+        match self.wave_color.borrow_mut().deref_mut() {
+            old_color if new_color.ne(&old_color) => {
+                *old_color = new_color;
+                self.canvas_cache.clear();
+            }
+            _ => {}
+        }
     }
 }
 
@@ -354,12 +368,12 @@ where
                             let new_offset = (start_offset - (current_cursor_x - previous_offset)) as usize;
 
                             let wave = &wave.peaks()[0];
-                            
+
                             let wave_len = match state.zoom > 1.0 {
                                 true => (wave.len() as f32 * state.zoom) as usize,
                                 false => wave.len(),
                             };
-                            
+
                             state.wave_offset = wave_len.saturating_sub(1).min(new_offset);
                             state.canvas_cache.clear();
                         }
@@ -476,6 +490,8 @@ where
             .wave
             .and_then(|wavedata| Some((wavedata, state.waveform.get()?)))
         {
+            state.update_wave_color(&appearance);
+
             let waveform = state
                 .canvas_cache
                 .draw(renderer, layout.bounds().size(), |frame| {
