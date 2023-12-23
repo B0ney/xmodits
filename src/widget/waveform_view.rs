@@ -118,12 +118,9 @@ enum WaveGeometry {
     Original(canvas::Path),
     /// Scaled representation of a waveform.
     /// Used when rendering the original waveform is expensive.
-    /// Uses linear interpolation to effectively shrink the original wave data, 
+    /// Uses linear interpolation to effectively shrink the original wave data,
     /// so less points are used.
-    Scaled {
-        scale: f32,
-        wave: canvas::Path,
-    },
+    Scaled { scale: f32, wave: canvas::Path },
 }
 
 impl WaveGeometry {
@@ -184,7 +181,7 @@ impl WaveGeometry {
         });
 
         // Draw bottom half of waveform.
-        // Backtrack since we're continuing from the end of the top half. 
+        // Backtrack since we're continuing from the end of the top half.
         peaks.iter().enumerate().rev().for_each(|(i, local)| {
             path.line_to(Point {
                 x: i as f32,
@@ -512,14 +509,16 @@ where
                         continue;
                     }
 
-                    draw_line(
-                        renderer,
-                        x,
-                        layout.bounds().y,
-                        2.0,
-                        layout.bounds().height,
-                        appearance.cursor_color,
-                    );
+                    renderer.with_layer(layout.bounds(), |renderer| {
+                        draw_line(
+                            renderer,
+                            x,
+                            layout.bounds().y,
+                            2.0,
+                            layout.bounds().height,
+                            appearance.cursor_color,
+                        );
+                    })
                 }
             }
         }
@@ -527,17 +526,19 @@ where
         // Draw cursor
         if cursor.is_over(layout.bounds()) {
             if let Some(Point { x, .. }) = cursor.position() {
-                draw_line(
-                    renderer,
-                    x,
-                    layout.bounds().y,
-                    2.0,
-                    layout.bounds().height,
-                    match state.mouse_down {
-                        true => appearance.wave_color,
-                        false => appearance.cursor_color,
-                    },
-                );
+                renderer.with_layer(layout.bounds(), |renderer| {
+                    draw_line(
+                        renderer,
+                        x,
+                        layout.bounds().y,
+                        2.0,
+                        layout.bounds().height,
+                        match state.mouse_down {
+                            true => appearance.wave_color,
+                            false => appearance.cursor_color,
+                        },
+                    )
+                });
             }
         }
     }
