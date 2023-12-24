@@ -215,10 +215,30 @@ impl State {
         }
     }
 
+    fn reset(&mut self) {
+        self.canvas_cache.clear();
+        self.waveform.clear();
+        self.wave_id = 0;
+        self.reset_zoom();
+        self.reset_offset();
+    }
+
+    fn reset_offset(&mut self) {
+        self.previous_offset = 0;
+        self.wave_offset = 0;
+    }
+
     fn reset_zoom(&mut self) {
         self.zoom = 1.0;
     }
 
+    fn bounds_check_offset(&mut self, wave: &WaveData) {
+        let wave_len = (wave.peaks()[0].len() as f32 * self.zoom) as usize;
+        if self.wave_offset > wave_len {
+            self.wave_offset = wave_len.saturating_sub(1);
+        }
+    }
+    
     fn update_zoom(&mut self, wave: &WaveData) {
         self.zoom = self.zoom.clamp(MIN_SCALE, MAX_SCALE);
 
@@ -238,13 +258,6 @@ impl State {
     fn zoom_out(&mut self, factor: f32, wave: &WaveData) {
         self.zoom /= factor;
         self.update_zoom(wave);
-    }
-
-    fn reset(&mut self) {
-        self.canvas_cache.clear();
-        self.waveform.clear();
-        self.wave_id = 0;
-        self.zoom = 1.0;
     }
 
     fn update_wave(&mut self, wave: &WaveData) {
@@ -307,7 +320,8 @@ where
         };
 
         if state.wave_id != wave.id() {
-            state.update_wave(wave)
+            state.update_wave(wave);
+            state.reset_offset();
         }
     }
 
@@ -369,10 +383,7 @@ where
 
                             let wave = &wave.peaks()[0];
 
-                            let wave_len = match state.zoom > 1.0 {
-                                true => (wave.len() as f32 * state.zoom) as usize,
-                                false => wave.len(),
-                            };
+                            let wave_len = (wave.len() as f32 * state.zoom) as usize;
 
                             state.wave_offset = wave_len.saturating_sub(1).min(new_offset);
                             state.canvas_cache.clear();
@@ -505,7 +516,7 @@ where
                     // Scale and stretch waveform
                     frame.scale_nonuniform([frame_stretch, layout_height]);
 
-                    // Horizontally transform waveform
+                    // Horizontally transform waveform.
                     frame.translate(Vector {
                         x: 0.0 - (state.wave_offset as f32 / frame_stretch),
                         y: 0.0,
