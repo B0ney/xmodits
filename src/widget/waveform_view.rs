@@ -174,7 +174,7 @@ impl WaveGeometry {
         peaks.iter().enumerate().for_each(|(i, local)| {
             path.line_to(Point {
                 x: i as f32,
-                y: 0.5 - ((1.0 / 2.0) * local.maxima.abs()),
+                y: 0.5 - ((1.0 / 2.0) * local.maxima),
             })
         });
 
@@ -183,7 +183,7 @@ impl WaveGeometry {
         peaks.iter().enumerate().rev().for_each(|(i, local)| {
             path.line_to(Point {
                 x: i as f32,
-                y: 0.5 + ((1.0 / 2.0) * local.minima.abs()),
+                y: 0.5 - ((1.0 / 2.0) * local.minima),
             })
         });
 
