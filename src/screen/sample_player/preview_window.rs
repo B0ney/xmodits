@@ -14,6 +14,7 @@ use iced::window::Id;
 use iced::{command, Alignment, Command, Length};
 use tokio::sync::mpsc::{self, Receiver, UnboundedReceiver};
 
+use crate::screen::main_panel::Entries;
 use crate::widget::helpers::{centered_container, centered_text, fill_container, warning};
 use crate::widget::waveform_view::{Marker, WaveData, WaveformViewer};
 use crate::widget::{Button, Collection, Container, Element, Row};
@@ -33,6 +34,7 @@ pub enum Message {
     Load(PathBuf),
     Info((usize, SampleInfo)),
     SetPlayOnSelect(bool),
+    AddEntry(PathBuf),
 }
 
 enum State {
@@ -76,7 +78,7 @@ impl SamplePreviewWindow {
         }
     }
 
-    pub fn update(&mut self, msg: Message) -> Command<Message> {
+    pub fn update(&mut self, msg: Message, entries: &mut Entries) -> Command<Message> {
         match msg {
             Message::Play => return self.play(),
             Message::Pause => self.player.pause(),
@@ -105,15 +107,12 @@ impl SamplePreviewWindow {
             }
             Message::SetPlayOnSelect(play_on_select) => self.play_on_select = play_on_select,
             Message::Progress(progress) => self.progress = progress,
+            Message::AddEntry(path) => entries.add(path),
         }
         Command::none()
     }
 
-    pub fn view(&self) -> Element<Message> {
-        let top_left = fill_container(view_sample_info(self.selected.as_ref().map(|(_, smp)| smp)))
-            .padding(8)
-            .style(theme::Container::BlackHovered(self.hovered));
-
+    pub fn view(&self, entries: &Entries) -> Element<Message> {
         let controls = media_button([
             (icon::play().size(18), Message::Play),
             (icon::stop().size(18), Message::Stop),
@@ -128,26 +127,48 @@ impl SamplePreviewWindow {
             .height(Length::Shrink)
             .center_x();
 
+        let top_left = column![
+            fill_container(view_sample_info(self.get_selected_info()))
+                .padding(8)
+                .style(theme::Container::BlackHovered(self.hovered)),
+            control_panel
+        ]
+        .spacing(5)
+        .width(Length::Fill);
+
         let sample_list = match &self.sample_pack {
             Some(pack) => view_samples(&pack.samples),
             None => centered_container("Loading...").into(),
         };
 
-        let top_left = column![top_left, control_panel].spacing(5).width(Length::Fill);
+        let add_path_button = self.path().and_then(|path| {
+            let button = || button("Add to Entries").on_press(Message::AddEntry(path.to_owned()));
+            (!entries.contains(path)).then(button)
+        });
 
-        let play_on_select = checkbox("Play on Selection", self.play_on_select, Message::SetPlayOnSelect);
+        let no_button_spacing = add_path_button
+            .is_none()
+            .then_some(Space::with_height(Length::Fixed(27.0)));
 
-        let top_right = fill_container(sample_list)
-            .padding(8)
-            .style(theme::Container::BlackHovered(self.hovered));
-
-        let top_right = column![top_right, play_on_select].spacing(5).width(Length::Fill);
+        let top_right = column![
+            fill_container(sample_list)
+                .padding(8)
+                .style(theme::Container::BlackHovered(self.hovered)),
+            row![
+                checkbox("Play on Select", self.play_on_select, Message::SetPlayOnSelect),
+                Space::with_width(Length::Fill)
+            ]
+            .push_maybe(no_button_spacing)
+            .push_maybe(add_path_button)
+            .spacing(5)
+            .align_items(Alignment::Center)
+        ]
+        .spacing(5)
+        .width(Length::Fill);
 
         let waveform_viewer = WaveformViewer::new_maybe(self.wave_cache())
             .marker_maybe(self.progress.map(Marker))
             .style(theme::WaveformView::Hovered(self.hovered));
-
-        let bottom = fill_container(waveform_viewer).height(Length::FillPortion(2));
 
         let warning = warning(|| false, "WARNING - This sample is most likely static noise.");
 
@@ -155,7 +176,7 @@ impl SamplePreviewWindow {
             row![top_left, top_right]
                 .height(Length::FillPortion(3))
                 .spacing(5),
-            bottom,
+            fill_container(waveform_viewer).height(Length::FillPortion(2)),
             progress_bar(0.0..=1.0, self.progress.unwrap_or_default())
                 .height(5.0)
                 .style(theme::ProgressBar::Dark)
@@ -174,10 +195,11 @@ impl SamplePreviewWindow {
     }
 
     pub fn matches_path(&self, path: &Path) -> bool {
-        self.sample_pack
-            .as_ref()
-            .and_then(|s| s.path.as_ref())
-            .is_some_and(|s| s == path)
+        self.path().is_some_and(|s| s == path)
+    }
+
+    pub fn path(&self) -> Option<&Path> {
+        self.sample_pack.as_ref().and_then(|pack| pack.path.as_deref())
     }
 
     pub fn load_sample_pack(&self, path: PathBuf) -> Command<Message> {
@@ -200,6 +222,10 @@ impl SamplePreviewWindow {
             .as_ref()
             .ok()
             .map(|(_, sample)| sample.clone())
+    }
+
+    fn get_selected_info(&self) -> Option<&SampleInfo> {
+        self.selected.as_ref().map(|(_, smp)| smp)
     }
 }
 
@@ -262,7 +288,7 @@ fn load_sample_pack(path: PathBuf) -> Command<Message> {
                 let mut file = File::open(&path)?;
 
                 if file.metadata()?.len() > MAX_SIZE {
-                    return Err(xmodits_lib::Error::io_error("File size is exceeds 40 MB").unwrap_err());
+                    return Err(xmodits_lib::Error::io_error("File size exceeds 40 MB").unwrap_err());
                 }
 
                 let module = xmodits_lib::load_module(&mut file)?;
@@ -280,12 +306,8 @@ fn load_sample_pack(path: PathBuf) -> Command<Message> {
 }
 
 fn view_samples(a: &[Result<(Sample, TrackerSample), xmodits_lib::Error>]) -> Element<Message> {
-    scrollable(
-        column(a.into_iter().enumerate().map(view_sample).collect())
-            .spacing(10)
-            .padding(4),
-    )
-    .into()
+    let samples = a.iter().enumerate().map(view_sample).collect();
+    scrollable(column(samples).spacing(10).padding(4)).into()
 }
 
 fn view_sample(

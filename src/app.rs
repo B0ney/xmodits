@@ -177,6 +177,7 @@ pub fn settings(config: Config) -> iced::Settings<Config> {
             min_size: Some(WINDOW_SIZE),
             ..Default::default()
         },
+        antialiasing: true,
         ..Default::default()
     }
 }
@@ -359,7 +360,12 @@ impl Application for XMODITS {
                 return Command::perform(tracker_info::probe(path.to_owned()), Message::ProbeResult);
             }
             Message::ProbeResult(probe) => self.tracker_info = Some(probe),
-            Message::SamplePlayer(msg) => return self.sample_player.update(msg).map(Message::SamplePlayer),
+            Message::SamplePlayer(msg) => {
+                return self
+                    .sample_player
+                    .update(msg, &mut self.entries)
+                    .map(Message::SamplePlayer)
+            }
             Message::SaveConfig => {
                 return self.save_cfg();
             }
@@ -451,7 +457,10 @@ impl Application for XMODITS {
 
     fn view(&self, id: window::Id) -> Element<Message> {
         if id > window::Id::MAIN {
-            return self.sample_player.view(id).map(Message::SamplePlayer);
+            return self
+                .sample_player
+                .view(id, &self.entries)
+                .map(Message::SamplePlayer);
         }
 
         let top_left_menu = row![

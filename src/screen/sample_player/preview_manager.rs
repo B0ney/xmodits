@@ -4,7 +4,9 @@ use iced::{Command, Size};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-use crate::{app::application_icon, widget::Element};
+use crate::app::application_icon;
+use crate::screen::main_panel::entry::Entries;
+use crate::widget::Element;
 
 use audio_engine::SamplePlayer;
 
@@ -36,24 +38,31 @@ impl Default for SamplePreview {
 }
 
 impl SamplePreview {
-    pub fn update(&mut self, msg: Message) -> Command<Message> {
+    pub fn update(&mut self, msg: Message, entries: &mut Entries) -> Command<Message> {
         match msg {
-            Message::Window(id, msg) => self.update_window(id, msg),
+            Message::Window(id, msg) => self.update_window(id, msg, entries),
             Message::ResetEngine => todo!(),
         }
     }
 
-    pub fn update_window(&mut self, id: Id, msg: preview_window::Message) -> Command<Message> {
+    pub fn update_window(
+        &mut self,
+        id: Id,
+        msg: preview_window::Message,
+        entries: &mut Entries,
+    ) -> Command<Message> {
         // If the window has closed, discard the message
         match self.windows.get_mut(&id) {
             None => Command::none(),
-            Some(window) => window.update(msg).map(move |msg| Message::Window(id, msg)),
+            Some(window) => window
+                .update(msg, entries)
+                .map(move |msg| Message::Window(id, msg)),
         }
     }
 
-    pub fn view(&self, id: Id) -> Element<Message> {
+    pub fn view(&self, id: Id, entries: &Entries) -> Element<Message> {
         self.get_window(id)
-            .view()
+            .view(entries)
             .map(move |msg| Message::Window(id, msg))
     }
 

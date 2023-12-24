@@ -3,9 +3,7 @@
 pub mod entry;
 
 use data::time::Time;
-use entry::Entries;
-
-use self::entry::Entry;
+pub use entry::{Entries, Entry};
 
 use crate::app::{Message, State};
 use crate::ripper::extraction::error::Reason;
