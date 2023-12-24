@@ -9,6 +9,7 @@ pub use preview_manager::*;
 #[cfg(not(feature = "audio"))]
 pub mod preview_manager_dummy {
     use crate::widget::Element;
+    use crate::screen::main_panel::Entries;
 
     use iced::{window::Id, Command};
     use std::path::PathBuf;
@@ -20,10 +21,10 @@ pub mod preview_manager_dummy {
     pub struct SamplePreview;
 
     impl SamplePreview {
-        pub fn update(&mut self, _msg: Message) -> Command<Message> {
+        pub fn update(&mut self, _msg: Message, _entries: &mut Entries) -> Command<Message> {
             Command::none()
         }
-        pub fn view(&self, _id: Id) -> Element<Message> {
+        pub fn view(&self, _id: Id, _entries: &Entries) -> Element<Message> {
             unimplemented!("Attempt to view sample player without 'audio' feature")
         }
         pub fn load_samples(&self, _id: Id, _path: PathBuf) -> Command<Message> {
