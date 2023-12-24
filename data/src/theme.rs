@@ -20,11 +20,12 @@ pub struct Palette {
     pub error: Color,
     pub warning: Color,
     pub success: Color,
+    pub waveform: Color,
 }
 
 impl Default for Palette {
     fn default() -> Self {
-        themes::Themes::Catppuccin.palette()
+        themes::Themes::Dark.palette()
     }
 }
 
@@ -64,6 +65,7 @@ pub mod palette_serde {
         error: String,
         warning: String,
         success: String,
+        waveform: String,
     }
 
     impl Serialize for Palette {
@@ -90,6 +92,7 @@ pub mod palette_serde {
                 error: as_hex(self.error),
                 warning: as_hex(self.warning),
                 success: as_hex(self.success),
+                waveform: as_hex(self.waveform),
             }
             .serialize(serializer)
         }
@@ -115,6 +118,7 @@ pub mod palette_serde {
                 error: to_color(&hex.error)?,
                 warning: to_color(&hex.warning)?,
                 success: to_color(&hex.success)?,
+                waveform: to_color(&hex.waveform)?,
             })
         }
     }

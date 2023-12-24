@@ -35,7 +35,8 @@ impl Themes {
                 text: color!(0xE0E0E0),
                 error: color!(0xff5555),
                 warning: color!(0xff5555),
-                success: color!(0x49eb7a),                
+                success: color!(0x49eb7a),
+                waveform: color!(0xBA84FC),              
             },
             Self::Dracula => Palette {
                 middleground: color!(0x282a36),
@@ -47,6 +48,7 @@ impl Themes {
                 error: color!(0xff5555),
                 warning: color!(0xff5555),
                 success: color!(0x50fa7b),
+                waveform: color!(0xff79c6),
             },
             Self::LMMS => Palette {
                 middleground: color!(0x262B30),
@@ -58,6 +60,8 @@ impl Themes {
                 error: color!(0xff5555),
                 warning: color!(0xff5555),
                 success: color!(0x0BD556),
+                waveform: color!(0xFF8F05),
+                // waveform: color!(0xFFA940),
             },
             Self::Nord => Palette {
                 middleground: color!(0x2e3440),
@@ -69,6 +73,7 @@ impl Themes {
                 error: color!(0xbf616a),
                 warning: color!(0xbf616a),
                 success: color!(0xa3be8c),
+                waveform: color!(0x88c0d0),
             },
             Self::OneShot => Palette {
                 middleground: color!(0x1A0B1D),
@@ -80,6 +85,7 @@ impl Themes {
                 error: color!(0xff5555),
                 warning: color!(0xff5555),
                 success: color!(0x80FF80),
+                waveform: color!(0xF48550),
             },
             Self::Catppuccin => Palette {
                 middleground: color!(0x1E1E28),
@@ -91,6 +97,7 @@ impl Themes {
                 error: color!(0xE38C8F),
                 warning: color!(0xE38C8F),
                 success: color!(0xB1E3AD),
+                waveform: color!(0xC6AAE8),
             }
         }
     }

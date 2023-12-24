@@ -662,7 +662,7 @@ impl crate::widget::waveform_view::StyleSheet for Theme {
 
         let default = crate::widget::waveform_view::Appearance {
             background: Background::Color(p.background),
-            wave_color: p.accent,
+            wave_color: p.waveform,
             cursor_color: p.text,
             border_radius: BORDER_RADIUS.into(),
             border_width: BORDER_WIDTH,
