@@ -92,6 +92,7 @@ impl SamplePreviewWindow {
             }
             Message::Loaded(result) => match Arc::into_inner(result).unwrap() {
                 Ok((sample_pack, wave_cache)) => {
+                    self.player.stop();
                     self.selected = None;
                     self.sample_pack = Some(sample_pack);
                     self.wave_cache = wave_cache;
