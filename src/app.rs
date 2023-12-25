@@ -33,6 +33,97 @@ use iced::{window, Command, Length, Subscription};
 const TITLE: &str = "XMODITS";
 const WINDOW_SIZE: Size = Size::new(780.0, 720.0);
 
+#[derive(Debug, Clone)]
+pub enum Message {
+    AboutPressed,
+    About(about::Message),
+    Add(Option<Vec<PathBuf>>),
+    Cancel,
+    Clear,
+    ConfigPressed,
+    CustomFilter(custom_filters::Message),
+    DeleteSelected,
+    Event(event::Event),
+    FileDialog,
+    FilterPressed,
+    FolderDialog,
+    FontLoaded(Result<(), iced::font::Error>),
+    GeneralCfg(settings::Message),
+    Ignore,
+    InvertSelection,
+    NamingCfg(sample_naming::Message),
+    Open(String),
+    PreviewSamples(PathBuf),
+    Probe(usize),
+    ProbeResult(TrackerInfo),
+    RippingCfg(sample_ripping::Message),
+    SamplePlayer(sample_player::Message),
+    SaveConfig,
+    SaveConfigResult(),
+    SaveErrors,
+    SaveErrorsResult(Result<(), String>),
+    Select { index: usize, selected: bool },
+    SelectAll(bool),
+    SetState(State),
+    SetTheme,
+    SettingsPressed,
+    StartRipping,
+    Subscription(ripper::Message),
+}
+
+/// This is basically the configuration panel view.
+#[derive(Default, Debug, Clone)]
+pub enum View {
+    #[default]
+    Configure,
+    Filters,
+    Settings,
+    About,
+    Help,
+}
+
+/// The current state of the application.
+#[derive(Default, Debug, Clone)]
+pub enum State {
+    #[default]
+    Idle,
+    /// The application is currently ripping samples
+    Ripping {
+        message: Option<String>,
+        progress: f32,
+        errors: u64,
+    },
+    /// The application has finished ripping samples
+    Finished { state: CompleteState, time: data::Time },
+}
+
+impl State {
+    fn update_progress(&mut self, new_progress: f32, new_errors: u64) {
+        if let Self::Ripping { progress, errors, .. } = self {
+            *progress = new_progress;
+            *errors = new_errors;
+        }
+    }
+
+    fn update_message(&mut self, new_message: Option<String>) {
+        if let Self::Ripping { message, .. } = self {
+            *message = new_message
+        }
+    }
+
+    fn set_message(&mut self, message: impl Into<String>) {
+        self.update_message(Some(message.into()))
+    }
+
+    fn is_ripping(&self) -> bool {
+        matches!(self, Self::Ripping { .. })
+    }
+
+    fn is_finished(&self) -> bool {
+        matches!(self, Self::Finished { .. })
+    }
+}
+
 /// XMODITS graphical application
 #[derive(Default)]
 pub struct XMODITS {
@@ -62,7 +153,7 @@ impl XMODITS {
 
         //
         tracing::info!("Launcing GUI");
-        Self::run(settings(config))
+        Self::run(Self::settings(config))
     }
 
     /// WINDOWS ONLY
@@ -74,7 +165,21 @@ impl XMODITS {
         Ok(())
     }
 
-    pub fn settings() {}
+    pub fn settings(config: Config) -> iced::Settings<Config> {
+        iced::Settings {
+            default_font: font::JETBRAINS_MONO,
+            default_text_size: 13.0.into(),
+            flags: config,
+            window: window::Settings {
+                icon: Some(application_icon()),
+                size: WINDOW_SIZE,
+                min_size: Some(WINDOW_SIZE),
+                ..Default::default()
+            },
+            antialiasing: true,
+            ..Default::default()
+        }
+    }
 
     pub fn load_cfg(&mut self, config: Config) {
         // todo
@@ -158,117 +263,30 @@ impl XMODITS {
 
         Command::none()
     }
+
+    fn add_entry(&mut self, path: PathBuf) {
+        self.add_entries(Some(vec![path]))
+    }
+
+    fn add_entries(&mut self, paths: Option<Vec<PathBuf>>) {
+        if self.state.is_ripping() {
+            return;
+        }
+
+        let Some(paths) = paths else { return };
+
+        self.entries.add_multiple(paths);
+
+        if self.state.is_finished() {
+            self.state = State::Idle;
+        }
+    }
 }
 
 /// TODO: allow the user to customize their application icon
 pub fn application_icon() -> iced::window::Icon {
     let icon = include_bytes!("../assets/img/logos/icon.png");
     iced::window::icon::from_file_data(icon, None).unwrap()
-}
-
-pub fn settings(config: Config) -> iced::Settings<Config> {
-    iced::Settings {
-        default_font: font::JETBRAINS_MONO,
-        default_text_size: 13.0.into(),
-        flags: config,
-        window: window::Settings {
-            icon: Some(application_icon()),
-            size: WINDOW_SIZE,
-            min_size: Some(WINDOW_SIZE),
-            ..Default::default()
-        },
-        antialiasing: true,
-        ..Default::default()
-    }
-}
-
-/// The current state of the application.
-#[derive(Default, Debug, Clone)]
-pub enum State {
-    #[default]
-    Idle,
-    /// The application is currently ripping samples
-    Ripping {
-        message: Option<String>,
-        progress: f32,
-        errors: u64,
-    },
-    /// The application has finished ripping samples
-    Finished { state: CompleteState, time: data::Time },
-}
-
-impl State {
-    fn update_progress(&mut self, new_progress: f32, new_errors: u64) {
-        if let Self::Ripping { progress, errors, .. } = self {
-            *progress = new_progress;
-            *errors = new_errors;
-        }
-    }
-
-    fn update_message(&mut self, new_message: Option<String>) {
-        if let Self::Ripping { message, .. } = self {
-            *message = new_message
-        }
-    }
-
-    fn set_message(&mut self, message: impl Into<String>) {
-        self.update_message(Some(message.into()))
-    }
-
-    fn is_ripping(&self) -> bool {
-        matches!(self, Self::Ripping { .. })
-    }
-}
-
-/// TODO: rename to avoid confusion
-///
-/// This is basically the configuration panel view.
-#[derive(Default, Debug, Clone)]
-pub enum View {
-    #[default]
-    Configure,
-    Filters,
-    Settings,
-    About,
-    Help,
-}
-
-#[derive(Debug, Clone)]
-pub enum Message {
-    AboutPressed,
-    About(about::Message),
-    Add(Option<Vec<PathBuf>>),
-    Cancel,
-    Clear,
-    ConfigPressed,
-    CustomFilter(custom_filters::Message),
-    DeleteSelected,
-    Event(event::Event),
-    FileDialog,
-    FilterPressed,
-    FolderDialog,
-    FontLoaded(Result<(), iced::font::Error>),
-    GeneralCfg(settings::Message),
-    Ignore,
-    InvertSelection,
-    NamingCfg(sample_naming::Message),
-    Open(String),
-    PreviewSamples(PathBuf),
-    Probe(usize),
-    ProbeResult(TrackerInfo),
-    RippingCfg(sample_ripping::Message),
-    SamplePlayer(sample_player::Message),
-    SaveConfig,
-    SaveConfigResult(),
-    SaveErrors,
-    SaveErrorsResult(Result<(), String>),
-    Select { index: usize, selected: bool },
-    SelectAll(bool),
-    SetState(State),
-    SetTheme,
-    SettingsPressed,
-    StartRipping,
-    Subscription(ripper::Message),
 }
 
 impl Application for XMODITS {
@@ -302,16 +320,7 @@ impl Application for XMODITS {
             Message::ConfigPressed => self.view = View::Configure,
             Message::FilterPressed => self.view = View::Filters,
             Message::SettingsPressed => self.view = View::Settings,
-            Message::Add(paths) => {
-                if self.state.is_ripping() {
-                    return Command::none();
-                }
-
-                if let Some(paths) = paths {
-                    self.entries.add_multiple(paths)
-                }
-                // todo: change state to idle?
-            }
+            Message::Add(paths) => self.add_entries(paths),
             Message::Clear => self.clear_entries(),
             Message::DeleteSelected => self.delete_selected_entries(),
             Message::InvertSelection => self.entries.invert(),
@@ -420,7 +429,7 @@ impl Application for XMODITS {
                 },
                 event::Event::FileDropped(id, file) => match id == window::Id::MAIN {
                     true => {
-                        self.entries.add(file);
+                        self.add_entry(file);
                         self.file_hovered = false;
                     }
                     false => {
@@ -561,7 +570,7 @@ impl Application for XMODITS {
                 progress,
                 errors,
             } => main_panel::view_ripping(message, *progress, *errors, show_gif),
-            State::Finished { state, time } => main_panel::view_finished(state, time),
+            State::Finished { state, time } => main_panel::view_finished(state, time, self.file_hovered),
         };
 
         let allow_warnings = !self.general_cfg.suppress_warnings;

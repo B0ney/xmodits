@@ -69,7 +69,12 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
     .into()
 }
 
-pub fn view_ripping<'a>(message: &Option<String>, progress: f32, total_errors: u64, show_gif: bool) -> Element<'a, Message> {
+pub fn view_ripping<'a>(
+    message: &Option<String>,
+    progress: f32,
+    total_errors: u64,
+    show_gif: bool,
+) -> Element<'a, Message> {
     let cancel_ripping_button = button("Cancel")
         .on_press(Message::Cancel)
         .style(theme::Button::Cancel)
@@ -89,7 +94,11 @@ pub fn view_ripping<'a>(message: &Option<String>, progress: f32, total_errors: u
 }
 
 /// XMODITS has finished extracting the samples
-pub fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> Element<'a, Message> {
+pub fn view_finished<'a>(
+    complete_state: &'a CompleteState,
+    time: &'a Time,
+    hovered: bool,
+) -> Element<'a, Message> {
     let continue_button = button("Continue")
         .on_press(Message::SetState(State::Idle))
         .padding(5);
@@ -107,7 +116,7 @@ pub fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> E
             ]
             .align_items(Alignment::Center),
         )
-        .style(theme::Container::Black)
+        .style(theme::Container::BlackHovered(hovered))
         .into(),
 
         CompleteState::Cancelled => centered_container(
@@ -120,7 +129,7 @@ pub fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> E
             ]
             .align_items(Alignment::Center),
         )
-        .style(theme::Container::Black)
+        .style(theme::Container::BlackHovered(hovered))
         .into(),
 
         // TODO
@@ -169,7 +178,9 @@ pub fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> E
 
             let view = centered_column_x(column![message, buttons, errors].padding(8));
 
-            fill_container(view).style(theme::Container::Black).into()
+            fill_container(view)
+                .style(theme::Container::BlackHovered(hovered))
+                .into()
         }
 
         CompleteState::TooMuchErrors { log, total } => {
@@ -189,7 +200,9 @@ pub fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> E
             .padding(4)
             .spacing(6);
 
-            centered_container(view).style(theme::Container::Black).into()
+            centered_container(view)
+                .style(theme::Container::BlackHovered(hovered))
+                .into()
         }
 
         CompleteState::TooMuchErrorsNoLog {
@@ -222,7 +235,9 @@ pub fn view_finished<'a>(complete_state: &'a CompleteState, time: &'a Time) -> E
             .padding(4)
             .spacing(6);
 
-            centered_container(view).style(theme::Container::Black).into()
+            centered_container(view)
+                .style(theme::Container::BlackHovered(hovered))
+                .into()
         }
     }
 }
