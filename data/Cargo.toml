@@ -18,5 +18,5 @@ xmodits-lib.workspace = true
 chrono.workspace = true
 
 serde = { version = "1.0", features = ["derive"] }
-toml = "0.7" # todo: switch to different format?
+toml = "0.8" # todo: switch to different format?
 regex = "1.10"
