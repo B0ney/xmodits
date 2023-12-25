@@ -1,5 +1,4 @@
 //! Simple Widget to view waveform
-//!
 
 mod marker;
 mod style;
@@ -10,18 +9,18 @@ use iced::advanced::renderer::{self, Renderer as _};
 use iced::advanced::widget::{self, Widget};
 use iced::keyboard::KeyCode;
 use iced::mouse::Button;
-use iced::widget::canvas::{self, Cache, Renderer as _};
+use iced::widget::canvas::{self, Renderer as _};
 use iced::window::Action;
-use iced::{keyboard, BorderRadius, Color, Element, Length, Point, Rectangle, Renderer};
+use iced::{keyboard, BorderRadius, Color, Element, Length, Point, Rectangle, Renderer, Vector};
+use std::cell::RefCell;
 
 pub use marker::Marker;
 pub use style::{Appearance, StyleSheet};
-pub use wave::WaveData;
+pub use wave::{Local, WaveData};
 
-use self::wave::Local;
-
-const BAR_OVERLAP: f32 = 0.5;
-const SCALE: f32 = 1.1;
+const SCALE: f32 = 1.2;
+const MAX_SCALE: f32 = 10.0;
+const MIN_SCALE: f32 = 0.02;
 
 pub struct WaveformViewer<'a, Message, Theme>
 where
@@ -52,6 +51,16 @@ where
             on_cursor_click: None,
             style: Default::default(),
         }
+    }
+
+    pub fn width(mut self, width: Length) -> Self {
+        self.width = width;
+        self
+    }
+
+    pub fn height(mut self, height: Length) -> Self {
+        self.height = height;
+        self
     }
 
     pub fn markers<I>(mut self, markers: I) -> Self
@@ -96,15 +105,90 @@ where
         self.on_cursor_click = Some(Box::new(callback));
         self
     }
+}
 
-    fn get_wave(&'a self, state: &'a State) -> Option<&'a WaveData>
-    where
-        Message: 'a,
-    {
-        match state.interpolated.as_ref() {
-            Some(wave) => Some(wave),
-            None => self.wave,
+#[derive(Debug, Default)]
+enum WaveGeometry {
+    /// No geometry has been constructed yet.
+    #[default]
+    None,
+    /// 1:1 representation of a waveform.
+    Original(canvas::Path),
+    /// Scaled representation of a waveform.
+    /// Used when rendering the original waveform is expensive.
+    /// Uses linear interpolation to effectively shrink the original wave data,
+    /// so less points are used.
+    Scaled { scale: f32, wave: canvas::Path },
+}
+
+impl WaveGeometry {
+    fn new(peaks: &WaveData) -> Self {
+        Self::Original(Self::draw_waveform(peaks))
+    }
+
+    fn rebuild(&mut self, peaks: &WaveData) {
+        *self = Self::new(peaks)
+    }
+
+    fn get(&self) -> Option<&canvas::Path> {
+        match self {
+            Self::None => None,
+            Self::Scaled { wave, .. } | Self::Original(wave) => Some(wave),
         }
+    }
+
+    fn is_interpolated(&self) -> bool {
+        matches!(self, Self::Scaled { .. })
+    }
+
+    fn interpolate(&mut self, peaks: &WaveData, new_scale: f32) {
+        let build_wave = || Self::Scaled {
+            scale: new_scale,
+            wave: Self::draw_waveform(&wave::interpolate_zoom(peaks, new_scale)),
+        };
+
+        match self {
+            Self::None | Self::Original(..) => *self = build_wave(),
+            Self::Scaled { scale, .. } if *scale != new_scale => *self = build_wave(),
+            _ => (),
+        }
+    }
+
+    fn restore(&mut self, peaks: &WaveData) {
+        match self {
+            WaveGeometry::Original(_) => (),
+            _ => *self = Self::new(peaks),
+        }
+    }
+
+    fn clear(&mut self) {
+        *self = Self::None
+    }
+
+    fn draw_waveform(peaks: &WaveData) -> canvas::Path {
+        let peaks = &peaks.peaks()[0];
+
+        let mut path = canvas::path::Builder::new();
+
+        // Draw top half of waveform.
+        peaks.iter().enumerate().for_each(|(i, local)| {
+            path.line_to(Point {
+                x: i as f32,
+                y: 0.5 - ((1.0 / 2.0) * local.maxima),
+            })
+        });
+
+        // Draw bottom half of waveform.
+        // Backtrack since we're continuing from the end of the top half.
+        peaks.iter().enumerate().rev().for_each(|(i, local)| {
+            path.line_to(Point {
+                x: i as f32,
+                y: 0.5 - ((1.0 / 2.0) * local.minima),
+            })
+        });
+
+        path.close();
+        path.build()
     }
 }
 
@@ -117,9 +201,10 @@ struct State {
     previous_offset: usize,
     wave_offset: usize,
     zoom: f32,
-    interpolated: Option<WaveData>,
     wave_id: u64,
-    cache: Cache,
+    canvas_cache: canvas::Cache,
+    waveform: WaveGeometry,
+    wave_color: RefCell<Color>,
 }
 
 impl State {
@@ -130,20 +215,69 @@ impl State {
         }
     }
 
-    fn reset_zoom(&mut self) {
-        self.zoom = 1.0;
-        self.interpolated = None;
+    fn reset(&mut self) {
+        self.canvas_cache.clear();
+        self.waveform.clear();
+        self.wave_id = 0;
+        self.reset_zoom();
+        self.reset_offset();
     }
 
-    fn zoom_wave(&mut self, wave: &WaveData) {
-        const MAX: f32 = 10.0;
-        self.zoom = self.zoom.clamp(0.05, 10.0);
+    fn reset_offset(&mut self) {
+        self.previous_offset = 0;
+        self.wave_offset = 0;
+    }
 
-        if self.zoom == 1.0 {
-            self.interpolated = None;
-        } else {
-            let interpolated = wave::zoom(wave, self.zoom);
-            self.interpolated = Some(interpolated);
+    fn reset_zoom(&mut self) {
+        self.zoom = 1.0;
+    }
+
+    fn bounds_check_offset(&mut self, wave: &WaveData) {
+        let wave_len = (wave.peaks()[0].len() as f32 * self.zoom) as usize;
+        if self.wave_offset > wave_len {
+            self.wave_offset = wave_len.saturating_sub(1);
+        }
+    }
+    
+    fn update_zoom(&mut self, wave: &WaveData) {
+        self.zoom = self.zoom.clamp(MIN_SCALE, MAX_SCALE);
+
+        match self.zoom < 1.0 {
+            true => self.waveform.interpolate(wave, self.zoom),
+            false => self.waveform.restore(wave),
+        }
+
+        self.canvas_cache.clear();
+    }
+
+    fn zoom_in(&mut self, factor: f32, wave: &WaveData) {
+        self.zoom *= factor;
+        self.update_zoom(wave);
+    }
+
+    fn zoom_out(&mut self, factor: f32, wave: &WaveData) {
+        self.zoom /= factor;
+        self.update_zoom(wave);
+    }
+
+    fn update_wave(&mut self, wave: &WaveData) {
+        self.waveform.rebuild(wave);
+        self.wave_id = wave.id();
+        self.update_zoom(wave);
+    }
+
+    // Clear canvas cache if wave colors differ
+    fn update_wave_color(&self, appearance: &Appearance) {
+        use std::ops::DerefMut;
+
+        let new_color = appearance.wave_color;
+
+        match self.wave_color.borrow_mut().deref_mut() {
+            old_color if new_color.ne(&old_color) => {
+                *old_color = new_color;
+                self.canvas_cache.clear();
+            }
+            _ => {}
         }
     }
 }
@@ -181,17 +315,13 @@ where
         let state = tree.state.downcast_mut::<State>();
 
         let Some(wave) = self.wave else {
-            state.cache.clear();
-            state.interpolated = None;
-            state.wave_id = 0;
-            state.zoom = 1.0;
+            state.reset();
             return;
         };
 
-        if state.interpolated.is_some() && state.wave_id != wave.id() {
-            state.cache.clear();
-            state.zoom_wave(wave);
-            state.wave_id = wave.id();
+        if state.wave_id != wave.id() {
+            state.update_wave(wave);
+            state.reset_offset();
         }
     }
 
@@ -243,7 +373,7 @@ where
                 }
 
                 iced::mouse::Event::CursorMoved { position } => {
-                    if let Some(wave) = self.get_wave(state) {
+                    if let Some(wave) = self.wave {
                         if state.dragging {
                             let current_cursor_x = position.x;
                             let start_offset = state.drag_start_offset.x;
@@ -253,7 +383,10 @@ where
 
                             let wave = &wave.peaks()[0];
 
-                            state.wave_offset = wave.len().saturating_sub(1).min(new_offset);
+                            let wave_len = (wave.len() as f32 * state.zoom) as usize;
+
+                            state.wave_offset = wave_len.saturating_sub(1).min(new_offset);
+                            state.canvas_cache.clear();
                         }
                     }
 
@@ -264,10 +397,9 @@ where
                     let mut zoom_wave = |y: f32| match self.wave {
                         Some(wave) => {
                             match y > 0.0 {
-                                true => state.zoom *= SCALE,
-                                false => state.zoom /= SCALE,
+                                true => state.zoom_in(SCALE, wave),
+                                false => state.zoom_out(SCALE, wave),
                             };
-                            state.zoom_wave(wave);
                             iced::event::Status::Captured
                         }
                         None => iced::event::Status::Ignored,
@@ -283,16 +415,14 @@ where
             iced::Event::Keyboard(keyboard::Event::KeyReleased { key_code, .. }) => match key_code {
                 KeyCode::Up => match self.wave {
                     Some(wave) => {
-                        state.zoom *= SCALE;
-                        state.zoom_wave(wave);
+                        state.zoom_in(SCALE, wave);
                         iced::event::Status::Captured
                     }
                     None => iced::event::Status::Ignored,
                 },
                 KeyCode::Down => match self.wave {
                     Some(wave) => {
-                        state.zoom /= SCALE;
-                        state.zoom_wave(wave);
+                        state.zoom_out(SCALE, wave);
                         iced::event::Status::Captured
                     }
                     None => iced::event::Status::Ignored,
@@ -313,8 +443,6 @@ where
         cursor: iced::advanced::mouse::Cursor,
         _viewport: &iced::Rectangle,
     ) {
-        let state = tree.state.downcast_ref::<State>();
-
         // Draw background
         let appearance = theme.appearance(&self.style);
         renderer.fill_quad(
@@ -327,88 +455,102 @@ where
             appearance.background,
         );
 
+        // Helper function to render marker lines on the waveform
+        fn draw_line<Theme>(
+            renderer: &mut Renderer<Theme>,
+            x: f32,
+            y: f32,
+            width: f32,
+            height: f32,
+            background: Color,
+        ) {
+            renderer.fill_quad(
+                renderer::Quad {
+                    bounds: Rectangle { x, y, width, height },
+                    border_radius: 0.0.into(),
+                    border_width: 0.0,
+                    border_color: Color::TRANSPARENT,
+                },
+                background,
+            );
+        }
+
+        let dc_offset = Point {
+            x: layout.bounds().x,
+            y: layout.bounds().center_y(),
+        };
+
         let layout_width = layout.bounds().width;
         let layout_height = layout.bounds().height;
 
-        let dc_offset = Point {
-            x: layout.bounds().x + (layout_width / 2.0),
-            y: layout.bounds().y + (layout_height / 2.0),
-        };
-
         // Draw DC line
         let line_thickness = 1.5;
-        renderer.fill_quad(
-            renderer::Quad {
-                bounds: Rectangle {
-                    x: layout.bounds().x,
-                    y: dc_offset.y - (line_thickness / 2.0),
-                    width: layout_width,
-                    height: line_thickness,
-                },
-                border_radius: 0.0.into(),
-                border_width: 0.0,
-                border_color: Color::TRANSPARENT,
-            },
+        draw_line(
+            renderer,
+            layout.bounds().x,
+            dc_offset.y - (line_thickness / 2.0),
+            layout_width,
+            line_thickness,
             appearance.wave_color,
         );
 
+        let state = tree.state.downcast_ref::<State>();
+
         // Draw waveform
-        if let Some(waveform) = self.get_wave(state) {    
-            let wave = &waveform.peaks()[0];
-            let wave_offset = state.wave_offset.min(wave.len().saturating_sub(1));
+        if let Some((peaks, waveform)) = self
+            .wave
+            .and_then(|wavedata| Some((wavedata, state.waveform.get()?)))
+        {
+            state.update_wave_color(&appearance);
 
-            for offset in wave_offset..wave.len() {
-                let wave_maxima = (layout_height / 2.0) * wave[offset].maxima;
-                let wave_minima = (layout_height / 2.0) * wave[offset].minima.abs();
+            let waveform = state
+                .canvas_cache
+                .draw(renderer, layout.bounds().size(), |frame| {
+                    // Interpolated waveform represents a scaled version of the waveform,
+                    // so we don't stretch the frame.
+                    let frame_stretch = match state.waveform.is_interpolated() {
+                        true => 1.0,
+                        false => state.zoom,
+                    };
 
-                let x = layout.bounds().x + offset as f32 - wave_offset as f32;
+                    // Scale and stretch waveform
+                    frame.scale_nonuniform([frame_stretch, layout_height]);
 
-                if !layout.bounds().contains([x + BAR_OVERLAP, dc_offset.y].into()) {
-                    break;
-                }
+                    // Horizontally transform waveform.
+                    frame.translate(Vector {
+                        x: 0.0 - (state.wave_offset as f32 / frame_stretch),
+                        y: 0.0,
+                    });
 
-                // Draw both top & bottom
-                renderer.fill_quad(
-                    renderer::Quad {
-                        bounds: Rectangle {
-                            x,
-                            y: dc_offset.y - wave_maxima,
-                            width: 1.0 + BAR_OVERLAP,
-                            height: wave_maxima + wave_minima,
-                        },
-                        border_radius: 0.0.into(),
-                        border_width: 0.0,
-                        border_color: Color::TRANSPARENT,
-                    },
-                    appearance.wave_color,
-                );
-            }
+                    // Color the waveform
+                    frame.fill(waveform, appearance.wave_color);
+                });
+
+            renderer.with_translation(Vector::new(layout.bounds().x, layout.bounds().y), |renderer| {
+                renderer.draw(vec![waveform]);
+            });
 
             // Draw markers - only do so if we're rendering the waveform
             if let Some(markers) = &self.markers {
-                let wave_width = wave.len() as f32;
+                let wave_width = peaks.peaks()[0].len() as f32 * state.zoom;
 
                 for marker in markers {
-                    let x = layout.bounds().x + wave_width * marker.0 - wave_offset as f32;
+                    let x = layout.bounds().x + wave_width * marker.0 - state.wave_offset as f32;
 
                     if !layout.bounds().contains([x, dc_offset.y].into()) {
                         continue;
                     }
 
-                    renderer.fill_quad(
-                        renderer::Quad {
-                            bounds: Rectangle {
-                                x,
-                                y: layout.bounds().y,
-                                width: 2.0,
-                                height: layout.bounds().height,
-                            },
-                            border_radius: 0.0.into(),
-                            border_width: 0.0,
-                            border_color: Color::TRANSPARENT,
-                        },
-                        appearance.cursor_color,
-                    );
+                    renderer.with_layer(layout.bounds(), |renderer| {
+                        draw_line(
+                            renderer,
+                            x,
+                            layout.bounds().y,
+                            2.0,
+                            layout.bounds().height,
+                            appearance.cursor_color,
+                        );
+                    })
                 }
             }
         }
@@ -416,24 +558,19 @@ where
         // Draw cursor
         if cursor.is_over(layout.bounds()) {
             if let Some(Point { x, .. }) = cursor.position() {
-                renderer.fill_quad(
-                    renderer::Quad {
-                        bounds: Rectangle {
-                            x,
-                            y: layout.bounds().y,
-                            width: 2.0,
-                            height: layout.bounds().height,
+                renderer.with_layer(layout.bounds(), |renderer| {
+                    draw_line(
+                        renderer,
+                        x,
+                        layout.bounds().y,
+                        2.0,
+                        layout.bounds().height,
+                        match state.mouse_down {
+                            true => appearance.wave_color,
+                            false => appearance.cursor_color,
                         },
-                        border_radius: 0.0.into(),
-                        border_width: 0.0,
-                        border_color: Color::TRANSPARENT,
-                    },
-                    if state.mouse_down {
-                        appearance.wave_color
-                    } else {
-                        appearance.cursor_color
-                    },
-                );
+                    )
+                });
             }
         }
     }
