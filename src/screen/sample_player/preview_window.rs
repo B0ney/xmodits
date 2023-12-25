@@ -9,7 +9,10 @@ use std::time::{Duration, Instant};
 use audio_engine::{PlayerHandle, Sample, SamplePack, TrackerSample};
 use iced::alignment::Horizontal;
 use iced::widget::scrollable::{Direction, Properties};
-use iced::widget::{button, checkbox, column, horizontal_rule, progress_bar, row, scrollable, text, Space};
+use iced::widget::{
+    button, checkbox, column, horizontal_rule, progress_bar, row, scrollable, slider, text, vertical_rule,
+    Space,
+};
 use iced::window::Id;
 use iced::{command, Alignment, Command, Length};
 use tokio::sync::mpsc::{self, Receiver, UnboundedReceiver};
@@ -22,6 +25,9 @@ use crate::{icon, theme};
 
 use sample_info::SampleInfo;
 use wave_cache::WaveCache;
+
+const MAX_VOLUME: f32 = 1.25;
+const MIN_VOLUME: f32 = 0.0;
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -52,6 +58,7 @@ pub struct SamplePreviewWindow {
     play_on_select: bool,
     wave_cache: WaveCache,
     progress: Option<f32>,
+    volume: f32,
 }
 
 impl SamplePreviewWindow {
@@ -66,6 +73,7 @@ impl SamplePreviewWindow {
             play_on_select: true,
             wave_cache: WaveCache::default(),
             progress: None,
+            volume: 1.0,
         }
     }
 
@@ -83,7 +91,10 @@ impl SamplePreviewWindow {
             Message::Play => return self.play(),
             Message::Pause => self.player.pause(),
             Message::Stop => self.player.stop(),
-            Message::Volume(vol) => self.player.set_volume(vol),
+            Message::Volume(vol) => {
+                self.volume = vol.clamp(MIN_VOLUME, MAX_VOLUME);
+                self.player.set_volume(self.volume)
+            }
             Message::Load(path) => {
                 return match &self.sample_pack {
                     Some(f) if !f.matches_path(&path) => load_sample_pack(path),
@@ -114,14 +125,20 @@ impl SamplePreviewWindow {
     }
 
     pub fn view(&self, entries: &Entries) -> Element<Message> {
-        let controls = media_button([
+        let media_controls = media_button([
             (icon::play().size(18), Message::Play),
             (icon::stop().size(18), Message::Stop),
             (icon::pause().size(18), Message::Pause),
-            (icon::repeat().size(18), Message::Stop),
+            // (icon::repeat().size(18), Message::Stop),
         ]);
 
-        let control_panel = Container::new(controls)
+        let volume_slider = column![
+            text(format!("Volume: {}%", (self.volume * 100.0).round())),
+            slider(MIN_VOLUME..=MAX_VOLUME, self.volume, Message::Volume).step(0.01)
+        ]
+        .align_items(Alignment::Start);
+
+        let control_panel = Container::new(row![media_controls, volume_slider].spacing(8))
             .padding(8)
             .style(theme::Container::Black)
             .width(Length::Fill)
