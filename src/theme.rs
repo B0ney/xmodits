@@ -246,7 +246,8 @@ impl checkbox::StyleSheet for Theme {
 #[derive(Default, Debug, Clone, Copy)]
 pub enum Container {
     #[default]
-    Invisible,
+    Default,
+    Hovered(bool),
     Frame,
     Black,
     BlackHovered(bool),
@@ -264,7 +265,7 @@ impl container::StyleSheet for Theme {
             border_color: self.inner().border,
         };
         match style {
-            Container::Invisible => container::Appearance::default(),
+            Container::Default => container::Appearance::default(),
             Container::Frame => container::Appearance {
                 background: Some(Background::Color(self.inner().foreground)),
                 text_color: Some(self.inner().text),
@@ -283,6 +284,18 @@ impl container::StyleSheet for Theme {
                     ..dark
                 },
                 false => dark,
+            },
+            Container::Hovered(hovered) => match hovered {
+                true => container::Appearance {
+                    border_color: Color {
+                        a: 0.80,
+                        ..self.inner().accent
+                    },
+                    border_width: BORDER_WIDTH * 1.5,
+                    border_radius: BORDER_RADIUS.into(),
+                    ..container::Appearance::default()
+                },
+                false => container::Appearance::default(),
             },
         }
     }

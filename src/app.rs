@@ -517,7 +517,7 @@ impl Application for XMODITS {
                     ripping_cfg,
                     bottom_left_buttons,
                 ]
-                .spacing(8)
+                .spacing(10)
                 .into()
             }
             View::Filters => column![
@@ -526,7 +526,7 @@ impl Application for XMODITS {
                 self.custom_filters.view_file_name().map(Message::CustomFilter),
                 bottom_left_buttons,
             ]
-            .spacing(8)
+            .spacing(10)
             .into(),
             View::Settings => settings::view(&self.general_cfg).map(Message::GeneralCfg),
             View::About => about::view().map(Message::About),

@@ -123,7 +123,7 @@ impl SamplePreviewWindow {
 
         let control_panel = Container::new(controls)
             .padding(8)
-            .style(theme::Container::BlackHovered(self.hovered))
+            .style(theme::Container::Black)
             .width(Length::Fill)
             .height(Length::Shrink)
             .center_x();
@@ -131,7 +131,7 @@ impl SamplePreviewWindow {
         let top_left = column![
             fill_container(view_sample_info(self.get_selected_info()))
                 .padding(8)
-                .style(theme::Container::BlackHovered(self.hovered)),
+                .style(theme::Container::Black),
             control_panel
         ]
         .spacing(5)
@@ -154,7 +154,7 @@ impl SamplePreviewWindow {
         let top_right = column![
             fill_container(sample_list)
                 .padding(8)
-                .style(theme::Container::BlackHovered(self.hovered)),
+                .style(theme::Container::Black),
             row![
                 checkbox("Play on Select", self.play_on_select, Message::SetPlayOnSelect),
                 Space::with_width(Length::Fill)
@@ -168,8 +168,7 @@ impl SamplePreviewWindow {
         .width(Length::Fill);
 
         let waveform_viewer = WaveformViewer::new_maybe(self.wave_cache())
-            .marker_maybe(self.progress.map(Marker))
-            .style(theme::WaveformView::Hovered(self.hovered));
+            .marker_maybe(self.progress.map(Marker));
 
         let warning = warning(|| false, "WARNING - This sample is most likely static noise.");
 
@@ -185,7 +184,10 @@ impl SamplePreviewWindow {
         .push_maybe(warning)
         .spacing(5);
 
-        fill_container(main).padding(15).into()
+        fill_container(main)
+            .style(theme::Container::Hovered(self.hovered))
+            .padding(15)
+            .into()
     }
 
     pub fn title(&self) -> String {
