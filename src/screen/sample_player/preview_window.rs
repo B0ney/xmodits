@@ -112,6 +112,8 @@ impl SamplePreviewWindow {
 
                 if self.play_on_select {
                     return self.play();
+                } else {
+                    self.player.stop();
                 }
             }
             Message::SetPlayOnSelect(play_on_select) => self.play_on_select = play_on_select,
