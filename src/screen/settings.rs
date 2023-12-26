@@ -1,12 +1,12 @@
 use data::config::{self};
-use iced::widget::{button, checkbox, column, pick_list, row, Space};
-use iced::{Command, Length};
+use iced::widget::{checkbox, column, pick_list, row};
+use iced::Command;
 use std::path::PathBuf;
 
 use crate::screen::config::name_preview;
 
 use crate::utils::folder_dialog;
-use crate::widget::helpers::{control, control_filled, labelled_picklist, text_elem};
+use crate::widget::helpers::control;
 use crate::widget::{Collection, Element};
 
 #[derive(Debug, Clone)]

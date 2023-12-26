@@ -134,7 +134,6 @@ pub struct XMODITS {
     ripper: ripper::Handle,
     tracker_info: Option<TrackerInfo>,
     sample_player: sample_player::SamplePreview,
-    theme: theme::Theme,
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,

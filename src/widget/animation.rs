@@ -1,9 +1,6 @@
 //! Displays animated GIFs
 //! uses iced_gif
 
-use super::Collection;
-use super::Element;
-
 use data::config::config_dir;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
@@ -78,11 +75,11 @@ impl Animation {
 
 #[cfg(not(feature = "iced_gif"))]
 impl Animation {
-    pub fn idle<Message>(&self) -> Option<Element<Message>> {
+    pub fn idle<Message>(&self) -> Option<super::Element<Message>> {
         None
     }
 
-    pub fn ripping<Message>(&self) -> Option<Element<Message>> {
+    pub fn ripping<Message>(&self) -> Option<super::Element<Message>> {
         None
     }
 

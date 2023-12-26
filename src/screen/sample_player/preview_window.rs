@@ -7,18 +7,15 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use audio_engine::{PlayerHandle, Sample, SamplePack, TrackerSample};
-use iced::alignment::Horizontal;
-use iced::widget::scrollable::{Direction, Properties};
 use iced::widget::{
-    button, checkbox, column, horizontal_rule, progress_bar, row, scrollable, slider, text, vertical_rule,
-    Space,
+    button, checkbox, column, horizontal_rule, progress_bar, row, scrollable, slider, text, Space,
 };
 use iced::window::Id;
 use iced::{command, Alignment, Command, Length};
-use tokio::sync::mpsc::{self, Receiver, UnboundedReceiver};
+use tokio::sync::mpsc;
 
 use crate::screen::main_panel::Entries;
-use crate::widget::helpers::{centered_container, centered_text, fill_container, warning};
+use crate::widget::helpers::{centered_container, fill_container, warning};
 use crate::widget::waveform_view::{Marker, WaveData, WaveformViewer};
 use crate::widget::{Button, Collection, Container, Element, Row};
 use crate::{icon, theme};
@@ -184,8 +181,8 @@ impl SamplePreviewWindow {
         .spacing(5)
         .width(Length::Fill);
 
-        let waveform_viewer = WaveformViewer::new_maybe(self.wave_cache())
-            .marker_maybe(self.progress.map(Marker));
+        let waveform_viewer =
+            WaveformViewer::new_maybe(self.wave_cache()).marker_maybe(self.progress.map(Marker));
 
         let warning = warning(|| false, "WARNING - This sample is most likely static noise.");
 

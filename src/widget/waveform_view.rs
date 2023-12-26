@@ -10,8 +10,7 @@ use iced::advanced::widget::{self, Widget};
 use iced::keyboard::KeyCode;
 use iced::mouse::Button;
 use iced::widget::canvas::{self, Renderer as _};
-use iced::window::Action;
-use iced::{keyboard, BorderRadius, Color, Element, Length, Point, Rectangle, Renderer, Vector};
+use iced::{keyboard, Color, Element, Length, Point, Rectangle, Renderer, Vector};
 use std::cell::RefCell;
 
 pub use marker::Marker;

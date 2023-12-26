@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use super::filter::CustomFilter;
+// use super::filter::CustomFilter;
 use data::config;
 
 /// Constructed and sent by the main GUI

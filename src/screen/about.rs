@@ -8,7 +8,7 @@ use crate::widget::helpers::{
 };
 use crate::widget::{Collection, Element};
 use crate::{theme, utils};
-use iced::widget::{button, column, image, row, text};
+use iced::widget::{button, column, row, text};
 use iced::Command;
 
 use super::build_info;

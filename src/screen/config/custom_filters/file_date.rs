@@ -46,16 +46,16 @@ impl DateFilter {
             Message::DatePicker(datekind) => {
                 self.date_picker = datekind;
                 self.show_date_picker = true;
-            },
+            }
             Message::CancelPicker => self.show_date_picker = false,
-            Message::SubmitDate {  kind } => {
+            Message::SubmitDate { .. } => {
                 // match kind {
                 //     DateKind::Before => self.inner.before = Some(date.into()),
                 //     DateKind::After => self.inner.after = Some(date.into()),
                 // }
 
                 self.show_date_picker = false;
-            },
+            }
             Message::Condition(condition) => self.inner.condition = condition,
         }
     }
@@ -96,11 +96,7 @@ impl DateFilter {
         .align_items(iced::Alignment::Center)
         .spacing(8);
 
-        control(
-            "File Date",
-            settings,
-        )
-        .into()
+        control("File Date", settings).into()
     }
 }
 

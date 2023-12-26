@@ -1,9 +1,7 @@
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use audio_engine::{SamplePack, TrackerSample};
-use parking_lot::RwLock;
 
 use crate::widget::waveform_view::WaveData;
 
