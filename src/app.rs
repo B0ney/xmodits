@@ -144,7 +144,6 @@ impl XMODITS {
     /// Launch the application
     pub fn launch() -> iced::Result {
         // Setup logging stuff
-        logger::set_panic_hook();
         logger::init_logging();
 
         // load configuration

@@ -28,6 +28,8 @@ static GLOBAL: Jemalloc = Jemalloc;
 fn main() -> iced::Result {
     #[cfg(windows)]
     logger::reattach_windows_terminal();
+    
+    logger::set_panic_hook();
 
     let args = env::args().skip(1);
 
