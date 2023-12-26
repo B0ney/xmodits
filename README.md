@@ -1,9 +1,7 @@
 <div align="center">
 <img alt="XMODITS Logo" src="icon.png">     
-<!-- I could do with an improved logo tbh -->
 
 # XMODITS
-
 
 # A tool to bulk extract samples from various tracker modules with ease.
 </div>
@@ -53,10 +51,10 @@ If you prefer to use a minimal version of this tool, a command line version of x
 |``.raw``| Headerless pcm |
 
 ## Features
-<!-- * Sample previewing  (0.12.0)-->
 * A robust naming system for extracted samples (see [Sample Naming](#sample-naming)).
 * Can export samples to less common audio formats used by music trackers: ``.its``, ``.s3i`` & ``.8svx``
 * Can show information about a module.
+* A sample previewer.
 * Multithreaded ripping* for better efficiency.
 * Cute animated fox to make ripping less tedious.
 <!-- * Resuming -->
@@ -65,13 +63,15 @@ If you prefer to use a minimal version of this tool, a command line version of x
 \* xmodits will only use threads if it is ripping from a directory.
 
 ## Screenshots
-![xmodits gui](./assets/screenshots/home.png)
+![XMODITS initial screen](./assets/screenshots/home.png)
 <details>
 <summary>Click to show more</summary>
 
-![xmodits gui](./assets/screenshots/selection.png)
-![xmodits gui](./assets/screenshots/ripping.png)
-![xmodits gui](./assets/screenshots/ripping_done.png)
+![Selecting tracker modules](./assets/screenshots/selection.png)
+![Previewing samples from "UNATCO_Music.umx"](./assets/screenshots/sample_preview.png)
+![Ripping samples from 33 tracker modules](./assets/screenshots/ripping.png)
+![XMODITS has finished ripping with no error. Yay! ](./assets/screenshots/ripping_done.png)
+
 
 Click [here](./assets/screenshots/README.md) for different themes
 
