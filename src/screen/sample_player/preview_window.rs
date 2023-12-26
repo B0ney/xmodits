@@ -343,7 +343,10 @@ fn view_sample(
     };
 
     let title = row![]
-        .push(text(format!("{} - {}", index + 1, info.title())))
+        .push(text(match info.title() {
+            title if title.is_empty() => format!("{}", index + 1),
+            title => format!("{} - {}", index + 1, title),
+        }))
         .push_maybe(info.is_error().then_some(error_icon()))
         .spacing(5);
 
@@ -374,8 +377,8 @@ fn view_sample_info(info: Option<&SampleInfo>) -> Element<Message> {
                 let sample_filename = smp
                     .filename
                     .as_ref()
-                    // .filter(|f| !f.is_empty())
-                    .map(|n| text(format!("File Name: {}", n.trim())));
+                    .map(|s| s.trim())
+                    .and_then(|s| (!s.is_empty()).then_some(text(format!("File Name: {}", s))));
 
                 let metadata = text(format!(
                     "{} Hz, {}-bit ({}), {}",

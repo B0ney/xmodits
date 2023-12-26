@@ -9,7 +9,13 @@ pub enum SampleInfo {
 impl SampleInfo {
     pub fn title(&self) -> String {
         match &self {
-            Self::Sample(smp) => smp.filename_pretty().to_string(),
+            Self::Sample(smp) => { 
+                let filename = smp.filename_pretty();
+                match filename.is_empty() {
+                    true => smp.name_pretty().into(),
+                    false => filename.into(),
+                }
+            },
             Self::Invalid { .. } => "ERROR".into(),
         }
     }
