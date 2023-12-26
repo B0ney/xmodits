@@ -48,11 +48,11 @@ pub fn rip(paths: impl IntoIterator<Item = String>) {
 
     let log_path = config.general.logging_path.as_ref().unwrap_or(&destination);
 
-    let namer = config.naming.build_func();
     let self_contained = config.ripping.self_contained;
 
     let mut ripper = Ripper::default();
-    ripper.change_namer(namer);
+    ripper.change_namer(config.naming.build_func());
+    ripper.change_format(config.ripping.exported_format.get_impl());
 
     let errors: Vec<(PathBuf, Error)> = paths
         .into_iter()
