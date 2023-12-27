@@ -1,10 +1,11 @@
 # v0.12.0 (TBD)
 
 ## What's new
-### Sample Previewing
-You can view and play samples from tracker modules! All you need to do is load a valid file and click "view samples". This will give you a general idea as to what XMODITS will output. 
-
-### Other new stuff
+* Added the ability to view and play samples from loaded modules.
+  * Includes a scrollable and zoomable waveform viewer.
+  * Basic media controls to play, stop, pause, and change volume.
+  * Selecting a sample will show more information about it.
+  * Samples can also be previewed by dropping a valid module onto the window.
 * Added more keyboard shortcuts:
   |Shortcut| Action|
   |-|-|
@@ -14,11 +15,11 @@ You can view and play samples from tracker modules! All you need to do is load a
 * "About" section contains build information that can be exported.
 * Sample extraction now displays the number of errors.
 * Dynamic window titles.
-* Added option to suppress warnings
-* Added option to disable animated GIF
+* Added option to suppress warnings.
+* Added option to disable animated GIF.
 
-<!-- ## Bug Fixes
-* (xmodits-lib) Fixed downsampling bug when exporting samples to ``.8svx`` -->
+## Bug Fixes
+* (Windows) Drag'n'drop mode no longer ignores the configured export format.
 
 ## Improvements
 * Some tweaks to the UI/UX:
@@ -31,6 +32,8 @@ You can view and play samples from tracker modules! All you need to do is load a
 * Linux builds use ``jemalloc`` to mitigate memory fragmentation, resulting in lower memory usage.
 * Windows builds have ``vcruntime`` embedded for improved compatibility.
 
+## Internal
+* Massive codebase restructuring
 
 # v0.11.0 (29 July 2023)
 
