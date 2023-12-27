@@ -28,12 +28,9 @@ static GLOBAL: Jemalloc = Jemalloc;
 fn main() -> iced::Result {
     #[cfg(windows)]
     logger::reattach_windows_terminal();
-    
     logger::set_panic_hook();
 
-    let args = env::args().skip(1);
-
-    let version = args
+    let version = env::args().skip(1)
         .peekable()
         .next()
         .map(|a| a == "--version" || a == "-V")

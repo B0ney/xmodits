@@ -4,14 +4,14 @@
 
 use std::path::{Path, PathBuf};
 
+use crate::app::Message;
 use crate::utils::filename;
+use crate::widget::helpers::centered_container;
 use crate::widget::helpers::{centered_column_x, centered_text, control_filled};
 use crate::widget::{Button, Collection, Element};
+
 use iced::widget::{button, column, text, Space};
 use xmodits_lib::common::info::Info;
-
-use crate::app::Message;
-use crate::widget::helpers::centered_container;
 
 #[derive(Debug, Clone)]
 pub enum TrackerInfo {

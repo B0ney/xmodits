@@ -24,7 +24,7 @@ use crate::widget::{Collection, Container, Element};
 use data::Config;
 use std::path::PathBuf;
 
-use iced::multi_window::Application;
+use iced::multi_window::{self, Application};
 use iced::widget::{button, checkbox, column, row, text, text_input, Space};
 use iced::Alignment;
 use iced::Size;
@@ -287,7 +287,7 @@ pub fn application_icon() -> iced::window::Icon {
     iced::window::icon::from_file_data(icon, None).unwrap()
 }
 
-impl Application for XMODITS {
+impl multi_window::Application for XMODITS {
     type Executor = iced::executor::Default;
     type Message = Message;
     type Theme = theme::Theme;
@@ -308,7 +308,6 @@ impl Application for XMODITS {
     }
 
     fn theme(&self, _id: window::Id) -> Self::Theme {
-        // todo...
         theme::Theme(self.general_cfg.theme.palette()).clone()
     }
 

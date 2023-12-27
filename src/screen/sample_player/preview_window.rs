@@ -183,8 +183,10 @@ impl SamplePreviewWindow {
         .spacing(5)
         .width(Length::Fill);
 
-        let waveform_viewer =
-            WaveformViewer::new_maybe(self.wave_cache()).marker_maybe(self.progress.map(Marker));
+        let waveform_viewer = WaveformViewer::new_maybe(self.wave_cache())
+            .marker_maybe(self.progress.map(Marker))
+            .width(Length::Fill)
+            .height(Length::FillPortion(2));
 
         let warning = warning(|| false, "WARNING - This sample is most likely static noise.");
 
@@ -192,7 +194,7 @@ impl SamplePreviewWindow {
             row![top_left, top_right]
                 .height(Length::FillPortion(3))
                 .spacing(5),
-            fill_container(waveform_viewer).height(Length::FillPortion(2)),
+            waveform_viewer,
             progress_bar(0.0..=1.0, self.progress.unwrap_or_default())
                 .height(5.0)
                 .style(theme::ProgressBar::Dark)

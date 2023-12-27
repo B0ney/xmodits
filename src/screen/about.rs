@@ -8,6 +8,7 @@ use crate::widget::helpers::{
 };
 use crate::widget::{Collection, Element};
 use crate::{theme, utils};
+
 use iced::widget::{button, column, row, text};
 use iced::Command;
 
@@ -22,7 +23,7 @@ pub enum Message {
 }
 
 pub fn view<'a>() -> Element<'a, Message> {
-    let title = row![vbee3(), centered_text("XMODITS - by B0ney"), vbee3(),]
+    let title = row![vbee3(), centered_text("XMODITS - by B0ney"), vbee3()]
         .align_items(iced::Alignment::Center)
         .spacing(8);
     let about = centered_text("A tool to rip samples from various tracker modules.");
@@ -40,7 +41,9 @@ pub fn view<'a>() -> Element<'a, Message> {
             "Build Information",
             column![
                 view,
-                button(text_icon("Export", icon::save())).style(theme::Button::Start).on_press(Message::FileDialog)
+                button(text_icon("Export", icon::save()))
+                    .style(theme::Button::Start)
+                    .on_press(Message::FileDialog)
             ]
             .spacing(8),
         )

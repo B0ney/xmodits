@@ -20,7 +20,7 @@ pub fn init_logging() {
     // will be written to stdout.
     set_global_default(
         FmtSubscriber::builder()
-            .with_max_level(Level::TRACE)
+            .with_max_level(Level::DEBUG)
             .finish(),
     )
     .expect("setting default subscriber failed");

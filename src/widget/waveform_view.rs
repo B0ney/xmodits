@@ -272,7 +272,7 @@ impl State {
         let new_color = appearance.wave_color;
 
         match self.wave_color.borrow_mut().deref_mut() {
-            old_color if new_color.ne(&old_color) => {
+            old_color if new_color.ne(old_color) => {
                 *old_color = new_color;
                 self.canvas_cache.clear();
             }

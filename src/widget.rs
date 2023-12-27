@@ -14,7 +14,6 @@ pub mod waveform_view;
 pub use self::collection::Collection;
 
 use crate::theme::Theme;
-// use iced::Theme;
 
 pub type Renderer = iced::Renderer<Theme>;
 
