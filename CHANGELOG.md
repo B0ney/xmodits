@@ -13,7 +13,7 @@
   |<kbd>shift</kbd> + <kbd>delete</kbd>| Clears the entries|
   |<kbd>ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd>| Save Configuration|
 * "About" section contains build information that can be exported.
-* Sample extraction now displays the number of errors.
+* Sample extraction now shows an error count.
 * Dynamic window titles.
 * Added option to suppress warnings.
 * Added option to disable animated GIF.
