@@ -1,28 +1,39 @@
-# v0.12.0 (planned, subject to change)
+# v0.12.0 (TBD)
+
 ## What's new
-* Added option to filter files based on the following properties:
-  * file size
-  * file name
-  * file extension
-  * TODO: date-(created, modified)
-* Added button to preview samples.
-* Can import/export custom themes.
-* Shows the number of errors while ripping.
-* Added keyboard shortcuts:
+* Added the ability to view and play samples from loaded modules.
+  * Includes a scrollable and zoomable waveform viewer.
+  * Basic media controls to play, stop, pause, and change volume.
+  * Selecting a sample will show more information about it.
+  * Samples can also be previewed by dropping a valid module onto the window.
+* Added more keyboard shortcuts:
   |Shortcut| Action|
   |-|-|
   |<kbd>delete</kbd>| Clears the selected entries|
   |<kbd>shift</kbd> + <kbd>delete</kbd>| Clears the entries|
   |<kbd>ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd>| Save Configuration|
+* "About" section contains build information that can be exported.
+* Sample extraction now shows an error count.
+* Dynamic window titles.
+* Added option to suppress warnings.
+* Added option to disable animated GIF.
 
 ## Bug Fixes
-* (xmodits-lib) Fixed downsampling bug when exporting samples to ``.8svx``
+* (Windows) Drag'n'drop mode no longer ignores the configured export format.
 
-## Other Improvements
-* XMODITS now has a built-in software renderer.
-* Improved displaying for errors.
-* Improved memory usage for Linux binaries (uses jemalloc).
-* MacOS builds now include binaries for Apple Silicon.
+## Improvements
+* Some tweaks to the UI/UX:
+  * Some parts of the application will glow when you hover over a file.
+* Application now includes a software renderer.
+* Font fallback, non-english text should no longer display empty squares.
+
+## Miscellaneous
+* MacOS builds have binaries for Apple Silicon
+* Linux builds use ``jemalloc`` to mitigate memory fragmentation, resulting in lower memory usage.
+* Windows builds have ``vcruntime`` embedded for improved compatibility.
+
+## Internal
+* Massive codebase restructuring
 
 # v0.11.0 (29 July 2023)
 
