@@ -4,7 +4,7 @@ ARCH="x86_64"
 PLATFORM="linux"
 
 TARGET="xmodits-gui"
-FEATURES="jemallocator","built"
+FEATURES="jemallocator","built","audio","iced_gif"
 
 PROFILE="release"
 RELEASE_DIR="target/$PROFILE"
@@ -13,6 +13,10 @@ BINARY="$RELEASE_DIR/$TARGET"
 ARCHIVE_DIR="$RELEASE_DIR/archive"
 ARTIFACT_DIR="$RELEASE_DIR/artifact"
 
+install_deps() {
+    sudo apt-get install -y libasound2-dev pkg-config
+    # sudo apt-get install -y libxkbcommon-dev
+}
 
 build() {
     cargo build -p xmodits-gui --profile $PROFILE --features=$FEATURES
@@ -35,6 +39,7 @@ create_dirs() {
 }
 
 package() {
+    install_deps
     build
 
     create_dirs
