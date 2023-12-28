@@ -5,7 +5,7 @@ PLATFORM="macos"
 TARGET_OLD="xmodits-gui"
 TARGET="xmodits"
 
-FEATURES="built","wgpu"
+FEATURES="built","wgpu","audio","iced_gif"
 
 PROFILE="release"
 RELEASE_DIR="target/$PROFILE"
