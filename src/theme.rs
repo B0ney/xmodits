@@ -478,7 +478,7 @@ impl scrollable::StyleSheet for Theme {
 
         let from_appearance = |c: Color, d: Color| scrollable::Scrollbar {
             background: Some(Background::Color(c)),
-            border_radius: BORDER_RADIUS.into(),
+            border_radius: 3.0.into(),
             border_width: 0.0,
             border_color: Color::TRANSPARENT,
             scroller: scrollable::Scroller {
