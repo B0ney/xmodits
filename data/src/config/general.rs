@@ -28,12 +28,12 @@ impl Default for GeneralConfig {
             logging_path: None,
             non_gui_quiet_output: false,
             non_gui_use_cwd: false,
-            hide_gif: true,
+            hide_gif: false,
             idle_gif: None,
             ripping_gif: None,
             complete_gif: None,
             suppress_warnings: false,
-            theme: Themes::Catppuccin,
+            theme: Themes::default(),
             sample_name_params: SampleNameParams::default(),
         }
     }
