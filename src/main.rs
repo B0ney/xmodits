@@ -4,6 +4,7 @@
 #![allow(clippy::needless_lifetimes)]
 
 pub mod app;
+mod cli;
 pub mod dialog;
 pub mod event;
 pub mod font;
@@ -16,6 +17,7 @@ pub mod utils;
 pub mod widget;
 
 use app::XMODITS;
+use cli::Mode;
 use std::env;
 
 #[cfg(all(feature = "jemallocator", not(target_env = "msvc")))]
@@ -30,21 +32,17 @@ fn main() -> iced::Result {
     logger::reattach_windows_terminal();
     logger::set_panic_hook();
 
-    let version = env::args().skip(1)
-        .peekable()
-        .next()
-        .map(|a| a == "--version" || a == "-V")
-        .unwrap_or_default();
+    let mut args: Vec<_> = env::args().collect();
+    args.remove(0);
 
-    if version {
-        println!("{}", env!("CARGO_PKG_VERSION"));
-        return Ok(());
+    match cli::parse(args) {
+        Mode::None => XMODITS::launch().map(|_| tracing::info!("Bye :)")),
+        #[cfg(windows)]
+        Mode::DragNDrop(paths) => XMODITS::launch_simple(paths),
+        Mode::Version => Ok(cli::print_version()),
+        Mode::Help => Ok(cli::print_help()),
+        #[cfg(feature = "built")]
+        Mode::BuildInfo => Ok(cli::print_info()),
+        Mode::Unrecognised(option) => Ok(cli::print_unrecognised(option)),
     }
-
-    #[cfg(windows)]
-    if env::args().len() > 1 {
-        return XMODITS::launch_simple(env::args().skip(1));
-    }
-
-    XMODITS::launch().map(|_| tracing::info!("Bye :)"))
 }
