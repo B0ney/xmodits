@@ -12,16 +12,18 @@ pub enum Themes {
     Nord,
     LMMS,
     OneShot,
+    HighContrast,
 }
 
 impl Themes {
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
         Self::Dark,
         Self::Dracula,
         Self::Catppuccin,
         Self::Nord,
         Self::LMMS,
         Self::OneShot,
+        Self::HighContrast,
     ];
 
     pub fn palette(&self) -> Palette {
@@ -36,7 +38,7 @@ impl Themes {
                 error: color!(0xff5555),
                 warning: color!(0xff5555),
                 success: color!(0x49eb7a),
-                waveform: color!(0xBA84FC),              
+                waveform: color!(0xBA84FC),
             },
             Self::Dracula => Palette {
                 middleground: color!(0x282a36),
@@ -80,7 +82,7 @@ impl Themes {
                 foreground: color!(0x2B0D1A),
                 background: color!(0x100213),
                 border: color!(0xe2bc5a),
-                accent:  color!(0xba9e59), //color!(0xF48550),
+                accent: color!(0xba9e59), //color!(0xF48550),
                 text: color!(0xFEFECD),
                 error: color!(0xff5555),
                 warning: color!(0xff5555),
@@ -90,7 +92,7 @@ impl Themes {
             Self::Catppuccin => Palette {
                 middleground: color!(0x1E1E28),
                 foreground: color!(0x332E41),
-                background:  color!(0x1B1923),
+                background: color!(0x1B1923),
                 border: color!(0x6E6C7E),
                 accent: color!(0xC6AAE8),
                 text: color!(0xFEFECD),
@@ -98,7 +100,19 @@ impl Themes {
                 warning: color!(0xE38C8F),
                 success: color!(0xB1E3AD),
                 waveform: color!(0xC6AAE8),
-            }
+            },
+            Self::HighContrast => Palette {
+                middleground: color!(0x000000),
+                foreground: color!(0x111111),
+                background: color!(0x000000),
+                border: color!(0xcccccc),
+                accent: color!(0x00ffff),
+                text: color!(0xffffff),
+                error: color!(0xffff00),
+                warning: color!(0xffff00),
+                success: color!(0x00ff00),
+                waveform: color!(0x00ff00),
+            },
         }
     }
 }
@@ -115,6 +129,7 @@ impl std::fmt::Display for Themes {
                 Themes::LMMS => "LMMS",
                 Themes::OneShot => "OneShot",
                 Themes::Catppuccin => "Catppuccin",
+                Themes::HighContrast => "High Contrast",
                 // Themes::Custom() => "Custom Theme"
             }
         )

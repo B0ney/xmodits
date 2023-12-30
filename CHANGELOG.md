@@ -20,6 +20,7 @@
 * Window title now shows the ripping progress.
 * Added option to hide warnings.
 * Added option to disable animated GIF.
+* Added high contrast theme.
 
 ## Bug Fixes
 * (Windows) Drag'n'drop mode no longer ignores the configured export format.
