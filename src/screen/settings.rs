@@ -42,7 +42,7 @@ pub fn view(general: &config::GeneralConfig) -> Element<Message> {
 
     let settings = column![]
         .push(checkbox(
-            "Suppress Warnings",
+            "Hide Warnings",
             general.suppress_warnings,
             Message::SuppressWarnings,
         ))
