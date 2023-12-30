@@ -25,7 +25,7 @@ chrono = { version = "0.4", features = ["serde"] }
 
 [workspace.dependencies.xmodits-lib]
 git = "https://github.com/B0ney/xmodits-lib.git"
-rev = "78675a3"
+rev = "831b8e9"
 features = ["serde"]
 
 [dependencies.iced]
@@ -87,6 +87,14 @@ static_vcruntime = "2"
 [package.metadata.winresource]
 OriginalFilename = "XMODITS.EXE"
 Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
+
+[package.metadata.appimage]
+auto_link = true
+auto_link_exclude_list = [
+    "libc.so*",
+    "libdl.so*",
+    "libpthread.so*",
+]
 
 [profile.dev]
 split-debuginfo = "packed"
