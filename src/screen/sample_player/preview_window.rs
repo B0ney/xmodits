@@ -172,7 +172,8 @@ impl SamplePreviewWindow {
                 .padding(8)
                 .style(theme::Container::Black),
             row![
-                checkbox("Play on Selection", self.play_on_select, Message::SetPlayOnSelect),
+                checkbox("Play on Selection", self.play_on_select, Message::SetPlayOnSelect)
+                    .style(theme::CheckBox::Inverted),
                 Space::with_width(Length::Fill)
             ]
             .push_maybe(no_button_spacing)

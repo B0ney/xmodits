@@ -75,7 +75,7 @@ pub fn view_ripping<'a>(
     total_errors: u64,
     show_gif: bool,
 ) -> Element<'a, Message> {
-    let cancel_ripping_button = button("Cancel")
+    let cancel_ripping_button = button("CANCEL")
         .on_press(Message::Cancel)
         .style(theme::Button::Cancel)
         .padding(5);

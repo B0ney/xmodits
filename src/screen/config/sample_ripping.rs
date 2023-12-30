@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use data::config::SampleRippingConfig;
 use xmodits_lib::exporter::AudioFormat;
 
+use crate::theme;
 use crate::utils::folder_dialog;
 use crate::widget::helpers::{centered_button, control, labelled_picklist};
 use crate::widget::Element;
@@ -65,7 +66,9 @@ pub fn view_destination_bar(ripping_cfg: &SampleRippingConfig) -> Element<Messag
             Message::Destination(Some(destination))
         });
 
-    let button = centered_button("Open").on_press(Message::DestinationDialog);
+    let button = centered_button("Open")
+        .on_press(Message::DestinationDialog)
+        .style(theme::Button::Start);
 
     row![input, button]
         .spacing(5)
@@ -75,11 +78,7 @@ pub fn view_destination_bar(ripping_cfg: &SampleRippingConfig) -> Element<Messag
 
 pub fn view(ripping: &SampleRippingConfig) -> Element<Message> {
     let col1 = column![
-        checkbox(
-            "Self Contained",
-            ripping.self_contained,
-            Message::SelfContained
-        ),
+        checkbox("Self Contained", ripping.self_contained, Message::SelfContained),
         checkbox("Strict Loading", ripping.strict, Message::StrictLoad),
     ]
     .spacing(8);

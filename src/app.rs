@@ -553,10 +553,20 @@ impl multi_window::Application for XMODITS {
         let bottom_right_buttons = row![
             action("Add File", not_ripping.then_some(Message::FileDialog)).padding(8),
             action("Add Folder", not_ripping.then_some(Message::FolderDialog)).padding(8),
-            Space::with_width(Length::Fill),
-            action("Delete Selected", not_ripping.then_some(Message::DeleteSelected)).padding(8),
-            action("Clear", not_ripping.then_some(Message::Clear)).padding(8),
+            Space::with_width(Length::Fill)
         ]
+        .push_maybe(
+            (self.entries.total_selected() > 0 && (!self.entries.all_selected)).then(|| {
+                action("Clear Selected", not_ripping.then_some(Message::DeleteSelected))
+                    .padding(8)
+                    .style(theme::Button::Cancel)
+            }),
+        )
+        .push(
+            action("Clear", not_ripping.then_some(Message::Clear))
+                .padding(8)
+                .style(theme::Button::Cancel),
+        )
         .spacing(5);
 
         let show_gif = !self.general_cfg.hide_gif;
