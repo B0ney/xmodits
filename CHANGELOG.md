@@ -1,29 +1,38 @@
 # v0.12.0 (TBD)
 
 ## What's new
+* Updated logo.
 * Added the ability to view and play samples from loaded modules.
   * Includes a scrollable and zoomable waveform viewer.
   * Basic media controls to play, stop, pause, and change volume.
   * Selecting a sample will show more information about it.
   * Samples can also be previewed by dropping a valid module onto the window.
+  * Modules not in the ripping list can be included by pressing "Add to Entries".
 * Added more keyboard shortcuts:
   |Shortcut| Action|
   |-|-|
-  |<kbd>delete</kbd>| Clears the selected entries|
-  |<kbd>shift</kbd> + <kbd>delete</kbd>| Clears the entries|
-  |<kbd>ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd>| Save Configuration|
-* "About" section contains build information that can be exported.
+  |<kbd>delete</kbd>| Clear the selected entries|
+  |<kbd>shift</kbd> + <kbd>delete</kbd>| Clears all of the entries|
+  |<kbd>ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd>| Save settings|
+* "About" section now shows the program's build information that can be exported.
+  * Build information can also be shown through the command line with the "--info" argument.
 * Sample extraction now shows an error count.
-* Dynamic window titles.
-* Added option to suppress warnings.
+* Window title now shows the ripping progress.
+* Added option to hide warnings.
 * Added option to disable animated GIF.
 
 ## Bug Fixes
 * (Windows) Drag'n'drop mode no longer ignores the configured export format.
+* Fixed a minor logic error where adding a duplicate file/folder would unanimously uncheck "all selected"
 
 ## Improvements
 * Some tweaks to the UI/UX:
   * Some parts of the application will glow when you hover over a file.
+  * "Open" button is made green, "Clear" and "Clear Selected" buttons are now red.
+  * Tweaked vocabulary: 
+    * "Save configuration" -> "Save Settings"
+    * "Delete Selected" -> "Clear Selected"
+    * "Select" -> "Open"
 * Application now includes a software renderer.
 * Font fallback, non-english text should no longer display empty squares.
 
