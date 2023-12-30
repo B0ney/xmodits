@@ -52,7 +52,6 @@ impl Entries {
     }
 
     pub fn add_multiple(&mut self, paths: Vec<PathBuf>) {
-        self.all_selected = false;
         paths.into_iter().for_each(|path| self.add(path));
     }
 
