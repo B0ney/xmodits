@@ -6,6 +6,7 @@ use crate::font;
 use crate::icon;
 use crate::logger;
 use crate::ripper;
+use crate::ripper::extraction::error_handler;
 use crate::ripper::subscription::{CompleteState, ErrorHandler};
 use crate::screen::config::custom_filters;
 use crate::screen::config::name_preview;
@@ -61,7 +62,7 @@ pub enum Message {
     SaveConfig,
     SaveConfigResult(),
     SaveErrors,
-    SaveErrorsResult(Result<(), String>),
+    SaveErrorsResult(Result<PathBuf, String>),
     Select { index: usize, selected: bool },
     SelectAll(bool),
     SetState(State),
@@ -94,7 +95,11 @@ pub enum State {
         errors: u64,
     },
     /// The application has finished ripping samples
-    Finished { state: CompleteState, time: data::Time },
+    Finished {
+        state: CompleteState,
+        time: data::Time,
+        destination: PathBuf,
+    },
 }
 
 impl State {
@@ -199,16 +204,21 @@ impl XMODITS {
     }
 
     pub fn clear_entries(&mut self) {
+        if self.state.is_ripping() {
+            return;
+        }
+        if self.state.is_finished() {
+            self.state = State::Idle;
+            return;
+        }
+
         self.tracker_info = None;
         self.entries.clear();
     }
 
     pub fn delete_selected_entries(&mut self) {
-        let current_tracker_path = self.tracker_info.as_ref().map(|f| f.path());
-        let clear_tracker_info = self.entries.delete_selected(current_tracker_path);
-
-        if clear_tracker_info {
-            self.tracker_info = None;
+        if !self.state.is_ripping() {
+            self.entries.delete_selected(&mut self.tracker_info);
         }
     }
 
@@ -387,7 +397,7 @@ impl multi_window::Application for XMODITS {
 
                 return Command::perform(
                     async move {
-                        let Some(path) = create_file_dialog().await else {
+                        let Some(path) = create_file_dialog(error_handler::random_name()).await else {
                             return Err(String::new()); // todo
                         };
 
@@ -397,8 +407,12 @@ impl multi_window::Application for XMODITS {
                 );
             }
             Message::SaveErrorsResult(result) => {
-                if result.is_ok() {
-                    self.state = State::Idle;
+                match result {
+                    Ok(path) => {
+                        tracing::info!("Successfully saved errors to: {}", &path.display());
+                        let _ = open::that_detached(path);
+                    }
+                    _ => (), // todo
                 }
             }
             Message::StartRipping => {
@@ -446,9 +460,17 @@ impl multi_window::Application for XMODITS {
                 ripper::Message::Progress { progress, errors } => {
                     self.state.update_progress(progress, errors)
                 }
-                ripper::Message::Done { state, time } => {
+                ripper::Message::Done {
+                    state,
+                    time,
+                    destination,
+                } => {
                     self.ripper.reset_stop_flag(); // todo: should this be here?
-                    self.state = State::Finished { state, time };
+                    self.state = State::Finished {
+                        state,
+                        time,
+                        destination,
+                    };
                 }
             },
             Message::Ignore => (),
@@ -577,7 +599,11 @@ impl multi_window::Application for XMODITS {
                 progress,
                 errors,
             } => main_panel::view_ripping(message, *progress, *errors, show_gif),
-            State::Finished { state, time } => main_panel::view_finished(state, time, self.file_hovered),
+            State::Finished {
+                state,
+                time,
+                destination,
+            } => main_panel::view_finished(state, time, self.file_hovered, &destination),
         };
 
         let allow_warnings = !self.general_cfg.suppress_warnings;

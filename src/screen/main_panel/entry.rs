@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+use crate::screen::tracker_info::TrackerInfo;
 use crate::utils::filename;
 
 #[derive(Default)]
@@ -119,26 +120,24 @@ impl Entries {
         .collect()
     }
 
-    pub fn delete_selected(&mut self, current: Option<&Path>) -> bool {
+    pub fn delete_selected(&mut self, current_tracker_info: &mut Option<TrackerInfo>) {
         // clear the entries if everything is selected
         if self.all_selected || self.total_selected() == self.entries.len() {
             self.entries.clear();
-            return true;
         }
 
         self.all_selected = false;
 
-        let mut clear_current_tracker = false;
-        
         self.entries.retain(|entry: &Entry| {
-            if current.is_some_and(|path| path == entry.path) {
-                clear_current_tracker = true;
+            if current_tracker_info
+                .as_ref()
+                .is_some_and(|path| path.matches_path(&entry.path))
+            {
+                *current_tracker_info = None;
             }
 
             !entry.selected
         });
-
-        clear_current_tracker
     }
 
     pub fn files(&self) -> usize {
@@ -154,9 +153,7 @@ impl Entries {
             self.all_selected = !self.all_selected;
         };
 
-        self.entries
-            .iter_mut()
-            .for_each(|f| f.selected = !f.selected)
+        self.entries.iter_mut().for_each(|f| f.selected = !f.selected)
     }
 
     pub fn none_selected(&self) -> bool {

@@ -8,7 +8,9 @@ pub use entry::{Entries, Entry};
 use crate::app::{Message, State};
 use crate::ripper::extraction::error::Reason;
 use crate::ripper::subscription::CompleteState;
-use crate::widget::helpers::{centered_column_x, centered_container, centered_text, fill_container};
+use crate::widget::helpers::{
+    centered_column_x, centered_container, centered_text, fill_container, text_icon,
+};
 use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
 
@@ -98,12 +100,20 @@ pub fn view_finished<'a>(
     complete_state: &'a CompleteState,
     time: &'a Time,
     hovered: bool,
+    destination: &std::path::Path,
 ) -> Element<'a, Message> {
     let continue_button = button("Continue")
         .on_press(Message::SetState(State::Idle))
+        .style(theme::Button::Start)
         .padding(5);
 
-    let save_errors_button = button("Save Errors").on_press(Message::SaveErrors).padding(5);
+    let save_errors_button = button(text_icon("Save Errors", icon::save()))
+        .on_press(Message::SaveErrors)
+        .padding(5);
+
+    let open_destination_button = button(text_icon("Show Folder", icon::folder()))
+        .on_press(Message::Open(destination.display().to_string()))
+        .padding(5);
 
     match complete_state {
         CompleteState::NoErrors => centered_container(
@@ -112,7 +122,7 @@ pub fn view_finished<'a>(
                 text("Drag and Drop"),
                 text(format!("{}", time)),
                 Space::with_height(15),
-                continue_button
+                row![continue_button, open_destination_button].spacing(8)
             ]
             .align_items(Alignment::Center),
         )
@@ -145,11 +155,13 @@ pub fn view_finished<'a>(
 
         CompleteState::SomeErrors(errors) => {
             let message = column![
-                centered_text("Done... But xmodits could not rip everything... (._.)"),
-                text(format!("{}", time)),
-            ];
+                centered_text("Done... But xmodits could not rip everything..."),
+                centered_text("(._.)"),
+                centered_text(format!("{}", time)),
+            ]
+            .align_items(Alignment::Center);
 
-            let buttons = row![continue_button, save_errors_button]
+            let buttons = row![continue_button, open_destination_button, save_errors_button]
                 .padding(4)
                 .spacing(6)
                 .align_items(Alignment::Center);
@@ -191,10 +203,12 @@ pub fn view_finished<'a>(
                 button(centered_text(log.display()))
                     .on_press(Message::Open(log.display().to_string()))
                     .style(theme::Button::HyperlinkInverted),
-                centered_text(format!("{} errors written", total)),
-                text(format!("{}", time)),
-                // space,
-                row![continue_button].padding(4).align_items(Alignment::Center)
+                centered_text(format!("{} errors written.", total)),
+                centered_text(format!("{}.", time)),
+                row![continue_button, open_destination_button]
+                    .spacing(8)
+                    .padding(4)
+                    .align_items(Alignment::Center)
             ]
             .align_items(Alignment::Center)
             .padding(4)
@@ -213,12 +227,12 @@ pub fn view_finished<'a>(
             let error_message = text(format!("{} stored errors", errors.len()));
             let discarded_errors = match discarded {
                 0 => text("No errors were discarded."),
-                n => text(format!("I had to discard {} error(s) to save memory. >_<", n)), // .style(style::text::Text::Error),
+                n => text(format!("I had to discard {} error(s) to save memory. >_<", n)),
             };
 
-            let buttons = row![continue_button, save_errors_button]
+            let buttons = row![continue_button, open_destination_button, save_errors_button]
                 .padding(4)
-                .spacing(6)
+                .spacing(8)
                 .align_items(Alignment::Center);
 
             let view = column![
@@ -226,7 +240,6 @@ pub fn view_finished<'a>(
                 text("But there's too many errors to display! (-_-')"),
                 text("...and I can't store them to a file either:"),
                 centered_text(format!("\"{}\"", reason)),
-                // .style(style::text::Text::Error),
                 buttons,
                 error_message,
                 discarded_errors,

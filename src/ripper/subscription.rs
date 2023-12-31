@@ -12,8 +12,15 @@ use super::Signal;
 #[derive(Clone, Debug)]
 pub enum Message {
     Ready(Sender<Signal>),
-    Progress { progress: f32, errors: u64 },
-    Done { state: CompleteState, time: Time },
+    Progress {
+        progress: f32,
+        errors: u64,
+    },
+    Done {
+        state: CompleteState,
+        time: Time,
+        destination: PathBuf,
+    },
     Info(Option<String>),
 }
 
@@ -30,6 +37,7 @@ enum State {
         error_handler: ErrorHandler,
         total_errors: u64,
         timer: Time,
+        destination: PathBuf,
     },
 }
 
@@ -108,6 +116,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                 State::Idle(start_msg) => {
                     if let Some(config) = start_msg.recv().await {
                         let total = config.entries.len() as u64;
+                        let destination = config.ripping.destination.clone();
                         let (tx, rx) = mpsc::unbounded_channel();
 
                         // The ripping process is delegated by the subscription to a separate thread.
@@ -124,6 +133,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                             error_handler: ErrorHandler::default(),
                             total_errors: 0,
                             timer: Time::init(),
+                            destination,
                         };
                     }
                 }
@@ -134,6 +144,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                     progress,
                     total,
                     timer,
+                    destination,
                 } => match ripping_msg.recv().await {
                     Some(ThreadMessage::Progress(error)) => {
                         *progress += 1;
@@ -169,6 +180,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                         let msg = Message::Done {
                             state: completed_state,
                             time: std::mem::take(timer),
+                            destination: std::mem::take(destination)
                         };
 
                         output
@@ -185,6 +197,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                         let msg = Message::Done {
                             state: CompleteState::from(error),
                             time: std::mem::take(timer),
+                            destination: std::mem::take(destination)
                         };
 
                         // It's important that this gets delivered, otherwise the program would be in an invalid state.

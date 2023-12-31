@@ -35,8 +35,8 @@ impl TrackerInfo {
         }
     }
 
-    pub fn matches_path(&self, other: &Path) -> bool {
-        self.path() == other
+    pub fn matches_path(&self, other: impl AsRef<Path>) -> bool {
+        self.path() == other.as_ref()
     }
 
     pub fn invalid(error: String, path: PathBuf) -> Self {

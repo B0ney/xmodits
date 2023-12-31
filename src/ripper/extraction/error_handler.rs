@@ -58,10 +58,7 @@ impl ErrorHandler {
                 let mut log_path = std::mem::take(log_dir);
 
                 errors.push(error);
-                log_path.push(format!(
-                    "xmodits-error-log-{:04X}.txt",
-                    rand::thread_rng().gen::<u16>()
-                ));
+                log_path.push(random_name());
 
                 *self = match tokio::fs::OpenOptions::new()
                     .write(true)
@@ -112,7 +109,7 @@ impl ErrorHandler {
     }
 
     /// dump the errors to a file, will overwrite
-    pub async fn dump(errors: Vec<Failed>, path: PathBuf) -> Result<(), String> {
+    pub async fn dump(errors: Vec<Failed>, path: PathBuf) -> Result<PathBuf, String> {
         match tokio::fs::OpenOptions::new()
             .write(true)
             .truncate(true)
@@ -125,11 +122,9 @@ impl ErrorHandler {
                 for error in errors {
                     Self::write_error(&mut file, error).await;
                 }
-                Ok(())
+                Ok(path)
             }
-            Err(e) => {
-                Err(e.to_string())
-            }
+            Err(e) => Err(e.to_string()),
         }
     }
 
@@ -156,4 +151,8 @@ impl ErrorHandler {
         let _ = file.write_all(b"\n\n").await;
         let _ = file.flush().await;
     }
+}
+
+pub fn random_name() -> String {
+    format!("xmodits-error-log-{:04X}.txt", rand::thread_rng().gen::<u16>())
 }

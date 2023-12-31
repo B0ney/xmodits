@@ -60,7 +60,8 @@ pub fn update(msg: Message) -> Command<Message> {
             })
         }
         Message::FileDialog => {
-            return Command::perform(utils::create_file_dialog(), Message::ExportBuildInfo)
+            let build_name = format!("xmodits-v{}-build-info", env!("CARGO_PKG_VERSION"));
+            return Command::perform(utils::create_file_dialog(build_name), Message::ExportBuildInfo)
         }
         Message::Open(link) => {
             if let Err(e) = open::that_detached(link) {
