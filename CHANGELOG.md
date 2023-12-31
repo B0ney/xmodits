@@ -21,6 +21,7 @@
 * Added option to hide warnings.
 * Added option to disable animated GIF.
 * Added high contrast theme.
+* Added button to show output folder after ripping.
 
 ## Bug Fixes
 * (Windows) Drag'n'drop mode no longer ignores the configured export format.
@@ -36,6 +37,8 @@
     * "Select" -> "Open"
 * Application now includes a software renderer.
 * Font fallback, non-english text should no longer display empty squares.
+* Manually saving errors will also open them in a text editor.
+  * Also added the option to disable this.
 
 ## Miscellaneous
 * MacOS builds have binaries for Apple Silicon
