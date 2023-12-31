@@ -16,6 +16,7 @@ pub enum Message {
     SetLogFolderDialog,
     ShowAnimatedGIF(bool),
     SuppressWarnings(bool),
+    ShowErrorsInTextEditor(bool),
     SetGif { kind: GIFKind, path: Option<PathBuf> },
     SetTheme(data::theme::Themes),
     NamePreview(name_preview::Message),
@@ -47,6 +48,12 @@ pub fn view(general: &config::GeneralConfig) -> Element<Message> {
             Message::SuppressWarnings,
         ))
         .push_maybe(hide_gif)
+        .push(
+        checkbox(
+            "Open Saved Errors in Text Editor",
+            general.show_errors_in_text_editor,
+            Message::ShowErrorsInTextEditor,
+        ))
         .spacing(8);
 
     column![control("Application Settings", settings)]
@@ -144,6 +151,7 @@ pub fn update(cfg: &mut config::GeneralConfig, message: Message) -> Command<Mess
         Message::NamePreview(msg) => name_preview::update(&mut cfg.sample_name_params, msg),
         Message::ImportTheme => (),
         Message::ExportTheme => (),
+        Message::ShowErrorsInTextEditor(show) => cfg.show_errors_in_text_editor = show,
     }
 
     Command::none()

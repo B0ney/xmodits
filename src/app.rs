@@ -410,7 +410,9 @@ impl multi_window::Application for XMODITS {
                 match result {
                     Ok(path) => {
                         tracing::info!("Successfully saved errors to: {}", &path.display());
-                        let _ = open::that_detached(path);
+                        if self.general_cfg.show_errors_in_text_editor {
+                            let _ = open::that_detached(path);
+                        }
                     }
                     _ => (), // todo
                 }

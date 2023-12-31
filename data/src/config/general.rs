@@ -18,6 +18,7 @@ pub struct GeneralConfig {
     pub ripping_gif: Option<PathBuf>,
     pub complete_gif: Option<PathBuf>,
     pub suppress_warnings: bool,
+    pub show_errors_in_text_editor: bool,
     #[serde(flatten)]
     pub sample_name_params: SampleNameParams,
 }
@@ -35,6 +36,7 @@ impl Default for GeneralConfig {
             suppress_warnings: false,
             theme: Themes::default(),
             sample_name_params: SampleNameParams::default(),
+            show_errors_in_text_editor: true,
         }
     }
 }
