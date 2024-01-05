@@ -1,4 +1,6 @@
 use iced_core::color;
+use iced_core::Color;
+
 use serde::{Deserialize, Serialize};
 
 use super::Palette;
@@ -9,6 +11,7 @@ pub enum Themes {
     Dark,
     Dracula,
     Catppuccin,
+    Ferra,
     Nord,
     LMMS,
     OneShot,
@@ -16,11 +19,12 @@ pub enum Themes {
 }
 
 impl Themes {
-    pub const ALL: [Self; 7] = [
+    pub const ALL: [Self; 8] = [
         Self::Dark,
         Self::Dracula,
         Self::Catppuccin,
         Self::Nord,
+        Self::Ferra,
         Self::LMMS,
         Self::OneShot,
         Self::HighContrast,
@@ -40,6 +44,7 @@ impl Themes {
                 success: color!(0x49eb7a),
                 waveform: color!(0xBA84FC),
             },
+            // based on: https://github.com/dracula/dracula-theme
             Self::Dracula => Palette {
                 middleground: color!(0x282a36),
                 foreground: color!(0x44475a),
@@ -65,6 +70,7 @@ impl Themes {
                 waveform: color!(0xFF8F05),
                 // waveform: color!(0xFFA940),
             },
+            // https://github.com/nordtheme/nord
             Self::Nord => Palette {
                 middleground: color!(0x2e3440),
                 foreground: color!(0x3b4252),
@@ -89,6 +95,8 @@ impl Themes {
                 success: color!(0x80FF80),
                 waveform: color!(0xF48550),
             },
+
+            // based on: https://github.com/catppuccin/catppuccin
             Self::Catppuccin => Palette {
                 middleground: color!(0x1E1E28),
                 foreground: color!(0x332E41),
@@ -113,6 +121,20 @@ impl Themes {
                 success: color!(0x00ff00),
                 waveform: color!(0x00ff00),
             },
+            // https://github.com/casperstorm/ferra
+            Self::Ferra => Palette {
+                middleground: color!(0x2b292d),
+                foreground: color!(0x383539),
+                background: color!(0x1b1c1e),
+                // border: Color::TRANSPARENT,
+                border: color!(0x3c393d),
+                accent: color!(0xfecdb2),
+                text: color!(0xd1d1e0),
+                error: color!(0xe06b75),
+                warning: color!(0xf5d76e),
+                success: color!(0xb1b695),
+                waveform: color!(0xfecdb2),
+            },
         }
     }
 }
@@ -126,6 +148,7 @@ impl std::fmt::Display for Themes {
                 Themes::Dark => "Dark",
                 Themes::Dracula => "Dracula",
                 Themes::Nord => "Nord",
+                Themes::Ferra => "Ferra",
                 Themes::LMMS => "LMMS",
                 Themes::OneShot => "OneShot",
                 Themes::Catppuccin => "Catppuccin",
