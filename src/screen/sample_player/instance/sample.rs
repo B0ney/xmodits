@@ -8,6 +8,7 @@ use crate::widget::{Button, Collection, Container, Element, Row};
 
 use audio_engine;
 
+use audio_engine::TrackerSample;
 use iced::widget::{button, horizontal_rule, row, text, Space, column};
 use iced::{Alignment, Length};
 
@@ -18,16 +19,20 @@ use super::Message;
 pub struct SamplePack(Vec<SampleResult>);
 
 impl SamplePack {
-    pub fn waveform(&self, index: usize) -> Option<&WaveData> {
-        self.0.get(index).and_then(SampleResult::waveform)
-    }
-
     pub fn inner(&self) -> &[SampleResult] {
         &self.0
     }
 
+    pub fn waveform(&self, index: usize) -> Option<&WaveData> {
+        self.0.get(index).and_then(SampleResult::waveform)
+    }
+
     pub fn view_sample_info(&self, index: usize) -> Element<Message> {
         self.inner()[index].view_sample_info()
+    }
+
+    pub fn tracker_sample(&self, index: usize) -> Option<TrackerSample> {
+        self.inner().get(index).and_then(SampleResult::tracker_sample)
     }
 }
 
@@ -36,7 +41,7 @@ pub enum SampleResult {
     Invalid(String),
     Valid {
         metadata: audio_engine::Metadata,
-        buffer: (),
+        buffer: TrackerSample,
         waveform: WaveData,
     },
 }
@@ -58,6 +63,13 @@ impl SampleResult {
 
     pub fn is_invalid(&self) -> bool {
         matches!(self, Self::Invalid(_))
+    }
+
+    pub fn tracker_sample(&self) -> Option<TrackerSample> {
+        match &self {
+            SampleResult::Valid { buffer,.. } => Some(buffer.clone()),
+            _ => None
+        }
     }
 
     pub fn view_sample(&self, index: usize) -> Element<Message> {
