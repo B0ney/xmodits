@@ -4,14 +4,13 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 use audio_engine::{PlayerHandle, TrackerSample};
-use iced::widget::{checkbox, column, row, scrollable, slider, text, Space};
+use iced::widget::{button, checkbox, column, progress_bar, row, scrollable, slider, text, Space};
 use iced::{command, Alignment, Command, Length};
 
 use crate::screen::main_panel::Entries;
-use crate::widget::helpers::fill_container;
+use crate::widget::helpers::{fill_container, warning};
 use crate::widget::waveform_view::Marker;
-use crate::widget::{Button, Container, Row};
-use crate::widget::{Element, WaveformViewer};
+use crate::widget::{Button, Collection, Container, Element, Row, WaveformViewer};
 use crate::{icon, theme};
 
 use sample::{SamplePack, SampleResult};
@@ -61,7 +60,7 @@ pub struct Instance {
     state: State,
     player: PlayerHandle,
     settings: MediaSettings,
-    hovered: bool,
+    pub hovered: bool,
     progress: Option<f32>,
 }
 
@@ -88,9 +87,9 @@ impl Instance {
         self
     }
 
-    pub fn update(&mut self, entries: &mut Entries, message: Message) -> Command<Message> {
+    pub fn update(&mut self, message: Message, entries: &mut Entries) -> Command<Message> {
         match message {
-            Message::Select(index) => match &self.state {
+            Message::Select(index) => match &mut self.state {
                 State::Loaded { selected, .. } => *selected = Some(index),
                 _ => (),
             },
@@ -106,39 +105,36 @@ impl Instance {
         Command::none()
     }
 
-    pub fn load_samples(&mut self, module_path: PathBuf) -> Command<Message> {
-        let mut load = |path: &PathBuf| {
-            self.state = State::Loading;
-            return todo!();
-        };
-
-        match &self.state {
-            State::None => load(&module_path),
-            State::Loading => Command::none(),
-            State::Failed { path, .. } | State::Loaded { path, .. } => match path == &module_path {
-                true => Command::none(),
-                false => load(&module_path),
-            },
-        }
-    }
-
     pub fn view(&self, entries: &Entries) -> Element<Message> {
-        let top_left = column![]
-            .push(self.view_sample_info())
-            .push(self.media_buttons())
+        let top_left = column![self.view_sample_info(), self.media_buttons()]
             .spacing(5)
             .width(Length::Fill);
 
-        let play_on_selection_checkbox = checkbox(
-            "Play on Selection",
-            self.settings.play_on_selection,
-            Message::SetPlayOnSelection,
-        )
-        .style(theme::CheckBox::Inverted);
+        let top_right_controls = {
+            let add_path_button = self.loaded_path().and_then(|path| {
+                let button = || button("Add to Entries").on_press(Message::AddEntry(path.to_owned()));
+                (!entries.contains(path)).then(button)
+            });
 
-        let top_right = column![]
-            .push(self.view_samples())
-            .push(play_on_selection_checkbox);
+            let no_button_spacing = add_path_button
+                .is_none()
+                .then_some(Space::with_height(Length::Fixed(27.0)));
+
+            let play_on_selection_checkbox = checkbox(
+                "Play on Selection",
+                self.settings.play_on_selection,
+                Message::SetPlayOnSelection,
+            )
+            .style(theme::CheckBox::Inverted);
+
+            row![play_on_selection_checkbox]
+                .push_maybe(no_button_spacing)
+                .push_maybe(add_path_button)
+                .spacing(5)
+                .align_items(Alignment::Center)
+        };
+
+        let top_right = column![self.view_samples(), top_right_controls];
 
         let waveform_viewer = self
             .view_waveform()
@@ -146,11 +142,62 @@ impl Instance {
             .width(Length::Fill)
             .height(Length::FillPortion(2));
 
-        todo!()
+        let progress = progress_bar(0.0..=1.0, self.progress.unwrap_or_default())
+            .height(5.0)
+            .style(theme::ProgressBar::Dark);
+
+        let warning = warning(|| false, "WARNING - This sample is most likely static noise.");
+
+        let top_half = row![]
+            .push(top_left)
+            .push(top_right)
+            .height(Length::FillPortion(3))
+            .spacing(5);
+
+        let main = column![]
+            .push(top_half)
+            .push(waveform_viewer)
+            .push(progress)
+            .push_maybe(warning)
+            .spacing(5);
+
+        fill_container(main)
+            .style(theme::Container::Hovered(self.hovered))
+            .padding(15)
+            .into()
+    }
+
+    pub fn matches_path(&self, module_path: &Path) -> bool {
+        match &self.state {
+            State::Failed { path, .. } |
+            State::Loaded { path, .. } => path == module_path,
+            _ => false
+        }
+    }
+
+    pub fn load_samples(&mut self, module_path: PathBuf) -> Command<Message> {
+        let load = |state: &mut State, path: &PathBuf| {
+            *state = State::Loading;
+            return todo!();
+        };
+
+        match &self.state {
+            State::None => load(&mut self.state, &module_path),
+            State::Loading => Command::none(),
+            State::Failed { path, .. } | State::Loaded { path, .. } => match path == &module_path {
+                true => Command::none(),
+                false => load(&mut self.state, &module_path),
+            },
+        }
     }
 
     pub fn title(&self) -> String {
-        todo!()
+        match &self.state {
+            State::None => "No samples loaded!".into(),
+            State::Loading => "Loading...".into(),
+            State::Failed { reason, path } => "Failed to open...".into(),
+            State::Loaded { module_name, .. } => format!("Loaded: \"{}\"", module_name),
+        }
     }
 
     pub fn play_selected(&self) -> Command<Message> {
@@ -189,7 +236,7 @@ impl Instance {
 
     /// List out the samples
     fn view_samples(&self) -> Element<Message> {
-        match self.state {
+        match &self.state {
             State::None => todo!(),
             State::Loading => todo!(),
             State::Failed { path, reason } => todo!(),
@@ -225,11 +272,8 @@ impl Instance {
             // (icon::repeat().size(18), Message::Stop),
         ]);
 
-        let volume_slider = column![]
-            .push(text(format!(
-                "Volume: {}%",
-                (self.settings.volume * 100.0).round()
-            )))
+        let volume = text(format!("Volume: {}%", (self.settings.volume * 100.0).round()));
+        let volume_slider = column![volume]
             .push(slider(MIN_VOLUME..=MAX_VOLUME, self.settings.volume, Message::SetVolume).step(0.01))
             .align_items(Alignment::Start);
 
