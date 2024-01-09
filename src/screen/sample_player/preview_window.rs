@@ -40,37 +40,73 @@ pub enum Message {
     AddEntry(PathBuf),
 }
 
+#[derive(Default)]
 enum State {
-    Play,
-    Paused,
+    #[default]
+    None,
+    Loading,
+    Failed {
+        reason: String,
+        path: PathBuf,
+    },
+    Loaded {
+        // path: PathBuf,
+        sample_pack: SamplePack,
+        wave_data: WaveCache,
+        selected: SampleInfo,
+        play_progress: Option<f32>,
+    },
+}
+
+impl State {
+    fn wave_cache(&self) -> Option<&WaveData> {
+        match &self {
+            State::Loaded { selected, .. } => selected.waveform(),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct MediaSettings {
+    pub volume: f32,
+    pub play_on_selection: bool,
+    pub enable_looping: bool,
+}
+
+impl Default for MediaSettings {
+    fn default() -> Self {
+        Self {
+            volume: 1.0,
+            play_on_selection: true,
+            enable_looping: false,
+        }
+    }
 }
 
 pub struct SamplePreviewWindow {
-    id: Id,
     state: State,
     player: PlayerHandle,
-    sample_pack: Option<SamplePack>,
-    selected: Option<(usize, SampleInfo)>,
+    settings: MediaSettings,
     pub hovered: bool,
-    play_on_select: bool,
-    wave_cache: WaveCache,
-    progress: Option<f32>,
-    volume: f32,
 }
 
 impl SamplePreviewWindow {
     pub fn create(id: Id, player: PlayerHandle) -> Self {
         Self {
             player,
-            id,
             hovered: false,
-            sample_pack: None,
-            state: State::Play,
-            selected: None,
-            play_on_select: true,
-            wave_cache: WaveCache::default(),
-            progress: None,
-            volume: 1.0,
+            state: State::None,
+            settings: Default::default(),
+        }
+    }
+
+    pub fn can_load(&self, new_path: &Path) -> bool {
+        match &self.state {
+            State::None => true,
+            State::Loading => false,
+            State::Failed { path, .. } => path != new_path,
+            State::Loaded { sample_pack, .. } => !sample_pack.matches_path(new_path),
         }
     }
 
@@ -89,35 +125,47 @@ impl SamplePreviewWindow {
             Message::Pause => self.player.pause(),
             Message::Stop => self.player.stop(),
             Message::Volume(vol) => {
-                self.volume = vol.clamp(MIN_VOLUME, MAX_VOLUME);
-                self.player.set_volume(self.volume)
+                self.settings.volume = vol.clamp(MIN_VOLUME, MAX_VOLUME);
+                self.player.set_volume(self.settings.volume)
             }
             Message::Load(path) => {
-                return match &self.sample_pack {
-                    Some(f) if !f.matches_path(&path) => load_sample_pack(path),
-                    _ => Command::none(),
-                }
+                return match self.can_load(&path) {
+                    true => {
+                        self.state = State::Loading;
+                        tracing::info!("loading");
+                        load_sample_pack(path)
+                    }
+                    false => Command::none(),
+                };
             }
             Message::Loaded(result) => match Arc::into_inner(result).unwrap() {
-                Ok((sample_pack, wave_cache)) => {
+                Ok((sample_pack, wave_data)) => {
                     self.player.stop();
-                    self.selected = None;
-                    self.sample_pack = Some(sample_pack);
-                    self.wave_cache = wave_cache;
+                    self.state = State::Loaded {
+                        sample_pack,
+                        wave_data,
+                        selected: SampleInfo::None,
+                        play_progress: None,
+                    }
                 }
                 Err(err) => tracing::error!("{}", err),
             },
             Message::Info(smp) => {
-                self.selected = Some(smp);
+                if let State::Loaded { selected, .. } = &mut self.state {
+                    *selected = smp.1;
 
-                if self.play_on_select {
-                    return self.play();
-                } else {
-                    self.player.stop();
+                    match self.settings.play_on_selection {
+                        true => return self.play(),
+                        false => self.player.stop(),
+                    }
+                };
+            }
+            Message::SetPlayOnSelect(play_on_select) => self.settings.play_on_selection = play_on_select,
+            Message::Progress(progress) => {
+                if let State::Loaded { play_progress, .. } = &mut self.state {
+                    *play_progress = progress
                 }
             }
-            Message::SetPlayOnSelect(play_on_select) => self.play_on_select = play_on_select,
-            Message::Progress(progress) => self.progress = progress,
             Message::AddEntry(path) => entries.add(path),
         }
         Command::none()
@@ -132,8 +180,8 @@ impl SamplePreviewWindow {
         ]);
 
         let volume_slider = column![
-            text(format!("Volume: {}%", (self.volume * 100.0).round())),
-            slider(MIN_VOLUME..=MAX_VOLUME, self.volume, Message::Volume).step(0.01)
+            text(format!("Volume: {}%", (self.settings.volume * 100.0).round())),
+            slider(MIN_VOLUME..=MAX_VOLUME, self.settings.volume, Message::Volume).step(0.01)
         ]
         .align_items(Alignment::Start);
 
@@ -153,10 +201,7 @@ impl SamplePreviewWindow {
         .spacing(5)
         .width(Length::Fill);
 
-        let sample_list = match &self.sample_pack {
-            Some(pack) => view_samples(&pack.samples),
-            None => centered_container("Loading...").into(),
-        };
+        let sample_list = view_sample_list(&self.state);
 
         let add_path_button = self.path().and_then(|path| {
             let button = || button("Add to Entries").on_press(Message::AddEntry(path.to_owned()));
@@ -172,8 +217,12 @@ impl SamplePreviewWindow {
                 .padding(8)
                 .style(theme::Container::Black),
             row![
-                checkbox("Play on Selection", self.play_on_select, Message::SetPlayOnSelect)
-                    .style(theme::CheckBox::Inverted),
+                checkbox(
+                    "Play on Selection",
+                    self.settings.play_on_selection,
+                    Message::SetPlayOnSelect
+                )
+                .style(theme::CheckBox::Inverted),
                 Space::with_width(Length::Fill)
             ]
             .push_maybe(no_button_spacing)
@@ -184,8 +233,8 @@ impl SamplePreviewWindow {
         .spacing(5)
         .width(Length::Fill);
 
-        let waveform_viewer = WaveformViewer::new_maybe(self.wave_cache())
-            .marker_maybe(self.progress.map(Marker))
+        let waveform_viewer = WaveformViewer::new_maybe(self.state.wave_cache())
+            .marker_maybe(self.progress().map(Marker))
             .width(Length::Fill)
             .height(Length::FillPortion(2));
 
@@ -196,7 +245,7 @@ impl SamplePreviewWindow {
                 .height(Length::FillPortion(3))
                 .spacing(5),
             waveform_viewer,
-            progress_bar(0.0..=1.0, self.progress.unwrap_or_default())
+            progress_bar(0.0..=1.0, self.progress().unwrap_or_default())
                 .height(5.0)
                 .style(theme::ProgressBar::Dark)
         ]
@@ -209,10 +258,19 @@ impl SamplePreviewWindow {
             .into()
     }
 
+    pub fn progress(&self) -> Option<f32> {
+        match &self.state {
+            State::Loaded { play_progress, .. } => *play_progress,
+            _ => None,
+        }
+    }
+
     pub fn title(&self) -> String {
-        match &self.sample_pack {
-            Some(pack) => format!("Loaded: \"{}\"", pack.name),
-            None => "No samples loaded!".into(),
+        match &self.state {
+            State::None => "No samples loaded!".into(),
+            State::Loading => "Loading...".into(),
+            State::Failed { reason, path } => "Failed to open...".into(),
+            State::Loaded { sample_pack, .. } => format!("Loaded: \"{}\"", sample_pack.name),
         }
     }
 
@@ -221,33 +279,35 @@ impl SamplePreviewWindow {
     }
 
     pub fn path(&self) -> Option<&Path> {
-        self.sample_pack.as_ref().and_then(|pack| pack.path.as_deref())
-    }
-
-    pub fn load_sample_pack(&self, path: PathBuf) -> Command<Message> {
-        match self.matches_path(&path) {
-            true => Command::none(),
-            false => load_sample_pack(path),
+        match &self.state {
+            State::Loaded { sample_pack, .. } => sample_pack.path.as_deref(),
+            _ => None,
         }
     }
 
-    fn wave_cache(&self) -> Option<&WaveData> {
-        self.selected
-            .as_ref()
-            .and_then(|(idx, _)| self.wave_cache.cache.get(idx))
+    pub fn load_sample_pack(&self, path: PathBuf) -> Command<Message> {
+        match self.can_load(&path) {
+            true => load_sample_pack(path),
+            false => Command::none(),
+        }
     }
 
     fn get_selected(&self) -> Option<TrackerSample> {
-        let pack = self.sample_pack.as_ref()?;
-        let (index, _) = self.selected.as_ref()?;
-        pack.samples[*index]
-            .as_ref()
-            .ok()
-            .map(|(_, sample)| sample.clone())
+        let State::Loaded { selected, .. } = &self.state else {
+            return None;
+        };
+
+        match selected {
+            SampleInfo::Sample { data, .. } => Some(data.clone()),
+            _ => None,
+        }
     }
 
     fn get_selected_info(&self) -> Option<&SampleInfo> {
-        self.selected.as_ref().map(|(_, smp)| smp)
+        match &self.state {
+            State::Loaded { selected, .. } => Some(selected),
+            _ => None,
+        }
     }
 }
 
@@ -274,6 +334,15 @@ where
     }
 
     media_row.into()
+}
+
+fn view_sample_list(state: &State) -> Element<Message> {
+    match state {
+        State::None => centered_container("Nothing Loaded").into(),
+        State::Loading => centered_container("Loading...").into(),
+        State::Failed { reason, path } => centered_container("").into(),
+        State::Loaded { sample_pack, .. } => view_samples(&sample_pack.samples),
+    }
 }
 
 const PLAY_CURSOR_FPS: f32 = 60.0;
@@ -335,7 +404,7 @@ fn view_samples(a: &[Result<(Sample, TrackerSample), xmodits_lib::Error>]) -> El
 fn view_sample(
     (index, result): (usize, &Result<(Sample, TrackerSample), xmodits_lib::Error>),
 ) -> Element<Message> {
-    let info = SampleInfo::from(result);
+    let info = SampleInfo::new(index, result);
 
     let error_icon = || {
         row![]
@@ -371,8 +440,11 @@ fn view_sample_info(info: Option<&SampleInfo>) -> Element<Message> {
     match info {
         None => centered_container("Nothing selected...").into(),
         Some(info) => match info {
-            SampleInfo::Invalid { reason } => centered_container(text(reason)).into(),
-            SampleInfo::Sample(smp) => {
+            SampleInfo::None => centered_container("Nothing selected...").into(),
+            SampleInfo::Invalid { reason, .. } => centered_container(text(reason)).into(),
+            SampleInfo::Sample { metadata, .. } => {
+                let smp = metadata;
+
                 let sample_name =
                     (!smp.name.trim().is_empty()).then_some(text(format!("Name: {}", smp.name.trim())));
 
