@@ -1,3 +1,5 @@
+use super::instance::{self, Instance, MediaSettings};
+
 use iced::window::{self, Id};
 use iced::{Command, Size};
 
@@ -10,21 +12,20 @@ use crate::widget::Element;
 
 use audio_engine::SamplePlayer;
 
-use super::preview_window::{self, SamplePreviewWindow};
-
 const WINDOW_SIZE: Size = Size::new(640.0, 500.0);
 
 #[derive(Debug, Clone)]
 pub enum Message {
     ResetEngine,
-    Window(Id, preview_window::Message),
+    Window(Id, instance::Message),
 }
 
 // #[derive(Default)]
 pub struct SamplePreview {
     audio_engine: SamplePlayer,
-    windows: HashMap<Id, SamplePreviewWindow>,
+    windows: HashMap<Id, Instance>,
     singleton: bool,
+    default_settings: MediaSettings,
 }
 
 impl Default for SamplePreview {
@@ -33,6 +34,7 @@ impl Default for SamplePreview {
             audio_engine: Default::default(),
             windows: Default::default(),
             singleton: false,
+            default_settings: Default::default(),
         }
     }
 }
@@ -48,7 +50,7 @@ impl SamplePreview {
     pub fn update_window(
         &mut self,
         id: Id,
-        msg: preview_window::Message,
+        msg: instance::Message,
         entries: &mut Entries,
     ) -> Command<Message> {
         // If the window has closed, discard the message
@@ -94,12 +96,14 @@ impl SamplePreview {
             ..Default::default()
         });
 
-        self.windows.insert(
-            id,
-            SamplePreviewWindow::create(id, self.audio_engine.create_handle()),
-        );
+        let (instance, load_samples) = Instance::new(self.audio_engine.create_handle(), path);
 
-        Command::batch([spawn_window, self.load_samples(id, path)])
+        self.windows.insert(id, instance.settings(self.default_settings));
+
+        Command::batch([
+            spawn_window,
+            load_samples.map(move |msg| Message::Window(id, msg)),
+        ])
     }
 
     pub fn get_title(&self, id: Id) -> String {
@@ -110,9 +114,10 @@ impl SamplePreview {
         self.get_window_mut(id).hovered = hovered;
     }
 
-    pub fn load_samples(&self, id: Id, path: PathBuf) -> Command<Message> {
-        self.get_window(id)
-            .load_sample_pack(path)
+    // TODO: flash window of already loaded sample if user attempts to load duplicate
+    pub fn load_samples(&mut self, id: Id, path: PathBuf) -> Command<Message> {
+        self.get_window_mut(id)
+            .load_samples(path)
             .map(move |result| Message::Window(id, result))
     }
 
@@ -124,11 +129,11 @@ impl SamplePreview {
             .copied()
     }
 
-    pub fn get_window(&self, id: Id) -> &SamplePreviewWindow {
+    pub fn get_window(&self, id: Id) -> &Instance {
         self.windows.get(&id).expect("View sample preview window")
     }
 
-    pub fn get_window_mut(&mut self, id: Id) -> &mut SamplePreviewWindow {
+    pub fn get_window_mut(&mut self, id: Id) -> &mut Instance {
         self.windows.get_mut(&id).expect("View sample preview window")
     }
 
