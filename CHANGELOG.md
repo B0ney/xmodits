@@ -19,9 +19,11 @@
 * Sample extraction now shows an error count.
 * Window title now shows the ripping progress.
 * Added option to hide warnings.
-* Added option to disable animated GIF.
-* Added high contrast theme.
-* Added button to show output folder after ripping.
+* Added option to disable animated GIFs.
+* Added two new themes:
+  * High Contrast.
+  * Ferra
+* Added button to show the output folder after ripping.
 
 ## Bug Fixes
 * (Windows) Drag'n'drop mode no longer ignores the configured export format.
