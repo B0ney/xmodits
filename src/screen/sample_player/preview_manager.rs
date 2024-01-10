@@ -1,4 +1,4 @@
-use super::instance::{self, Instance};
+use super::instance::{self, Instance, MediaSettings};
 
 use iced::window::{self, Id};
 use iced::{Command, Size};
@@ -25,6 +25,7 @@ pub struct SamplePreview {
     audio_engine: SamplePlayer,
     windows: HashMap<Id, Instance>,
     singleton: bool,
+    default_settings: MediaSettings,
 }
 
 impl Default for SamplePreview {
@@ -33,6 +34,7 @@ impl Default for SamplePreview {
             audio_engine: Default::default(),
             windows: Default::default(),
             singleton: false,
+            default_settings: Default::default(),
         }
     }
 }
@@ -96,7 +98,7 @@ impl SamplePreview {
 
         let (instance, load_samples) = Instance::new(self.audio_engine.create_handle(), path);
 
-        self.windows.insert(id, instance);
+        self.windows.insert(id, instance.settings(self.default_settings));
 
         Command::batch([
             spawn_window,
@@ -112,6 +114,7 @@ impl SamplePreview {
         self.get_window_mut(id).hovered = hovered;
     }
 
+    // TODO: flash window of already loaded sample if user attempts to load duplicate
     pub fn load_samples(&mut self, id: Id, path: PathBuf) -> Command<Message> {
         self.get_window_mut(id)
             .load_samples(path)

@@ -1,3 +1,5 @@
+use std::path::Path;
+use std::path::PathBuf;
 use std::time::Duration;
 
 use crate::icon;
@@ -16,15 +18,27 @@ use super::Message;
 
 
 #[derive(Debug, Clone)]
-pub struct SamplePack(Vec<SampleResult>);
+pub struct SamplePack {
+    name: String,
+    path: PathBuf,
+    samples: Vec<SampleResult>
+}
 
 impl SamplePack {
+    pub fn new(name: String, path: PathBuf, samples: Vec<SampleResult>) -> Self {
+        Self {
+            name, 
+            path,
+            samples
+        }
+    }
+
     pub fn inner(&self) -> &[SampleResult] {
-        &self.0
+        &self.samples
     }
 
     pub fn waveform(&self, index: usize) -> Option<&WaveData> {
-        self.0.get(index).and_then(SampleResult::waveform)
+        self.samples.get(index).and_then(SampleResult::waveform)
     }
 
     pub fn view_sample_info(&self, index: usize) -> Element<Message> {
@@ -33,6 +47,14 @@ impl SamplePack {
 
     pub fn tracker_sample(&self, index: usize) -> Option<TrackerSample> {
         self.inner().get(index).and_then(SampleResult::tracker_sample)
+    }
+
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 }
 
@@ -56,8 +78,8 @@ impl SampleResult {
 
     pub fn title(&self) -> String {
         match self {
-            SampleResult::Invalid(_) => todo!(),
-            SampleResult::Valid { metadata, .. } => todo!(),
+            SampleResult::Invalid(_) => "ERROR".into(),
+            SampleResult::Valid { metadata, .. } => metadata.filename_pretty().into(),
         }
     }
 
@@ -105,7 +127,7 @@ impl SampleResult {
 
     pub fn view_sample_info(&self) -> Element<Message> {
         match self {
-            SampleResult::Invalid(_) => todo!(),
+            SampleResult::Invalid(reason) => centered_container(text(reason)).into(),
             SampleResult::Valid { metadata, .. } => {
                 let smp = metadata;
 
