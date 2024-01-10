@@ -407,14 +407,11 @@ impl multi_window::Application for XMODITS {
                 );
             }
             Message::SaveErrorsResult(result) => {
-                match result {
-                    Ok(path) => {
-                        tracing::info!("Successfully saved errors to: {}", &path.display());
-                        if self.general_cfg.show_errors_in_text_editor {
-                            let _ = open::that_detached(path);
-                        }
+                if let Ok(path) = result {
+                    tracing::info!("Successfully saved errors to: {}", &path.display());
+                    if self.general_cfg.show_errors_in_text_editor {
+                        let _ = open::that_detached(path);
                     }
-                    _ => (), // todo
                 }
             }
             Message::StartRipping => {
@@ -440,19 +437,18 @@ impl multi_window::Application for XMODITS {
                     true => self.file_hovered = true,
                     false => self.sample_player.set_hovered(id, true),
                 },
-                event::Event::FileDropped(id, file) => match id == window::Id::MAIN {
-                    true => {
+                event::Event::FileDropped(id, file) => {
+                    if id == window::Id::MAIN {
                         self.add_entry(file);
                         self.file_hovered = false;
-                    }
-                    false => {
+                    } else {
                         self.sample_player.set_hovered(id, false);
                         return self
                             .sample_player
                             .load_samples(id, file)
                             .map(Message::SamplePlayer);
                     }
-                },
+                }
                 event::Event::Save => return self.save_cfg(),
                 event::Event::Start => return self.start_ripping(),
             },
@@ -485,11 +481,12 @@ impl multi_window::Application for XMODITS {
         Command::none()
     }
 
-    fn view(&self, id: window::Id) -> Element<Message> {
-        if id > window::Id::MAIN {
+    fn view(&self, _id: window::Id) -> Element<Message> {
+        #[cfg(feature = "audio")]
+        if _id > window::Id::MAIN {
             return self
                 .sample_player
-                .view(id, &self.entries)
+                .view(_id, &self.entries)
                 .map(Message::SamplePlayer);
         }
 
@@ -605,7 +602,7 @@ impl multi_window::Application for XMODITS {
                 state,
                 time,
                 destination,
-            } => main_panel::view_finished(state, time, self.file_hovered, &destination),
+            } => main_panel::view_finished(state, time, self.file_hovered, destination),
         };
 
         let allow_warnings = !self.general_cfg.suppress_warnings;

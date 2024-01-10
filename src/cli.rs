@@ -40,7 +40,7 @@ pub fn parse(args: Vec<String>) -> Mode {
     }
 
     #[cfg(windows)]
-    if args.len() > 0 {
+    if !args.is_empty() {
         return Mode::DragNDrop(args);
     }
 

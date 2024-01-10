@@ -24,9 +24,6 @@ pub mod preview_manager_dummy {
         pub fn update(&mut self, _msg: Message, _entries: &mut Entries) -> Command<Message> {
             Command::none()
         }
-        pub fn view(&self, _id: Id, _entries: &Entries) -> Element<Message> {
-            unimplemented!("Attempt to view sample player without 'audio' feature")
-        }
         pub fn load_samples(&self, _id: Id, _path: PathBuf) -> Command<Message> {
             Command::none()
         }

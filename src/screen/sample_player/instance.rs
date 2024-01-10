@@ -208,7 +208,7 @@ impl Instance {
         let load = |state: &mut State, path: PathBuf| {
             *state = State::Loading;
             self.player.stop();
-            return load_samples(path);
+            load_samples(path)
         };
 
         match &self.state {

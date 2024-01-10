@@ -6,7 +6,7 @@ use crate::icon;
 use crate::theme;
 use crate::widget::helpers::centered_container;
 use crate::widget::waveform_view::WaveData;
-use crate::widget::{Button, Collection, Container, Element, Row};
+use crate::widget::{Collection, Element};
 
 use audio_engine;
 

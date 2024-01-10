@@ -230,13 +230,6 @@ impl State {
     fn reset_zoom(&mut self) {
         self.zoom = 1.0;
     }
-
-    fn bounds_check_offset(&mut self, wave: &WaveData) {
-        let wave_len = (wave.peaks()[0].len() as f32 * self.zoom) as usize;
-        if self.wave_offset > wave_len {
-            self.wave_offset = wave_len.saturating_sub(1);
-        }
-    }
     
     fn update_zoom(&mut self, wave: &WaveData) {
         self.zoom = self.zoom.clamp(MIN_SCALE, MAX_SCALE);
