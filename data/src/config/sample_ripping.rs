@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use xmodits_lib::exporter::AudioFormat;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(default)]
 pub struct SampleRippingConfig {
     pub destination: PathBuf,
     pub self_contained: bool,

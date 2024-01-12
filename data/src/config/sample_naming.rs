@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use xmodits_lib::{SampleNamer, SampleNamerTrait};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[serde(default)]
 pub struct SampleNameConfig {
     pub index_raw: bool,
     pub index_only: bool,

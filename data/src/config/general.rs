@@ -19,7 +19,6 @@ pub struct GeneralConfig {
     pub complete_gif: Option<PathBuf>,
     pub suppress_warnings: bool,
     pub show_errors_in_text_editor: bool,
-    #[serde(flatten)]
     pub sample_name_params: SampleNameParams,
 }
 
