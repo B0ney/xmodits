@@ -32,7 +32,7 @@ pub fn view_entries(entries: &Entries, hovered: bool, show_gif: bool) -> Element
     }
 
     fill_container(scrollable(
-        column(entries.iter().enumerate().map(view_entry).collect())
+        column(entries.iter().enumerate().map(view_entry))
             .spacing(10)
             .padding(5),
     ))
@@ -167,24 +167,19 @@ pub fn view_finished<'a>(
                 .align_items(Alignment::Center);
 
             let errors = scrollable(
-                column(
-                    errors
-                        .iter()
-                        .map(|error| {
-                            let reason = match &error.reason {
-                                Reason::Single(single) => centered_text(single),
-                                Reason::Multiple(_) => centered_text("multiple..."), //todo
-                            };
+                column(errors.iter().map(|error| {
+                    let reason = match &error.reason {
+                        Reason::Single(single) => centered_text(single),
+                        Reason::Multiple(_) => centered_text("multiple..."), //todo
+                    };
 
-                            let error = text(error.filename());
-                            let error = container(column![error, reason])
-                                .padding(4)
-                                .width(Length::Fill)
-                                .style(theme::Container::Frame);
-                            row![error, Space::with_width(15)].into()
-                        })
-                        .collect(),
-                )
+                    let error = text(error.filename());
+                    let error = container(column![error, reason])
+                        .padding(4)
+                        .width(Length::Fill)
+                        .style(theme::Container::Frame);
+                    row![error, Space::with_width(15)].into()
+                }))
                 .spacing(8),
             );
 

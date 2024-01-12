@@ -10,7 +10,7 @@ use iced::advanced::widget::{self, Widget};
 use iced::keyboard::KeyCode;
 use iced::mouse::Button;
 use iced::widget::canvas::{self, Renderer as _};
-use iced::{keyboard, Color, Element, Length, Point, Rectangle, Renderer, Vector};
+use iced::{keyboard, Color, Element, Length, Point, Rectangle, Renderer, Vector, Size};
 use std::cell::RefCell;
 
 pub use marker::Marker;
@@ -282,12 +282,8 @@ where
         widget::tree::Tag::of::<State>()
     }
 
-    fn width(&self) -> iced::Length {
-        self.width
-    }
-
-    fn height(&self) -> iced::Length {
-        self.height
+    fn size(&self) -> Size<Length> { 
+        Size::new(self.width, self.height)
     }
 
     fn layout(

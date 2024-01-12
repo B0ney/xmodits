@@ -101,10 +101,9 @@ impl Instance {
                 if let State::Loaded { selected, .. } = &mut self.state {
                     *selected = Some(index);
 
-                    self.player.stop();
-
-                    if self.settings.play_on_selection {
-                        return self.play_selected();
+                    match self.settings.play_on_selection {
+                        true => return self.play_selected(),
+                        false => self.player.stop(),
                     }
                 }
             }
@@ -270,18 +269,18 @@ impl Instance {
             State::None => centered_container("Drag and drop a module to preview").into(),
             State::Loading => centered_container("Loading...").into(),
             State::Failed { .. } => centered_container("ERROR").into(),
-            State::Loaded { samples, .. } => {
-                let samples = samples
-                    .inner()
-                    .iter()
-                    .enumerate()
-                    .map(|(index, result)| result.view_sample(index))
-                    .collect();
-
-                let content = column(samples).spacing(10).padding(4);
-
-                scrollable(content).into()
-            }
+            State::Loaded { samples, .. } => scrollable(
+                column(
+                    samples
+                        .inner()
+                        .iter()
+                        .enumerate()
+                        .map(|(index, result)| result.view_sample(index)),
+                )
+                .spacing(10)
+                .padding(4),
+            )
+            .into(),
         }
     }
 
