@@ -18,7 +18,7 @@ pub struct SampleRippingConfig {
 impl Default for SampleRippingConfig {
     fn default() -> Self {
         Self {
-            destination: dirs::download_dir().expect("Expected Downloads folder"),
+            destination: default_dir(),
             self_contained: true,
             folder_max_depth: 4,
             strict: true,
@@ -26,4 +26,9 @@ impl Default for SampleRippingConfig {
             worker_threads: 0,
         }
     }
+}
+
+fn default_dir() -> PathBuf {
+    let fallback = || std::env::current_dir().unwrap_or(PathBuf::new());
+    dirs::download_dir().unwrap_or_else(fallback)
 }
