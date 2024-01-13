@@ -6,7 +6,7 @@ pub mod general;
 pub mod sample_naming;
 pub mod sample_ripping;
 pub mod name_params;
-pub mod filters; 
+// pub mod filters; 
 
 pub use general::GeneralConfig;
 pub use sample_naming::SampleNameConfig;
@@ -44,8 +44,9 @@ impl Config {
     }
 
     pub fn load_str(input: &str) -> Self {
-        toml::from_str(input).unwrap_or_else(|_| {
+        toml::from_str(input).unwrap_or_else(|e| {
             warn!("Could not parse existing configuration file. Perhaps an older version was loaded?");
+            error!("{}", e);
             Self::default()
         })
     }

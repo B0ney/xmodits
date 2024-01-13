@@ -60,11 +60,7 @@ pub enum CompleteState {
 }
 
 impl CompleteState {
-    pub fn take(&mut self) -> Option<Vec<Failed>> {
-        Some(std::mem::take(self.errors_ref_mut()?))
-    }
-
-    pub fn errors_ref_mut(&mut self) -> Option<&mut Vec<Failed>> {
+    pub fn errors_ref(&self) -> Option<&Vec<Failed>> {
         match self {
             Self::SomeErrors(errors) | Self::TooMuchErrorsNoLog { errors, .. } => Some(errors),
             _ => None,

@@ -13,8 +13,10 @@ use crate::widget::{Button, Collection, Element};
 use iced::widget::{button, column, text, Space};
 use xmodits_lib::common::info::Info;
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub enum TrackerInfo {
+    #[default]
+    None,
     Invalid {
         path: PathBuf,
         reason: String,
@@ -29,35 +31,35 @@ pub enum TrackerInfo {
 }
 
 impl TrackerInfo {
-    pub fn path(&self) -> &Path {
-        match self {
-            Self::Invalid { path, .. } | Self::Loaded { path, .. } => path,
-        }
-    }
-
     pub fn matches_path(&self, other: impl AsRef<Path>) -> bool {
-        self.path() == other.as_ref()
+        match self {
+            TrackerInfo::None => false,
+            TrackerInfo::Invalid { path, .. } | 
+            TrackerInfo::Loaded { path, .. } => path == other.as_ref(),
+        }
     }
 
     pub fn invalid(error: String, path: PathBuf) -> Self {
         Self::Invalid { reason: error, path }
     }
+
+    pub fn clear(&mut self) {
+        *self = Self::None;
+    }
 }
 
-pub fn view<'a>(tracker_info: Option<&TrackerInfo>) -> Element<'a, Message> {
+pub fn view(tracker_info: &TrackerInfo) -> Element<Message> {
     let title = "Current Tracker Information";
 
-    let Some(info) = tracker_info else {
-        return control_filled(title, centered_container(text("None Selected"))).into();
-    };
-
-    let content = match info {
+    let content = match tracker_info {
+        TrackerInfo::None => column![centered_text("None Selected")],
         TrackerInfo::Invalid { path, reason } => {
             column![
                 centered_text(format!("Failed to load {}", filename(path))),
                 centered_text(reason),
             ]
         }
+        
         TrackerInfo::Loaded {
             path,
             name,

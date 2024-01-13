@@ -8,7 +8,7 @@ use crate::logger;
 use crate::ripper;
 use crate::ripper::extraction::error_handler;
 use crate::ripper::subscription::{CompleteState, ErrorHandler};
-use crate::screen::config::custom_filters;
+// use crate::screen::config::custom_filters;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
 use crate::screen::config::sample_ripping::{self, DESTINATION_BAR_ID};
@@ -42,11 +42,11 @@ pub enum Message {
     Cancel,
     Clear,
     ConfigPressed,
-    CustomFilter(custom_filters::Message),
+    // CustomFilter(custom_filters::Message),
     DeleteSelected,
     Event(event::Event),
     FileDialog,
-    FilterPressed,
+    // FilterPressed,
     FolderDialog,
     FontLoaded(Result<(), iced::font::Error>),
     GeneralCfg(settings::Message),
@@ -77,7 +77,7 @@ pub enum Message {
 pub enum View {
     #[default]
     Configure,
-    Filters,
+    // Filters,
     Settings,
     About,
     Help,
@@ -127,6 +127,26 @@ impl State {
     fn is_finished(&self) -> bool {
         matches!(self, Self::Finished { .. })
     }
+
+    fn export_errors(&mut self) -> Command<Message> {
+        let State::Finished { state, .. } = &self else {
+            return Command::none();
+        };
+
+        let Some(errors) = state.errors_ref().cloned() else {
+            return Command::none();
+        };
+
+        let task = async move {
+            let Some(path) = create_file_dialog(error_handler::random_name()).await else {
+                return Err(String::new()); // todo
+            };
+
+            ErrorHandler::dump(errors, path).await
+        };
+
+        Command::perform(task, Message::SaveErrorsResult)
+    }
 }
 
 /// XMODITS graphical application
@@ -137,12 +157,12 @@ pub struct XMODITS {
     view: View,
     file_hovered: bool,
     ripper: ripper::Handle,
-    tracker_info: Option<TrackerInfo>,
+    tracker_info: TrackerInfo,
     sample_player: sample_player::SamplePreview,
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
-    custom_filters: custom_filters::CustomFilters,
+    // custom_filters: custom_filters::CustomFilters,
 }
 
 impl XMODITS {
@@ -212,7 +232,7 @@ impl XMODITS {
             return;
         }
 
-        self.tracker_info = None;
+        self.tracker_info.clear();
         self.entries.clear();
     }
 
@@ -325,7 +345,7 @@ impl multi_window::Application for XMODITS {
         match message {
             Message::AboutPressed => self.view = View::About,
             Message::ConfigPressed => self.view = View::Configure,
-            Message::FilterPressed => self.view = View::Filters,
+            // Message::FilterPressed => self.view = View::Filters,
             Message::SettingsPressed => self.view = View::Settings,
             Message::Add(paths) => self.add_entries(paths),
             Message::Clear => self.clear_entries(),
@@ -348,7 +368,7 @@ impl multi_window::Application for XMODITS {
                 return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
             }
             Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
-            Message::CustomFilter(msg) => return self.custom_filters.update(msg).map(Message::CustomFilter),
+            // Message::CustomFilter(msg) => return self.custom_filters.update(msg).map(Message::CustomFilter),
             Message::SetTheme => todo!(),
             Message::Open(link) => {
                 if let Err(err) = open::that_detached(link) {
@@ -364,18 +384,13 @@ impl multi_window::Application for XMODITS {
             Message::Probe(idx) => {
                 let path = self.entries.get(idx).unwrap();
 
-                if self
-                    .tracker_info
-                    .as_ref()
-                    .is_some_and(|info| info.matches_path(path))
-                    | path.is_dir()
-                {
+                if self.tracker_info.matches_path(path) | path.is_dir() {
                     return Command::none();
                 }
 
                 return Command::perform(tracker_info::probe(path.to_owned()), Message::ProbeResult);
             }
-            Message::ProbeResult(probe) => self.tracker_info = Some(probe),
+            Message::ProbeResult(probe) => self.tracker_info = probe,
             Message::SamplePlayer(msg) => {
                 return self
                     .sample_player
@@ -386,26 +401,7 @@ impl multi_window::Application for XMODITS {
                 return self.save_cfg();
             }
             Message::SaveConfigResult() => {}
-            Message::SaveErrors => {
-                let State::Finished { state, .. } = &mut self.state else {
-                    return Command::none();
-                };
-
-                let Some(errors) = state.errors_ref_mut().cloned() else {
-                    return Command::none();
-                };
-
-                return Command::perform(
-                    async move {
-                        let Some(path) = create_file_dialog(error_handler::random_name()).await else {
-                            return Err(String::new()); // todo
-                        };
-
-                        ErrorHandler::dump(errors, path).await
-                    },
-                    Message::SaveErrorsResult,
-                );
-            }
+            Message::SaveErrors => return self.state.export_errors(),
             Message::SaveErrorsResult(result) => {
                 if let Ok(path) = result {
                     tracing::info!("Successfully saved errors to: {}", &path.display());
@@ -530,7 +526,7 @@ impl multi_window::Application for XMODITS {
                 let ripping_cfg = sample_ripping::view(&self.ripping_cfg).map(Message::RippingCfg);
 
                 column![
-                    tracker_info::view(self.tracker_info.as_ref()),
+                    tracker_info::view(&self.tracker_info),
                     naming_cfg,
                     ripping_cfg,
                     bottom_left_buttons,
@@ -538,14 +534,14 @@ impl multi_window::Application for XMODITS {
                 .spacing(10)
                 .into()
             }
-            View::Filters => column![
-                self.custom_filters.view_file_size().map(Message::CustomFilter),
-                self.custom_filters.view_file_date().map(Message::CustomFilter),
-                self.custom_filters.view_file_name().map(Message::CustomFilter),
-                bottom_left_buttons,
-            ]
-            .spacing(10)
-            .into(),
+            // View::Filters => column![
+            //     self.custom_filters.view_file_size().map(Message::CustomFilter),
+            //     self.custom_filters.view_file_date().map(Message::CustomFilter),
+            //     self.custom_filters.view_file_name().map(Message::CustomFilter),
+            //     bottom_left_buttons,
+            // ]
+            // .spacing(10)
+            // .into(),
             View::Settings => settings::view(&self.general_cfg).map(Message::GeneralCfg),
             View::About => about::view().map(Message::About),
             View::Help => todo!(),

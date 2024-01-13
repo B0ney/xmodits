@@ -120,7 +120,7 @@ impl Entries {
         .collect()
     }
 
-    pub fn delete_selected(&mut self, current_tracker_info: &mut Option<TrackerInfo>) {
+    pub fn delete_selected(&mut self, current_tracker_info: &mut TrackerInfo) {
         // clear the entries if everything is selected
         if self.all_selected || self.total_selected() == self.entries.len() {
             self.entries.clear();
@@ -129,11 +129,8 @@ impl Entries {
         self.all_selected = false;
 
         self.entries.retain(|entry: &Entry| {
-            if current_tracker_info
-                .as_ref()
-                .is_some_and(|path| path.matches_path(&entry.path))
-            {
-                *current_tracker_info = None;
+            if current_tracker_info.matches_path(&entry.path) {
+                current_tracker_info.clear();
             }
 
             !entry.selected
