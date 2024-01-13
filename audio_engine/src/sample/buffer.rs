@@ -22,7 +22,7 @@ impl SampleBuffer {
     }
 
     pub fn frames(&self) -> usize {
-        let Some(buffer) = self.buf.get(0) else {
+        let Some(buffer) = self.buf.first() else {
             return 0;
         };
         buffer.len()

@@ -1,13 +1,12 @@
 #[cfg(windows)]
 mod simple;
+mod state;
 
 use crate::event;
 use crate::font;
 use crate::icon;
 use crate::logger;
 use crate::ripper;
-use crate::ripper::extraction::error_handler;
-use crate::ripper::subscription::{CompleteState, ErrorHandler};
 // use crate::screen::config::custom_filters;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
@@ -18,18 +17,17 @@ use crate::screen::settings;
 use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::screen::{about, main_panel::entry::Entries};
 use crate::theme;
-use crate::utils::{create_file_dialog, files_dialog, folders_dialog};
+use crate::utils::{files_dialog, folders_dialog};
 use crate::widget::helpers::{action, text_icon, warning};
 use crate::widget::{Collection, Container, Element};
 
 use data::Config;
+pub use state::State;
 use std::path::PathBuf;
 
 use iced::multi_window::{self, Application};
 use iced::widget::{button, checkbox, column, row, text, text_input, Space};
-use iced::Alignment;
-use iced::Size;
-use iced::{window, Command, Length, Subscription};
+use iced::{window, Alignment, Command, Length, Size, Subscription};
 
 const TITLE: &str = "XMODITS";
 const WINDOW_SIZE: Size = Size::new(780.0, 720.0);
@@ -81,72 +79,6 @@ pub enum View {
     Settings,
     About,
     Help,
-}
-
-/// The current state of the application.
-#[derive(Default, Debug, Clone)]
-pub enum State {
-    #[default]
-    Idle,
-    /// The application is currently ripping samples
-    Ripping {
-        message: Option<String>,
-        progress: f32,
-        errors: u64,
-    },
-    /// The application has finished ripping samples
-    Finished {
-        state: CompleteState,
-        time: data::Time,
-        destination: PathBuf,
-    },
-}
-
-impl State {
-    fn update_progress(&mut self, new_progress: f32, new_errors: u64) {
-        if let Self::Ripping { progress, errors, .. } = self {
-            *progress = new_progress;
-            *errors = new_errors;
-        }
-    }
-
-    fn update_message(&mut self, new_message: Option<String>) {
-        if let Self::Ripping { message, .. } = self {
-            *message = new_message
-        }
-    }
-
-    fn set_message(&mut self, message: impl Into<String>) {
-        self.update_message(Some(message.into()))
-    }
-
-    fn is_ripping(&self) -> bool {
-        matches!(self, Self::Ripping { .. })
-    }
-
-    fn is_finished(&self) -> bool {
-        matches!(self, Self::Finished { .. })
-    }
-
-    fn export_errors(&mut self) -> Command<Message> {
-        let State::Finished { state, .. } = &self else {
-            return Command::none();
-        };
-
-        let Some(errors) = state.errors_ref().cloned() else {
-            return Command::none();
-        };
-
-        let task = async move {
-            let Some(path) = create_file_dialog(error_handler::random_name()).await else {
-                return Err(String::new()); // todo
-            };
-
-            ErrorHandler::dump(errors, path).await
-        };
-
-        Command::perform(task, Message::SaveErrorsResult)
-    }
 }
 
 /// XMODITS graphical application
@@ -526,7 +458,7 @@ impl multi_window::Application for XMODITS {
                 let ripping_cfg = sample_ripping::view(&self.ripping_cfg).map(Message::RippingCfg);
 
                 column![
-                    tracker_info::view(&self.tracker_info),
+                    self.tracker_info.view(),
                     naming_cfg,
                     ripping_cfg,
                     bottom_left_buttons,

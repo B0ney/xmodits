@@ -6,11 +6,11 @@ use std::path::{Path, PathBuf};
 
 use crate::app::Message;
 use crate::utils::filename;
-use crate::widget::helpers::centered_container;
-use crate::widget::helpers::{centered_column_x, centered_text, control_filled};
+use crate::widget::helpers::{centered_container, control_filled};
 use crate::widget::{Button, Collection, Element};
 
 use iced::widget::{button, column, text, Space};
+use iced::Alignment;
 use xmodits_lib::common::info::Info;
 
 #[derive(Default, Debug, Clone)]
@@ -34,8 +34,7 @@ impl TrackerInfo {
     pub fn matches_path(&self, other: impl AsRef<Path>) -> bool {
         match self {
             TrackerInfo::None => false,
-            TrackerInfo::Invalid { path, .. } | 
-            TrackerInfo::Loaded { path, .. } => path == other.as_ref(),
+            TrackerInfo::Invalid { path, .. } | TrackerInfo::Loaded { path, .. } => path == other.as_ref(),
         }
     }
 
@@ -46,50 +45,48 @@ impl TrackerInfo {
     pub fn clear(&mut self) {
         *self = Self::None;
     }
-}
 
-pub fn view(tracker_info: &TrackerInfo) -> Element<Message> {
-    let title = "Current Tracker Information";
+    pub fn view(&self) -> Element<Message> {
+        let title = "Current Tracker Information";
 
-    let content = match tracker_info {
-        TrackerInfo::None => column![centered_text("None Selected")],
-        TrackerInfo::Invalid { path, reason } => {
-            column![
-                centered_text(format!("Failed to load {}", filename(path))),
-                centered_text(reason),
-            ]
-        }
-        
-        TrackerInfo::Loaded {
-            path,
-            name,
-            format,
-            samples,
-            total_sample_size,
-        } => {
-            #[cfg(feature = "audio")]
-            let view_samples_button = Some(
-                button("View Samples")
-                    .on_press(Message::PreviewSamples(path.to_owned()))
-                    .padding(5),
-            );
+        let content = match &self {
+            TrackerInfo::None => column![text("None Selected")],
+            TrackerInfo::Invalid { path, reason } => {
+                let error = format!("Failed to load {}", filename(path));
+                column![text(error), text(reason)]
+            }
 
-            #[cfg(not(feature = "audio"))]
-            let view_samples_button: Option<Button<Message>> = None;
+            TrackerInfo::Loaded {
+                path,
+                name,
+                format,
+                samples,
+                total_sample_size,
+            } => {
+                #[cfg(feature = "audio")]
+                let view_samples_button = Some(
+                    button("View Samples")
+                        .on_press(Message::PreviewSamples(path.to_owned()))
+                        .padding(5),
+                );
 
-            column![
-                centered_text(format!("Module Name: {}", name.trim())),
-                centered_text(format!("Format: {}", format)),
-                centered_text(format!("Samples: {}", samples)),
-                centered_text(format!("Total Sample Size: {} KiB", total_sample_size)),
-            ]
-            .push_maybe(view_samples_button.map(|btn| column![Space::with_width(15), btn]))
-        }
-    };
+                #[cfg(not(feature = "audio"))]
+                let view_samples_button: Option<Button<Message>> = None;
 
-    let content = centered_container(centered_column_x(content)).padding(8);
+                column![
+                    text(format!("Module Name: {}", name.trim())),
+                    text(format!("Format: {}", format)),
+                    text(format!("Samples: {}", samples)),
+                    text(format!("Total Sample Size: {} KiB", total_sample_size)),
+                ]
+                .push_maybe(view_samples_button.map(|btn| column![Space::with_width(15), btn]))
+            }
+        };
 
-    control_filled(title, content).into()
+        let content = centered_container(content.align_items(Alignment::Center).spacing(5)).padding(8);
+
+        control_filled(title, content).into()
+    }
 }
 
 pub async fn probe(path: PathBuf) -> TrackerInfo {

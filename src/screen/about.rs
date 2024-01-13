@@ -23,7 +23,7 @@ pub enum Message {
 }
 
 pub fn view<'a>() -> Element<'a, Message> {
-    let title = row![vbee3(), centered_text("XMODITS - by B0ney"), vbee3()]
+    let title = row![vbee3(), text("XMODITS - by B0ney"), vbee3()]
         .align_items(iced::Alignment::Center)
         .spacing(8);
     let about = centered_text("A tool to rip samples from various tracker modules.");
