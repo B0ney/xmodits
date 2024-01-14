@@ -40,12 +40,21 @@ impl Default for ErrorHandler {
             // Reserve an extra element so that pushing the last error before they're moved to a file
             // won't allocate an extra MAX elements
             errors: Vec::with_capacity(MAX + 1),
-            log_dir: dirs::download_dir().expect("downloads folder"),
+            log_dir: dirs::download_dir().unwrap_or_else(|| {
+                std::env::current_dir().unwrap_or_default()
+            }),
         }
     }
 }
 
 impl ErrorHandler {
+    pub fn new(log_dir: PathBuf) -> Self {
+        Self::Mem {
+            errors: Vec::with_capacity(MAX + 1),
+            log_dir,
+        }
+    }
+
     pub async fn push(&mut self, error: Failed) {
         match self {
             ErrorHandler::Mem { errors, log_dir } => {
