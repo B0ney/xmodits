@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::process::exit;
 
 static HELP: &str = "\
 --help      -h      Prints help information
@@ -47,29 +48,33 @@ pub fn parse(args: Vec<String>) -> Mode {
     Mode::None
 }
 
-pub fn print_help() {
+pub fn print_help() -> ! {
     print!("{}", HELP);
 
     #[cfg(feature = "built")]
     println!("--info      -i      Prints build information");
+    exit(0)
 }
 
-pub fn print_version() {
+pub fn print_version() -> ! {
     println!("{}", env!("CARGO_PKG_VERSION"));
+    exit(0)
 }
 
 #[cfg(feature = "built")]
-pub fn print_info() {
+pub fn print_info() -> ! {
     use crate::screen::build_info::info;
 
     for (label, value) in info(true) {
         println!("{label}: {value}");
     }
+
+    exit(0)
 }
 
-pub fn print_unrecognised(option: String) {
-    println!("Unrecognised option '{option}'");
-    print_help();
+pub fn print_unrecognised(option: String) -> ! {
+    eprintln!("Unrecognised option '{option}'");
+    print_help()
 }
 
 fn contains<const T: usize>(args: &[String], flags: [&str; T]) -> bool {

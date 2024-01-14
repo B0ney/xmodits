@@ -32,17 +32,14 @@ fn main() -> iced::Result {
     logger::reattach_windows_terminal();
     logger::set_panic_hook();
 
-    let mut args: Vec<_> = env::args().collect();
-    args.remove(0);
-
-    match cli::parse(args) {
-        Mode::None => XMODITS::launch().map(|_| tracing::info!("Bye :)")),
+    match cli::parse(env::args().skip(1).collect()) {
+        Mode::None => XMODITS::launch(),
         #[cfg(windows)]
         Mode::DragNDrop(paths) => XMODITS::launch_simple(paths),
-        Mode::Version => Ok(cli::print_version()),
-        Mode::Help => Ok(cli::print_help()),
+        Mode::Version => cli::print_version(),
+        Mode::Help => cli::print_help(),
         #[cfg(feature = "built")]
-        Mode::BuildInfo => Ok(cli::print_info()),
-        Mode::Unrecognised(option) => Ok(cli::print_unrecognised(option)),
+        Mode::BuildInfo => cli::print_info(),
+        Mode::Unrecognised(option) => cli::print_unrecognised(option),
     }
 }
