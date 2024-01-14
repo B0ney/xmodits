@@ -56,6 +56,10 @@ impl SamplePack {
     pub fn name(&self) -> &str {
         &self.name
     }
+    
+    pub fn is_empty(&self) -> bool {
+        self.inner().len() == 0
+    }
 }
 
 #[derive(Debug, Clone)]

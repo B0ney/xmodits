@@ -269,18 +269,21 @@ impl Instance {
             State::None => centered_container("Drag and drop a module to preview").into(),
             State::Loading => centered_container("Loading...").into(),
             State::Failed { .. } => centered_container("ERROR").into(),
-            State::Loaded { samples, .. } => scrollable(
-                column(
-                    samples
-                        .inner()
-                        .iter()
-                        .enumerate()
-                        .map(|(index, result)| result.view_sample(index)),
+            State::Loaded { samples, .. } => match samples.is_empty() {
+                true => centered_container("This module doesn't have any samples! o_0").into(),
+                false => scrollable(
+                    column(
+                        samples
+                            .inner()
+                            .iter()
+                            .enumerate()
+                            .map(|(index, result)| result.view_sample(index)),
+                    )
+                    .spacing(10)
+                    .padding(4),
                 )
-                .spacing(10)
-                .padding(4),
-            )
-            .into(),
+                .into(),
+            },
         }
     }
 
