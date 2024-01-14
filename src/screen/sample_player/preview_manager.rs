@@ -20,23 +20,12 @@ pub enum Message {
     Window(Id, instance::Message),
 }
 
-// #[derive(Default)]
+#[derive(Default)]
 pub struct SamplePreview {
     audio_engine: SamplePlayer,
     windows: HashMap<Id, Instance>,
     singleton: bool,
     default_settings: MediaSettings,
-}
-
-impl Default for SamplePreview {
-    fn default() -> Self {
-        Self {
-            audio_engine: Default::default(),
-            windows: Default::default(),
-            singleton: false,
-            default_settings: Default::default(),
-        }
-    }
 }
 
 impl SamplePreview {

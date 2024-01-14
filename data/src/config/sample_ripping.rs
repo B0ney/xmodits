@@ -29,6 +29,6 @@ impl Default for SampleRippingConfig {
 }
 
 fn default_dir() -> PathBuf {
-    let fallback = || std::env::current_dir().unwrap_or(PathBuf::new());
+    let fallback = || std::env::current_dir().unwrap_or_default();
     dirs::download_dir().unwrap_or_else(fallback)
 }

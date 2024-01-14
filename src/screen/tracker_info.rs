@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use crate::app::Message;
 use crate::utils::filename;
 use crate::widget::helpers::{centered_container, control_filled};
-use crate::widget::{Button, Collection, Element};
+use crate::widget::{Collection, Element};
 
 use iced::widget::{button, column, text, Space};
 use iced::Alignment;
@@ -71,7 +71,7 @@ impl TrackerInfo {
                 );
 
                 #[cfg(not(feature = "audio"))]
-                let view_samples_button: Option<Button<Message>> = None;
+                let view_samples_button = None::<Element<Message>>;
 
                 column![
                     text(format!("Module Name: {}", name.trim())),

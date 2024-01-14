@@ -173,11 +173,9 @@ impl button::StyleSheet for Theme {
         }
     }
 
+    /// TODO
     fn disabled(&self, style: &Self::Style) -> button::Appearance {
-        let active = self.active(style);
-        match style {
-            _ => button::Appearance { ..active },
-        }
+        self.active(style)
     }
 
     fn pressed(&self, style: &Self::Style) -> button::Appearance {

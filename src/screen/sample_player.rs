@@ -8,7 +8,6 @@ pub use preview_manager::*;
 
 #[cfg(not(feature = "audio"))]
 pub mod preview_manager_dummy {
-    use crate::widget::Element;
     use crate::screen::main_panel::Entries;
 
     use iced::{window::Id, Command};

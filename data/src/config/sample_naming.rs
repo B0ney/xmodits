@@ -28,6 +28,7 @@ impl Default for SampleNameConfig {
 }
 
 impl SampleNameConfig {
+    #[allow(clippy::needless_update)]
     pub fn build_func(&self) -> Box<dyn SampleNamerTrait> {
         SampleNamer {
             index_only: self.index_only,
