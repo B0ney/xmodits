@@ -5,13 +5,11 @@
 #![allow(unused_imports)]
 
 pub mod config;
-pub mod history;
 pub mod theme;
 pub mod error;
 pub mod time;
 
 pub use config::Config;
-pub use history::History;
 pub use theme::Theme;
 pub use time::Time;
 
