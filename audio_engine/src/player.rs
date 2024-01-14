@@ -30,6 +30,7 @@ pub struct PlayerHandle {
 
 impl PlayerHandle {
     pub fn play(&self, source: TrackerSample) {
+        self.unpause();
         self.sink.append(FramesIter {
             sample: source,
             timer: Instant::now(),
@@ -41,6 +42,7 @@ impl PlayerHandle {
     where
         F: Fn(&TrackerSample, &mut Instant) + Send + 'static,
     {
+        self.unpause();
         self.sink.append(FramesIter {
             sample: source,
             timer: Instant::now(),
@@ -53,9 +55,18 @@ impl PlayerHandle {
     }
 
     pub fn pause(&self) {
-        match self.sink.is_paused() {
-            true => self.sink.play(),
-            false => self.sink.pause(),
+        if !self.sink.empty() {
+            match self.sink.is_paused() {
+                true => self.sink.play(),
+                false => self.sink.pause(),
+            }
+        }
+    }
+
+    pub fn unpause(&self) {
+        if self.sink.is_paused() {
+            self.sink.pause();
+            self.sink.play()
         }
     }
 
