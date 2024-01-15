@@ -136,8 +136,8 @@ impl XMODITS {
         }
     }
 
+    // todo
     pub fn load_cfg(&mut self, config: Config) {
-        // todo
         self.ripping_cfg = config.ripping;
         self.naming_cfg = config.naming;
         self.general_cfg = config.general;
@@ -214,7 +214,7 @@ impl XMODITS {
         }
 
         let start_signal = self.build_start_signal();
-        let _ = self.ripper.send(start_signal);
+        self.ripper.send(start_signal).expect("Sending start signal to Ripper.");
 
         self.state = RippingState::Ripping {
             message: None,

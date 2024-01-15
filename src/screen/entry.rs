@@ -183,11 +183,12 @@ impl Entries {
             .into();
         }
 
-        fill_container(scrollable(
+        fill_container(scrollable(row![
             column(entries.iter().enumerate().map(view_entry))
                 .spacing(10)
                 .padding(5),
-        ))
+            Space::with_width(15)
+        ]))
         .style(theme::Container::BlackHovered(hovered))
         .padding(5)
         .into()
@@ -213,13 +214,10 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
         .padding(1)
         .align_items(Alignment::Center);
 
-    row![
-        button(view)
-            .width(Length::Fill)
-            .on_press(Message::Probe(index))
-            .padding(4)
-            .style(theme::Button::Entry),
-        Space::with_width(15)
-    ]
-    .into()
+    button(view)
+        .width(Length::Fill)
+        .on_press(Message::Probe(index))
+        .padding(4)
+        .style(theme::Button::Entry)
+        .into()
 }
