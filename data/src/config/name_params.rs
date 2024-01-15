@@ -17,8 +17,8 @@ impl Default for SampleNameParams {
     fn default() -> Self {
         Self {
             module_name: String::from("music"),
-            sample_filename: Some(String::from("kick_1.wav")),
-            sample_name: String::from("kick.wav"),
+            sample_filename: Some(String::from("Kick_1.wav")),
+            sample_name: String::from("Kick.wav"),
             module_source: PathBuf::from("~/Downloads/music.it"),
             raw_index: 7,
             seq_index: 0,
