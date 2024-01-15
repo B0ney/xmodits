@@ -24,7 +24,6 @@ mod build_info_inner {
             ("features", info::FEATURES_LOWERCASE_STR),
             ("license", info::PKG_LICENSE),
             ("architecture", info::TARGET),
-
         ])
     });
 
@@ -47,12 +46,9 @@ mod build_info_inner {
     }
 
     pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
-        let information = info(false)
-            .fold(column![].spacing(4), |col, (label, value)| {
-                col.push(text(format!("{label}: {value}")).size(12))
-            });
-
-        Some(container(scrollable(information)).into())
+        let elem = |(label, value)| text(format!("{label}: {value}")).size(12).into();
+        let info = scrollable(column(info(false).map(elem)));
+        Some(container(info).into())
     }
 
     pub async fn export_build(path: PathBuf) -> Result<(), String> {
