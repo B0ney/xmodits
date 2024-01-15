@@ -22,7 +22,7 @@ use crate::widget::helpers::{action, text_icon, warning};
 use crate::widget::{Collection, Container, Element};
 
 use data::Config;
-pub use ripping::State;
+pub use ripping::RippingState;
 use std::path::PathBuf;
 
 use iced::multi_window::{self, Application};
@@ -63,7 +63,7 @@ pub enum Message {
     SaveErrorsResult(Result<PathBuf, String>),
     Select { index: usize, selected: bool },
     SelectAll(bool),
-    SetState(State),
+    SetState(RippingState),
     SetTheme,
     SettingsPressed,
     StartRipping,
@@ -85,7 +85,7 @@ pub enum View {
 #[derive(Default)]
 pub struct XMODITS {
     entries: Entries,
-    state: State,
+    state: RippingState,
     view: View,
     file_hovered: bool,
     ripper: ripper::Handle,
@@ -160,7 +160,7 @@ impl XMODITS {
             return;
         }
         if self.state.is_finished() {
-            self.state = State::Idle;
+            self.state = RippingState::Idle;
             return;
         }
 
@@ -176,8 +176,8 @@ impl XMODITS {
 
     pub fn app_title(&self) -> String {
         let modifiers: Option<String> = match &self.state {
-            State::Idle | State::Finished { .. } => None,
-            State::Ripping {
+            RippingState::Idle | RippingState::Finished { .. } => None,
+            RippingState::Ripping {
                 message, progress, ..
             } => Some(format!(
                 "{} - {}%",
@@ -215,7 +215,7 @@ impl XMODITS {
         let start_signal = self.build_start_signal();
         let _ = self.ripper.send(start_signal);
 
-        self.state = State::Ripping {
+        self.state = RippingState::Ripping {
             message: None,
             progress: 0.0,
             errors: 0,
@@ -238,7 +238,7 @@ impl XMODITS {
         self.entries.add_multiple(paths);
 
         if self.state.is_finished() {
-            self.state = State::Idle;
+            self.state = RippingState::Idle;
         }
     }
 }
@@ -392,7 +392,7 @@ impl multi_window::Application for XMODITS {
                     destination,
                 } => {
                     self.ripper.reset_stop_flag(); // todo: should this be here?
-                    self.state = State::Finished {
+                    self.state = RippingState::Finished {
                         state,
                         time,
                         destination,
@@ -520,13 +520,13 @@ impl multi_window::Application for XMODITS {
 
         let show_gif = !self.general_cfg.hide_gif;
         let main_view = match &self.state {
-            State::Idle => self.entries.view(self.file_hovered, show_gif),
-            State::Ripping {
+            RippingState::Idle => self.entries.view(self.file_hovered, show_gif),
+            RippingState::Ripping {
                 message,
                 progress,
                 errors,
             } => ripping::view_ripping(message, *progress, *errors, show_gif),
-            State::Finished {
+            RippingState::Finished {
                 state,
                 time,
                 destination,

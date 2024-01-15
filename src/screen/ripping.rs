@@ -19,7 +19,7 @@ use iced::{Alignment, Length};
 
 /// The current state of the application.
 #[derive(Default, Debug, Clone)]
-pub enum State {
+pub enum RippingState {
     #[default]
     Idle,
     /// The application is currently ripping samples
@@ -36,7 +36,7 @@ pub enum State {
     },
 }
 
-impl State {
+impl RippingState {
     pub fn update_progress(&mut self, new_progress: f32, new_errors: u64) {
         if let Self::Ripping { progress, errors, .. } = self {
             *progress = new_progress;
@@ -63,7 +63,7 @@ impl State {
     }
 
     pub fn export_errors(&mut self) -> Command<Message> {
-        let State::Finished { state, .. } = &self else {
+        let RippingState::Finished { state, .. } = &self else {
             return Command::none();
         };
 
@@ -115,7 +115,7 @@ pub fn view_finished<'a>(
     destination: &Path,
 ) -> Element<'a, Message> {
     let continue_button = button("Continue")
-        .on_press(Message::SetState(State::Idle))
+        .on_press(Message::SetState(RippingState::Idle))
         .style(theme::Button::Start)
         .padding(5);
 
