@@ -15,7 +15,7 @@ use data::config::SampleRippingConfig;
 use xmodits_lib::{extract, Ripper};
 
 use std::fs::File;
-use std::io::{BufRead, BufReader, Seek, Write};
+use std::io::{BufWriter, BufRead, BufReader, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::Arc;
@@ -186,7 +186,8 @@ fn traverse(
     filter: impl Fn(&Path) -> bool,
     callback: impl Fn(u64),
 ) -> (BufReader<File>, u64) {
-    let mut file = tempfile::tempfile().expect("Creating a temporary file");
+    let file = tempfile::tempfile().expect("Creating a temporary file");
+    let mut file = BufWriter::new(file);
 
     // store the number of entries
     let mut lines: u64 = 0;
@@ -213,6 +214,8 @@ fn traverse(
             }
         }
     }
+    let _ = file.flush();
+    let (mut file, _) = file.into_parts();
 
     // Rewind cursor to beginning
     file.rewind().unwrap();
