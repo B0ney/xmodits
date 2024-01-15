@@ -1,0 +1,118 @@
+XMODITS v0.12.0 MANUAL
+
+Last Modified: 15 January 2024
+
+
+Currently Supported Formats
+    * Amiga Protracker      - .mod
+    * Fasttracker 2 module  - .xm*
+    * Scream Tracker 3      - .s3m
+    * Impulse Tracker       - .it/.mptm*
+
+Supported Containers
+    * Unreal Music Package  - .umx
+
+
+Supported formats for ripped samples:
+    * wav   - Generally recommended
+    * its   - Recommended for older tracking software
+    * 8svx  - Recommended for protracker
+    * aiff  - 
+    * s3i   - Recommended for older tracking software, but "its" should be preferred.
+    * raw   -
+
+
+
+Keyboard Shortcuts
+
+
+
+        RIPPING.
+        --------
+
+=== Current Tracker Information ===
+
+
+=== Sample Naming ===
+
+In most cases, xmodits' default settings should be sufficient.
+
+* Index Only
+    Samples are only named with an index. E.g: "1.wav"
+
+* Preserve Index
+    Index will match how it is represented internally.
+
+* Prefix Samples
+    Samples are prefixed with the tracker's file name.
+    E.g. "music1_it - kick.wav"
+
+* Upper Case 
+    Samples will be named in upper case.
+    NOTE: Prefixes will NOT be affected
+
+* Lower Case
+    Samples will be named in lower case.
+    NOTE: Prefixes will NOT be affected
+
+* Prefer Filename
+    Some samples have an additional file name. 
+    If present, xmodits will name samples with that.
+
+* Index Padding
+    Sets the *minimum* amount of digits an index must have. 
+    Indexes will be padded with zeros to match the minimum amount of digits. 
+    Set to 1 to disable padding.
+
+    NOTE: Unless set to 1, xmodits may override this value to ensure that samples are named consistently.
+    For example, if the padding is set to "2", i.e. "01", but a module has 100 samples, the padding is now set to "3".
+
+
+=== Ripping Configuration ===
+
+* Self Contained 
+    Store the extracted samples into a new folder.
+    folders are named after the module's filename with a few things:
+
+    music.s3m -> music_s3m
+
+* Strict loading - 
+
+* Export format 
+    Configure what audio formats to save the ripped samples as
+
+* Folder Scan Depth 
+    Configure how deep a folder can be traversed.
+
+* Worker Threads
+    Configure how many workers can be used to rip modules in parallel. 
+    
+    NOTE: More threads doesn't necessarily mean better performance.
+          Best to leave it at automatic.
+
+
+
+
+    SAMPLE PREVIEWING.
+    ------------------
+
+
+
+Miscellaneous
+
+Sample Previewing 
+
+
+QUIRKS
+
+
+TIPS
+
+If you are on Windows, you might notice your CPU utilisation will peak when ripping. 
+This is mostly due to your antivirus scanning the newly ripped samples. 
+You can create a dedicated folder and configure your AV to ignore that folder. 
+With this, you should also notice a ~2-4x performance improvement.
+
+
+LICENSE
+This software is licensed under the GNU General Public License (v3).
