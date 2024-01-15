@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use crate::app::application_icon;
-use crate::screen::main_panel::entry::Entries;
+use crate::screen::entry::Entries;
 use crate::widget::Element;
 
 use audio_engine::SamplePlayer;

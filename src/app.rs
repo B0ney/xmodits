@@ -1,6 +1,5 @@
 #[cfg(windows)]
 mod simple;
-mod state;
 
 use crate::event;
 use crate::font;
@@ -8,21 +7,22 @@ use crate::icon;
 use crate::logger;
 use crate::ripper;
 // use crate::screen::config::custom_filters;
+use crate::screen::ripping;
+use crate::screen::entry::Entries;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
 use crate::screen::config::sample_ripping::{self, DESTINATION_BAR_ID};
-use crate::screen::main_panel;
 use crate::screen::sample_player;
 use crate::screen::settings;
 use crate::screen::tracker_info::{self, TrackerInfo};
-use crate::screen::{about, main_panel::entry::Entries};
+use crate::screen::about;
 use crate::theme;
 use crate::utils::{files_dialog, folders_dialog};
 use crate::widget::helpers::{action, text_icon, warning};
 use crate::widget::{Collection, Container, Element};
 
 use data::Config;
-pub use state::State;
+pub use ripping::State;
 use std::path::PathBuf;
 
 use iced::multi_window::{self, Application};
@@ -520,17 +520,17 @@ impl multi_window::Application for XMODITS {
 
         let show_gif = !self.general_cfg.hide_gif;
         let main_view = match &self.state {
-            State::Idle => main_panel::view_entries(&self.entries, self.file_hovered, show_gif),
+            State::Idle => self.entries.view(self.file_hovered, show_gif),
             State::Ripping {
                 message,
                 progress,
                 errors,
-            } => main_panel::view_ripping(message, *progress, *errors, show_gif),
+            } => ripping::view_ripping(message, *progress, *errors, show_gif),
             State::Finished {
                 state,
                 time,
                 destination,
-            } => main_panel::view_finished(state, time, self.file_hovered, destination),
+            } => ripping::view_finished(state, time, self.file_hovered, destination),
         };
 
         let allow_warnings = !self.general_cfg.suppress_warnings;

@@ -1,7 +1,15 @@
 use std::path::{Path, PathBuf};
 
+use crate::app::Message;
+
 use crate::screen::tracker_info::TrackerInfo;
 use crate::utils::filename;
+use crate::widget::helpers::{centered_container, centered_text, fill_container};
+use crate::widget::{self, Collection, Element};
+use crate::{icon, theme};
+
+use iced::widget::{button, checkbox, column, row, scrollable, text, Space};
+use iced::{Alignment, Length};
 
 #[derive(Default)]
 pub struct Entry {
@@ -160,4 +168,58 @@ impl Entries {
     pub fn get(&self, idx: usize) -> Option<&Path> {
         self.entries.get(idx).map(|f| f.path.as_ref())
     }
+
+    pub fn view(&self, hovered: bool, show_gif: bool) -> Element<Message> {
+        let entries = &self.entries;
+
+        if entries.is_empty() {
+            return centered_container(
+                column![]
+                    .push(centered_text("Drag and Drop"))
+                    .push_maybe(show_gif.then(|| widget::animation::GIF.idle()).flatten())
+                    .align_items(Alignment::Center),
+            )
+            .style(theme::Container::BlackHovered(hovered))
+            .into();
+        }
+
+        fill_container(scrollable(
+            column(entries.iter().enumerate().map(view_entry))
+                .spacing(10)
+                .padding(5),
+        ))
+        .style(theme::Container::BlackHovered(hovered))
+        .padding(5)
+        .into()
+    }
+}
+
+fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
+    let check = checkbox("", entry.selected, move |selected| Message::Select {
+        index,
+        selected,
+    })
+    .style(theme::CheckBox::Entry);
+
+    let filename = text(entry.filename());
+
+    let view = row![check, filename]
+        .push_maybe(
+            entry
+                .is_dir()
+                .then(|| row![Space::with_width(Length::Fill), icon::folder().size(14)]),
+        )
+        .spacing(4)
+        .padding(1)
+        .align_items(Alignment::Center);
+
+    row![
+        button(view)
+            .width(Length::Fill)
+            .on_press(Message::Probe(index))
+            .padding(4)
+            .style(theme::Button::Entry),
+        Space::with_width(15)
+    ]
+    .into()
 }

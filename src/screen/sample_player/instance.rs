@@ -7,7 +7,7 @@ use audio_engine::{PlayerHandle, TrackerSample};
 use iced::widget::{button, checkbox, column, progress_bar, row, scrollable, slider, text, Space};
 use iced::{command, Alignment, Command, Length};
 
-use crate::screen::main_panel::Entries;
+use crate::screen::entry::Entries;
 use crate::widget::helpers::{centered_container, fill_container, warning};
 use crate::widget::waveform_view::{Marker, WaveData};
 use crate::widget::{Button, Collection, Container, Element, Row, WaveformViewer};

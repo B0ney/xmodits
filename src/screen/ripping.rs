@@ -1,74 +1,86 @@
-//! The main display panel
-
-pub mod entry;
-
 use data::time::Time;
-pub use entry::{Entries, Entry};
+use iced::Command;
+use std::path::{PathBuf, Path};
 
-use crate::app::{Message, State};
+use crate::app::Message;
+
 use crate::ripper::extraction::error::Reason;
+use crate::ripper::extraction::error_handler::{self, ErrorHandler};
 use crate::ripper::subscription::CompleteState;
+use crate::utils::create_file_dialog;
 use crate::widget::helpers::{
     centered_column_x, centered_container, centered_text, fill_container, text_icon,
 };
 use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
 
-use iced::widget::{button, checkbox, column, container, progress_bar, row, scrollable, text, Space};
+use iced::widget::{button, column, container, progress_bar, row, scrollable, text, Space};
 use iced::{Alignment, Length};
 
-pub fn view_entries(entries: &Entries, hovered: bool, show_gif: bool) -> Element<Message> {
-    let entries = &entries.entries;
-
-    if entries.is_empty() {
-        return centered_container(
-            column![]
-                .push(centered_text("Drag and Drop"))
-                .push_maybe(show_gif.then(|| widget::animation::GIF.idle()).flatten())
-                .align_items(Alignment::Center),
-        )
-        .style(theme::Container::BlackHovered(hovered))
-        .into();
-    }
-
-    fill_container(scrollable(
-        column(entries.iter().enumerate().map(view_entry))
-            .spacing(10)
-            .padding(5),
-    ))
-    .style(theme::Container::BlackHovered(hovered))
-    .padding(5)
-    .into()
+/// The current state of the application.
+#[derive(Default, Debug, Clone)]
+pub enum State {
+    #[default]
+    Idle,
+    /// The application is currently ripping samples
+    Ripping {
+        message: Option<String>,
+        progress: f32,
+        errors: u64,
+    },
+    /// The application has finished ripping samples
+    Finished {
+        state: CompleteState,
+        time: data::Time,
+        destination: PathBuf,
+    },
 }
 
-fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
-    let check = checkbox("", entry.selected, move |selected| Message::Select {
-        index,
-        selected,
-    })
-    .style(theme::CheckBox::Entry);
+impl State {
+    pub fn update_progress(&mut self, new_progress: f32, new_errors: u64) {
+        if let Self::Ripping { progress, errors, .. } = self {
+            *progress = new_progress;
+            *errors = new_errors;
+        }
+    }
 
-    let filename = text(entry.filename());
+    pub fn update_message(&mut self, new_message: Option<String>) {
+        if let Self::Ripping { message, .. } = self {
+            *message = new_message
+        }
+    }
 
-    let view = row![check, filename]
-        .push_maybe(
-            entry
-                .is_dir()
-                .then(|| row![Space::with_width(Length::Fill), icon::folder().size(14)]),
-        )
-        .spacing(4)
-        .padding(1)
-        .align_items(Alignment::Center);
+    pub fn set_message(&mut self, message: impl Into<String>) {
+        self.update_message(Some(message.into()))
+    }
 
-    row![
-        button(view)
-            .width(Length::Fill)
-            .on_press(Message::Probe(index))
-            .padding(4)
-            .style(theme::Button::Entry),
-        Space::with_width(15)
-    ]
-    .into()
+    pub fn is_ripping(&self) -> bool {
+        matches!(self, Self::Ripping { .. })
+    }
+
+    pub fn is_finished(&self) -> bool {
+        matches!(self, Self::Finished { .. })
+    }
+
+    pub fn export_errors(&mut self) -> Command<Message> {
+        let State::Finished { state, .. } = &self else {
+            return Command::none();
+        };
+
+        let Some(errors) = state.errors_ref().cloned() else {
+            return Command::none();
+        };
+
+        let task = async move {
+            let Some(path) = create_file_dialog(error_handler::random_name()).await else {
+                return Err(String::new()); // todo
+            };
+
+            ErrorHandler::dump(errors, path).await
+        };
+
+        Command::perform(task, Message::SaveErrorsResult)
+    }
 }
 
 pub fn view_ripping<'a>(
@@ -100,7 +112,7 @@ pub fn view_finished<'a>(
     complete_state: &'a CompleteState,
     time: &'a Time,
     hovered: bool,
-    destination: &std::path::Path,
+    destination: &Path,
 ) -> Element<'a, Message> {
     let continue_button = button("Continue")
         .on_press(Message::SetState(State::Idle))
