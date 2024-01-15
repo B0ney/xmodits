@@ -7,15 +7,15 @@ use crate::icon;
 use crate::logger;
 use crate::ripper;
 // use crate::screen::config::custom_filters;
-use crate::screen::ripping;
-use crate::screen::entry::Entries;
+use crate::screen::about;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
 use crate::screen::config::sample_ripping::{self, DESTINATION_BAR_ID};
+use crate::screen::entry::Entries;
+use crate::screen::ripping;
 use crate::screen::sample_player;
 use crate::screen::settings;
 use crate::screen::tracker_info::{self, TrackerInfo};
-use crate::screen::about;
 use crate::theme;
 use crate::utils::{files_dialog, folders_dialog};
 use crate::widget::helpers::{action, text_icon, warning};
@@ -214,7 +214,9 @@ impl XMODITS {
         }
 
         let start_signal = self.build_start_signal();
-        self.ripper.send(start_signal).expect("Sending start signal to Ripper.");
+        self.ripper
+            .send(start_signal)
+            .expect("Sending start signal to Ripper.");
 
         self.state = RippingState::Ripping {
             message: None,
