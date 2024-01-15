@@ -38,8 +38,8 @@ impl TrackerInfo {
         }
     }
 
-    pub fn invalid(error: String, path: PathBuf) -> Self {
-        Self::Invalid { reason: error, path }
+    pub fn invalid(reason: String, path: PathBuf) -> Self {
+        Self::Invalid { reason, path }
     }
 
     pub fn clear(&mut self) {
