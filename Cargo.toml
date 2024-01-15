@@ -25,7 +25,7 @@ chrono = { version = "0.4", features = ["serde"] }
 
 [workspace.dependencies.xmodits-lib]
 git = "https://github.com/B0ney/xmodits-lib.git"
-rev = "831b8e9"
+rev = "0f27016"
 features = ["serde"]
 
 [dependencies.iced]
