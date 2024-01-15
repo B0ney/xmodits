@@ -2,9 +2,9 @@ use iced::font::{self, Family, Font, Weight};
 use iced::Command;
 
 pub static JETBRAINS_MONO: Font = Font {
-    family: Family::Monospace,
     weight: Weight::Medium,
-    ..Font::with_name("JetBrains Mono NL Medium")
+    ..Font::MONOSPACE
+    // ..Font::with_name("JetBrainsMono NL Medium")
 };
 
 pub static ICONS: Font = Font::with_name("icons");
