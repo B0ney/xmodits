@@ -10,7 +10,7 @@ use iced::advanced::widget::{self, Widget};
 use iced::keyboard::KeyCode;
 use iced::mouse::Button;
 use iced::widget::canvas::{self, Renderer as _};
-use iced::{keyboard, Color, Element, Length, Point, Rectangle, Renderer, Vector, Size};
+use iced::{keyboard, Color, Element, Length, Point, Rectangle, Renderer, Size, Vector};
 use std::cell::RefCell;
 
 pub use marker::Marker;
@@ -230,7 +230,7 @@ impl State {
     fn reset_zoom(&mut self) {
         self.zoom = 1.0;
     }
-    
+
     fn update_zoom(&mut self, wave: &WaveData) {
         self.zoom = self.zoom.clamp(MIN_SCALE, MAX_SCALE);
 
@@ -282,7 +282,7 @@ where
         widget::tree::Tag::of::<State>()
     }
 
-    fn size(&self) -> Size<Length> { 
+    fn size(&self) -> Size<Length> {
         Size::new(self.width, self.height)
     }
 
@@ -520,16 +520,16 @@ where
 
             // Draw markers - only do so if we're rendering the waveform
             if let Some(markers) = &self.markers {
-                let wave_width = peaks.peaks()[0].len() as f32 * state.zoom;
+                renderer.with_layer(layout.bounds(), |renderer| {
+                    let wave_width = peaks.peaks()[0].len() as f32 * state.zoom;
 
-                for marker in markers {
-                    let x = layout.bounds().x + wave_width * marker.0 - state.wave_offset as f32;
+                    for marker in markers {
+                        let x = layout.bounds().x + wave_width * marker.0 - state.wave_offset as f32;
 
-                    if !layout.bounds().contains([x, dc_offset.y].into()) {
-                        continue;
-                    }
+                        if !layout.bounds().contains([x, dc_offset.y].into()) {
+                            continue;
+                        }
 
-                    renderer.with_layer(layout.bounds(), |renderer| {
                         draw_line(
                             renderer,
                             x,
@@ -538,8 +538,8 @@ where
                             layout.bounds().height,
                             appearance.cursor_color,
                         );
-                    })
-                }
+                    }
+                })
             }
         }
 
