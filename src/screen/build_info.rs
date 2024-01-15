@@ -23,6 +23,8 @@ mod build_info_inner {
             ("git_short", info::GIT_COMMIT_HASH_SHORT.unwrap_or("None")),
             ("features", info::FEATURES_LOWERCASE_STR),
             ("license", info::PKG_LICENSE),
+            ("architecture", info::TARGET),
+
         ])
     });
 
@@ -30,9 +32,11 @@ mod build_info_inner {
         let rustc = if verbose { "Rustc version" } else { "With" };
         let git = if verbose { "git" } else { "git_short" };
         let features = if verbose { "features" } else { "" };
+        let architecture = if verbose { "architecture" } else { "" };
 
         [
             ("Built", "build_time"),
+            ("Architecture", architecture),
             (rustc, "rustc"),
             ("Git", git),
             ("Features", features),
