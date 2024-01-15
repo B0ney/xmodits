@@ -95,8 +95,8 @@ pub fn view_ripping<'a>(
         .padding(5);
 
     let view = column![
-        centered_text(message.as_deref().unwrap_or("Ripping...")),
-        centered_text(format!("Errors: {}", total_errors)),
+        text(message.as_deref().unwrap_or("Ripping...")),
+        text(format!("{}% - Errors: {}", progress.floor(), total_errors)),
         progress_bar(0.0..=100.0, progress).height(5).width(200),
         cancel_ripping_button,
     ]
