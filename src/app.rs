@@ -144,6 +144,7 @@ impl XMODITS {
     }
 
     pub fn build_start_signal(&mut self) -> ripper::Signal {
+        self.tracker_info.clear();
         let entries = self.entries.take();
         let ripping = self.ripping_cfg.to_owned();
         let naming = self.naming_cfg.to_owned();
