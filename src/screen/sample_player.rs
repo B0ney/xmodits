@@ -8,7 +8,7 @@ pub use preview_manager::*;
 
 #[cfg(not(feature = "audio"))]
 pub mod preview_manager_dummy {
-    use crate::screen::main_panel::Entries;
+    use crate::screen::entry::Entries;
 
     use iced::{window::Id, Command};
     use std::path::PathBuf;
