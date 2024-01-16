@@ -38,11 +38,10 @@ impl Animation {
 
         let ripping = Self::load(ripping_gif).unwrap_or_else(|_| Self::default_ripping());
 
-        Self { gifs: HashMap::from([
-            ("idle", idle),
-            ("ripping", ripping),
-        ]) }
-    }   
+        Self {
+            gifs: HashMap::from([("idle", idle), ("ripping", ripping)]),
+        }
+    }
 
     fn load(path: impl AsRef<Path>) -> anyhow::Result<iced_gif::Frames> {
         const MAX_SIZE: u64 = 2 * 1024 * 1024;

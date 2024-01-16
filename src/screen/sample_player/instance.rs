@@ -135,11 +135,14 @@ impl Instance {
             .padding(8)
             .style(theme::Container::Black);
 
-        let top_left = column![info, self.media_buttons()].spacing(5).width(Length::Fill);
+        let top_left = column![info, self.media_buttons()]
+            .spacing(5)
+            .width(Length::Fill);
 
         let top_right_controls = {
             let add_path_button = self.loaded_path().and_then(|path| {
-                let button = || button("Add to Entries").on_press(Message::AddEntry(path.to_owned()));
+                let button =
+                    || button("Add to Entries").on_press(Message::AddEntry(path.to_owned()));
                 (!entries.contains(path)).then(button)
             });
 
@@ -179,7 +182,10 @@ impl Instance {
             .height(5.0)
             .style(theme::ProgressBar::Dark);
 
-        let warning = warning(|| false, "WARNING - This sample is most likely static noise.");
+        let warning = warning(
+            || false,
+            "WARNING - This sample is most likely static noise.",
+        );
 
         let top_half = row![top_left, top_right]
             .height(Length::FillPortion(3))
@@ -224,8 +230,12 @@ impl Instance {
         match &self.state {
             State::None => "No samples loaded!".into(),
             State::Loading => "Loading...".into(),
-            State::Failed { path, .. } => format!("Failed to open {}", path.display()),
-            State::Loaded { samples, .. } => format!("Loaded: \"{}\"", samples.name()),
+            State::Failed { path, .. } => {
+                format!("Failed to open {}", path.display())
+            }
+            State::Loaded { samples, .. } => {
+                format!("Loaded: \"{}\"", samples.name())
+            }
         }
     }
 
@@ -304,9 +314,19 @@ impl Instance {
             // (icon::repeat().size(18), Message::Stop),
         ]);
 
-        let volume = text(format!("Volume: {}%", (self.settings.volume * 100.0).round()));
+        let volume = text(format!(
+            "Volume: {}%",
+            (self.settings.volume * 100.0).round()
+        ));
         let volume_slider = column![volume]
-            .push(slider(MIN_VOLUME..=MAX_VOLUME, self.settings.volume, Message::SetVolume).step(0.01))
+            .push(
+                slider(
+                    MIN_VOLUME..=MAX_VOLUME,
+                    self.settings.volume,
+                    Message::SetVolume,
+                )
+                .step(0.01),
+            )
             .align_items(Alignment::Start);
 
         Container::new(row![media_controls, volume_slider].spacing(8))
@@ -337,7 +357,10 @@ where
         } else {
             theme::Button::MediaMiddle
         };
-        let button = Button::new(label).padding(8.0).on_press(message).style(style);
+        let button = Button::new(label)
+            .padding(8.0)
+            .on_press(message)
+            .style(style);
         media_row = media_row.push(button);
     }
 
@@ -349,16 +372,20 @@ const PLAY_CURSOR_FPS: f32 = 60.0;
 fn play_sample(handle: &PlayerHandle, source: TrackerSample) -> Command<Message> {
     let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel::<f32>();
     handle.stop();
-    handle.play_with_callback(source, move |sample: &TrackerSample, duration: &mut Instant| {
-        let fps_interval = Duration::from_millis(((1.0 / PLAY_CURSOR_FPS) * 1000.0).round() as u64);
+    handle.play_with_callback(
+        source,
+        move |sample: &TrackerSample, duration: &mut Instant| {
+            let fps_interval =
+                Duration::from_millis(((1.0 / PLAY_CURSOR_FPS) * 1000.0).round() as u64);
 
-        if duration.elapsed() > fps_interval {
-            *duration = Instant::now();
-            let progress = sample.frame() as f32 / sample.buf.frames() as f32;
+            if duration.elapsed() > fps_interval {
+                *duration = Instant::now();
+                let progress = sample.frame() as f32 / sample.buf.frames() as f32;
 
-            let _ = sender.send(progress);
-        }
-    });
+                let _ = sender.send(progress);
+            }
+        },
+    );
 
     command::channel(256, |mut s| async move {
         while let Some(new_progress) = receiver.recv().await {
@@ -379,7 +406,9 @@ fn load_samples(path: PathBuf) -> Command<Message> {
                 let mut file = std::fs::File::open(&path)?;
 
                 if file.metadata()?.len() > MAX_SIZE {
-                    return Err(xmodits_lib::Error::io_error("File size exceeds 40 MB").unwrap_err());
+                    return Err(
+                        xmodits_lib::Error::io_error("File size exceeds 40 MB").unwrap_err()
+                    );
                 }
 
                 let module = xmodits_lib::load_module(&mut file)?;

@@ -4,7 +4,6 @@ use xmodits_lib::Error;
 
 use crate::utils::filename;
 
-
 #[derive(Debug, Clone)]
 pub struct Failed {
     pub path: PathBuf,

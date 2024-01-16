@@ -1,10 +1,10 @@
 //! When we need to stop the ripping process for some reason.
-//! 
+//!
 //! Uses atomics internally since the extraction uses threads to parallelize
-//! the process. 
-//! 
+//! the process.
+//!
 //! Additionally, if one of the threads panic for whatever reason, the crash handler will kick in.
-//! 
+//!
 //! The crash handler MUST be able to abort the ripping process, otherwise we could have multiple panics
 //! (and multiple error boxes).
 
@@ -54,6 +54,6 @@ pub fn get_flag() -> StopFlag {
         NONE => StopFlag::None,
         CANCEL => StopFlag::Cancel,
         ABORT => StopFlag::Abort,
-        _ => unreachable!()
+        _ => unreachable!(),
     }
 }

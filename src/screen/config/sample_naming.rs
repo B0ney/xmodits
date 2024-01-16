@@ -20,7 +20,7 @@ pub enum Message {
 
 pub fn update(cfg: &mut SampleNameConfig, message: Message) {
     tracing::info!("{:?}", &message);
-    
+
     match message {
         Message::IndexOnly(index_only) => {
             if index_only {

@@ -140,7 +140,9 @@ impl Entries {
     }
 
     pub fn invert(&mut self) {
-        self.entries.iter_mut().for_each(|f| f.selected = !f.selected)
+        self.entries
+            .iter_mut()
+            .for_each(|f| f.selected = !f.selected)
     }
 
     pub fn none_selected(&self) -> bool {

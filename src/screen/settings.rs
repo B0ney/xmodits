@@ -17,7 +17,10 @@ pub enum Message {
     ShowAnimatedGIF(bool),
     SuppressWarnings(bool),
     ShowErrorsInTextEditor(bool),
-    SetGif { kind: GIFKind, path: Option<PathBuf> },
+    SetGif {
+        kind: GIFKind,
+        path: Option<PathBuf>,
+    },
     SetTheme(data::theme::Themes),
     NamePreview(name_preview::Message),
     ImportTheme,
@@ -48,8 +51,7 @@ pub fn view(general: &config::GeneralConfig) -> Element<Message> {
             Message::SuppressWarnings,
         ))
         .push_maybe(hide_gif)
-        .push(
-        checkbox(
+        .push(checkbox(
             "Open Saved Errors in Text Editor",
             general.show_errors_in_text_editor,
             Message::ShowErrorsInTextEditor,
@@ -139,7 +141,9 @@ pub fn update(cfg: &mut config::GeneralConfig, message: Message) -> Command<Mess
                 cfg.logging_path = Some(log_path)
             }
         }
-        Message::SetLogFolderDialog => return Command::perform(folder_dialog(), Message::SetLogFolder),
+        Message::SetLogFolderDialog => {
+            return Command::perform(folder_dialog(), Message::SetLogFolder)
+        }
         Message::ShowAnimatedGIF(toggle) => cfg.hide_gif = toggle,
         Message::SuppressWarnings(toggle) => cfg.suppress_warnings = toggle,
         Message::SetGif { kind, path } => match kind {

@@ -1,6 +1,6 @@
 use iced::widget::{
-    button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider, text, text_input,
-    vertical_slider,
+    button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider, text,
+    text_input, vertical_slider,
 };
 use iced::{application, overlay, Background, Color};
 
@@ -179,7 +179,9 @@ impl button::StyleSheet for Theme {
     }
 
     fn pressed(&self, style: &Self::Style) -> button::Appearance {
-        button::Appearance { ..self.active(style) }
+        button::Appearance {
+            ..self.active(style)
+        }
     }
 }
 
@@ -506,7 +508,10 @@ impl scrollable::StyleSheet for Theme {
                     self.active(style).scroller.color
                 },
                 border_color: if is_mouse_over_scrollbar {
-                    Color { a: 0.75, ..p.accent }
+                    Color {
+                        a: 0.75,
+                        ..p.accent
+                    }
                 } else {
                     self.active(style).scroller.border_color
                 },
@@ -579,7 +584,9 @@ impl text::StyleSheet for Theme {
 
         match style {
             Text::Default => Default::default(),
-            Text::Error => text::Appearance { color: Some(p.error) },
+            Text::Error => text::Appearance {
+                color: Some(p.error),
+            },
             Text::Warning => text::Appearance {
                 color: Some(p.warning),
             },

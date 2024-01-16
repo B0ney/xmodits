@@ -11,8 +11,5 @@ pub mod bytes {
 }
 
 pub fn load() -> Command<Result<(), font::Error>> {
-    Command::batch([
-        font::load(bytes::JETBRAINS_MONO), 
-        font::load(bytes::ICONS)
-    ])
+    Command::batch([font::load(bytes::JETBRAINS_MONO), font::load(bytes::ICONS)])
 }

@@ -23,7 +23,7 @@ pub fn parse(args: Vec<String>) -> Mode {
     if contains(&args, ["--help", "-h"]) {
         return Mode::Help;
     }
-    
+
     if contains(&args, ["--version", "-V", "-v"]) {
         return Mode::Version;
     }

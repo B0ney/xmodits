@@ -83,7 +83,10 @@ fn get_img(src: &str) -> image::Handle {
         let load = |bytes: &'static [u8]| image::Handle::from_memory(bytes);
 
         HashMap::from([
-            ("xmodits", load(include_bytes!("../assets/img/logos/icon.png"))),
+            (
+                "xmodits",
+                load(include_bytes!("../assets/img/logos/icon.png")),
+            ),
             ("vbee3", load(include_bytes!("../assets/img/vbee3.png"))),
         ])
     });

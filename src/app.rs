@@ -209,7 +209,9 @@ impl XMODITS {
         }
 
         if !sample_ripping::destination_is_valid(&self.ripping_cfg) {
-            tracing::error!("The provided destination is not valid. The *parent* folder must exist.");
+            tracing::error!(
+                "The provided destination is not valid. The *parent* folder must exist."
+            );
             return text_input::focus(DESTINATION_BAR_ID.clone());
         }
 
@@ -323,7 +325,10 @@ impl multi_window::Application for XMODITS {
                     return Command::none();
                 }
 
-                return Command::perform(tracker_info::probe(path.to_owned()), Message::ProbeResult);
+                return Command::perform(
+                    tracker_info::probe(path.to_owned()),
+                    Message::ProbeResult,
+                );
             }
             Message::ProbeResult(probe) => self.tracker_info = probe,
             Message::SamplePlayer(msg) => {
@@ -486,7 +491,8 @@ impl multi_window::Application for XMODITS {
             .width(Length::FillPortion(4))
             .spacing(10);
 
-        let destination = sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
+        let destination =
+            sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
 
         let top_right_buttons = row![
             text(format!(
@@ -496,8 +502,12 @@ impl multi_window::Application for XMODITS {
             )),
             Space::with_width(Length::Fill),
             button("Invert").on_press(Message::InvertSelection),
-            checkbox("Select All", self.entries.all_selected(), Message::SelectAll)
-                .style(theme::CheckBox::Inverted)
+            checkbox(
+                "Select All",
+                self.entries.all_selected(),
+                Message::SelectAll
+            )
+            .style(theme::CheckBox::Inverted)
         ]
         .spacing(8)
         .align_items(Alignment::Center);
@@ -509,9 +519,12 @@ impl multi_window::Application for XMODITS {
         ]
         .push_maybe(
             (self.entries.total_selected() > 0 && (!self.entries.all_selected())).then(|| {
-                action("Clear Selected", not_ripping.then_some(Message::DeleteSelected))
-                    .padding(8)
-                    .style(theme::Button::Cancel)
+                action(
+                    "Clear Selected",
+                    not_ripping.then_some(Message::DeleteSelected),
+                )
+                .padding(8)
+                .style(theme::Button::Cancel)
             }),
         )
         .push(

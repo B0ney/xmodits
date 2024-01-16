@@ -105,8 +105,9 @@ pub mod palette_serde {
         {
             let hex: ThemeHex = serde::Deserialize::deserialize(deserializer)?;
 
-            let to_color =
-                |hex: &str| hex_to_color(hex).ok_or_else(|| serde::de::Error::custom("Invalid hex"));
+            let to_color = |hex: &str| {
+                hex_to_color(hex).ok_or_else(|| serde::de::Error::custom("Invalid hex"))
+            };
 
             Ok(Palette {
                 background: to_color(&hex.text)?,

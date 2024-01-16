@@ -1,6 +1,6 @@
 use data::time::Time;
 use iced::Command;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
 use crate::app::Message;
 
@@ -38,7 +38,10 @@ pub enum RippingState {
 
 impl RippingState {
     pub fn update_progress(&mut self, new_progress: f32, new_errors: u64) {
-        if let Self::Ripping { progress, errors, .. } = self {
+        if let Self::Ripping {
+            progress, errors, ..
+        } = self
+        {
             *progress = new_progress;
             *errors = new_errors;
         }
@@ -104,7 +107,9 @@ pub fn view_ripping<'a>(
     .spacing(8)
     .align_items(Alignment::Center);
 
-    centered_container(view).style(theme::Container::Black).into()
+    centered_container(view)
+        .style(theme::Container::Black)
+        .into()
 }
 
 /// XMODITS has finished extracting the samples
@@ -234,7 +239,10 @@ pub fn view_finished<'a>(
             let error_message = text(format!("{} stored errors", errors.len()));
             let discarded_errors = match discarded {
                 0 => text("No errors were discarded."),
-                n => text(format!("I had to discard {} error(s) to save memory. >_<", n)),
+                n => text(format!(
+                    "I had to discard {} error(s) to save memory. >_<",
+                    n
+                )),
             };
 
             let buttons = row![continue_button, open_destination_button, save_errors_button]

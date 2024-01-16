@@ -18,7 +18,7 @@ pub enum Message {
 
 pub fn update(name_params: &mut SampleNameParams, message: Message) {
     tracing::info!("{:?}", &message);
-    
+
     match message {
         Message::ModuleName(module_name) => name_params.module_name = module_name,
         Message::FileName(file_name) => name_params.sample_filename = file_name,

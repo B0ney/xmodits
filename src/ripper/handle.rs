@@ -4,7 +4,7 @@ use tokio::sync::mpsc::Sender;
 use super::{stop_flag, Signal};
 
 /// Communicates with the subscription.
-/// 
+///
 /// Also provides convenience methods to access the global stop_flag.
 #[derive(Default)]
 pub struct Handle {
@@ -28,8 +28,7 @@ impl Handle {
 
         let get_sender = |err: TrySendError<Signal>| -> Signal {
             match err {
-                TrySendError::Full(sender) 
-                | TrySendError::Closed(sender) => sender,
+                TrySendError::Full(sender) | TrySendError::Closed(sender) => sender,
             }
         };
 
@@ -46,7 +45,7 @@ impl Handle {
     pub fn cancel(&self) {
         stop_flag::set_flag(stop_flag::StopFlag::Cancel)
     }
-    
+
     pub fn cancelled(&self) -> bool {
         stop_flag::is_cancelled()
     }

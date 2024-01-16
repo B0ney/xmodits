@@ -87,7 +87,8 @@ impl SamplePreview {
 
         let (instance, load_samples) = Instance::new(self.audio_engine.create_handle(), path);
 
-        self.windows.insert(id, instance.settings(self.default_settings));
+        self.windows
+            .insert(id, instance.settings(self.default_settings));
 
         Command::batch([
             spawn_window,
@@ -123,7 +124,9 @@ impl SamplePreview {
     }
 
     pub fn get_window_mut(&mut self, id: Id) -> &mut Instance {
-        self.windows.get_mut(&id).expect("View sample preview window")
+        self.windows
+            .get_mut(&id)
+            .expect("View sample preview window")
     }
 
     pub fn close_all(&mut self) -> Command<Message> {

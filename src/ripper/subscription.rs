@@ -126,7 +126,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                             ripping_msg: rx,
                             total,
                             progress: 0,
-                            error_handler: ErrorHandler::default(),
+                            error_handler: ErrorHandler::new(destination.clone()),
                             total_errors: 0,
                             timer: Time::init(),
                             destination,
@@ -176,7 +176,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                         let msg = Message::Done {
                             state: completed_state,
                             time: std::mem::take(timer),
-                            destination: std::mem::take(destination)
+                            destination: std::mem::take(destination),
                         };
 
                         output
@@ -193,7 +193,7 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                         let msg = Message::Done {
                             state: CompleteState::from(error),
                             time: std::mem::take(timer),
-                            destination: std::mem::take(destination)
+                            destination: std::mem::take(destination),
                         };
 
                         // It's important that this gets delivered, otherwise the program would be in an invalid state.

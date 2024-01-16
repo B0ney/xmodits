@@ -3,15 +3,15 @@ use std::{fs, path::PathBuf};
 use serde::{Deserialize, Serialize};
 
 pub mod general;
+pub mod name_params;
 pub mod sample_naming;
 pub mod sample_ripping;
-pub mod name_params;
-// pub mod filters; 
+// pub mod filters;
 
 pub use general::GeneralConfig;
+pub use name_params::SampleNameParams;
 pub use sample_naming::SampleNameConfig;
 pub use sample_ripping::SampleRippingConfig;
-pub use name_params::SampleNameParams;
 
 use anyhow::Result;
 use tokio::io::AsyncWriteExt;
@@ -45,7 +45,9 @@ impl Config {
 
     pub fn load_str(input: &str) -> Self {
         toml::from_str(input).unwrap_or_else(|e| {
-            warn!("Could not parse existing configuration file. Perhaps an older version was loaded?");
+            warn!(
+                "Could not parse existing configuration file. Perhaps an older version was loaded?"
+            );
             error!("{}", e);
             Self::default()
         })
@@ -84,7 +86,7 @@ impl Config {
 
         Ok(result?)
     }
-    
+
     pub fn filename() -> &'static str {
         CONFIG_NAME
     }

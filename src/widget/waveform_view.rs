@@ -367,7 +367,8 @@ where
                             let start_offset = state.drag_start_offset.x;
                             let previous_offset = state.previous_offset as f32;
 
-                            let new_offset = (start_offset - (current_cursor_x - previous_offset)) as usize;
+                            let new_offset =
+                                (start_offset - (current_cursor_x - previous_offset)) as usize;
 
                             let wave = &wave.peaks()[0];
 
@@ -400,23 +401,25 @@ where
                 }
                 _ => iced::event::Status::Ignored,
             },
-            iced::Event::Keyboard(keyboard::Event::KeyReleased { key_code, .. }) => match key_code {
-                KeyCode::Up => match self.wave {
-                    Some(wave) => {
-                        state.zoom_in(SCALE, wave);
-                        iced::event::Status::Captured
-                    }
-                    None => iced::event::Status::Ignored,
-                },
-                KeyCode::Down => match self.wave {
-                    Some(wave) => {
-                        state.zoom_out(SCALE, wave);
-                        iced::event::Status::Captured
-                    }
-                    None => iced::event::Status::Ignored,
-                },
-                _ => iced::event::Status::Ignored,
-            },
+            iced::Event::Keyboard(keyboard::Event::KeyReleased { key_code, .. }) => {
+                match key_code {
+                    KeyCode::Up => match self.wave {
+                        Some(wave) => {
+                            state.zoom_in(SCALE, wave);
+                            iced::event::Status::Captured
+                        }
+                        None => iced::event::Status::Ignored,
+                    },
+                    KeyCode::Down => match self.wave {
+                        Some(wave) => {
+                            state.zoom_out(SCALE, wave);
+                            iced::event::Status::Captured
+                        }
+                        None => iced::event::Status::Ignored,
+                    },
+                    _ => iced::event::Status::Ignored,
+                }
+            }
             _ => iced::event::Status::Ignored,
         }
     }
@@ -454,7 +457,12 @@ where
         ) {
             renderer.fill_quad(
                 renderer::Quad {
-                    bounds: Rectangle { x, y, width, height },
+                    bounds: Rectangle {
+                        x,
+                        y,
+                        width,
+                        height,
+                    },
                     border_radius: 0.0.into(),
                     border_width: 0.0,
                     border_color: Color::TRANSPARENT,
@@ -514,9 +522,12 @@ where
                     frame.fill(waveform, appearance.wave_color);
                 });
 
-            renderer.with_translation(Vector::new(layout.bounds().x, layout.bounds().y), |renderer| {
-                renderer.draw(vec![waveform]);
-            });
+            renderer.with_translation(
+                Vector::new(layout.bounds().x, layout.bounds().y),
+                |renderer| {
+                    renderer.draw(vec![waveform]);
+                },
+            );
 
             // Draw markers - only do so if we're rendering the waveform
             if let Some(markers) = &self.markers {
@@ -524,7 +535,8 @@ where
                     let wave_width = peaks.peaks()[0].len() as f32 * state.zoom;
 
                     for marker in markers {
-                        let x = layout.bounds().x + wave_width * marker.0 - state.wave_offset as f32;
+                        let x =
+                            layout.bounds().x + wave_width * marker.0 - state.wave_offset as f32;
 
                         if !layout.bounds().contains([x, dc_offset.y].into()) {
                             continue;
@@ -564,7 +576,8 @@ where
     }
 }
 
-impl<'a, Message, Theme> From<WaveformViewer<'a, Message, Theme>> for Element<'a, Message, Renderer<Theme>>
+impl<'a, Message, Theme> From<WaveformViewer<'a, Message, Theme>>
+    for Element<'a, Message, Renderer<Theme>>
 where
     Message: 'a,
     Theme: StyleSheet + 'a,

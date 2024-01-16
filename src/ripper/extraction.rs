@@ -15,7 +15,7 @@ use data::config::SampleRippingConfig;
 use xmodits_lib::{extract, Ripper};
 
 use std::fs::File;
-use std::io::{BufWriter, BufRead, BufReader, Seek, Write};
+use std::io::{BufRead, BufReader, BufWriter, Seek, Write};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::Arc;
@@ -149,13 +149,18 @@ fn stage_2(
     subscr_tx.send(Message::SetTotal(lines)).unwrap();
 
     let plural = |n: u64| -> &str {
-        if n > 1 {"s"} else {""}
+        if n > 1 {
+            "s"
+        } else {
+            ""
+        }
     };
 
     subscr_tx
         .send(Message::Info(Some(format!(
             "Stage 2: Ripping {lines} file{} from {selected_dirs} folder{}...",
-            plural(lines), plural(selected_dirs as u64)
+            plural(lines),
+            plural(selected_dirs as u64)
         ))))
         .unwrap();
 

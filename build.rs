@@ -5,7 +5,7 @@ fn main() {
 
         winresource::WindowsResource::new()
             .set_icon("./dist/windows/icon.ico")
-            .set_manifest(include_str!("./dist/windows/xmodits.manifest")) 
+            .set_manifest(include_str!("./dist/windows/xmodits.manifest"))
             .compile()
             .expect("embed Windows resources");
     }

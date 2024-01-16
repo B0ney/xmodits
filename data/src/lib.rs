@@ -6,7 +6,6 @@
 
 pub mod config;
 pub mod theme;
-pub mod error;
 pub mod time;
 
 pub use config::Config;

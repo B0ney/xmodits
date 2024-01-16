@@ -1,7 +1,7 @@
 #[cfg(feature = "audio")]
-mod preview_manager;
-#[cfg(feature = "audio")]
 mod instance;
+#[cfg(feature = "audio")]
+mod preview_manager;
 
 #[cfg(feature = "audio")]
 pub use preview_manager::*;

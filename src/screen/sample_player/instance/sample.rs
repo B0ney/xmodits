@@ -11,25 +11,24 @@ use crate::widget::{Collection, Element};
 use audio_engine;
 
 use audio_engine::TrackerSample;
-use iced::widget::{button, horizontal_rule, row, text, Space, column};
+use iced::widget::{button, column, horizontal_rule, row, text, Space};
 use iced::{Alignment, Length};
 
 use super::Message;
-
 
 #[derive(Debug, Clone)]
 pub struct SamplePack {
     name: String,
     path: PathBuf,
-    samples: Vec<SampleResult>
+    samples: Vec<SampleResult>,
 }
 
 impl SamplePack {
     pub fn new(name: String, path: PathBuf, samples: Vec<SampleResult>) -> Self {
         Self {
-            name, 
+            name,
             path,
-            samples
+            samples,
         }
     }
 
@@ -46,7 +45,9 @@ impl SamplePack {
     }
 
     pub fn tracker_sample(&self, index: usize) -> Option<TrackerSample> {
-        self.inner().get(index).and_then(SampleResult::tracker_sample)
+        self.inner()
+            .get(index)
+            .and_then(SampleResult::tracker_sample)
     }
 
     pub fn path(&self) -> &Path {
@@ -56,7 +57,7 @@ impl SamplePack {
     pub fn name(&self) -> &str {
         &self.name
     }
-    
+
     pub fn is_empty(&self) -> bool {
         self.inner().len() == 0
     }
@@ -93,8 +94,8 @@ impl SampleResult {
 
     pub fn tracker_sample(&self) -> Option<TrackerSample> {
         match &self {
-            SampleResult::Valid { buffer,.. } => Some(buffer.clone()),
-            _ => None
+            SampleResult::Valid { buffer, .. } => Some(buffer.clone()),
+            _ => None,
         }
     }
 
@@ -135,8 +136,8 @@ impl SampleResult {
             SampleResult::Valid { metadata, .. } => {
                 let smp = metadata;
 
-                let sample_name =
-                    (!smp.name.trim().is_empty()).then_some(text(format!("Name: {}", smp.name.trim())));
+                let sample_name = (!smp.name.trim().is_empty())
+                    .then_some(text(format!("Name: {}", smp.name.trim())));
 
                 let sample_filename = smp
                     .filename
@@ -148,7 +149,11 @@ impl SampleResult {
                     "{} Hz, {}-bit ({}), {}",
                     smp.rate,
                     smp.bits(),
-                    if smp.is_signed() { "Signed" } else { "Unsigned" },
+                    if smp.is_signed() {
+                        "Signed"
+                    } else {
+                        "Unsigned"
+                    },
                     if smp.is_stereo() { "Stereo" } else { "Mono" },
                 ));
 
@@ -163,7 +168,9 @@ impl SampleResult {
 
                 let size = match smp.length {
                     l if l < 1000 => format!("{} bytes", l),
-                    l if l < 1_000_000 => format!("{} KB", round_100th(l as f32 / 1000.0)),
+                    l if l < 1_000_000 => {
+                        format!("{} KB", round_100th(l as f32 / 1000.0))
+                    }
                     l => format!("{} MB", round_100th(l as f32 / 1_000_000.0)),
                 };
 

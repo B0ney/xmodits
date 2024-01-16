@@ -34,7 +34,9 @@ impl TrackerInfo {
     pub fn matches_path(&self, other: impl AsRef<Path>) -> bool {
         match self {
             TrackerInfo::None => false,
-            TrackerInfo::Invalid { path, .. } | TrackerInfo::Loaded { path, .. } => path == other.as_ref(),
+            TrackerInfo::Invalid { path, .. } | TrackerInfo::Loaded { path, .. } => {
+                path == other.as_ref()
+            }
         }
     }
 
@@ -83,7 +85,8 @@ impl TrackerInfo {
             }
         };
 
-        let content = centered_container(content.align_items(Alignment::Center).spacing(5)).padding(8);
+        let content =
+            centered_container(content.align_items(Alignment::Center).spacing(5)).padding(8);
 
         control_filled(title, content).into()
     }

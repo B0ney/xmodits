@@ -32,8 +32,10 @@ pub fn view<'a>() -> Element<'a, Message> {
         .style(theme::Button::HyperlinkInverted);
     let version = centered_text(format!("version: {}", env!("CARGO_PKG_VERSION")));
     let image = xmodits_logo();
-    let about =
-        centered_container(centered_column_x(column![title, version, image, about, repo,])).padding(8);
+    let about = centered_container(centered_column_x(column![
+        title, version, image, about, repo,
+    ]))
+    .padding(8);
 
     let about = control_filled("About", about);
     let build = build_info::view().map(|view| {
@@ -61,7 +63,10 @@ pub fn update(msg: Message) -> Command<Message> {
         }
         Message::FileDialog => {
             let build_name = format!("xmodits-v{}-build-info", env!("CARGO_PKG_VERSION"));
-            return Command::perform(utils::create_file_dialog(build_name), Message::ExportBuildInfo)
+            return Command::perform(
+                utils::create_file_dialog(build_name),
+                Message::ExportBuildInfo,
+            );
         }
         Message::Open(link) => {
             if let Err(e) = open::that_detached(link) {

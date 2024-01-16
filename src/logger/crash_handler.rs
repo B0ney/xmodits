@@ -61,7 +61,7 @@ impl From<&GlobalTracker> for Dump {
 pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(|panic_info| {
         stop_flag::set_flag(stop_flag::StopFlag::Abort);
-        
+
         let dump = Dump::from_panic(panic_info);
 
         // let backtrace = std::backtrace::Backtrace::force_capture();
