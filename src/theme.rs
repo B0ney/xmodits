@@ -301,46 +301,6 @@ impl container::StyleSheet for Theme {
     }
 }
 
-// impl iced_aw::date_picker::StyleSheet for Theme {
-//     type Style = ();
-
-//     fn active(&self, _style: &Self::Style) -> iced_aw::date_picker::Appearance {
-//         let p = self.inner();
-//         iced_aw::date_picker::Appearance {
-//             background: Background::Color(p.background),
-//             border_radius: BORDER_RADIUS,
-//             border_width: BORDER_WIDTH,
-//             border_color: p.border,
-//             text_color: p.text,
-//             text_attenuated_color: p.background,
-//             day_background: Background::Color(p.foreground),
-//         }
-//     }
-
-//     fn selected(&self, style: &Self::Style) -> iced_aw::date_picker::Appearance {
-//         let p = self.inner();
-
-//         iced_aw::date_picker::Appearance {
-//             border_color: p.accent,
-//             day_background: Background::Color(Color { a: 0.75, ..p.accent }),
-//             ..self.active(style)
-//         }
-//     }
-
-//     fn hovered(&self, style: &Self::Style) -> iced_aw::date_picker::Appearance {
-//         let p = self.inner();
-
-//         iced_aw::date_picker::Appearance {
-//             day_background: Background::Color(Color { a: 0.4, ..p.accent }),
-//             ..self.active(style)
-//         }
-//     }
-
-//     fn focused(&self, style: &Self::Style) -> iced_aw::date_picker::Appearance {
-//         self.active(style)
-//     }
-// }
-
 impl overlay::menu::StyleSheet for Theme {
     type Style = ();
 
