@@ -42,7 +42,7 @@ pub fn view(general: &config::GeneralConfig) -> Element<Message> {
     ));
 
     #[cfg(not(feature = "iced_gif"))]
-    let hide_gif: Option<Element<'_, Message>> = None;
+    let hide_gif = None::<Element<Message>>;
 
     let settings = column![]
         .push(checkbox(

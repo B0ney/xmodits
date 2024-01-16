@@ -60,7 +60,7 @@ pub fn update(cfg: &mut SampleNameConfig, message: Message) {
     }
 }
 
-pub fn view<'a>(config: &'a SampleNameConfig, preview: impl ToString) -> Element<'a, Message> {
+pub fn view(config: &SampleNameConfig, preview: impl ToString) -> Element<Message> {
     let col1 = column![
         checkbox("Index Only", config.index_only, Message::IndexOnly),
         checkbox("Preserve Index", config.index_raw, Message::IndexRaw),

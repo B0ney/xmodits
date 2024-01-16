@@ -191,8 +191,9 @@ fn traverse(
     filter: impl Fn(&Path) -> bool,
     callback: impl Fn(u64),
 ) -> (BufReader<File>, u64) {
-    let file = tempfile::tempfile().expect("Creating a temporary file");
-    let mut file = BufWriter::new(file);
+    let mut file = tempfile::tempfile()
+        .map(BufWriter::new)
+        .expect("Creating a temporary file");
 
     // store the number of entries
     let mut lines: u64 = 0;
@@ -291,17 +292,12 @@ impl<'io> Batcher<'io> {
                         return;
                     }
 
-                    let result = extract(file, &destination, &ripper, self_contained);
-
                     // Send an update to the subscription
-                    let _ = match result {
-                        Ok(_) => subscr_tx.send(Message::Progress(None)),
+                    let error = extract(file, &destination, &ripper, self_contained)
+                        .err()
+                        .map(|error| Failed::new(file.into(), error));
 
-                        Err(error) => {
-                            let error = Some(Failed::new(file.into(), error));
-                            subscr_tx.send(Message::Progress(error))
-                        }
-                    };
+                    let _ = subscr_tx.send(Message::Progress(error));
                 });
             };
 

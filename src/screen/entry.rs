@@ -52,10 +52,9 @@ impl Entries {
     }
 
     pub fn add(&mut self, path: PathBuf) {
-        if self.contains(&path) {
-            return;
+        if !self.contains(&path) {
+            self.entries.push(Entry::new(path));
         }
-        self.entries.push(Entry::new(path));
     }
 
     pub fn add_multiple(&mut self, paths: Vec<PathBuf>) {

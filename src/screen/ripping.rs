@@ -86,12 +86,12 @@ impl RippingState {
     }
 }
 
-pub fn view_ripping<'a>(
+pub fn view_ripping(
     message: &Option<String>,
     progress: f32,
     total_errors: u64,
     show_gif: bool,
-) -> Element<'a, Message> {
+) -> Element<Message> {
     let cancel_ripping_button = button("CANCEL")
         .on_press(Message::Cancel)
         .style(theme::Button::Cancel)
@@ -117,7 +117,7 @@ pub fn view_finished<'a>(
     complete_state: &'a CompleteState,
     time: &'a Time,
     hovered: bool,
-    destination: &Path,
+    destination: &'a Path,
 ) -> Element<'a, Message> {
     let continue_button = button("Continue")
         .on_press(Message::SetState(RippingState::Idle))

@@ -106,13 +106,10 @@ impl ErrorHandler {
 
             ErrorHandler::FailedFile {
                 errors, discarded, ..
-            } => {
-                if errors.len() < ABSOLUTE_LIMIT {
-                    errors.push(error);
-                    return;
-                }
-                *discarded += 1;
-            }
+            } => match errors.len() < ABSOLUTE_LIMIT {
+                true => errors.push(error),
+                false => *discarded += 1,
+            },
         }
     }
 
