@@ -39,7 +39,6 @@ impl Entry {
 
 #[derive(Default)]
 pub struct Entries {
-    pub all_selected: bool,
     pub entries: Vec<Entry>,
 }
 
@@ -49,7 +48,7 @@ impl Entries {
     }
 
     pub fn all_selected(&self) -> bool {
-        self.all_selected
+        !self.entries.is_empty() && self.total_selected() == self.entries.len()
     }
 
     pub fn add(&mut self, path: PathBuf) {
@@ -57,7 +56,6 @@ impl Entries {
             return;
         }
         self.entries.push(Entry::new(path));
-        self.all_selected = false;
     }
 
     pub fn add_multiple(&mut self, paths: Vec<PathBuf>) {
@@ -69,7 +67,6 @@ impl Entries {
     }
 
     pub fn clear(&mut self) {
-        self.all_selected = false;
         self.entries.clear();
     }
 
@@ -85,21 +82,16 @@ impl Entries {
         if let Some(entry) = self.entries.get_mut(index) {
             entry.selected = selected;
         }
-        self.all_selected = self.total_selected() == self.entries.len();
     }
 
     pub fn select_all(&mut self, selected: bool) {
-        if selected && self.entries.is_empty() {
-            return;
-        }
-        self.all_selected = selected;
         self.entries
             .iter_mut()
             .for_each(|entry| entry.selected = selected);
     }
 
     pub fn take_selected(&mut self) -> Vec<Entry> {
-        if self.all_selected {
+        if self.all_selected() {
             return std::mem::take(&mut self.entries);
         }
 
@@ -130,11 +122,9 @@ impl Entries {
 
     pub fn delete_selected(&mut self, current_tracker_info: &mut TrackerInfo) {
         // clear the entries if everything is selected
-        if self.all_selected || self.total_selected() == self.entries.len() {
+        if self.all_selected() {
             self.entries.clear();
         }
-
-        self.all_selected = false;
 
         self.entries.retain(|entry: &Entry| {
             if current_tracker_info.matches_path(&entry.path) {
@@ -150,14 +140,6 @@ impl Entries {
     }
 
     pub fn invert(&mut self) {
-        if self.is_empty() {
-            return;
-        }
-
-        if self.all_selected || self.none_selected() {
-            self.all_selected = !self.all_selected;
-        };
-
         self.entries.iter_mut().for_each(|f| f.selected = !f.selected)
     }
 

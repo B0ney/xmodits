@@ -496,7 +496,7 @@ impl multi_window::Application for XMODITS {
             )),
             Space::with_width(Length::Fill),
             button("Invert").on_press(Message::InvertSelection),
-            checkbox("Select All", self.entries.all_selected, Message::SelectAll)
+            checkbox("Select All", self.entries.all_selected(), Message::SelectAll)
                 .style(theme::CheckBox::Inverted)
         ]
         .spacing(8)
@@ -508,7 +508,7 @@ impl multi_window::Application for XMODITS {
             Space::with_width(Length::Fill)
         ]
         .push_maybe(
-            (self.entries.total_selected() > 0 && (!self.entries.all_selected)).then(|| {
+            (self.entries.total_selected() > 0 && (!self.entries.all_selected())).then(|| {
                 action("Clear Selected", not_ripping.then_some(Message::DeleteSelected))
                     .padding(8)
                     .style(theme::Button::Cancel)
