@@ -46,9 +46,9 @@ branch = "iced_master"
 optional = true
 
 [dependencies.rfd]
-version = "0.12"
+version = "0.13"
 default-features = false
-features = ["xdg-portal"]
+features = ["xdg-portal", "tokio"]
 
 [dependencies]
 data = { path = "data" }

@@ -169,8 +169,6 @@ version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ac22eda5891cc086690cb6fa10121c0390de0e3b04eb269f2d766b00d3f2d81"
 dependencies = [
- "async-fs 2.1.0",
- "async-net",
  "enumflags2",
  "futures-channel",
  "futures-util",
@@ -178,6 +176,7 @@ dependencies = [
  "rand",
  "serde",
  "serde_repr",
+ "tokio",
  "url",
  "zbus",
 ]
@@ -206,43 +205,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-executor"
-version = "1.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17ae5ebefcc48e7452b4987947920dac9450be1110cadf34d1b8c116bdbaf97c"
-dependencies = [
- "async-lock 3.3.0",
- "async-task",
- "concurrent-queue",
- "fastrand 2.0.1",
- "futures-lite 2.2.0",
- "slab",
-]
-
-[[package]]
-name = "async-fs"
-version = "1.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "279cf904654eeebfa37ac9bb1598880884924aab82e290aa65c9e77a0e142e06"
-dependencies = [
- "async-lock 2.8.0",
- "autocfg",
- "blocking",
- "futures-lite 1.13.0",
-]
-
-[[package]]
-name = "async-fs"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd1f344136bad34df1f83a47f3fd7f2ab85d75cb8a940af4ccf6d482a84ea01b"
-dependencies = [
- "async-lock 3.3.0",
- "blocking",
- "futures-lite 2.2.0",
-]
-
-[[package]]
 name = "async-io"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -258,15 +220,15 @@ dependencies = [
  "polling 2.8.0",
  "rustix 0.37.27",
  "slab",
- "socket2",
+ "socket2 0.4.10",
  "waker-fn",
 ]
 
 [[package]]
 name = "async-io"
-version = "2.2.2"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6afaa937395a620e33dc6a742c593c01aced20aa376ffb0f628121198578ccc7"
+checksum = "fb41eb19024a91746eba0773aa5e16036045bbf45733766661099e182ea6a744"
 dependencies = [
  "async-lock 3.3.0",
  "cfg-if",
@@ -299,17 +261,6 @@ dependencies = [
  "event-listener 4.0.3",
  "event-listener-strategy",
  "pin-project-lite",
-]
-
-[[package]]
-name = "async-net"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b948000fad4873c1c9339d60f2623323a0cfd3816e5181033c6a5cb68b2accf7"
-dependencies = [
- "async-io 2.2.2",
- "blocking",
- "futures-lite 2.2.0",
 ]
 
 [[package]]
@@ -346,7 +297,7 @@ version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e47d90f65a225c4527103a8d747001fc56e375203592b25ad103e1ca13124c5"
 dependencies = [
- "async-io 2.2.2",
+ "async-io 2.3.0",
  "async-lock 2.8.0",
  "atomic-waker",
  "cfg-if",
@@ -1471,10 +1422,7 @@ version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "445ba825b27408685aaecefd65178908c36c6e96aaf6d8599419d46e624192ba"
 dependencies = [
- "fastrand 2.0.1",
  "futures-core",
- "futures-io",
- "parking",
  "pin-project-lite",
 ]
 
@@ -1627,8 +1575,9 @@ dependencies = [
 
 [[package]]
 name = "glyphon"
-version = "0.3.0"
-source = "git+https://github.com/grovesNL/glyphon.git?rev=2caa9fc5e5923c1d827d177c3619cab7e9885b85#2caa9fc5e5923c1d827d177c3619cab7e9885b85"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17e87235dcba36007d4990db6253ac04e4efbd16df1f0812c2fefb1217aa2644"
 dependencies = [
  "cosmic-text",
  "etagere",
@@ -1778,7 +1727,7 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -1792,7 +1741,7 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "bitflags 1.3.2",
  "instant",
@@ -1807,7 +1756,7 @@ dependencies = [
 [[package]]
 name = "iced_futures"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "futures",
  "iced_core",
@@ -1832,7 +1781,7 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
@@ -1855,7 +1804,7 @@ dependencies = [
 [[package]]
 name = "iced_renderer"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "iced_graphics",
  "iced_tiny_skia",
@@ -1868,7 +1817,7 @@ dependencies = [
 [[package]]
 name = "iced_runtime"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "iced_core",
  "iced_futures",
@@ -1878,7 +1827,7 @@ dependencies = [
 [[package]]
 name = "iced_style"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "iced_core",
  "once_cell",
@@ -1888,7 +1837,7 @@ dependencies = [
 [[package]]
 name = "iced_tiny_skia"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "bytemuck",
  "cosmic-text",
@@ -1905,7 +1854,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "bitflags 1.3.2",
  "bytemuck",
@@ -1924,7 +1873,7 @@ dependencies = [
 [[package]]
 name = "iced_widget"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "iced_renderer",
  "iced_runtime",
@@ -1937,7 +1886,7 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.12.0"
-source = "git+https://github.com/iced-rs/iced.git#50c310fd9f692eafb2350827636ffbd6d7b6c9b9"
+source = "git+https://github.com/iced-rs/iced.git#c4ba657de86d7606587dad5124f435141258f570"
 dependencies = [
  "iced_graphics",
  "iced_runtime",
@@ -2273,9 +2222,9 @@ checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 
 [[package]]
 name = "lru"
-version = "0.11.1"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4a83fb7698b3643a0e34f9ae6f2e8f0178c0fd42f8b59d493aa271ff3a5bf21"
+checksum = "2994eeba8ed550fd9b47a0b38f0242bc3344e496483c6180b69139cc2fa5d1d7"
 dependencies = [
  "hashbrown",
 ]
@@ -3291,15 +3240,13 @@ checksum = "216080ab382b992234dda86873c18d4c48358f5cfcb70fd693d7f6f2131b628b"
 
 [[package]]
 name = "rfd"
-version = "0.12.1"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c9e7b57df6e8472152674607f6cc68aa14a748a3157a857a94f516e11aeacc2"
+checksum = "c0d8ab342bcc5436e04d3a4c1e09e17d74958bfaddf8d5fad6f85607df0f994f"
 dependencies = [
  "ashpd",
- "async-io 1.13.0",
  "block",
  "dispatch",
- "futures-util",
  "js-sys",
  "log",
  "objc",
@@ -3606,6 +3553,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "socket2"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b5fac59a5cb5dd637972e5fca70daf0523c9067fcdc4842f053dae04a18f8e9"
+dependencies = [
+ "libc",
+ "windows-sys 0.48.0",
+]
+
+[[package]]
 name = "softbuffer"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3866,9 +3823,15 @@ checksum = "c89b4efa943be685f629b149f53829423f8f5531ea21249408e8e2f8671ec104"
 dependencies = [
  "backtrace",
  "bytes",
+ "libc",
+ "mio",
  "num_cpus",
  "parking_lot 0.12.1",
  "pin-project-lite",
+ "signal-hook-registry",
+ "socket2 0.5.5",
+ "tracing",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -4969,15 +4932,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "31de390a2d872e4cd04edd71b425e29853f786dc99317ed72d73d6fcf5ebb948"
 dependencies = [
  "async-broadcast",
- "async-executor",
- "async-fs 1.6.0",
- "async-io 1.13.0",
- "async-lock 2.8.0",
  "async-process",
  "async-recursion",
- "async-task",
  "async-trait",
- "blocking",
  "byteorder",
  "derivative",
  "enumflags2",
@@ -4994,6 +4951,7 @@ dependencies = [
  "serde_repr",
  "sha1",
  "static_assertions",
+ "tokio",
  "tracing",
  "uds_windows",
  "winapi",
