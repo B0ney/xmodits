@@ -14,8 +14,10 @@
   |<kbd>delete</kbd>| Clear the selected entries|
   |<kbd>shift</kbd> + <kbd>delete</kbd>| Clears all of the entries|
   |<kbd>ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd>| Save settings|
+* Added command line arguments:
+  * `--version` - Prints application version.
+  * `--info` - Prints build information.
 * "About" section now shows the program's build information that can be exported.
-  * Build information can also be shown through the command line with the "--info" argument.
 * Sample extraction now shows an error count and a percentage of completion.
 * Window title now shows the ripping progress.
 * Added option to hide warnings.
@@ -42,6 +44,7 @@
 * Font fallback, non-english text should no longer display empty squares.
 * Manually saving errors will also open them in a text editor.
   * Also added the option to disable this.
+* Performance improvements - Ripping should be **~5-8%** faster
 
 ## Miscellaneous
 * MacOS builds have binaries for Apple Silicon
