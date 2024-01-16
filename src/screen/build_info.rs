@@ -28,15 +28,16 @@ mod build_info_inner {
     });
 
     pub fn info(verbose: bool) -> impl Iterator<Item = (&'static str, &'static str)> {
+        let built = if verbose { "Date of build" } else { "Built" };
         let rustc = if verbose { "Rustc version" } else { "With" };
+        let architecture = if verbose { "Architecture" } else { "Target" };
         let git = if verbose { "git" } else { "git_short" };
         let features = if verbose { "features" } else { "" };
-        let architecture = if verbose { "architecture" } else { "" };
 
         [
-            ("Built", "build_time"),
-            ("Architecture", architecture),
+            (built, "build_time"),
             (rustc, "rustc"),
+            (architecture, "architecture"),
             ("Git", git),
             ("Features", features),
             ("License", "license"),
@@ -47,7 +48,7 @@ mod build_info_inner {
 
     pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
         let elem = |(label, value)| text(format!("{label}: {value}")).size(12).into();
-        let info = scrollable(column(info(false).map(elem)));
+        let info = scrollable(column(info(false).map(elem)).spacing(4));
         Some(container(info).into())
     }
 
