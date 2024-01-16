@@ -1004,7 +1004,6 @@ dependencies = [
  "chrono",
  "dirs",
  "iced_core",
- "regex",
  "serde",
  "tokio",
  "toml 0.8.8",

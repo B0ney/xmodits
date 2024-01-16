@@ -34,12 +34,6 @@ git = "https://github.com/iced-rs/iced.git"
 default-features = false
 features = ["image", "tokio", "multi-window", "advanced", "canvas"]
 
-# [dependencies.iced_aw]
-# git = "https://github.com/B0ney/iced_aw.git"
-# branch = "bleeding"
-# default-features = false
-# features = ["date_picker"]
-
 [dependencies.iced_gif]
 git = "https://github.com/B0ney/iced_gif.git"
 branch = "iced_master"
@@ -87,14 +81,6 @@ static_vcruntime = "2"
 [package.metadata.winresource]
 OriginalFilename = "XMODITS.EXE"
 Comments = "This software is licensed under GPLv3. You can obtain the source code here: https://github.com/B0ney/xmodits/"
-
-[package.metadata.appimage]
-auto_link = true
-auto_link_exclude_list = [
-    "libc.so*",
-    "libdl.so*",
-    "libpthread.so*",
-]
 
 [profile.dev]
 split-debuginfo = "packed"
