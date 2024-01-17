@@ -157,16 +157,12 @@ impl XMODITS {
     }
 
     pub fn clear_entries(&mut self) {
-        if self.state.is_ripping() {
-            return;
-        }
-        if self.state.is_finished() {
+        if !self.state.is_ripping() {
+            self.tracker_info.clear();
+            self.entries.clear();
+        } else if self.state.is_finished() {
             self.state = RippingState::Idle;
-            return;
         }
-
-        self.tracker_info.clear();
-        self.entries.clear();
     }
 
     pub fn delete_selected_entries(&mut self) {
