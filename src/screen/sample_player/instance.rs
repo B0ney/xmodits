@@ -396,6 +396,8 @@ fn play_sample(handle: &PlayerHandle, source: TrackerSample) -> Command<Message>
 }
 
 fn load_samples(path: PathBuf) -> Command<Message> {
+    use xmodits_lib::Error;
+
     Command::perform(
         async {
             let path_copy = path.clone();
@@ -403,12 +405,14 @@ fn load_samples(path: PathBuf) -> Command<Message> {
             tokio::task::spawn_blocking(move || {
                 const MAX_SIZE: u64 = 40 * 1024 * 1024;
 
+                if path.is_dir() {
+                    return Err(Error::io_error("Path is a directory.").unwrap_err());
+                }
+
                 let mut file = std::fs::File::open(&path)?;
 
                 if file.metadata()?.len() > MAX_SIZE {
-                    return Err(
-                        xmodits_lib::Error::io_error("File size exceeds 40 MB").unwrap_err()
-                    );
+                    return Err(Error::io_error("File size exceeds 40 MB").unwrap_err());
                 }
 
                 let module = xmodits_lib::load_module(&mut file)?;
