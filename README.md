@@ -68,7 +68,6 @@ If you prefer to use a minimal version of this tool, a command line version of x
 <summary>Click to show more</summary>
 
 ![Selecting tracker modules](./assets/screenshots/selection.png)
-![Previewing samples from "UNATCO_Music.umx"](./assets/screenshots/sample_preview.png)
 ![Ripping samples from 33 tracker modules](./assets/screenshots/ripping.png)
 ![XMODITS has finished ripping with no error. Yay! ](./assets/screenshots/ripping_done.png)
 
@@ -99,9 +98,10 @@ Configure how ripped samples are named.
 
 |Parameter| Description|
 |--|--|
-| ``Self Contained`` | Xmodits will put samples in a self contained folder.|
+| ``Self Contained`` | XMODITS will put samples in a self contained folder.|
 | ``Export Format`` | Samples can be saved to the following formats: [ ``wav``, ``aiff``, ``8svx``, ``its``, ``s3i``, ``raw`` ]|
 | ``Folder Scan Depth`` | Limit how far a folder can be traversed. |
+| ``Worker Threads`` | Set how many threads can be used to rip samples in parallel.|
 
 <!-- ### Filters
 Only rip from files/folders if they satisfy a set of defined conditions.
@@ -114,6 +114,9 @@ Only rip from files/folders if they satisfy a set of defined conditions.
 |ends with||
 |regex||
 |extension| | -->
+
+<!-- ### Previewing Samples
+![Previewing samples from "UNATCO_Music.umx"](./assets/screenshots/sample_preview.png) -->
 
 ### Saving Configuration
 Any changes made to the configuration **must be saved manually**.<br>The configuration file can be located at:
@@ -130,6 +133,13 @@ Any changes made to the configuration **must be saved manually**.<br>The configu
 |<kbd>delete</kbd>| Clears the selected entries|
 |<kbd>shift</kbd> + <kbd>delete</kbd>| Clears the entries|
 |<kbd>ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd>| Save Configuration|
+
+### Command Line arguments
+|short|long|Description|
+|-|-|-|
+|`-h`| `--help` | Prints help information |
+|`-V`| `--version` | prints app version |
+|`-i`| `--info` | Prints build information |
 
 ## Building
 Requirements:
