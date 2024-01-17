@@ -1,21 +1,33 @@
 <!-- TODO: include custom styling using yaml -->
 
 ### Original
-![xmodits gui](./original.png)
-![xmodits gui](./sample_preview.png)
+![original theme](./original.png)
+![sample previewing with original theme](./original_sample.png)
 
 ### Dracula
-![xmodits gui](./dracula.png)
-![xmodits gui](./dracula_sample.png)
+![Dracula theme](./dracula.png)
+![sample previewing with Dracula theme](./dracula_sample.png)
 
 ### Catppuccin (personal favourite)
-![xmodits gui](./catppuccin.png)
-![xmodits gui](./catppuccin_sample.png)
+![Catppuccin theme](./catppuccin.png)
+![sample previewing with Catppuccin theme](./catppuccin_sample.png)
+
+### Nord
+![Nord theme](./nord.png)
+![sample previewing with Nord theme](./nord_sample.png)
+
+### Ferra
+![Ferra theme](./ferra.png)
+![sample previewing with Ferra theme](./ferra_sample.png)
 
 ### LMMS 
-![xmodits gui](./lmms.png)
-![xmodits gui](./lmms_sample.png)
+![LMMS theme](./lmms.png)
+![sample previewing with LMMS theme](./lmms_sample.png)
 
 ### OneShot
-![xmodits gui](./oneshot.png)
-![xmodits gui](./oneshot_sample.png)
+![OneShot theme](./oneshot.png)
+![sample previewing with OneShot theme](./oneshot_sample.png)
+
+### High Contrast
+![High Contrast theme](./high_contrast.png)
+![sample previewing with High Contrast theme](./high_contrast_sample.png)
