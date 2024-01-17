@@ -122,16 +122,16 @@ impl Entries {
     pub fn delete_selected(&mut self, current_tracker_info: &mut TrackerInfo) {
         // clear the entries if everything is selected
         if self.all_selected() {
-            self.entries.clear();
+            self.entries.clear()
+        } else {
+            self.entries.retain(|entry: &Entry| {
+                if current_tracker_info.matches_path(&entry.path) {
+                    current_tracker_info.clear();
+                }
+
+                !entry.selected
+            })
         }
-
-        self.entries.retain(|entry: &Entry| {
-            if current_tracker_info.matches_path(&entry.path) {
-                current_tracker_info.clear();
-            }
-
-            !entry.selected
-        });
     }
 
     pub fn files(&self) -> usize {
