@@ -7,10 +7,11 @@ mod wave;
 use iced::advanced::layout::{self, Layout};
 use iced::advanced::renderer::{self, Renderer as _};
 use iced::advanced::widget::{self, Widget};
-use iced::keyboard::KeyCode;
+use iced::keyboard;
+use iced::keyboard::key::{Key, Named};
 use iced::mouse::Button;
 use iced::widget::canvas::{self, Renderer as _};
-use iced::{keyboard, Color, Element, Length, Point, Rectangle, Renderer, Size, Vector};
+use iced::{Color, Element, Length, Point, Rectangle, Renderer, Size, Vector};
 use std::cell::RefCell;
 
 pub use marker::Marker;
@@ -401,25 +402,23 @@ where
                 }
                 _ => iced::event::Status::Ignored,
             },
-            iced::Event::Keyboard(keyboard::Event::KeyReleased { key_code, .. }) => {
-                match key_code {
-                    KeyCode::Up => match self.wave {
-                        Some(wave) => {
-                            state.zoom_in(SCALE, wave);
-                            iced::event::Status::Captured
-                        }
-                        None => iced::event::Status::Ignored,
-                    },
-                    KeyCode::Down => match self.wave {
-                        Some(wave) => {
-                            state.zoom_out(SCALE, wave);
-                            iced::event::Status::Captured
-                        }
-                        None => iced::event::Status::Ignored,
-                    },
-                    _ => iced::event::Status::Ignored,
-                }
-            }
+            iced::Event::Keyboard(keyboard::Event::KeyReleased { key, .. }) => match key {
+                Key::Named(Named::ArrowUp) => match self.wave {
+                    Some(wave) => {
+                        state.zoom_in(SCALE, wave);
+                        iced::event::Status::Captured
+                    }
+                    None => iced::event::Status::Ignored,
+                },
+                Key::Named(Named::ArrowDown) => match self.wave {
+                    Some(wave) => {
+                        state.zoom_out(SCALE, wave);
+                        iced::event::Status::Captured
+                    }
+                    None => iced::event::Status::Ignored,
+                },
+                _ => iced::event::Status::Ignored,
+            },
             _ => iced::event::Status::Ignored,
         }
     }
