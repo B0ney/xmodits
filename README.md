@@ -134,7 +134,7 @@ Any changes made to the configuration **must be saved manually**.<br>The configu
 |<kbd>shift</kbd> + <kbd>delete</kbd>| Clears the entries|
 |<kbd>ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd>| Save Configuration|
 
-### Command Line arguments
+### Command Line Arguments
 |short|long|Description|
 |-|-|-|
 |`-h`| `--help` | Prints help information |
@@ -147,10 +147,17 @@ Requirements:
 * Minimum rust version: 1.65
 * A decent computer. 
 
+(Linux) Dependencies:
+* `fontconfig`
+* `libasound2-dev` (If building with `audio` feature)
+
 Clone the source code (latest):
 ```shell
 git clone https://github.com/B0ney/xmodits
 ```
+
+Alternatively, you can download different versions from: https://github.com/B0ney/xmodits/tags
+
 
 Build:
 ```shell
@@ -158,8 +165,6 @@ cd xmodits
 
 cargo build --release
 ```
-
-Alternatively, you can download different versions from: https://github.com/B0ney/xmodits/tags
 
 Older versions will have slightly different build instructions.
 Additionally, versions below [v0.9.8](https://github.com/B0ney/xmodits/releases/tag/0.9.8) are CLI only.
@@ -169,23 +174,31 @@ Additionally, versions below [v0.9.8](https://github.com/B0ney/xmodits/releases/
 |Feature | Description | Enabled by Default? |
 |-|-|-|
 |``audio``|Add audio playback, used to preview samples.|**yes**|
-|``build_info``|Includes metadata about the binary and the environment it was compiled in - making it useful for bug reporting.|**yes**|
-|``jemalloc``| (*nix only) Uses the [jemalloc](https://jemalloc.net/) memory allocator. Can be used to mitigate memory fragmentation which can improve memory footprint.  |no|
-|``wgpu``| Enables hardware acceleration for the GUI (DX12/Vulkan/Metal). |no|
+|``built``|Includes metadata about the binary and the environment it was compiled in. Useful for bug reporting.|**yes**|
+|``jemalloc``| (*nix only) Use the [jemalloc](https://jemalloc.net/) memory allocator. Used to mitigate memory fragmentation which can improve memory footprint.  |no|
+|``wgpu``| Enables hardware acceleration (`DX12`/`Vulkan`/`Metal`). |no|
+|``iced_gif``| Include animated GIF | **YES**|
 
-For example, to compile xmodits with ``jemalloc`` and ``wgpu``:
+For example, to compile XMODITS with ``jemalloc`` and ``wgpu``:
 ```shell
-cargo build --features="jemalloc","wgpu"
+cargo build --release --features="jemalloc","wgpu"
 ```
 
-Build flags used in official releases:
-* audio
-* build_info
-* update_check
-* jemalloc (linux-only)
+Compile XMODITS with default features disabled:
+```shell
+cargo build --release --no-default-features
+```
+
+### Build flags used in official releases:
+|Target|Features|
+|-|-|
+|Windows|`audio`, `built`, `iced_gif`|
+|MacOS|`audio`, `built`, `iced_gif`, `wgpu`|
+|Linux|`audio`, `built`, `iced_gif`,`jemalloc`|
+
 
 ## License
-xmodits is licensed under the GPLv3
+XMODITS is licensed under the GPLv3, see [license](LICENSE) for more detail.
 
 ## Other xmodits projects
 
