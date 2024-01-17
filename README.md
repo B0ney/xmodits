@@ -144,8 +144,10 @@ Any changes made to the configuration **must be saved manually**.<br>The configu
 ## Building
 Requirements:
 * Rust compiler: https://www.rust-lang.org/tools/install
-* Minimum rust version: 1.65
-* A decent computer. 
+* Minimum rust version: `1.75`
+* A decent computer if you don't want to wait a while:
+  * *At least* 4 cores, 
+  * *At least* 8GB of RAM
 
 (Linux) Dependencies:
 * `fontconfig`
@@ -159,14 +161,14 @@ git clone https://github.com/B0ney/xmodits
 Alternatively, you can download different versions from: https://github.com/B0ney/xmodits/tags
 
 
-Build:
+Compile:
 ```shell
 cd xmodits
 
 cargo build --release
 ```
 
-Older versions will have slightly different build instructions.
+**NOTE**: Older versions will have slightly different build instructions.
 Additionally, versions below [v0.9.8](https://github.com/B0ney/xmodits/releases/tag/0.9.8) are CLI only.
 
 ### Build Flags
