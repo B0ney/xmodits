@@ -4,7 +4,7 @@ ARCH="x86_64"
 PLATFORM="linux"
 
 TARGET="xmodits-gui"
-FEATURES="jemallocator","built","audio","iced_gif"
+FEATURES="jemallocator","built","audio","iced_gif","manual"
 
 PROFILE="release"
 RELEASE_DIR="target/$PROFILE"

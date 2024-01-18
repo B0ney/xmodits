@@ -2,7 +2,7 @@
 $ARCH="x86_64"
 $PLATFORM="windows"
 
-$FEATURES="built","audio","iced_gif"
+$FEATURES="built","audio","iced_gif","manual"
 
 # Compile application with features
 cargo build -p xmodits-gui --release --features=$FEATURES

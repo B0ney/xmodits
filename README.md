@@ -180,6 +180,8 @@ Additionally, versions below [v0.9.8](https://github.com/B0ney/xmodits/releases/
 |``jemalloc``| (*nix only) Use the [jemalloc](https://jemalloc.net/) memory allocator. Used to mitigate memory fragmentation which can improve memory footprint.  |no|
 |``wgpu``| Enables hardware acceleration (`DX12`/`Vulkan`/`Metal`). |no|
 |``iced_gif``| Include animated GIF | **YES**|
+|``manual``| Bundle a simplified readme in the application | **yes**|
+
 
 For example, to compile XMODITS with ``jemalloc`` and ``wgpu``:
 ```shell
@@ -194,9 +196,9 @@ cargo build --release --no-default-features
 ### Build flags used in official releases:
 |Target|Features|
 |-|-|
-|Windows|`audio`, `built`, `iced_gif`|
-|MacOS|`audio`, `built`, `iced_gif`, `wgpu`|
-|Linux|`audio`, `built`, `iced_gif`,`jemalloc`|
+|Windows|`audio`, `built`, `iced_gif`,`manual`|
+|MacOS|`audio`, `built`, `iced_gif`,`manual`, `wgpu`|
+|Linux|`audio`, `built`, `iced_gif`,`manual`, `jemalloc`|
 
 
 ## License
