@@ -29,8 +29,8 @@ Keyboard Shortcuts:
     * CTRL + S / CMD + S    - Saves your configuration
 
 
-XMODITS is portable software, it will not leave application 
-specific artefacts on your system. 
+XMODITS is portable software. It will not leave application 
+specific artefacts on your system.
 
 When making changes to the configuration, you must manually save it.
 
@@ -41,12 +41,29 @@ The configuration file can be located at:
     MacOS   - ~/Library/Application Support/xmodits/config.toml
             
 
+
+
         RIPPING.
         --------
 
 === Current Tracker Information ===
 
+When a file/folder is dropped onto the application, that entry can be clicked on.
+If the clicked entry is a valid module, the application will show more information about it.
 
+You can also see what samples it can produce by pressing "View Samples".
+
+From here, the application will launch a new "sample preview" window.
+Just like the main window, selecting a sample also shows more information about it.
+
+It is also possible to drag and drop a module onto the previewer.
+
+WARNING: Due to limitations of the MOD format, it is possible for XMODITS to treat almost any file
+         as valid a MOD file. The samples it can produce will be garbage, and VERY LOUD.
+
+
+The sample previewer also features a waveform viewer that can be scrolled by dragging with middle mouse button,
+as well as being zoomed in/out with the Up/Down arrow keys or the mouse wheel.
 
 
 === Sample Naming ===
@@ -135,7 +152,7 @@ In most cases, xmodits' default settings should be sufficient.
     _____
 
 If you are on Windows, you might notice your CPU utilisation will peak when ripping. 
-This is mostly due to your anti-virus scanning the newly ripped samples. 
+This is mostly due to your antivirus scanning the newly ripped samples. 
 You can create a dedicated folder and configure your AV to ignore that folder, (as well as the executable).
 With this, you should also notice a ~2-4x performance improvement.
 
@@ -156,4 +173,6 @@ LINKS
 
 
 LICENSE
-This software is licensed under the GNU General Public License (v3).
+This software is licensed under the GNU General Public License v3. 
+The license should be included with this program, if not, it can be obtained here: https://www.gnu.org/licenses/gpl-3.0.en.html#license-text
+
