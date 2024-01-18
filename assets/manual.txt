@@ -39,7 +39,14 @@ The configuration file can be located at:
     Windows - %appdata%\xmodits\config.toml
     Linux   - ~/.config/xmodits/config.toml
     MacOS   - ~/Library/Application Support/xmodits/config.toml
-            
+
+   
+Command Line arguments:
+    --help      -h      Prints help information 
+    --version   -V      prints app version 
+    --info      -i      Prints build information 
+    --manual    -m      Prints manual 
+
 
 
         RIPPING.

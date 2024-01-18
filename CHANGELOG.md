@@ -26,6 +26,7 @@
   * High Contrast.
   * Ferra
 * Added button to show the output folder after ripping.
+* Application now has an embedded manual.
 
 ## Bug Fixes
 * (Windows) Drag'n'drop mode no longer ignores the configured export format.

@@ -140,6 +140,7 @@ Any changes made to the configuration **must be saved manually**.<br>The configu
 |`-h`| `--help` | Prints help information |
 |`-V`| `--version` | prints app version |
 |`-i`| `--info` | Prints build information |
+|`-m`| `--manual`| Prints manual |
 
 ## Building
 Requirements:
