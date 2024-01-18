@@ -23,20 +23,23 @@ Currently Supported Formats:
 Supported Containers:
     * Unreal Music Package  - umx
 
-
 Keyboard Shortcuts:
     * DELETE                - Clears only the selected entries
     * SHIFT + DELETE        - Clears ALL entries
     * CTRL + S / CMD + S    - Saves your configuration
 
 
-    NOTE: 
-        XMODITS is portable software, it will not leave application 
-        specific artefacts on your system. 
+XMODITS is portable software, it will not leave application 
+specific artefacts on your system. 
 
-        When making changes to the configuration, you must manually save it.
+When making changes to the configuration, you must manually save it.
 
 
+The configuration file can be located at:
+    Windows - %appdata%\xmodits\config.toml
+    Linux   - ~/.config/xmodits/config.toml
+    MacOS   - ~/Library/Application Support/xmodits/config.toml
+            
 
         RIPPING.
         --------
@@ -125,11 +128,6 @@ In most cases, xmodits' default settings should be sufficient.
     
     NOTE: More threads doesn't necessarily mean better performance.
           Best to leave it at automatic.
-  
-
-
-    SAMPLE PREVIEWING.
-    ------------------
 
 
 
@@ -137,7 +135,7 @@ In most cases, xmodits' default settings should be sufficient.
     _____
 
 If you are on Windows, you might notice your CPU utilisation will peak when ripping. 
-This is mostly due to your antivirus scanning the newly ripped samples. 
+This is mostly due to your anti-virus scanning the newly ripped samples. 
 You can create a dedicated folder and configure your AV to ignore that folder, (as well as the executable).
 With this, you should also notice a ~2-4x performance improvement.
 
@@ -145,10 +143,16 @@ With this, you should also notice a ~2-4x performance improvement.
 Even I was surprised to see how fast ran on my system.
 
 
-What can't XMODITS  rip?
+What can't XMODITS rip?
 * Scream Tracker 3 modules that ONLY have adlib instruments (it's not pcm!)
 * Protracker 3 modules - pt3, XMODITS may recognise it and inform you anyway (future versions may support this).
 * Modules that use "exotic" compression (except IT214 & IT215 since they're quite common in impulse tracker)
+
+
+LINKS
+* The source code for this program is currently hosted on GitHub: https://github.com/B0ney/xmodits
+* There is also a command line version of this program here: https://github.com/B0ney/xmodits-cli
+* My personal website: https://vbee3.neocities.org/
 
 
 LICENSE
