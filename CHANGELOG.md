@@ -17,7 +17,9 @@
 * Added command line arguments:
   * `--version` - Prints application version.
   * `--info` - Prints build information.
-* "About" section now shows the program's build information that can be exported.
+  * `--manual` - Prints manual.
+* About section now shows the program's build information that can be exported.
+* About section also includes a button to show the manual.
 * Sample extraction now shows an error count and a percentage of completion.
 * Window title now shows the ripping progress.
 * Added option to hide warnings.
@@ -26,7 +28,6 @@
   * High Contrast.
   * Ferra
 * Added button to show the output folder after ripping.
-* Application now has an embedded manual.
 
 ## Bug Fixes
 * (Windows) Drag'n'drop mode no longer ignores the configured export format.
