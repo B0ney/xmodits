@@ -1,29 +1,40 @@
 XMODITS v0.12.0 MANUAL
 
-Last Modified: 15 January 2024
+Author: B0ney
+Last Modified: 18 January 2024
 
 
-Currently Supported Formats
-    * Amiga Protracker      - .mod
-    * Fasttracker 2 module  - .xm*
-    * Scream Tracker 3      - .s3m
-    * Impulse Tracker       - .it/.mptm*
+        HOW TO USE.
+        -----------
 
-Supported Containers
-    * Unreal Music Package  - .umx
-
-
-Supported formats for ripped samples:
-    * wav   - Generally recommended
-    * its   - Recommended for older tracking software
-    * 8svx  - Recommended for protracker
-    * aiff  - 
-    * s3i   - Recommended for older tracking software, but "its" should be preferred.
-    * raw   -
+1) Open application
+2) Drag and drop a module, and or a folder full of modules.
+3) (Optional) Press "Open" to set the destination folder. Your downloads folder is the default.
+5) Press "Start"
+6) Press "Show Folder" to see the results.
 
 
+Currently Supported Formats:
+    * Amiga Protracker      - mod
+    * Fasttracker 2 module  - xm
+    * Scream Tracker 3      - s3m
+    * Impulse Tracker       - it/mptm
 
-Keyboard Shortcuts
+Supported Containers:
+    * Unreal Music Package  - umx
+
+
+Keyboard Shortcuts:
+    * DELETE                - Clears only the selected entries
+    * SHIFT + DELETE        - Clears ALL entries
+    * CTRL + S / CMD + S    - Saves your configuration
+
+
+    NOTE: 
+        XMODITS is portable software, it will not leave application 
+        specific artefacts on your system. 
+
+        When making changes to the configuration, you must manually save it.
 
 
 
@@ -33,8 +44,11 @@ Keyboard Shortcuts
 === Current Tracker Information ===
 
 
+
+
 === Sample Naming ===
 
+Configures how ripped samples should be named.
 In most cases, xmodits' default settings should be sufficient.
 
 * Index Only
@@ -46,6 +60,9 @@ In most cases, xmodits' default settings should be sufficient.
 * Prefix Samples
     Samples are prefixed with the tracker's file name.
     E.g. "music1_it - kick.wav"
+
+    NOTE: This is recommended if you are ripping with "Self Contained" disabled,
+    as this helps reduce collisisons.
 
 * Upper Case 
     Samples will be named in upper case.
@@ -68,29 +85,47 @@ In most cases, xmodits' default settings should be sufficient.
     For example, if the padding is set to "2", i.e. "01", but a module has 100 samples, the padding is now set to "3".
 
 
+
 === Ripping Configuration ===
 
 * Self Contained 
-    Store the extracted samples into a new folder.
-    folders are named after the module's filename with a few things:
+    Store the extracted samples into a self contained folder. 
+    This is done to 1) better organize samples, and 2) avoid collisisons.
 
-    music.s3m -> music_s3m
+    Folders are named after the module's filename. ('.' is replaced with '_')
 
-* Strict loading - 
+    For example, samples ripped from "music.s3m" will be placed in {DESTINATION FOLDER}/music_s3m/
+
+
+* Strict loading
+    If enabled, XMODITS will quietly ignore files that don't have the following extensions:
+        * it
+        * xm
+        * s3m
+        * mod
+        * umx
+        * mptm
 
 * Export format 
-    Configure what audio formats to save the ripped samples as
+    Set what audio format to save the ripped samples.
+
+    Supported formats:
+        * wav   - Generally recommended
+        * its   - Recommended for older tracking software
+        * 8svx  - Recommended for protracker
+        * s3i   - Recommended for older tracking software, but "its" should be preferred.
+        * aiff  - 
+        * raw   - Only recommended for testing purposes
 
 * Folder Scan Depth 
-    Configure how deep a folder can be traversed.
+    Set how deep a folder can be traversed.
 
 * Worker Threads
-    Configure how many workers can be used to rip modules in parallel. 
+    Set how many workers can be used to rip modules in parallel. 
     
     NOTE: More threads doesn't necessarily mean better performance.
           Best to leave it at automatic.
-
-
+  
 
 
     SAMPLE PREVIEWING.
@@ -98,20 +133,22 @@ In most cases, xmodits' default settings should be sufficient.
 
 
 
-Miscellaneous
-
-Sample Previewing 
-
-
-QUIRKS
-
-
-TIPS
+    TIPS.
+    _____
 
 If you are on Windows, you might notice your CPU utilisation will peak when ripping. 
 This is mostly due to your antivirus scanning the newly ripped samples. 
-You can create a dedicated folder and configure your AV to ignore that folder. 
+You can create a dedicated folder and configure your AV to ignore that folder, (as well as the executable).
 With this, you should also notice a ~2-4x performance improvement.
+
+
+Even I was surprised to see how fast ran on my system.
+
+
+What can't XMODITS  rip?
+* Scream Tracker 3 modules that ONLY have adlib instruments (it's not pcm!)
+* Protracker 3 modules - pt3, XMODITS may recognise it and inform you anyway (future versions may support this).
+* Modules that use "exotic" compression (except IT214 & IT215 since they're quite common in impulse tracker)
 
 
 LICENSE
