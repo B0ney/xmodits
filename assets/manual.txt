@@ -42,7 +42,6 @@ The configuration file can be located at:
             
 
 
-
         RIPPING.
         --------
 
@@ -157,7 +156,6 @@ This is mostly due to your antivirus scanning the newly ripped samples.
 You can create a dedicated folder and configure your AV to ignore that folder, (as well as the executable).
 With this, you should also notice a ~2-4x performance improvement.
 
-
 Even I was surprised to see how fast it ran on my system.
 
 
@@ -176,4 +174,3 @@ LINKS
 LICENSE
 This software is licensed under the GNU General Public License v3. 
 The license should be included with this program, if not, it can be obtained here: https://www.gnu.org/licenses/gpl-3.0.en.html#license-text
-
