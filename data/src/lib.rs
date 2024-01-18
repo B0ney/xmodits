@@ -22,3 +22,6 @@ pub const SUPPORTED_FORMATS: &[AudioFormat] = &[
     AudioFormat::IFF,
     AudioFormat::RAW,
 ];
+
+#[cfg(feature = "manual")]
+pub static MANUAL: &str = include_str!("../../assets/manual.txt");

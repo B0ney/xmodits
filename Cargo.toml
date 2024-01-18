@@ -9,9 +9,10 @@ license = "GPLv3"
 repository = "https://github.com/B0ney/xmodits"
 
 [features]
-default = ["built", "audio", "iced_gif"]
+default = ["built", "audio", "iced_gif", "manual"]
 audio = ["audio_engine", "dasp"]
 wgpu = ["iced/wgpu"]
+manual = ["data/manual"]
 
 [workspace]
 members = ["data", "audio_engine"]

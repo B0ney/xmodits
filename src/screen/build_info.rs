@@ -4,7 +4,7 @@ use crate::widget::Element;
 
 #[cfg(feature = "built")]
 mod build_info_inner {
-    use std::{collections::HashMap, path::PathBuf};
+    use std::{collections::HashMap, path::Path};
 
     use super::Element;
     use iced::widget::{column, container, scrollable, text};
@@ -52,7 +52,7 @@ mod build_info_inner {
         Some(container(info).into())
     }
 
-    pub async fn export_build(path: PathBuf) -> Result<(), String> {
+    pub async fn export_build(path: &Path) -> Result<(), String> {
         let mut file = File::create(path).await.map_err(|f| f.to_string())?;
 
         for (label, value) in info(true) {
@@ -74,6 +74,6 @@ pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
 }
 
 #[cfg(not(feature = "built"))]
-pub async fn export_build(_path: std::path::PathBuf) -> Result<(), String> {
+pub async fn export_build(_path: &std::path::Path) -> Result<(), String> {
     Ok(())
 }

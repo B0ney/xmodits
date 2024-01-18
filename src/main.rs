@@ -41,5 +41,7 @@ fn main() -> iced::Result {
         #[cfg(feature = "built")]
         Mode::BuildInfo => cli::print_info(),
         Mode::Unrecognised(option) => cli::print_unrecognised(option),
+        #[cfg(feature = "manual")]
+        Mode::Manual => cli::print_manual(),
     }
 }

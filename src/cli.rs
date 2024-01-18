@@ -17,6 +17,8 @@ pub enum Mode {
     #[cfg(windows)]
     DragNDrop(Vec<String>),
     Unrecognised(String),
+    #[cfg(feature = "manual")]
+    Manual,
 }
 
 pub fn parse(args: Vec<String>) -> Mode {
@@ -31,6 +33,11 @@ pub fn parse(args: Vec<String>) -> Mode {
     #[cfg(feature = "built")]
     if contains(&args, ["--info", "-i"]) {
         return Mode::BuildInfo;
+    }
+
+    #[cfg(feature = "manual")]
+    if contains(&args, ["--manual", "-m", "--man"]) {
+        return Mode::Manual;
     }
 
     if let Some(unrecognised) = args
@@ -53,6 +60,8 @@ pub fn print_help() -> ! {
 
     #[cfg(feature = "built")]
     println!("--info      -i      Prints build information");
+    #[cfg(feature = "manual")]
+    println!("--manual    -m      Prints application manual");
     exit(0)
 }
 
@@ -75,6 +84,12 @@ pub fn print_info() -> ! {
 pub fn print_unrecognised(option: String) -> ! {
     eprintln!("Unrecognised option '{option}'");
     print_help()
+}
+
+#[cfg(feature = "manual")]
+pub fn print_manual() -> ! {
+    print!("{}", data::MANUAL);
+    exit(0);
 }
 
 fn contains<const T: usize>(args: &[String], flags: [&str; T]) -> bool {
