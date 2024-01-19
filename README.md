@@ -77,7 +77,13 @@ Click [here](./assets/screenshots/README.md) for different themes
 </details>
 
 ## How to Use
-(**Windows Only**) If you just want to simply extract samples, you can just drag and drop a module(s) onto the binary. XMODITS will (by default) place the samples in a self contained folder in your ```~/Downloads``` folder.
+1) Open application
+2) Drag and drop a module, and or a folder full of modules.
+3) (Optional) Press "Open" to set the destination folder. Your downloads folder is the default.
+5) Press "Start"
+6) Press "Show Folder" to see the results.
+
+(**Windows Only**) If you just want to simply extract samples, you can also drag and drop a module(s) onto the binary. XMODITS will (by default) place the samples in a self contained folder in your ```~/Downloads``` folder.
 
 ### Sample Naming
 Configure how ripped samples are named.
