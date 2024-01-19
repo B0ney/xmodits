@@ -34,7 +34,7 @@ lipo "target/x86_64-apple-darwin/release/$TARGET_OLD" "target/aarch64-apple-darw
 echo "Created universal binary"
 
 # copy extra files
-cp  README.md $ARCHIVE_DIR
+cp  ./assets/manual.txt $ARCHIVE_DIR
 cp  LICENSE $ARCHIVE_DIR
 
 chmod +x $BINARY

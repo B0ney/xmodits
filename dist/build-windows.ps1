@@ -19,7 +19,7 @@ Remove-Item "target/release/archive/*"
 Move-Item -Force "target/release/xmodits-gui.exe" "target/release/archive/xmodits.exe"
 
 # Copy extras to archive folder
-Copy-Item -Force "README.md" "target/release/archive/"
+Copy-Item -Force "./assets/manual.txt" "target/release/archive/"
 Copy-Item -Force "LICENSE" "target/release/archive/"
 
 # Get version number

@@ -27,7 +27,7 @@ copy_binary() {
 }
 
 copy_extras() {
-    install -D README.md LICENSE -t $ARCHIVE_DIR
+    install -D ./assets/manual.txt LICENSE -t $ARCHIVE_DIR
 }
 
 create_dirs() {
