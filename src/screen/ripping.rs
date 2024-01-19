@@ -9,7 +9,7 @@ use crate::ripper::extraction::error_handler::{self, ErrorHandler};
 use crate::ripper::subscription::CompleteState;
 use crate::utils::create_file_dialog;
 use crate::widget::helpers::{
-    centered_column_x, centered_container, centered_text, fill_container, text_icon,
+    centered_column_x, centered_container, centered_text, fill_container, text_icon, text_adv,
 };
 use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
@@ -190,7 +190,7 @@ pub fn view_finished<'a>(
                         Reason::Multiple(_) => centered_text("multiple..."), //todo
                     };
 
-                    let error = text(error.filename());
+                    let error = text_adv(error.filename());
                     let error = container(column![error, reason])
                         .padding(4)
                         .width(Length::Fill)

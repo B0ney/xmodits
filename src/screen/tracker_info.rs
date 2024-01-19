@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 
 use crate::app::Message;
 use crate::utils::filename;
-use crate::widget::helpers::{centered_container, control_filled};
+use crate::widget::helpers::{centered_container, control_filled, text_adv};
 use crate::widget::{Collection, Element};
 
 use iced::widget::{button, column, text, Space};
@@ -55,7 +55,7 @@ impl TrackerInfo {
             TrackerInfo::None => column![text("None Selected")],
             TrackerInfo::Invalid { path, reason } => {
                 let error = format!("Failed to load {}", filename(path));
-                column![text(error), text(reason)]
+                column![text_adv(error), text(reason)]
             }
 
             TrackerInfo::Loaded {

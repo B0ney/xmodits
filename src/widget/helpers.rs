@@ -130,3 +130,8 @@ pub fn text_elem<'a, Message: 'a>(
         .align_items(Alignment::Center)
         .spacing(5)
 }
+
+/// create text widget with advanced shaping for font fallback
+pub fn text_adv<'a>(str: impl ToString) -> Text<'a> {
+    text(str).shaping(text::Shaping::Advanced)
+}

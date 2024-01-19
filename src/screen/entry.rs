@@ -4,7 +4,7 @@ use crate::app::Message;
 
 use crate::screen::tracker_info::TrackerInfo;
 use crate::utils::filename;
-use crate::widget::helpers::{centered_container, centered_text, fill_container};
+use crate::widget::helpers::{centered_container, centered_text, fill_container, text_adv};
 use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
 
@@ -185,7 +185,7 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
     })
     .style(theme::CheckBox::Entry);
 
-    let filename = text(entry.filename());
+    let filename = text_adv(entry.filename());
 
     let view = row![check, filename]
         .push_maybe(
