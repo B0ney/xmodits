@@ -138,10 +138,10 @@ In most cases, xmodits' default settings should be sufficient.
 
     Supported formats:
         * wav   - Generally recommended
+        * aiff  - Very similar to wav, but "wav" should be preferred.
         * its   - Recommended for older tracking software
-        * 8svx  - Recommended for protracker
         * s3i   - Recommended for older tracking software, but "its" should be preferred.
-        * aiff  - 
+        * 8svx  - Recommended for protracker
         * raw   - Only recommended for testing purposes
 
 * Folder Scan Depth 
