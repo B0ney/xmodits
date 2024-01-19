@@ -31,7 +31,7 @@
 
 ## Bug Fixes
 * (Windows) Drag'n'drop mode no longer ignores the configured export format.
-* Fixed a minor logic error where adding a duplicate file/folder would unanimously uncheck "all selected"
+* Fixed a minor logic error where adding a duplicate file/folder would unanimously uncheck "all selected".
 * Application no longer panics if it fails to locate the ``Downloads`` folder.
 * Fixed extraction error when ripping .it modules that use ``it215`` compression.
 
@@ -47,10 +47,10 @@
 * Font fallback, non-english text should no longer display empty squares.
 * Manually saving errors will also open them in a text editor.
   * Also added the option to disable this.
-* Performance improvements - Ripping should be **~5-8%** faster
+* Performance improvements - ripping should be **~5-8%** faster.
 
 ## Miscellaneous
-* MacOS builds have binaries for Apple Silicon
+* MacOS builds are now distributed as a universal binary. The program should now run optimally on both Intel and Apple silicon machines.
 * Linux builds use ``jemalloc`` to mitigate memory fragmentation, resulting in lower memory usage.
 * Windows builds have ``vcruntime`` embedded for improved compatibility.
 
