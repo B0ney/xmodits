@@ -33,7 +33,7 @@
 * (Windows) Drag'n'drop mode no longer ignores the configured export format.
 * Fixed a minor logic error where adding a duplicate file/folder would unanimously uncheck "all selected".
 * Application no longer panics if it fails to locate the ``Downloads`` folder.
-* Fixed extraction error when ripping .it modules that use ``it215`` compression.
+* Fixed an issue where ripping impulse tracker modules with compressed stereo samples would fail, or produce garbage data.
 
 ## Improvements
 * Some tweaks to the UI/UX:
