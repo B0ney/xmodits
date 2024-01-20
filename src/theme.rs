@@ -2,7 +2,7 @@ use iced::widget::{
     button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider, text,
     text_input, vertical_slider,
 };
-use iced::{application, overlay, Background, Color};
+use iced::{application, overlay, Background, Border, Color};
 
 use data::theme;
 
@@ -57,16 +57,13 @@ impl button::StyleSheet for Theme {
 
     fn active(&self, style: &Self::Style) -> button::Appearance {
         let p = self.inner();
-
         let appearance = button::Appearance {
-            border_width: BORDER_WIDTH,
-            border_radius: BORDER_RADIUS.into(),
             ..button::Appearance::default()
         };
 
         let active_appearance = |bg: Option<Color>, mc| button::Appearance {
             background: Some(Background::Color(bg.unwrap_or(p.foreground))),
-            border_color: Color { a: 0.5, ..mc },
+            border: border(Color { a: 0.5, ..mc }),
             text_color: mc,
             ..appearance
         };
@@ -78,9 +75,7 @@ impl button::StyleSheet for Theme {
             Button::Entry => button::Appearance {
                 background: Some(Background::Color(p.foreground)),
                 text_color: p.text,
-                border_radius: BORDER_RADIUS.into(),
-                border_width: BORDER_WIDTH,
-                border_color: p.border,
+                border: border(p.border),
                 ..appearance
             },
             Button::Hyperlink => button::Appearance {
@@ -98,25 +93,28 @@ impl button::StyleSheet for Theme {
             Button::Dark => button::Appearance {
                 background: Some(p.background.into()),
                 text_color: p.text,
-                border_radius: BORDER_RADIUS.into(),
-                border_color: p.middleground,
+                border: border(p.middleground),
                 ..appearance
             },
             Button::MediaStart => button::Appearance {
-                border_radius: [8.0, BORDER_RADIUS, BORDER_RADIUS, 8.0].into(),
+                border: Border {
+                    radius: [8.0, BORDER_RADIUS, BORDER_RADIUS, 8.0].into(),
+                    ..border(Color { a: 0.5, ..p.accent })
+                },
                 ..active_appearance(None, p.accent)
             },
             Button::MediaMiddle => active_appearance(None, p.accent),
             Button::MediaEnd => button::Appearance {
-                border_radius: [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into(),
+                border: Border {
+                    radius: [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into(),
+                    ..border(Color { a: 0.5, ..p.accent })
+                },
                 ..active_appearance(None, p.accent)
             },
             Button::EntryError => button::Appearance {
                 background: Some(Background::Color(p.foreground)),
                 text_color: p.text,
-                border_radius: BORDER_RADIUS.into(),
-                border_width: BORDER_WIDTH,
-                border_color: p.border,
+                border: border(Color { a: 0.5, ..p.error }),
                 ..appearance
             },
         }
@@ -128,7 +126,6 @@ impl button::StyleSheet for Theme {
 
         let hover_appearance = |bg, tc: Option<Color>| button::Appearance {
             background: Some(Background::Color(Color { a: 0.4, ..bg })),
-
             text_color: tc.unwrap_or(bg),
             ..active
         };
@@ -137,7 +134,7 @@ impl button::StyleSheet for Theme {
             Button::Primary => hover_appearance(p.accent, Some(p.text)),
             Button::Unavailable => hover_appearance(p.error, None),
             Button::Entry => button::Appearance {
-                border_color: Color { a: 0.5, ..p.accent },
+                border: border(Color { a: 0.5, ..p.accent }),
                 ..hover_appearance(p.accent, Some(p.text))
             },
             Button::Hyperlink => button::Appearance {
@@ -158,16 +155,22 @@ impl button::StyleSheet for Theme {
                 ..active
             },
             Button::MediaStart => button::Appearance {
-                border_radius: [8.0, BORDER_RADIUS, BORDER_RADIUS, 8.0].into(),
+                border: Border {
+                    radius: [8.0, BORDER_RADIUS, BORDER_RADIUS, 8.0].into(),
+                    ..border(Color { a: 0.5, ..p.accent })
+                },
                 ..hover_appearance(p.accent, Some(p.text))
             },
             Button::MediaMiddle => hover_appearance(p.accent, Some(p.text)),
             Button::MediaEnd => button::Appearance {
-                border_radius: [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into(),
+                border: Border {
+                    radius: [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into(),
+                    ..border(Color { a: 0.5, ..p.accent })
+                },
                 ..hover_appearance(p.accent, Some(p.text))
             },
             Button::EntryError => button::Appearance {
-                border_color: Color { a: 0.5, ..p.error },
+                border: border(Color { a: 0.5, ..p.error }),
                 ..hover_appearance(p.error, Some(p.text))
             },
         }
@@ -202,9 +205,11 @@ impl checkbox::StyleSheet for Theme {
         let default = checkbox::Appearance {
             background: p.middleground.into(),
             icon_color: p.accent,
-            border_radius: BORDER_RADIUS.into(),
-            border_width: BORDER_WIDTH,
-            border_color: p.border,
+            border: Border {
+                color: p.border,
+                width: BORDER_WIDTH,
+                radius: BORDER_RADIUS.into(),
+            },
             text_color: Some(p.text),
         };
         match style {
@@ -226,9 +231,11 @@ impl checkbox::StyleSheet for Theme {
         let default = checkbox::Appearance {
             background: p.middleground.into(),
             icon_color: p.accent,
-            border_radius: BORDER_RADIUS.into(),
-            border_width: 2.0,
-            border_color: p.accent,
+            border: Border {
+                color: p.accent,
+                width: 2.0,
+                radius: BORDER_RADIUS.into(),
+            },
             text_color: Some(p.text),
         };
 
@@ -253,6 +260,14 @@ pub enum Container {
     BlackHovered(bool),
 }
 
+fn border(color: Color) -> Border {
+    Border {
+        color,
+        width: BORDER_WIDTH,
+        radius: BORDER_RADIUS.into(),
+    }
+}
+
 impl container::StyleSheet for Theme {
     type Style = Container;
 
@@ -260,39 +275,44 @@ impl container::StyleSheet for Theme {
         let dark = container::Appearance {
             background: Some(self.inner().background.into()),
             text_color: Some(self.inner().text),
-            border_radius: BORDER_RADIUS.into(),
-            border_width: BORDER_WIDTH,
-            border_color: self.inner().border,
+            border: border(self.inner().border),
+            ..Default::default()
         };
+
         match style {
             Container::Default => container::Appearance::default(),
             Container::Frame => container::Appearance {
                 background: Some(Background::Color(self.inner().foreground)),
                 text_color: Some(self.inner().text),
-                border_color: self.inner().border,
-                border_radius: BORDER_RADIUS.into(),
-                border_width: BORDER_WIDTH,
+                ..dark
             },
             Container::Black => dark,
             Container::BlackHovered(hovered) => match hovered {
                 true => container::Appearance {
-                    border_color: Color {
-                        a: 0.80,
-                        ..self.inner().accent
+                    // border_color: ,
+                    // border_width: 2.0,
+                    border: Border {
+                        width: 2.0,
+                        color: Color {
+                            a: 0.80,
+                            ..self.inner().accent
+                        },
+                        radius: BORDER_RADIUS.into(),
                     },
-                    border_width: 2.0,
                     ..dark
                 },
                 false => dark,
             },
             Container::Hovered(hovered) => match hovered {
                 true => container::Appearance {
-                    border_color: Color {
-                        a: 0.80,
-                        ..self.inner().accent
+                    border: Border {
+                        color: Color {
+                            a: 0.80,
+                            ..self.inner().accent
+                        },
+                        width: BORDER_WIDTH * 1.5,
+                        radius: BORDER_RADIUS.into(),
                     },
-                    border_width: BORDER_WIDTH * 1.5,
-                    border_radius: BORDER_RADIUS.into(),
                     ..container::Appearance::default()
                 },
                 false => container::Appearance::default(),
@@ -305,12 +325,18 @@ impl overlay::menu::StyleSheet for Theme {
     type Style = ();
 
     fn appearance(&self, _style: &Self::Style) -> overlay::menu::Appearance {
+        let p = self.inner();
+
+        let border = Border {
+            color: p.border,
+            width: BORDER_WIDTH,
+            radius: BORDER_RADIUS.into(),
+        };
+
         overlay::menu::Appearance {
             text_color: self.inner().text,
             background: self.inner().middleground.into(),
-            border_width: BORDER_WIDTH,
-            border_radius: BORDER_RADIUS.into(),
-            border_color: self.inner().border,
+            border,
             selected_text_color: self.inner().text,
             selected_background: Color {
                 a: 0.25,
@@ -326,13 +352,14 @@ impl pick_list::StyleSheet for Theme {
 
     fn active(&self, _style: &Self::Style) -> pick_list::Appearance {
         let p = self.inner();
-
         pick_list::Appearance {
             text_color: p.text,
             background: p.middleground.into(),
-            border_width: BORDER_WIDTH,
-            border_color: p.border,
-            border_radius: BORDER_RADIUS.into(),
+            border: Border {
+                color: p.border,
+                width: BORDER_WIDTH,
+                radius: BORDER_RADIUS.into(),
+            },
             handle_color: p.text,
             placeholder_color: p.text,
         }
@@ -341,8 +368,11 @@ impl pick_list::StyleSheet for Theme {
     fn hovered(&self, style: &Self::Style) -> pick_list::Appearance {
         let active = self.active(style);
         pick_list::Appearance {
-            border_color: self.inner().accent,
-            border_width: 2.0,
+            border: Border {
+                color: self.inner().accent,
+                width: 2.0,
+                radius: BORDER_RADIUS.into(),
+            },
             ..active
         }
     }
@@ -436,17 +466,20 @@ impl scrollable::StyleSheet for Theme {
     fn active(&self, style: &Self::Style) -> scrollable::Scrollbar {
         let p = self.inner();
 
+        let border = Border {
+            color: p.border,
+            width: BORDER_WIDTH,
+            radius: 3.0.into(),
+        };
+
         let from_appearance = |c: Color, d: Color| scrollable::Scrollbar {
             background: Some(Background::Color(c)),
-            border_radius: 3.0.into(),
-            border_width: 0.0,
-            border_color: Color::TRANSPARENT,
-            scroller: scrollable::Scroller {
-                color: d,
-                border_radius: 3.0.into(),
-                border_width: BORDER_WIDTH,
-                border_color: p.border,
+            border: Border {
+                color: Color::TRANSPARENT,
+                width: 0.0,
+                ..border
             },
+            scroller: scrollable::Scroller { color: d, border },
         };
 
         let color = (p.middleground, p.foreground);
@@ -467,13 +500,17 @@ impl scrollable::StyleSheet for Theme {
                 } else {
                     self.active(style).scroller.color
                 },
-                border_color: if is_mouse_over_scrollbar {
-                    Color {
-                        a: 0.75,
-                        ..p.accent
-                    }
-                } else {
-                    self.active(style).scroller.border_color
+                border: Border {
+                    color: if is_mouse_over_scrollbar {
+                        Color {
+                            a: 0.75,
+                            ..p.accent
+                        }
+                    } else {
+                        self.active(style).scroller.border.color
+                    },
+                    width: BORDER_WIDTH,
+                    radius: 3.0.into(),
                 },
                 ..self.active(style).scroller
             },
@@ -567,12 +604,13 @@ impl text_input::StyleSheet for Theme {
 
     fn active(&self, style: &Self::Style) -> text_input::Appearance {
         let p = self.inner();
-
         let default = text_input::Appearance {
             background: Background::Color(p.foreground),
-            border_radius: BORDER_RADIUS.into(),
-            border_width: BORDER_WIDTH,
-            border_color: p.border,
+            border: Border {
+                color: p.border,
+                width: BORDER_WIDTH,
+                radius: BORDER_RADIUS.into(),
+            },
             icon_color: p.foreground,
         };
 
@@ -580,7 +618,6 @@ impl text_input::StyleSheet for Theme {
             TextInputStyle::Normal => default,
             TextInputStyle::Inverted => text_input::Appearance {
                 background: p.middleground.into(),
-                border_radius: BORDER_RADIUS.into(),
                 ..default
             },
         }
@@ -590,7 +627,11 @@ impl text_input::StyleSheet for Theme {
         let p = self.inner();
 
         text_input::Appearance {
-            border_color: p.accent,
+            border: Border {
+                color: p.accent,
+                width: BORDER_WIDTH,
+                radius: BORDER_RADIUS.into(),
+            },
             ..self.active(style)
         }
     }
@@ -642,15 +683,13 @@ impl crate::widget::waveform_view::StyleSheet for Theme {
             background: Background::Color(p.background),
             wave_color: p.waveform,
             cursor_color: p.text,
-            border_radius: BORDER_RADIUS.into(),
-            border_width: BORDER_WIDTH,
-            border_color: p.border,
+            border: border(p.border),
         };
 
         match style {
             WaveformView::Normal => default,
             WaveformView::Hovered(hovered) => crate::widget::waveform_view::Appearance {
-                border_color: if *hovered { p.accent } else { p.border },
+                border: border(if *hovered { p.accent } else { p.border }),
                 ..default
             },
         }

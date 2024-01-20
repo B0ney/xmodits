@@ -7,7 +7,7 @@ mod wave;
 use iced::advanced::layout::{self, Layout};
 use iced::advanced::renderer::{self, Renderer as _};
 use iced::advanced::widget::{self, Widget};
-use iced::keyboard;
+use iced::{keyboard, Border};
 use iced::keyboard::key::{Key, Named};
 use iced::mouse::Button;
 use iced::widget::canvas::{self, Renderer as _};
@@ -438,9 +438,8 @@ where
         renderer.fill_quad(
             renderer::Quad {
                 bounds: layout.bounds(),
-                border_radius: appearance.border_radius,
-                border_width: appearance.border_width,
-                border_color: appearance.border_color,
+                border: appearance.border,
+                ..Default::default()
             },
             appearance.background,
         );
@@ -462,9 +461,12 @@ where
                         width,
                         height,
                     },
-                    border_radius: 0.0.into(),
-                    border_width: 0.0,
-                    border_color: Color::TRANSPARENT,
+                    border: Border {
+                        radius: 0.0.into(),
+                        width: 0.0,
+                        color: Color::TRANSPARENT,
+                    },
+                    ..Default::default()
                 },
                 background,
             );
