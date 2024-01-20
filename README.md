@@ -31,14 +31,12 @@ If you prefer to use a minimal version of this tool, a command line version of x
 ## Supported Tracker Formats
 | Extension | Format | 
 | - | - |
-| ``.it`` | Impulse Tracker* |
+| ``.it`` | Impulse Tracker |
 | ``.xm`` | Extended Module | 
 | ``.s3m`` | Scream Tracker 3 |
 | ``.mod`` | Amiga Pro Tracker |
-| ``.mptm`` | ModPlug Tracker module* |
+| ``.mptm`` | ModPlug Tracker module |
 | ``.umx`` | Unreal Music Package (Containing above) |
-
-\* Ripping from OpenMPT trackers is not pefect 
 
 # Supported Exports
 | Extension | Format |
