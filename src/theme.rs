@@ -334,13 +334,13 @@ impl overlay::menu::StyleSheet for Theme {
         };
 
         overlay::menu::Appearance {
-            text_color: self.inner().text,
-            background: self.inner().middleground.into(),
+            text_color: p.text,
+            background: p.middleground.into(),
             border,
-            selected_text_color: self.inner().text,
+            selected_text_color: p.text,
             selected_background: Color {
-                a: 0.25,
-                ..self.inner().accent
+                a: 0.5,
+                ..p.accent
             }
             .into(),
         }
