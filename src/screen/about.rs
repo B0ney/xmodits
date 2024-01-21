@@ -70,16 +70,16 @@ pub fn view<'a>() -> Element<'a, Message> {
 
 pub fn update(msg: Message) -> Command<Message> {
     match msg {
-        Message::BuildInfo => return Command::perform(export_build_info(), Message::Ignore),
-        Message::Manual => return Command::perform(export_manual(), Message::Ignore),
+        Message::BuildInfo => Command::perform(export_build_info(), Message::Ignore),
+        Message::Manual => Command::perform(export_manual(), Message::Ignore),
         Message::Open(link) => {
             if let Err(e) = open::that_detached(link) {
                 tracing::error!("{}", e.to_string());
             }
+            Command::none()
         }
-        _ => (),
+        _ => Command::none(),
     }
-    Command::none()
 }
 
 #[cfg(not(feature = "manual"))]
@@ -87,8 +87,8 @@ async fn export_manual() {}
 
 #[cfg(feature = "manual")]
 async fn export_manual() {
-    use tokio::io::AsyncWriteExt;
     use tokio::fs::File;
+    use tokio::io::AsyncWriteExt;
 
     let build_name = format!("xmodits-v{}-manual", env!("CARGO_PKG_VERSION"));
 

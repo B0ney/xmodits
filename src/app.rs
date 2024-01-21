@@ -78,7 +78,6 @@ pub enum View {
     // Filters,
     Settings,
     About,
-    Help,
 }
 
 /// XMODITS graphical application
@@ -480,7 +479,6 @@ impl multi_window::Application for XMODITS {
             // .into(),
             View::Settings => settings::view(&self.general_cfg).map(Message::GeneralCfg),
             View::About => about::view().map(Message::About),
-            View::Help => todo!(),
         };
 
         let left_half = column![top_left_menu, Space::with_height(2), left_view]
