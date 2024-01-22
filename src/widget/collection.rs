@@ -2,15 +2,15 @@
 use iced::widget::{Column, Row};
 use iced::Element;
 
-pub trait Collection<'a, Message, Renderer>: Sized {
-    fn push_maybe(self, element: Option<impl Into<Element<'a, Message, Renderer>>>) -> Self;
+pub trait Collection<'a, Message, Theme, Renderer>: Sized {
+    fn push_maybe(self, element: Option<impl Into<Element<'a, Message, Theme, Renderer>>>) -> Self;
 }
 
-impl<'a, Message, Renderer> Collection<'a, Message, Renderer> for Column<'a, Message, Renderer>
+impl<'a, Message, Theme, Renderer> Collection<'a, Message, Theme, Renderer> for Column<'a, Message, Theme, Renderer>
 where
     Renderer: iced::advanced::Renderer,
 {
-    fn push_maybe(self, element: Option<impl Into<Element<'a, Message, Renderer>>>) -> Self {
+    fn push_maybe(self, element: Option<impl Into<Element<'a, Message, Theme, Renderer>>>) -> Self {
         match element {
             Some(element) => self.push(element),
             None => self,
@@ -18,11 +18,11 @@ where
     }
 }
 
-impl<'a, Message, Renderer> Collection<'a, Message, Renderer> for Row<'a, Message, Renderer>
+impl<'a, Message, Theme, Renderer> Collection<'a, Message,Theme, Renderer> for Row<'a, Message,Theme,Renderer>
 where
     Renderer: iced::advanced::Renderer,
 {
-    fn push_maybe(self, element: Option<impl Into<Element<'a, Message, Renderer>>>) -> Self {
+    fn push_maybe(self, element: Option<impl Into<Element<'a, Message, Theme, Renderer>>>) -> Self {
         match element {
             Some(element) => self.push(element),
             None => self,

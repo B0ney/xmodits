@@ -7,11 +7,11 @@ mod wave;
 use iced::advanced::layout::{self, Layout};
 use iced::advanced::renderer::{self, Renderer as _};
 use iced::advanced::widget::{self, Widget};
-use iced::{keyboard, Border};
 use iced::keyboard::key::{Key, Named};
 use iced::mouse::Button;
 use iced::widget::canvas::{self, Renderer as _};
-use iced::{Color, Element, Length, Point, Rectangle, Renderer, Size, Vector};
+use iced::{keyboard, Border, Renderer};
+use iced::{Color, Element, Length, Point, Rectangle, Size, Vector};
 use std::cell::RefCell;
 
 pub use marker::Marker;
@@ -275,7 +275,7 @@ impl State {
     }
 }
 
-impl<'a, Message, Theme> Widget<Message, Renderer<Theme>> for WaveformViewer<'a, Message, Theme>
+impl<'a, Message, Theme> Widget<Message, Theme, Renderer> for WaveformViewer<'a, Message, Theme>
 where
     Theme: StyleSheet,
 {
@@ -290,7 +290,7 @@ where
     fn layout(
         &self,
         _tree: &mut widget::Tree,
-        _renderer: &Renderer<Theme>,
+        _renderer: &Renderer,
         limits: &layout::Limits,
     ) -> iced::advanced::layout::Node {
         layout::Node::new(limits.max())
@@ -320,7 +320,7 @@ where
         event: iced::Event,
         layout: Layout<'_>,
         cursor: iced::advanced::mouse::Cursor,
-        _renderer: &Renderer<Theme>,
+        _renderer: &Renderer,
         _clipboard: &mut dyn iced::advanced::Clipboard,
         shell: &mut iced::advanced::Shell<'_, Message>,
         _viewport: &Rectangle,
@@ -426,7 +426,7 @@ where
     fn draw(
         &self,
         tree: &widget::Tree,
-        renderer: &mut Renderer<Theme>,
+        renderer: &mut Renderer,
         theme: &Theme,
         _style: &renderer::Style,
         layout: Layout<'_>,
@@ -445,8 +445,8 @@ where
         );
 
         // Helper function to render marker lines on the waveform
-        fn draw_line<Theme>(
-            renderer: &mut Renderer<Theme>,
+        fn draw_line(
+            renderer: &mut Renderer,
             x: f32,
             y: f32,
             width: f32,
@@ -578,7 +578,7 @@ where
 }
 
 impl<'a, Message, Theme> From<WaveformViewer<'a, Message, Theme>>
-    for Element<'a, Message, Renderer<Theme>>
+    for Element<'a, Message, Theme, Renderer>
 where
     Message: 'a,
     Theme: StyleSheet + 'a,
