@@ -72,7 +72,7 @@ pub fn rip(paths: impl IntoIterator<Item = String>) {
             &error.to_string()
         }),
         Ordering::Greater => match write_error_log(log_path, errors) {
-            Ok(log_path) => dialog::success_partial(log_path),
+            Ok(log_path) => dialog::success_partial(destination, log_path),
             Err(error) => dialog::success_partial_no_log(&error.to_string()),
         },
         _ => (),

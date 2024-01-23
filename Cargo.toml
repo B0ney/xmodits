@@ -43,7 +43,7 @@ optional = true
 [dependencies.rfd]
 version = "0.13"
 default-features = false
-features = ["xdg-portal", "tokio"]
+features = ["xdg-portal", "tokio", "common-controls-v6"]
 
 [dependencies]
 data = { path = "data" }
