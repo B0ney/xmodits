@@ -28,9 +28,9 @@ use jemallocator::Jemalloc;
 static GLOBAL: Jemalloc = Jemalloc;
 
 fn main() -> iced::Result {
-    #[cfg(windows)]
     logger::reattach_windows_terminal();
     logger::set_panic_hook();
+    logger::init_logging();
 
     match cli::parse(env::args().skip(1).collect()) {
         Mode::None => XMODITS::launch(),
@@ -40,8 +40,8 @@ fn main() -> iced::Result {
         Mode::Help => cli::print_help(),
         #[cfg(feature = "built")]
         Mode::BuildInfo => cli::print_info(),
-        Mode::Unrecognised(option) => cli::print_unrecognised(option),
         #[cfg(feature = "manual")]
         Mode::Manual => cli::print_manual(),
+        Mode::Unrecognised(option) => cli::print_unrecognised(option),
     }
 }

@@ -9,8 +9,6 @@ pub use error_handler::ErrorHandler;
 use super::stop_flag;
 use super::Signal;
 
-use crate::logger::GLOBAL_TRACKER;
-
 use data::config::SampleRippingConfig;
 use xmodits_lib::{extract, Ripper};
 
@@ -40,8 +38,6 @@ impl Message {
 }
 
 pub fn rip(tx: AsyncSender<Message>, signal: Signal) {
-    GLOBAL_TRACKER.reset();
-
     // split files and folders
     let mut files: Vec<PathBuf> = Vec::new();
     let mut folders: Vec<PathBuf> = Vec::new();
@@ -102,10 +98,9 @@ fn stage_1(
         ))))
         .unwrap();
 
-    let files = GLOBAL_TRACKER.set_files(files);
     let filter = strict_loading(cfg.strict);
 
-    for file in files.lock().iter().filter(|f| filter(f)) {
+    for file in files.iter().filter(|f| filter(f)) {
         if stop_flag::is_set() {
             break;
         }
@@ -115,8 +110,6 @@ fn stage_1(
                 .map_err(|error| Failed::new(file.display().to_string(), error))
                 .err(),
         ));
-
-        GLOBAL_TRACKER.incr_file();
     }
 }
 
@@ -258,8 +251,6 @@ impl<'io> Batcher<'io> {
         cfg: SampleRippingConfig,
         subscr_tx: AsyncSender<Message>,
     ) -> Batcher<'io> {
-        GLOBAL_TRACKER.set_batch_size(batch_size);
-
         let (batch_tx, batch_rx) = mpsc::channel::<Batch<String>>();
         let (worker_tx, worker_rx) = mpsc::channel::<NextBatch>();
 
@@ -283,8 +274,6 @@ impl<'io> Batcher<'io> {
 
             let destination = cfg.destination;
             let self_contained = cfg.self_contained;
-
-            GLOBAL_TRACKER.set_sub_batch_size(SUB_BATCH_SIZE);
 
             let rip_parallel = move |batch: &[String]| {
                 batch.par_iter().for_each(|file| {
@@ -314,7 +303,6 @@ impl<'io> Batcher<'io> {
                         }
 
                         rip_parallel(sub_batch);
-                        GLOBAL_TRACKER.incr_sub_batch_number();
                     }
 
                     // Tell the batcher we're done so that it can send the next round
@@ -378,8 +366,7 @@ impl<'io> Batcher<'io> {
             .for_each(|line| buffer.push(line));
 
         self.batch_number += 1;
-        GLOBAL_TRACKER.incr_batch_number();
-
+        
         // Have a way of notifying the caller that this is is the last batch,
         // and should not be called again.
         buffer.len() < self.batch_size

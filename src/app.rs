@@ -99,8 +99,7 @@ pub struct XMODITS {
 impl XMODITS {
     /// Launch the application
     pub fn launch() -> iced::Result {
-        // Setup logging stuff
-        logger::init_logging();
+        
 
         // load configuration
         let config = Config::load();
@@ -171,20 +170,18 @@ impl XMODITS {
     }
 
     pub fn app_title(&self) -> String {
-        let modifiers: Option<String> = match &self.state {
-            RippingState::Idle | RippingState::Finished { .. } => None,
+        match &self.state {
+            RippingState::Idle | RippingState::Finished { .. } => TITLE.to_string(),
             RippingState::Ripping {
                 message, progress, ..
-            } => Some(format!(
-                "{} - {}%",
-                message.as_deref().unwrap_or("Ripping..."),
-                progress.floor()
-            )),
-        };
-
-        match modifiers {
-            Some(modi) => format!("{TITLE} - {modi}"),
-            None => TITLE.to_string(),
+            } => {
+                let info = format!(
+                    "{} - {}%",
+                    message.as_deref().unwrap_or("Ripping..."),
+                    progress.floor()
+                );
+                format!("{TITLE} - {info}")
+            }
         }
     }
 
