@@ -1,59 +1,55 @@
-use super::global_tracker::{GlobalTracker, GLOBAL_TRACKER};
+use rand::Rng;
+
+use crate::ripper::extraction::error_handler::random_name;
+use crate::screen::build_info;
 use crate::{dialog, ripper::stop_flag};
-use std::{panic::PanicInfo, path::PathBuf};
+use std::borrow::Cow;
+use std::env;
+use std::fmt::Display;
+use std::fs::File;
+use std::panic::{Location, PanicInfo};
+use std::path::PathBuf;
 
 #[derive(Default, Debug)]
-struct Dump {
-    pub current_path: Option<PathBuf>,
-    pub batch_size: usize,
-    pub batch_number: u64,
-    pub sub_batch_size: usize,
-    pub sub_batch_number: u64,
-    pub location: Option<Location>,
-    pub message: Option<String>,
+struct Dump<'a> {
+    pub location: Option<&'a Location<'a>>,
+    pub message: Option<Cow<'a, str>>,
 }
 
-#[derive(Debug)]
-struct Location {
-    pub line: u32,
-    pub file: String,
-}
+impl<'a> Dump<'a> {
+    fn from_panic(panic_info: &'a PanicInfo) -> Self {
+        let location = panic_info.location();
 
-impl Dump {
-    fn from_panic(panic_info: &PanicInfo) -> Self {
-        let global_tracker: &GlobalTracker = &GLOBAL_TRACKER;
-
-        let location = panic_info.location().map(|file| Location {
-            line: file.line(),
-            file: file.file().to_owned(),
-        });
-
-        let message: Option<String> = match panic_info.payload().downcast_ref::<String>() {
-            Some(e) => Some(e.to_string()),
+        let message: Option<Cow<str>> = match panic_info.payload().downcast_ref::<String>() {
+            Some(e) => Some(e.into()),
             None => panic_info
                 .payload()
-                .downcast_ref::<&str>()
-                .map(|err| err.to_string()),
+                .downcast_ref::<&'static str>()
+                .map(|s| Cow::Borrowed(*s)),
         };
 
-        Self {
-            location,
-            message,
-            ..Self::from(global_tracker)
-        }
+        Self { location, message }
     }
 }
 
-impl From<&GlobalTracker> for Dump {
-    fn from(value: &GlobalTracker) -> Self {
-        Self {
-            current_path: value.current_path(),
-            batch_size: value.batch_size(),
-            batch_number: value.batch_number(),
-            sub_batch_size: value.sub_batch_size(),
-            sub_batch_number: value.sub_batch_number(),
-            ..Default::default()
-        }
+impl<'a> Display for Dump<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let message: &str = match &self.message {
+            Some(msg) => &msg,
+            None => "Panic occurred.",
+        };
+
+        let location: Cow<str> = match self.location {
+            Some(location) => format!(
+                "Panic occurred in file:\n '{}'\nat line: {}.",
+                location.file(),
+                location.line(),
+            )
+            .into(),
+            None => "Can't get location information...".into(),
+        };
+
+        write!(f, "{location}\n'{message}'")
     }
 }
 
@@ -61,25 +57,26 @@ impl From<&GlobalTracker> for Dump {
 pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(|panic_info| {
         stop_flag::set_flag(stop_flag::StopFlag::Abort);
+        let message = Dump::from_panic(panic_info).to_string();
+        let backtrace = std::backtrace::Backtrace::force_capture().to_string();
+        let build_info = build_info::info(true);
 
-        let dump = Dump::from_panic(panic_info);
+        tracing::error!("FATAL ERROR: \n{}\n\nBACKTRACE:\n{}", message, backtrace);
 
-        // let backtrace = std::backtrace::Backtrace::force_capture();
-        let info = match &dump.location {
-            Some(location) => format!(
-                "Panic occurred in file '{}' at line {}",
-                location.file, location.line,
-            ),
-            None => String::from("Panic occurred but can't get location information..."),
-        };
+        // Spawn thread to ensure that it can't block the application
+        let _ = std::thread::spawn(move || {
+            dialog::critical_error(&message);
 
-        let message: String = match &dump.message {
-            Some(e) => e.into(),
-            None => "Panic occurred".into(),
-        };
-
-        dialog::critical_error(&format!("{}\n{:?}", info, message));
-        dbg!("{:?}", &dump);
+            // TODO: save crash log to file
+            
+            // let temp_dir = std::env::temp_dir();
+            // let filename = format!(
+            //     "XMODITS-v{}-CRASH-{:X}",
+            //     env!("CARGO_PKG_VERSION"),
+            //     rand::thread_rng().gen::<u32>()
+            // );
+        })
+        .join();
 
         std::process::exit(1)
     }));

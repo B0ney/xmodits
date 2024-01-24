@@ -77,3 +77,8 @@ pub fn view<'a, Message: 'a>() -> Option<Element<'a, Message>> {
 pub async fn export_build(_path: &std::path::Path) -> Result<(), String> {
     Ok(())
 }
+
+#[cfg(not(feature = "built"))]
+pub fn info(_verbose: bool) -> impl Iterator<Item = (&'static str, &'static str)> {
+    std::iter::empty()
+}
