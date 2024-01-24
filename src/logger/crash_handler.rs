@@ -63,8 +63,9 @@ pub fn set_panic_hook() {
 
         tracing::error!("FATAL ERROR: \n{}\n\nBACKTRACE:\n{}", message, backtrace);
 
-        // Spawn thread to ensure that it can't block the application
-        let _ = std::thread::spawn(move || {
+        // Spawn thread to ensure that it can't block or be blocked by the application
+        // TODO: is this bad?
+        std::thread::spawn(move || {
             dialog::critical_error(&message);
 
             // TODO: save crash log to file
@@ -75,9 +76,14 @@ pub fn set_panic_hook() {
             //     env!("CARGO_PKG_VERSION"),
             //     rand::thread_rng().gen::<u32>()
             // );
-        })
-        .join();
 
-        std::process::exit(1)
+            // TODO: get module(s) that might have caused a crash
+            if let Some(files) = crate::ripper::extraction::CURSED_MODULES.lock().first().take() {
+                tracing::error!("Problematic module: {}", files.display());
+                dialog::critical_error(&files.display().to_string());
+            }
+
+            std::process::exit(1)
+        });
     }));
 }

@@ -5,12 +5,13 @@ pub mod error_handler;
 pub use buffer::{Batch, Buffer};
 pub use error::Failed;
 pub use error_handler::ErrorHandler;
+use parking_lot::Mutex;
 
 use super::stop_flag;
 use super::Signal;
 
 use data::config::SampleRippingConfig;
-use xmodits_lib::{extract, Ripper};
+use xmodits_lib::Ripper;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Seek, Write};
@@ -37,20 +38,20 @@ impl Message {
     }
 }
 
-pub fn rip(tx: AsyncSender<Message>, signal: Signal) {
-    // split files and folders
+fn split_files_folders(paths: Vec<PathBuf>) -> (Vec<PathBuf>, Vec<PathBuf>) {
     let mut files: Vec<PathBuf> = Vec::new();
     let mut folders: Vec<PathBuf> = Vec::new();
 
-    let paths = signal.entries;
+    paths.into_iter().for_each(|f| match f.is_file() {
+        true => files.push(f),
+        false => folders.push(f),
+    });
 
-    for i in paths {
-        if i.is_file() {
-            files.push(i)
-        } else if i.is_dir() {
-            folders.push(i)
-        }
-    }
+    (files, folders)
+}
+
+pub fn rip(tx: AsyncSender<Message>, signal: Signal) {
+    let (files, folders) = split_files_folders(signal.entries);
 
     let mut cfg = signal.ripping;
 
@@ -175,6 +176,49 @@ fn batch_size(lines: u64) -> usize {
     }
 }
 
+pub static CURSED_MODULES: Mutex<Vec<PathBuf>> = Mutex::new(Vec::new());
+
+fn extract(
+    file: impl AsRef<Path>,
+    destination: &Path,
+    ripper: &Ripper,
+    self_contained: bool,
+) -> Result<(), xmodits_lib::Error> {
+    struct RipperPanic<'a> {
+        suspect_file: &'a Path,
+    }
+
+    impl<'a> RipperPanic<'a> {
+        fn new(suspect_file: &'a Path) -> Self {
+            Self { suspect_file }
+        }
+
+        fn extract(
+            self,
+            destination: &Path,
+            ripper: &Ripper,
+            self_contained: bool,
+        ) -> Result<(), xmodits_lib::Error> {
+            xmodits_lib::extract(&self.suspect_file, destination, ripper, self_contained)
+        }
+    }
+
+    impl<'a> Drop for RipperPanic<'a> {
+        fn drop(&mut self) {
+            #[cold]
+            fn add(path: &Path) {
+                CURSED_MODULES.lock().push(path.to_owned());
+            }
+
+            if std::thread::panicking() {
+                add(self.suspect_file);
+            }
+        }
+    }
+
+    RipperPanic::new(file.as_ref()).extract(destination, ripper, self_contained)
+}
+
 /// Traversing deeply nested directories can use a lot of memory.
 ///
 /// For that reason we write the output to a file
@@ -269,46 +313,36 @@ impl<'io> Batcher<'io> {
 
         // Spawn workers
         {
-            const SUB_BATCH_SIZE: usize = 576;
             use rayon::prelude::*;
 
             let destination = cfg.destination;
             let self_contained = cfg.self_contained;
 
-            let rip_parallel = move |batch: &[String]| {
-                batch.par_iter().for_each(|file| {
-                    if stop_flag::is_set() {
-                        return;
-                    }
-
-                    // Send an update to the subscription
-                    let error = extract(file, &destination, &ripper, self_contained)
-                        .err()
-                        .map(|error| Failed::new(file.into(), error));
-
-                    let _ = subscr_tx.send(Message::Progress(error));
-                });
-            };
-
-            let pool = rayon::ThreadPoolBuilder::new()
+            rayon::ThreadPoolBuilder::new()
                 .num_threads(cfg.worker_threads)
+                .panic_handler(|_| stop_flag::set_flag(stop_flag::StopFlag::Abort))
                 .build()
-                .unwrap();
+                .expect("constructing thread pool")
+                .spawn(move || {
+                    while let Ok(batch) = batch_rx.recv() {
+                        // TODO: how much overhead would panic_fuse add?
+                        batch.lock().par_iter().panic_fuse().for_each(|file| {
+                            if stop_flag::is_set() {
+                                return;
+                            }
 
-            pool.spawn(move || {
-                while let Ok(batch) = batch_rx.recv() {
-                    for sub_batch in batch.lock().chunks(SUB_BATCH_SIZE) {
-                        if stop_flag::is_set() {
-                            break;
-                        }
+                            // Send an update to the subscription
+                            let _ = subscr_tx.send(Message::Progress(
+                                extract(file, &destination, &ripper, self_contained)
+                                    .err()
+                                    .map(|error| Failed::new(file.into(), error)),
+                            ));
+                        });
 
-                        rip_parallel(sub_batch);
+                        // Tell the batcher we're done so that it can send the next round
+                        let _ = worker_tx.send(NextBatch);
                     }
-
-                    // Tell the batcher we're done so that it can send the next round
-                    let _ = worker_tx.send(NextBatch);
-                }
-            });
+                });
         };
 
         batcher
@@ -366,7 +400,7 @@ impl<'io> Batcher<'io> {
             .for_each(|line| buffer.push(line));
 
         self.batch_number += 1;
-        
+
         // Have a way of notifying the caller that this is is the last batch,
         // and should not be called again.
         buffer.len() < self.batch_size
