@@ -55,35 +55,29 @@ impl<'a> Display for Dump<'a> {
 
 /// Provide human friendly crash reporting
 pub fn set_panic_hook() {
-    std::panic::set_hook(Box::new(|panic_info| {
+    std::panic::set_hook(Box::new(move |panic_info| {
         stop_flag::set_flag(stop_flag::StopFlag::Abort);
+
         let message = Dump::from_panic(panic_info).to_string();
         let backtrace = std::backtrace::Backtrace::force_capture().to_string();
         let build_info = build_info::info(true);
 
         tracing::error!("FATAL ERROR: \n{}\n\nBACKTRACE:\n{}", message, backtrace);
 
-        // Spawn thread to ensure that it can't block or be blocked by the application
-        // TODO: is this bad?
-        std::thread::spawn(move || {
-            dialog::critical_error(&message);
+        let message = move || dialog::critical_error(&message);
 
-            // TODO: save crash log to file
-            
-            // let temp_dir = std::env::temp_dir();
-            // let filename = format!(
-            //     "XMODITS-v{}-CRASH-{:X}",
-            //     env!("CARGO_PKG_VERSION"),
-            //     rand::thread_rng().gen::<u32>()
-            // );
+        // TODO: save crash log to file
+        // let temp_dir = std::env::temp_dir();
+        // let filename = format!(
+        //     "XMODITS-v{}-CRASH-{:X}",
+        //     env!("CARGO_PKG_VERSION"),
+        //     rand::thread_rng().gen::<u32>()
+        // );
 
-            // TODO: get module(s) that might have caused a crash
-            if let Some(files) = crate::ripper::extraction::CURSED_MODULES.lock().first().take() {
-                tracing::error!("Problematic module: {}", files.display());
-                dialog::critical_error(&files.display().to_string());
-            }
+        #[cfg(target_os = "windows")]
+        std::thread::spawn(message).join().unwrap();
 
-            std::process::exit(1)
-        });
+        #[cfg(not(target_os = "windows"))]
+        message();
     }));
 }

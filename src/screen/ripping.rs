@@ -118,6 +118,7 @@ pub fn view_finished<'a>(
     time: &'a Time,
     hovered: bool,
     destination: &'a Path,
+    bad_modules: &'a [PathBuf],
 ) -> Element<'a, Message> {
     let continue_button = button("Continue")
         .on_press(Message::SetState(RippingState::Idle))
@@ -159,16 +160,24 @@ pub fn view_finished<'a>(
         .style(theme::Container::BlackHovered(hovered))
         .into(),
 
-        // TODO
-        CompleteState::Aborted => centered_container(
-            column![
-                text("An internal error occurred."),
-                Space::with_height(15),
-                continue_button
-            ]
-            .align_items(Alignment::Center),
-        )
-        .into(),
+        // TODO: provide more details
+        CompleteState::Aborted => {
+            let shutdown_button = button("Close Application")
+                .on_press(Message::Shutdown)
+                .style(theme::Button::Cancel)
+                .padding(5);
+
+            centered_container(
+                column![
+                    text("An internal error occurred."),
+                    Space::with_height(15),
+                    scrollable(column(bad_modules.iter().map(|f| text(f.display()).into()))),
+                    shutdown_button
+                ]
+                .align_items(Alignment::Center),
+            )
+            .into()
+        },
 
         CompleteState::SomeErrors(errors) => {
             let message = column![

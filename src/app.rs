@@ -6,6 +6,7 @@ use crate::font;
 use crate::icon;
 use crate::logger;
 use crate::ripper;
+use crate::ripper::RippingMessage;
 // use crate::screen::config::custom_filters;
 use crate::screen::about;
 use crate::screen::config::name_preview;
@@ -68,6 +69,7 @@ pub enum Message {
     SettingsPressed,
     StartRipping,
     Subscription(ripper::Message),
+    Shutdown,
 }
 
 /// This is basically the configuration panel view.
@@ -93,14 +95,13 @@ pub struct XMODITS {
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
+    bad_modules: Vec<PathBuf>,
     // custom_filters: custom_filters::CustomFilters,
 }
 
 impl XMODITS {
     /// Launch the application
     pub fn launch() -> iced::Result {
-        
-
         // load configuration
         let config = Config::load();
 
@@ -381,30 +382,40 @@ impl multi_window::Application for XMODITS {
                 event::Event::Start => return self.start_ripping(),
             },
             Message::Subscription(msg) => match msg {
-                ripper::Message::Ready(sender) => self.ripper.set_sender(sender),
-                ripper::Message::Info(info) => self.state.update_message(info),
-                ripper::Message::Progress { progress, errors } => {
-                    self.state.update_progress(progress, errors)
-                }
-                ripper::Message::Done {
-                    state,
-                    time,
-                    destination,
-                } => {
-                    self.ripper.reset_stop_flag(); // todo: should this be here?
-                    self.state = RippingState::Finished {
+                ripper::Message::Ripper(msg) => match msg {
+                    RippingMessage::Ready(sender) => self.ripper.set_sender(sender),
+                    RippingMessage::Info(info) => self.state.update_message(info),
+                    RippingMessage::Progress { progress, errors } => {
+                        self.state.update_progress(progress, errors)
+                    }
+                    RippingMessage::Done {
                         state,
                         time,
                         destination,
-                    };
-                }
-            },
+                    } => {
+                        self.ripper.reset_stop_flag(); // todo: should this be here?
+                        self.state = RippingState::Finished {
+                            state,
+                            time,
+                            destination,
+                        };
+                    }
+                },
+                ripper::Message::BadModule(bad) => {
+                    tracing::error!(
+                        "This module might have caused the fatal error: {}",
+                        bad.path.display()
+                    );
+                    self.bad_modules.push(bad.path);
+                },
+            }
             Message::Ignore => (),
             Message::FontLoaded(result) => {
                 if let Err(e) = result {
                     tracing::error!("Failed to load font: {:#?}", e);
                 }
             }
+            Message::Shutdown => return window::close(window::Id::MAIN),
         }
         Command::none()
     }
@@ -537,7 +548,13 @@ impl multi_window::Application for XMODITS {
                 state,
                 time,
                 destination,
-            } => ripping::view_finished(state, time, self.file_hovered, destination),
+            } => ripping::view_finished(
+                state,
+                time,
+                self.file_hovered,
+                destination,
+                &self.bad_modules,
+            ),
         };
 
         let allow_warnings = !self.general_cfg.suppress_warnings;
@@ -571,7 +588,7 @@ impl multi_window::Application for XMODITS {
     fn subscription(&self) -> Subscription<Message> {
         iced::Subscription::batch([
             event::events().map(Message::Event),
-            ripper::xmodits_subscription().map(Message::Subscription),
+            ripper::subscription().map(Message::Subscription),
         ])
     }
 }

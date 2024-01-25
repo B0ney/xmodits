@@ -9,6 +9,7 @@ use parking_lot::Mutex;
 
 use super::stop_flag;
 use super::Signal;
+use super::bad_modules::BAD_MODULES;
 
 use data::config::SampleRippingConfig;
 use xmodits_lib::Ripper;
@@ -28,8 +29,13 @@ pub enum Message {
     Info(Option<String>),
     Progress(Option<Failed>),
     Done,
-    Cancelled,
-    Aborted,
+    Stop(StopMessage),
+}
+
+#[derive(Debug)]
+pub enum StopMessage {
+    Cancel,
+    Abort,
 }
 
 impl Message {
@@ -73,8 +79,8 @@ pub fn rip(tx: AsyncSender<Message>, signal: Signal) {
 
     tx.send(match stop_flag::get_flag() {
         stop_flag::StopFlag::None => Message::Done,
-        stop_flag::StopFlag::Cancel => Message::Cancelled,
-        stop_flag::StopFlag::Abort => Message::Aborted,
+        stop_flag::StopFlag::Cancel => Message::Stop(StopMessage::Cancel),
+        stop_flag::StopFlag::Abort => Message::Stop(StopMessage::Abort),
     })
     .expect("Informing main GUI that the extraction has completed");
 }
@@ -176,8 +182,6 @@ fn batch_size(lines: u64) -> usize {
     }
 }
 
-pub static CURSED_MODULES: Mutex<Vec<PathBuf>> = Mutex::new(Vec::new());
-
 fn extract(
     file: impl AsRef<Path>,
     destination: &Path,
@@ -207,7 +211,7 @@ fn extract(
         fn drop(&mut self) {
             #[cold]
             fn add(path: &Path) {
-                CURSED_MODULES.lock().push(path.to_owned());
+                BAD_MODULES.push(path.to_owned());
             }
 
             if std::thread::panicking() {
