@@ -7,9 +7,9 @@ pub use error::Failed;
 pub use error_handler::ErrorHandler;
 use parking_lot::Mutex;
 
+use super::bad_modules::BAD_MODULES;
 use super::stop_flag;
 use super::Signal;
-use super::bad_modules::BAD_MODULES;
 
 use data::config::SampleRippingConfig;
 use xmodits_lib::Ripper;
@@ -39,8 +39,8 @@ pub enum StopMessage {
 }
 
 impl Message {
-    pub fn info(str: &str) -> Self {
-        Self::Info(Some(str.to_owned()))
+    pub fn info(str: impl Into<String>) -> Self {
+        Self::Info(Some(str.into()))
     }
 }
 
@@ -98,12 +98,8 @@ fn stage_1(
         .send(Message::SetTotal(files.len() as u64))
         .unwrap();
 
-    subscr_tx
-        .send(Message::Info(Some(format!(
-            "Stage 1: Ripping {} files...",
-            files.len()
-        ))))
-        .unwrap();
+    let info = format!("Stage 1: Ripping {} files...", files.len());
+    subscr_tx.send(Message::info(info)).unwrap();
 
     let filter = strict_loading(cfg.strict);
 
@@ -139,11 +135,8 @@ fn stage_2(
     let filter = strict_loading(cfg.strict);
 
     let (mut file, lines) = traverse(folders, cfg.folder_max_depth, filter, |lines| {
-        subscr_tx
-            .send(Message::Info(Some(format!(
-                "Traversing Directories...\n({lines} filtered files)"
-            ))))
-            .unwrap()
+        let info = format!("Traversing Directories...\n({lines} filtered files)");
+        subscr_tx.send(Message::info(info)).unwrap()
     });
 
     subscr_tx.send(Message::SetTotal(lines)).unwrap();
@@ -156,13 +149,12 @@ fn stage_2(
         }
     };
 
-    subscr_tx
-        .send(Message::Info(Some(format!(
-            "Stage 2: Ripping {lines} file{} from {selected_dirs} folder{}...",
-            plural(lines),
-            plural(selected_dirs as u64)
-        ))))
-        .unwrap();
+    let info = format!(
+        "Stage 2: Ripping {lines} file{} from {selected_dirs} folder{}...",
+        plural(lines),
+        plural(selected_dirs as u64)
+    );
+    subscr_tx.send(Message::info(info)).unwrap();
 
     if stop_flag::is_set() {
         return;
