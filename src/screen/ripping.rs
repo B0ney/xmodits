@@ -9,12 +9,14 @@ use crate::ripper::extraction::error_handler::{self, ErrorHandler};
 use crate::ripper::subscription::CompleteState;
 use crate::utils::create_file_dialog;
 use crate::widget::helpers::{
-    centered_column_x, centered_container, centered_text, fill_container, text_icon, text_adv,
+    centered_column_x, centered_container, centered_text, fill_container, text_adv, text_icon,
 };
 use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
 
-use iced::widget::{button, column, container, progress_bar, row, scrollable, text, Space};
+use iced::widget::{
+    button, column, container, horizontal_rule, progress_bar, row, scrollable, text, Space,
+};
 use iced::{Alignment, Length};
 
 /// The current state of the application.
@@ -167,17 +169,33 @@ pub fn view_finished<'a>(
                 .style(theme::Button::Cancel)
                 .padding(5);
 
-            centered_container(
+            let msg = "The program may seem functional, \
+                but it won't continue to work as intended.
+            ";
+
+            let bad_modules = (!bad_modules.is_empty()).then(|| {
+                let msg = "Here are the list of files that might have caused this:";
+                let paths = column(bad_modules.iter().map(|f| text(f.display()).into()));
+
                 column![
-                    text("An internal error occurred."),
-                    Space::with_height(15),
-                    scrollable(column(bad_modules.iter().map(|f| text(f.display()).into()))),
-                    shutdown_button
+                    horizontal_rule(1),
+                    msg,
+                    scrollable(paths),
+                    horizontal_rule(1)
                 ]
-                .align_items(Alignment::Center),
-            )
-            .into()
-        },
+                .align_items(Alignment::Center)
+                .padding(4)
+            });
+
+            let view = column![text("An internal error has occurred."), text(msg),]
+                .push_maybe(bad_modules)
+                .push(shutdown_button)
+                .align_items(Alignment::Center)
+                .padding(4)
+                .spacing(6);
+
+            fill_container(view).style(theme::Container::Black).into()
+        }
 
         CompleteState::SomeErrors(errors) => {
             let message = column![
@@ -264,9 +282,9 @@ pub fn view_finished<'a>(
                 text("But there's too many errors to display! (-_-')"),
                 text("...and I can't store them to a file either:"),
                 centered_text(format!("\"{}\"", reason)),
-                buttons,
                 error_message,
                 discarded_errors,
+                buttons,
             ]
             .align_items(Alignment::Center)
             .padding(4)

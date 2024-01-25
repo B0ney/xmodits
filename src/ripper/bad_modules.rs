@@ -56,16 +56,11 @@ pub struct Added {
 /// This subscription reports when a module caused a crash
 pub fn subscription() -> iced::Subscription<Added> {
     iced::subscription::channel(TypeId::of::<BadModules>(), 100, |mut output| async move {
-        enum State {
-            Init,
-            Active(Receiver<Added>),
-        }
-
-        let mut state = State::Init;
+        let mut state = None::<Receiver<Added>>;
 
         loop {
             match &mut state {
-                State::Init => {
+                None => {
                     let (tx, rx) = mpsc::channel(100);
 
                     BAD_MODULES.register_callback(move |path, total| {
@@ -75,9 +70,9 @@ pub fn subscription() -> iced::Subscription<Added> {
                         });
                     });
 
-                    state = State::Active(rx);
+                    state = Some(rx);
                 }
-                State::Active(rx) => {
+                Some(rx) => {
                     if let Some(msg) = rx.recv().await {
                         let _ = output.send(msg).await;
                     }
