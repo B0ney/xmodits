@@ -13,27 +13,27 @@ pub static BAD_MODULES: Lazy<BadModules> = Lazy::new(BadModules::default);
 #[derive(Default)]
 pub struct BadModules {
     modules: RwLock<Vec<PathBuf>>,
-    callbacks: RwLock<Vec<Box<dyn Fn(&Path, u64) + Send + Sync + 'static>>>,
+    callbacks: RwLock<Vec<Box<dyn Fn(&Path) + Send + Sync + 'static>>>,
     total: AtomicU64,
 }
 
 impl BadModules {
     pub fn register_callback<F>(&self, callback: F)
     where
-        F: Fn(&Path, u64) + Send + Sync + 'static,
+        F: Fn(&Path) + Send + Sync + 'static,
     {
         self.callbacks.write().push(Box::new(callback));
         tracing::info!("Registered callback!");
     }
 
-    pub fn push(&self, path: PathBuf) {
+    fn push(&self, path: PathBuf) {
         // Adding modules should happen *before* we fetch the total.
-        let total = self.total.fetch_add(1, Ordering::Release);
+        let _ = self.total.fetch_add(1, Ordering::Release);
 
         self.callbacks
             .read()
             .iter()
-            .for_each(|callback| callback(&path, total));
+            .for_each(|callback| callback(&path));
 
         self.modules.write().push(path);
     }
@@ -47,10 +47,39 @@ impl BadModules {
     }
 }
 
+pub struct RipperPanic<'a> {
+    suspect_file: &'a Path,
+}
+
+impl<'a> RipperPanic<'a> {
+    pub fn new(suspect_file: &'a Path) -> Self {
+        Self { suspect_file }
+    }
+
+    pub fn execute<T, F>(self, func: F) -> T
+    where
+        F: Fn(&'a Path) -> T,
+    {
+        func(self.suspect_file)
+    }
+}
+
+impl<'a> Drop for RipperPanic<'a> {
+    fn drop(&mut self) {
+        #[cold]
+        fn add(path: &Path) {
+            BAD_MODULES.push(path.to_owned());
+        }
+
+        if std::thread::panicking() {
+            add(self.suspect_file);
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Added {
     pub path: PathBuf,
-    pub total: u64,
 }
 
 /// This subscription reports when a module caused a crash
@@ -63,10 +92,9 @@ pub fn subscription() -> iced::Subscription<Added> {
                 None => {
                     let (tx, rx) = mpsc::channel(100);
 
-                    BAD_MODULES.register_callback(move |path, total| {
+                    BAD_MODULES.register_callback(move |path| {
                         let _ = tx.blocking_send(Added {
                             path: path.to_owned(),
-                            total,
                         });
                     });
 

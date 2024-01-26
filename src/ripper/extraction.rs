@@ -5,9 +5,8 @@ pub mod error_handler;
 pub use buffer::{Batch, Buffer};
 pub use error::Failed;
 pub use error_handler::ErrorHandler;
-use parking_lot::Mutex;
 
-use super::bad_modules::BAD_MODULES;
+use super::bad_modules::RipperPanic;
 use super::stop_flag;
 use super::Signal;
 
@@ -180,39 +179,9 @@ fn extract(
     ripper: &Ripper,
     self_contained: bool,
 ) -> Result<(), xmodits_lib::Error> {
-    struct RipperPanic<'a> {
-        suspect_file: &'a Path,
-    }
-
-    impl<'a> RipperPanic<'a> {
-        fn new(suspect_file: &'a Path) -> Self {
-            Self { suspect_file }
-        }
-
-        fn extract(
-            self,
-            destination: &Path,
-            ripper: &Ripper,
-            self_contained: bool,
-        ) -> Result<(), xmodits_lib::Error> {
-            xmodits_lib::extract(&self.suspect_file, destination, ripper, self_contained)
-        }
-    }
-
-    impl<'a> Drop for RipperPanic<'a> {
-        fn drop(&mut self) {
-            #[cold]
-            fn add(path: &Path) {
-                BAD_MODULES.push(path.to_owned());
-            }
-
-            if std::thread::panicking() {
-                add(self.suspect_file);
-            }
-        }
-    }
-
-    RipperPanic::new(file.as_ref()).extract(destination, ripper, self_contained)
+    RipperPanic::new(file.as_ref()).execute(|file| {
+        xmodits_lib::extract(file, destination, ripper, self_contained)
+    })
 }
 
 /// Traversing deeply nested directories can use a lot of memory.
