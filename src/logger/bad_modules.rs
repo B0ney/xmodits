@@ -91,9 +91,8 @@ pub fn subscription() -> iced::Subscription<Added> {
         });
 
         loop {
-            if let Some(added) = rx.recv().await {
-                let _ = output.send(added).await;
-            }
+            let added = rx.recv().await.expect("receiving from BAD_MODULES");
+            let _ = output.send(added).await;
         }
     })
 }
