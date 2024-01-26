@@ -78,7 +78,7 @@ impl From<ErrorHandler> for CompleteState {
 /// * The worker sends custom messages to keep the user updated. E.g ``"Traversing folders..."``, ``"Ripping 100 files..."``
 /// * A module has/can't be ripped. This is also done to track progress.
 /// * The worker has finished ripping.
-pub fn xmodits_subscription() -> Subscription<Message> {
+pub fn subscription() -> Subscription<Message> {
     struct Ripper;
 
     subscription::channel(TypeId::of::<Ripper>(), 4096, |mut output| async move {

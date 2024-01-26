@@ -5,16 +5,14 @@ use once_cell::sync::Lazy;
 use parking_lot::RwLock;
 use std::any::TypeId;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
-use tokio::sync::mpsc::{self, Receiver};
+use tokio::sync::mpsc;
 
-pub static BAD_MODULES: Lazy<BadModules> = Lazy::new(BadModules::default);
+pub(crate) static BAD_MODULES: Lazy<BadModules> = Lazy::new(BadModules::default);
 
 #[derive(Default)]
-pub struct BadModules {
+pub(crate) struct BadModules {
     modules: RwLock<Vec<PathBuf>>,
     callbacks: RwLock<Vec<Box<dyn Fn(&Path) + Send + Sync + 'static>>>,
-    total: AtomicU64,
 }
 
 impl BadModules {
@@ -27,9 +25,6 @@ impl BadModules {
     }
 
     fn push(&self, path: PathBuf) {
-        // Adding modules should happen *before* we fetch the total.
-        let _ = self.total.fetch_add(1, Ordering::Release);
-
         self.callbacks
             .read()
             .iter()
@@ -42,16 +37,19 @@ impl BadModules {
         self.modules.read().clone()
     }
 
-    pub fn total(&self) -> u64 {
-        self.total.load(Ordering::Acquire)
+    pub fn total(&self) -> usize {
+        self.modules.read().len() as usize
     }
 }
 
-pub struct RipperPanic<'a> {
+/// Adds the given path to the global "BAD_MODULES" if the calling function panics.
+///
+/// This won't work if the panicking strategy is "abort".
+pub struct LogOnPanic<'a> {
     suspect_file: &'a Path,
 }
 
-impl<'a> RipperPanic<'a> {
+impl<'a> LogOnPanic<'a> {
     pub fn new(suspect_file: &'a Path) -> Self {
         Self { suspect_file }
     }
@@ -64,7 +62,7 @@ impl<'a> RipperPanic<'a> {
     }
 }
 
-impl<'a> Drop for RipperPanic<'a> {
+impl<'a> Drop for LogOnPanic<'a> {
     fn drop(&mut self) {
         #[cold]
         fn add(path: &Path) {
@@ -85,26 +83,16 @@ pub struct Added {
 /// This subscription reports when a module caused a crash
 pub fn subscription() -> iced::Subscription<Added> {
     iced::subscription::channel(TypeId::of::<BadModules>(), 100, |mut output| async move {
-        let mut state = None::<Receiver<Added>>;
+        let (tx, mut rx) = mpsc::channel(100);
+
+        BAD_MODULES.register_callback(move |path| {
+            let path = path.to_owned();
+            let _ = tx.blocking_send(Added { path });
+        });
 
         loop {
-            match &mut state {
-                None => {
-                    let (tx, rx) = mpsc::channel(100);
-
-                    BAD_MODULES.register_callback(move |path| {
-                        let _ = tx.blocking_send(Added {
-                            path: path.to_owned(),
-                        });
-                    });
-
-                    state = Some(rx);
-                }
-                Some(rx) => {
-                    if let Some(msg) = rx.recv().await {
-                        let _ = output.send(msg).await;
-                    }
-                }
+            if let Some(added) = rx.recv().await {
+                let _ = output.send(added).await;
             }
         }
     })

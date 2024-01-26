@@ -6,7 +6,8 @@ pub use buffer::{Batch, Buffer};
 pub use error::Failed;
 pub use error_handler::ErrorHandler;
 
-use super::bad_modules::RipperPanic;
+use crate::logger;
+
 use super::stop_flag;
 use super::Signal;
 
@@ -179,7 +180,7 @@ fn extract(
     ripper: &Ripper,
     self_contained: bool,
 ) -> Result<(), xmodits_lib::Error> {
-    RipperPanic::new(file.as_ref()).execute(|file| {
+    logger::LogOnPanic::new(file.as_ref()).execute(|file| {
         xmodits_lib::extract(file, destination, ripper, self_contained)
     })
 }

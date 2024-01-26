@@ -6,7 +6,6 @@ use crate::font;
 use crate::icon;
 use crate::logger;
 use crate::ripper;
-use crate::ripper::RippingMessage;
 // use crate::screen::config::custom_filters;
 use crate::screen::about;
 use crate::screen::config::name_preview;
@@ -70,6 +69,7 @@ pub enum Message {
     StartRipping,
     Subscription(ripper::Message),
     Shutdown,
+    BadModules(logger::bad_modules::Added),
 }
 
 /// This is basically the configuration panel view.
@@ -382,33 +382,24 @@ impl multi_window::Application for XMODITS {
                 event::Event::Start => return self.start_ripping(),
             },
             Message::Subscription(msg) => match msg {
-                ripper::Message::Ripper(msg) => match msg {
-                    RippingMessage::Ready(sender) => self.ripper.set_sender(sender),
-                    RippingMessage::Info(info) => self.state.update_message(info),
-                    RippingMessage::Progress { progress, errors } => {
-                        self.state.update_progress(progress, errors)
-                    }
-                    RippingMessage::Done {
+                ripper::Message::Ready(sender) => self.ripper.set_sender(sender),
+                ripper::Message::Info(info) => self.state.update_message(info),
+                ripper::Message::Progress { progress, errors } => {
+                    self.state.update_progress(progress, errors)
+                }
+                ripper::Message::Done {
+                    state,
+                    time,
+                    destination,
+                } => {
+                    self.ripper.reset_stop_flag(); // todo: should this be here?
+                    self.state = RippingState::Finished {
                         state,
                         time,
                         destination,
-                    } => {
-                        self.ripper.reset_stop_flag(); // todo: should this be here?
-                        self.state = RippingState::Finished {
-                            state,
-                            time,
-                            destination,
-                        };
-                    }
-                },
-                ripper::Message::BadModule(bad) => {
-                    tracing::error!(
-                        "This module might have caused the fatal error: {}",
-                        bad.path.display()
-                    );
-                    self.bad_modules.push(bad.path);
-                },
-            }
+                    };
+                }
+            },
             Message::Ignore => (),
             Message::FontLoaded(result) => {
                 if let Err(e) = result {
@@ -416,6 +407,13 @@ impl multi_window::Application for XMODITS {
                 }
             }
             Message::Shutdown => return window::close(window::Id::MAIN),
+            Message::BadModules(file) => {
+                tracing::error!(
+                    "This module might have caused the fatal error: {}",
+                    file.path.display()
+                );
+                self.bad_modules.push(file.path);
+            }
         }
         Command::none()
     }
@@ -589,6 +587,7 @@ impl multi_window::Application for XMODITS {
         iced::Subscription::batch([
             event::events().map(Message::Event),
             ripper::subscription().map(Message::Subscription),
+            logger::bad_modules::subscription().map(Message::BadModules),
         ])
     }
 }
