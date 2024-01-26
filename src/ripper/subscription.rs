@@ -6,6 +6,7 @@ use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
 use tracing::{error, info};
 
 pub use super::extraction::{self, ErrorHandler, Failed, Message as ThreadMessage, StopMessage};
+use super::stop_flag::{self, StopFlag};
 use super::Signal;
 
 /// Messages emitted by subscription
@@ -187,7 +188,7 @@ pub fn subscription() -> Subscription<Message> {
                         info!("Cancelled!");
                         state = State::Init;
                     }
-                    _ => {
+                    Some(ThreadMessage::Done) => {
                         timer.stop();
                         let error = std::mem::take(error_handler);
 
@@ -204,6 +205,31 @@ pub fn subscription() -> Subscription<Message> {
                             .expect("Sending 'extraction complete' message to application.");
 
                         info!("Done!");
+                        state = State::Init;
+                    }
+                    None => {
+                        timer.stop();
+                        let error = std::mem::take(error_handler);
+
+                        let completed_state: CompleteState = match stop_flag::get_flag() {
+                            StopFlag::None => CompleteState::from(error),
+                            StopFlag::Cancel => CompleteState::Cancelled,
+                            StopFlag::Abort => CompleteState::Aborted,
+                        };
+
+                        let msg = Message::Done {
+                            state: completed_state,
+                            time: std::mem::take(timer),
+                            destination: std::mem::take(destination),
+                        };
+
+                        // It's important that this gets delivered, otherwise the program would be in an invalid state.
+                        output
+                            .send(msg)
+                            .await
+                            .expect("Sending 'extraction complete' message to application.");
+
+                        tracing::error!("Lost communication with the workers. This usually means something bad happened...");
                         state = State::Init;
                     }
                 },
