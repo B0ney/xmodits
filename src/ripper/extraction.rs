@@ -180,7 +180,7 @@ fn extract(
     ripper: &Ripper,
     self_contained: bool,
 ) -> Result<(), xmodits_lib::Error> {
-    logger::LogOnPanic::new(file.as_ref()).execute(|file| {
+    logger::log_file_on_panic(file.as_ref(), |file| {
         xmodits_lib::extract(file, destination, ripper, self_contained)
     })
 }

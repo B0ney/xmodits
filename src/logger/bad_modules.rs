@@ -45,16 +45,16 @@ impl BadModules {
 /// Adds the given path to the global "BAD_MODULES" if the calling function panics.
 ///
 /// This won't work if the panicking strategy is "abort".
-pub struct LogOnPanic<'a> {
+struct LogOnPanic<'a> {
     suspect_file: &'a Path,
 }
 
 impl<'a> LogOnPanic<'a> {
-    pub fn new(suspect_file: &'a Path) -> Self {
+    fn new(suspect_file: &'a Path) -> Self {
         Self { suspect_file }
     }
 
-    pub fn execute<T, F>(self, func: F) -> T
+    fn execute<T, F>(self, func: F) -> T
     where
         F: Fn(&'a Path) -> T,
     {
@@ -73,6 +73,15 @@ impl<'a> Drop for LogOnPanic<'a> {
             add(self.suspect_file);
         }
     }
+}
+
+/// Helper function to add the given path to the global BAD_MODULES if the calling closure panics.
+/// Doesn't work if panic strategy isn't unwind.
+pub fn log_file_on_panic<'a, T, F>(path: &'a Path, func: F) -> T
+where
+    F: Fn(&'a Path) -> T,
+{
+    LogOnPanic::new(path.as_ref()).execute(func)
 }
 
 #[derive(Debug, Clone)]
