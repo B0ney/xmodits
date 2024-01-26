@@ -180,12 +180,14 @@ pub fn subscription() -> Subscription<Message> {
                             destination: std::mem::take(destination),
                         };
 
+                        info!("Cancelled!");
                         output
                             .send(msg)
                             .await
                             .expect("Sending 'extraction complete' message to application.");
 
-                        info!("Cancelled!");
+                        stop_flag::reset();
+
                         state = State::Init;
                     }
                     Some(ThreadMessage::Done) => {
@@ -223,13 +225,17 @@ pub fn subscription() -> Subscription<Message> {
                             destination: std::mem::take(destination),
                         };
 
+                        
+                        tracing::error!("Lost communication with the workers. This usually means something bad happened...");
+
                         // It's important that this gets delivered, otherwise the program would be in an invalid state.
                         output
                             .send(msg)
                             .await
                             .expect("Sending 'extraction complete' message to application.");
 
-                        tracing::error!("Lost communication with the workers. This usually means something bad happened...");
+                        stop_flag::reset();
+
                         state = State::Init;
                     }
                 },

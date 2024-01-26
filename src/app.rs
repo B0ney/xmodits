@@ -392,7 +392,6 @@ impl multi_window::Application for XMODITS {
                     time,
                     destination,
                 } => {
-                    self.ripper.reset_stop_flag(); // todo: should this be here?
                     self.state = RippingState::Finished {
                         state,
                         time,

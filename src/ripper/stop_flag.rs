@@ -31,9 +31,30 @@ pub fn is_aborted() -> bool {
     STOP_FLAG.load(Ordering::Relaxed) == ABORT
 }
 
-/// Reset the flag back to its original state
+/// Reset the flag back to its original state (only if abort flag isn't set)
 pub fn reset() {
-    STOP_FLAG.store(NONE, Ordering::Relaxed);
+    if !is_aborted() {
+        STOP_FLAG.store(NONE, Ordering::Relaxed);
+    }
+}
+
+/// TODO: This should only be called by the panic handler.
+/// But I have no idea how to enforce this... 
+/// 
+/// `pub(in crate::logger::crash_handler)` doesn't work
+/// 
+/// For now, we'll just use `track_caller` to keep a close eye on it...
+#[track_caller]
+pub(in crate) fn set_abort() {
+    STOP_FLAG.store(ABORT, Ordering::Relaxed);
+    tracing::warn!("ABORT triggered from: {}", std::panic::Location::caller());
+}
+
+/// Set flag to cancel (only if abort flag isn't set)
+pub fn set_cancel() {
+    if !is_aborted() {
+        STOP_FLAG.store(CANCEL, Ordering::Relaxed);
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -43,10 +64,6 @@ pub enum StopFlag {
     None = NONE,
     Cancel = CANCEL,
     Abort = ABORT,
-}
-
-pub fn set_flag(flag: StopFlag) {
-    STOP_FLAG.store(flag as u8, Ordering::Relaxed);
 }
 
 pub fn get_flag() -> StopFlag {

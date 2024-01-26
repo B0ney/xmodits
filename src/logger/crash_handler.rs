@@ -56,7 +56,7 @@ impl<'a> Display for Dump<'a> {
 /// Provide human friendly crash reporting
 pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(move |panic_info| {
-        stop_flag::set_flag(stop_flag::StopFlag::Abort);
+        stop_flag::set_abort();
 
         let message = Dump::from_panic(panic_info).to_string();
         let backtrace = std::backtrace::Backtrace::force_capture().to_string();

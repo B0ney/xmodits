@@ -286,7 +286,7 @@ impl<'io> Batcher<'io> {
 
             rayon::ThreadPoolBuilder::new()
                 .num_threads(cfg.worker_threads)
-                .panic_handler(|_| stop_flag::set_flag(stop_flag::StopFlag::Abort))
+                .panic_handler(|_| {/* Don't abort process */})
                 .build()
                 .expect("constructing thread pool")
                 .spawn(move || {
