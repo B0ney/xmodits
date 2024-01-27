@@ -84,11 +84,14 @@ pub fn set_panic_hook() {
         //     rand::thread_rng().gen::<u32>()
         // );
 
-        #[cfg(target_os = "windows")]
-        std::thread::spawn(message).join().unwrap();
+        let msg_box = std::thread::spawn(message);
 
-        #[cfg(not(target_os = "windows"))]
-        message();
+        // Only block if panic came from main thread.
+        // This allows other threads to unwind without
+        // having the user to close the dialog box.
+        if let Some("main") = std::thread::current().name() {
+            msg_box.join().unwrap();
+        }
     }));
 }
 

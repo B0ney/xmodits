@@ -12,7 +12,6 @@ use crate::{icon, theme};
 pub fn view<'a>(
     panics: &'a [Panic],
     bad_modules: &'a [PathBuf],
-    is_ripping: bool,
 ) -> Element<'a, Message> {
     let shutdown_button = button("Close Application")
         .on_press(Message::Shutdown)
@@ -41,13 +40,7 @@ pub fn view<'a>(
     .align_items(Alignment::Center)
     .spacing(4);
 
-    let rip = is_ripping.then(|| {
-        big("The application seems to have crashed \
-        while it was ripping, you should close all dialog boxes.")
-    });
-
     let view = column![title]
-        .push_maybe(rip)
         .push_maybe(bad_modules)
         .push(shutdown_button)
         .padding(4)

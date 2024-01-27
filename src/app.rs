@@ -429,7 +429,7 @@ impl multi_window::Application for XMODITS {
 
     fn view(&self, _id: window::Id) -> Element<Message> {
         if !self.crashes.is_empty() {
-            return crash::view(&self.crashes, &self.bad_modules, self.state.is_ripping());
+            return crash::view(&self.crashes, &self.bad_modules);
         }
 
         #[cfg(feature = "audio")]
