@@ -1,6 +1,6 @@
 use rand::Rng;
+use tokio::sync::mpsc::{self, Sender};
 
-use crate::ripper::extraction::error_handler::random_name;
 use crate::screen::build_info;
 use crate::{dialog, ripper::stop_flag};
 use std::borrow::Cow;
@@ -9,6 +9,12 @@ use std::fmt::Display;
 use std::fs::File;
 use std::panic::{Location, PanicInfo};
 use std::path::PathBuf;
+use std::sync::OnceLock;
+
+static PANIC_SIGNAL: OnceLock<Sender<Panic>> = OnceLock::new();
+
+#[derive(Debug, Clone)]
+pub struct Panic;
 
 #[derive(Default, Debug)]
 struct Dump<'a> {
@@ -58,6 +64,10 @@ pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(move |panic_info| {
         stop_flag::set_abort();
 
+        if let Some(sender) = PANIC_SIGNAL.get() {
+            let _ = sender.blocking_send(Panic);
+        }
+
         let message = Dump::from_panic(panic_info).to_string();
         let backtrace = std::backtrace::Backtrace::force_capture().to_string();
         let build_info = build_info::info(true);
@@ -80,4 +90,23 @@ pub fn set_panic_hook() {
         #[cfg(not(target_os = "windows"))]
         message();
     }));
+}
+
+/// Emits events when a panic occurs
+pub fn subscription() -> iced::Subscription<Panic> {
+    use iced::futures::SinkExt;
+    use std::any::TypeId;
+
+    struct PanicSignal;
+
+    iced::subscription::channel(TypeId::of::<PanicSignal>(), 100, |mut output| async move {
+        let (tx, mut rx) = mpsc::channel(32);
+
+        PANIC_SIGNAL.set(tx).unwrap();
+
+        loop {
+            let msg = rx.recv().await.expect("sender");
+            output.send(msg).await.expect("sending panic")
+        }
+    })
 }

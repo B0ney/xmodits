@@ -102,6 +102,8 @@ pub fn subscription() -> Subscription<Message> {
         loop {
             match &mut state {
                 State::Init => {
+                    stop_flag::reset();
+
                     let (sender, receiver) = mpsc::channel::<Signal>(1);
                     state = State::Idle(receiver);
 
@@ -186,8 +188,6 @@ pub fn subscription() -> Subscription<Message> {
                             .await
                             .expect("Sending 'extraction complete' message to application.");
 
-                        stop_flag::reset();
-
                         state = State::Init;
                     }
                     Some(ThreadMessage::Done) => {
@@ -233,8 +233,6 @@ pub fn subscription() -> Subscription<Message> {
                             .send(msg)
                             .await
                             .expect("Sending 'extraction complete' message to application.");
-
-                        stop_flag::reset();
 
                         state = State::Init;
                     }

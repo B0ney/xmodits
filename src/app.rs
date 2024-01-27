@@ -69,7 +69,8 @@ pub enum Message {
     StartRipping,
     Subscription(ripper::Message),
     Shutdown,
-    BadModules(logger::bad_modules::Added),
+    BadModules(PathBuf),
+    Panic(logger::crash_handler::Panic),
 }
 
 /// This is basically the configuration panel view.
@@ -409,9 +410,12 @@ impl multi_window::Application for XMODITS {
             Message::BadModules(file) => {
                 tracing::error!(
                     "This module might have caused the fatal error: {}",
-                    file.path.display()
+                    file.display()
                 );
-                self.bad_modules.push(file.path);
+                self.bad_modules.push(file);
+            },
+            Message::Panic(_panic) => {
+                tracing::error!("Detected Panic");
             }
         }
         Command::none()
@@ -587,6 +591,7 @@ impl multi_window::Application for XMODITS {
             event::events().map(Message::Event),
             ripper::subscription().map(Message::Subscription),
             logger::bad_modules::subscription().map(Message::BadModules),
+            logger::crash_handler::subscription().map(Message::Panic),
         ])
     }
 }
