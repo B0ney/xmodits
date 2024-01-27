@@ -9,4 +9,4 @@ pub mod subscription;
 pub use extraction::strict_loading;
 pub use handle::Handle;
 pub use signal::Signal;
-pub use subscription::{xmodits_subscription, Message};
+pub use subscription::{Message, subscription};

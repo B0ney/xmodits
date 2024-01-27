@@ -1,5 +1,8 @@
 pub mod crash_handler;
+pub mod bad_modules;
+
 pub use crash_handler::set_panic_hook;
+pub use bad_modules::log_file_on_panic;
 
 use anyhow::Result;
 use rand::Rng;

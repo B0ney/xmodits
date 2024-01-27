@@ -93,24 +93,28 @@ impl TrackerInfo {
 }
 
 pub async fn probe(path: PathBuf) -> TrackerInfo {
-    tokio::task::spawn_blocking(move || match Info::new(&path) {
-        Ok(Info {
-            name,
-            format,
-            total_samples,
-            total_sample_size,
-        }) => TrackerInfo::Loaded {
-            path,
-            name,
-            format,
-            samples: total_samples,
-            total_sample_size,
-        },
-        Err(reason) => TrackerInfo::Invalid {
-            path,
-            reason: reason.to_string(),
-        },
+    tokio::task::spawn_blocking(move || {
+        let result = crate::logger::log_file_on_panic(&path, Info::new);
+
+        match result {
+            Ok(Info {
+                name,
+                format,
+                total_samples,
+                total_sample_size,
+            }) => TrackerInfo::Loaded {
+                path,
+                name,
+                format,
+                samples: total_samples,
+                total_sample_size,
+            },
+            Err(reason) => TrackerInfo::Invalid {
+                path,
+                reason: reason.to_string(),
+            },
+        }
     })
     .await
-    .unwrap()
+    .unwrap_or_default()
 }

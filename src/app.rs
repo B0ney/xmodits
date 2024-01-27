@@ -5,12 +5,14 @@ use crate::event;
 use crate::font;
 use crate::icon;
 use crate::logger;
+use crate::logger::crash_handler;
 use crate::ripper;
 // use crate::screen::config::custom_filters;
 use crate::screen::about;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
 use crate::screen::config::sample_ripping::{self, DESTINATION_BAR_ID};
+use crate::screen::crash;
 use crate::screen::entry::Entries;
 use crate::screen::ripping;
 use crate::screen::sample_player;
@@ -68,6 +70,9 @@ pub enum Message {
     SettingsPressed,
     StartRipping,
     Subscription(ripper::Message),
+    Shutdown,
+    BadModules(PathBuf),
+    Panic(logger::crash_handler::Panic),
 }
 
 /// This is basically the configuration panel view.
@@ -93,14 +98,14 @@ pub struct XMODITS {
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
+    crashes: Vec<crash_handler::Panic>,
+    bad_modules: Vec<PathBuf>,
     // custom_filters: custom_filters::CustomFilters,
 }
 
 impl XMODITS {
     /// Launch the application
     pub fn launch() -> iced::Result {
-        
-
         // load configuration
         let config = Config::load();
 
@@ -391,7 +396,6 @@ impl multi_window::Application for XMODITS {
                     time,
                     destination,
                 } => {
-                    self.ripper.reset_stop_flag(); // todo: should this be here?
                     self.state = RippingState::Finished {
                         state,
                         time,
@@ -405,11 +409,29 @@ impl multi_window::Application for XMODITS {
                     tracing::error!("Failed to load font: {:#?}", e);
                 }
             }
+            Message::Shutdown => return window::close(window::Id::MAIN),
+            Message::BadModules(file) => {
+                tracing::error!(
+                    "This module might have caused the fatal error: {}",
+                    file.display()
+                );
+                self.bad_modules.push(file);
+            }
+            Message::Panic(_panic) => {
+                tracing::error!("Detected Panic");
+                self.crashes.push(_panic);
+
+                return self.sample_player.close_all().map(Message::SamplePlayer);
+            }
         }
         Command::none()
     }
 
     fn view(&self, _id: window::Id) -> Element<Message> {
+        if !self.crashes.is_empty() {
+            return crash::view(&self.crashes, &self.bad_modules);
+        }
+
         #[cfg(feature = "audio")]
         if _id > window::Id::MAIN {
             return self
@@ -544,7 +566,8 @@ impl multi_window::Application for XMODITS {
 
         let bad_cfg_warning = warning(
             || allow_warnings && (!self.ripping_cfg.self_contained && !self.naming_cfg.prefix),
-            "\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
+            "\"Self Contained\" is disabled. \
+            You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
         );
 
         let too_many_files_warning = warning(
@@ -571,7 +594,9 @@ impl multi_window::Application for XMODITS {
     fn subscription(&self) -> Subscription<Message> {
         iced::Subscription::batch([
             event::events().map(Message::Event),
-            ripper::xmodits_subscription().map(Message::Subscription),
+            ripper::subscription().map(Message::Subscription),
+            logger::bad_modules::subscription().map(Message::BadModules),
+            logger::crash_handler::subscription().map(Message::Panic),
         ])
     }
 }

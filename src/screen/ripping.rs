@@ -9,12 +9,14 @@ use crate::ripper::extraction::error_handler::{self, ErrorHandler};
 use crate::ripper::subscription::CompleteState;
 use crate::utils::create_file_dialog;
 use crate::widget::helpers::{
-    centered_column_x, centered_container, centered_text, fill_container, text_icon, text_adv,
+    centered_column_x, centered_container, centered_text, fill_container, text_adv, text_icon,
 };
 use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
 
-use iced::widget::{button, column, container, progress_bar, row, scrollable, text, Space};
+use iced::widget::{
+    button, column, container, progress_bar, row, scrollable, text, Space,
+};
 use iced::{Alignment, Length};
 
 /// The current state of the application.
@@ -159,16 +161,23 @@ pub fn view_finished<'a>(
         .style(theme::Container::BlackHovered(hovered))
         .into(),
 
-        // TODO
-        CompleteState::Aborted => centered_container(
-            column![
-                text("An internal error occurred."),
-                Space::with_height(15),
-                continue_button
-            ]
-            .align_items(Alignment::Center),
-        )
-        .into(),
+        CompleteState::Aborted => {
+            let shutdown_button = button("Close Application")
+                .on_press(Message::Shutdown)
+                .style(theme::Button::Cancel)
+                .padding(5);
+
+            centered_container(
+                column![
+                    text("Ripping process was aborted because of an internal error."),
+                    shutdown_button
+                ]
+                .spacing(4)
+                .align_items(Alignment::Center)
+            )
+            .style(theme::Container::Black)
+            .into()
+        }
 
         CompleteState::SomeErrors(errors) => {
             let message = column![
@@ -255,9 +264,9 @@ pub fn view_finished<'a>(
                 text("But there's too many errors to display! (-_-')"),
                 text("...and I can't store them to a file either:"),
                 centered_text(format!("\"{}\"", reason)),
-                buttons,
                 error_message,
                 discarded_errors,
+                buttons,
             ]
             .align_items(Alignment::Center)
             .padding(4)

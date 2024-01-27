@@ -43,20 +43,6 @@ impl Handle {
 
     /// Cancel the ripping process by setting the stop_flag to Cancel
     pub fn cancel(&self) {
-        stop_flag::set_flag(stop_flag::StopFlag::Cancel)
-    }
-
-    pub fn cancelled(&self) -> bool {
-        stop_flag::is_cancelled()
-    }
-
-    pub fn aborted(&self) -> bool {
-        stop_flag::is_aborted()
-    }
-
-    pub fn reset_stop_flag(&self) {
-        if !stop_flag::is_aborted() {
-            stop_flag::reset()
-        }
+        stop_flag::set_cancel()
     }
 }
