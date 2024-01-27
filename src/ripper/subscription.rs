@@ -1,11 +1,12 @@
 use data::time::Time;
 
-use iced::{subscription, Subscription};
-use std::path::PathBuf;
+use iced::{futures::SinkExt, subscription, Subscription};
+use std::{any::TypeId, path::PathBuf};
 use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
 use tracing::{error, info};
 
-pub use super::extraction::{self, ErrorHandler, Failed, Message as ThreadMessage};
+pub use super::extraction::{self, ErrorHandler, Failed, Message as ThreadMessage, StopMessage};
+use super::stop_flag::{self, StopFlag};
 use super::Signal;
 
 /// Messages emitted by subscription
@@ -22,23 +23,6 @@ pub enum Message {
         destination: PathBuf,
     },
     Info(Option<String>),
-}
-
-/// State of subscription
-#[derive(Default, Debug)]
-enum State {
-    #[default]
-    Init,
-    Idle(Receiver<Signal>),
-    Ripping {
-        ripping_msg: UnboundedReceiver<ThreadMessage>,
-        total: u64,
-        progress: u64,
-        error_handler: ErrorHandler,
-        total_errors: u64,
-        timer: Time,
-        destination: PathBuf,
-    },
 }
 
 #[derive(Default, Debug, Clone)]
@@ -95,18 +79,38 @@ impl From<ErrorHandler> for CompleteState {
 /// * The worker sends custom messages to keep the user updated. E.g ``"Traversing folders..."``, ``"Ripping 100 files..."``
 /// * A module has/can't be ripped. This is also done to track progress.
 /// * The worker has finished ripping.
-pub fn xmodits_subscription() -> Subscription<Message> {
-    subscription::channel((), 1024, |mut output| async move {
+pub fn subscription() -> Subscription<Message> {
+    struct Ripper;
+
+    subscription::channel(TypeId::of::<Ripper>(), 4096, |mut output| async move {
+        enum State {
+            Init,
+            Idle(Receiver<Signal>),
+            Ripping {
+                ripping_msg: UnboundedReceiver<ThreadMessage>,
+                total: u64,
+                progress: u64,
+                error_handler: ErrorHandler,
+                total_errors: u64,
+                timer: Time,
+                destination: PathBuf,
+            },
+        }
+
         let mut state = State::Init;
+
         loop {
             match &mut state {
                 State::Init => {
+                    stop_flag::reset();
+
                     let (sender, receiver) = mpsc::channel::<Signal>(1);
                     state = State::Idle(receiver);
 
                     // It's important that this gets delivered, otherwise the program would be in an invalid state.
                     output
-                        .try_send(Message::Ready(sender))
+                        .send(Message::Ready(sender))
+                        .await
                         .expect("Sending a 'transmission channel' to main application.");
                 }
                 State::Idle(start_msg) => {
@@ -164,13 +168,12 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                     Some(ThreadMessage::Info(info)) => {
                         let _ = output.try_send(Message::Info(info));
                     }
-                    Some(stop @ (ThreadMessage::Cancelled | ThreadMessage::Aborted)) => {
+                    Some(ThreadMessage::Stop(stop)) => {
                         timer.stop();
 
                         let completed_state = match stop {
-                            ThreadMessage::Aborted => CompleteState::Aborted,
-                            ThreadMessage::Cancelled => CompleteState::Cancelled,
-                            _ => unreachable!(),
+                            StopMessage::Abort => CompleteState::Aborted,
+                            StopMessage::Cancel => CompleteState::Cancelled,
                         };
 
                         let msg = Message::Done {
@@ -179,14 +182,15 @@ pub fn xmodits_subscription() -> Subscription<Message> {
                             destination: std::mem::take(destination),
                         };
 
+                        info!("Cancelled!");
                         output
-                            .try_send(msg)
+                            .send(msg)
+                            .await
                             .expect("Sending 'extraction complete' message to application.");
 
-                        info!("Cancelled!");
                         state = State::Init;
                     }
-                    _ => {
+                    Some(ThreadMessage::Done) => {
                         timer.stop();
                         let error = std::mem::take(error_handler);
 
@@ -198,10 +202,38 @@ pub fn xmodits_subscription() -> Subscription<Message> {
 
                         // It's important that this gets delivered, otherwise the program would be in an invalid state.
                         output
-                            .try_send(msg)
+                            .send(msg)
+                            .await
                             .expect("Sending 'extraction complete' message to application.");
 
                         info!("Done!");
+                        state = State::Init;
+                    }
+                    None => {
+                        timer.stop();
+                        let error = std::mem::take(error_handler);
+
+                        let completed_state: CompleteState = match stop_flag::get_flag() {
+                            StopFlag::None => CompleteState::from(error),
+                            StopFlag::Cancel => CompleteState::Cancelled,
+                            StopFlag::Abort => CompleteState::Aborted,
+                        };
+
+                        let msg = Message::Done {
+                            state: completed_state,
+                            time: std::mem::take(timer),
+                            destination: std::mem::take(destination),
+                        };
+
+                        
+                        tracing::error!("Lost communication with the workers. This usually means something bad happened...");
+
+                        // It's important that this gets delivered, otherwise the program would be in an invalid state.
+                        output
+                            .send(msg)
+                            .await
+                            .expect("Sending 'extraction complete' message to application.");
+
                         state = State::Init;
                     }
                 },

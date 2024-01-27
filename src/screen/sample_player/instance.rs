@@ -396,50 +396,58 @@ fn play_sample(handle: &PlayerHandle, source: TrackerSample) -> Command<Message>
 }
 
 fn load_samples(path: PathBuf) -> Command<Message> {
+    use crate::logger::log_file_on_panic;
     use xmodits_lib::Error;
 
     Command::perform(
         async {
             let path_copy = path.clone();
 
-            tokio::task::spawn_blocking(move || {
-                const MAX_SIZE: u64 = 40 * 1024 * 1024;
+            let task = move || {
+                log_file_on_panic(&path, |path| {
+                    const MAX_SIZE: u64 = 40 * 1024 * 1024;
 
-                if path.is_dir() {
-                    return Err(Error::io_error("Path is a directory.").unwrap_err());
-                }
+                    if path.is_dir() {
+                        return Err(Error::io_error("Path is a directory.").unwrap_err());
+                    }
 
-                let mut file = std::fs::File::open(&path)?;
+                    let mut file = std::fs::File::open(&path)?;
 
-                if file.metadata()?.len() > MAX_SIZE {
-                    return Err(Error::io_error("File size exceeds 40 MB").unwrap_err());
-                }
+                    if file.metadata()?.len() > MAX_SIZE {
+                        return Err(Error::io_error("File size exceeds 40 MB").unwrap_err());
+                    }
 
-                let module = xmodits_lib::load_module(&mut file)?;
-                let sample_pack = audio_engine::SamplePack::build(&*module);
-                let name = sample_pack.name;
+                    let module = xmodits_lib::load_module(&mut file)?;
+                    let sample_pack = audio_engine::SamplePack::build(&*module);
+                    let name = sample_pack.name;
 
-                let samples = sample_pack
-                    .samples
-                    .into_iter()
-                    .map(|result| match result {
-                        Ok((metadata, buffer)) => {
-                            let peaks = buffer.buf.peaks(Duration::from_millis(5));
-                            let waveform = WaveData::from(peaks);
-                            SampleResult::Valid {
-                                metadata,
-                                buffer,
-                                waveform,
+                    let samples = sample_pack
+                        .samples
+                        .into_iter()
+                        .map(|result| match result {
+                            Ok((metadata, buffer)) => {
+                                let peaks = buffer.buf.peaks(Duration::from_millis(5));
+                                let waveform = WaveData::from(peaks);
+                                SampleResult::Valid {
+                                    metadata,
+                                    buffer,
+                                    waveform,
+                                }
                             }
-                        }
-                        Err(error) => SampleResult::Invalid(error.to_string()),
-                    })
-                    .collect();
-                Ok(SamplePack::new(name, path, samples))
-            })
-            .await
-            .unwrap()
-            .map_err(|e| (path_copy, e.to_string()))
+                            Err(error) => SampleResult::Invalid(error.to_string()),
+                        })
+                        .collect();
+
+                    Ok(SamplePack::new(name, path.to_owned(), samples))
+                })
+            };
+
+            // TODO
+            match tokio::task::spawn_blocking(task).await {
+                Ok(Ok(samples)) => Ok(samples),
+                Ok(Err(e)) => Err((path_copy, e.to_string())),
+                Err(e) => Err((path_copy, e.to_string())),
+            }
         },
         Message::Loaded,
     )
