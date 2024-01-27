@@ -116,5 +116,5 @@ pub async fn probe(path: PathBuf) -> TrackerInfo {
         }
     })
     .await
-    .unwrap()
+    .unwrap_or_default()
 }
