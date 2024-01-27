@@ -15,7 +15,7 @@ use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
 
 use iced::widget::{
-    button, column, container, horizontal_rule, progress_bar, row, scrollable, text, Space,
+    button, column, container, progress_bar, row, scrollable, text, Space,
 };
 use iced::{Alignment, Length};
 
@@ -120,7 +120,6 @@ pub fn view_finished<'a>(
     time: &'a Time,
     hovered: bool,
     destination: &'a Path,
-    bad_modules: &'a [PathBuf],
 ) -> Element<'a, Message> {
     let continue_button = button("Continue")
         .on_press(Message::SetState(RippingState::Idle))
@@ -162,39 +161,22 @@ pub fn view_finished<'a>(
         .style(theme::Container::BlackHovered(hovered))
         .into(),
 
-        // TODO: provide more details
         CompleteState::Aborted => {
             let shutdown_button = button("Close Application")
                 .on_press(Message::Shutdown)
                 .style(theme::Button::Cancel)
                 .padding(5);
 
-            let msg = "The program may seem functional, \
-                but it won't continue to work as intended.
-            ";
-
-            let bad_modules = (!bad_modules.is_empty()).then(|| {
-                let msg = "Here are the list of files that might have caused this:";
-                let paths = column(bad_modules.iter().map(|f| text(f.display()).into()));
-
+            centered_container(
                 column![
-                    horizontal_rule(1),
-                    msg,
-                    scrollable(paths),
-                    horizontal_rule(1)
+                    text("Ripping process was aborted because of an internal error."),
+                    shutdown_button
                 ]
+                .spacing(4)
                 .align_items(Alignment::Center)
-                .padding(4)
-            });
-
-            let view = column![text("An internal error has occurred."), text(msg),]
-                .push_maybe(bad_modules)
-                .push(shutdown_button)
-                .align_items(Alignment::Center)
-                .padding(4)
-                .spacing(6);
-
-            fill_container(view).style(theme::Container::Black).into()
+            )
+            .style(theme::Container::Black)
+            .into()
         }
 
         CompleteState::SomeErrors(errors) => {

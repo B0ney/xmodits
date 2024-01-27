@@ -559,20 +559,15 @@ impl multi_window::Application for XMODITS {
                 state,
                 time,
                 destination,
-            } => ripping::view_finished(
-                state,
-                time,
-                self.file_hovered,
-                destination,
-                &self.bad_modules,
-            ),
+            } => ripping::view_finished(state, time, self.file_hovered, destination),
         };
 
         let allow_warnings = !self.general_cfg.suppress_warnings;
 
         let bad_cfg_warning = warning(
             || allow_warnings && (!self.ripping_cfg.self_contained && !self.naming_cfg.prefix),
-            "\"Self Contained\" is disabled. You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
+            "\"Self Contained\" is disabled. \
+            You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
         );
 
         let too_many_files_warning = warning(
