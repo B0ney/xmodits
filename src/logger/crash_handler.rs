@@ -5,7 +5,7 @@ use crate::screen::build_info;
 use crate::{dialog, ripper::stop_flag};
 use std::borrow::Cow;
 use std::env;
-use std::fmt::Display;
+use std::fmt::{Display, Write};
 use std::fs::File;
 use std::panic::{Location, PanicInfo};
 use std::path::PathBuf;
@@ -55,7 +55,7 @@ impl<'a> Dump<'a> {
 
     fn message(&self) -> &str {
         match &self.message {
-            Some(msg) => &msg,
+            Some(msg) => msg,
             None => "Unknown Panic",
         }
     }
@@ -87,14 +87,17 @@ pub fn set_panic_hook() {
         stop_flag::set_abort();
 
         let dump = Dump::from_panic(panic_info);
+        // todo: don't include backtrace for Eq impl
         let backtrace = std::backtrace::Backtrace::force_capture().to_string();
+        // let backtrace = String::new();
 
-        let build_info = build_info::info(true)
-            .map(|(label, value)| format!("{label}: {value}\n"))
-            .collect::<String>();
+        let build_info = build_info::info(true).fold(String::new(), |mut out, (label, value)| {
+            writeln!(&mut out, "{label}: {value}").unwrap();
+            out
+        });
 
         let panic_log = Panic {
-            saved_to: None,
+            saved_to: Some(PathBuf::new()),
             file: dump.file().to_owned(),
             line: dump.line(),
             message: dump.message().to_owned(),

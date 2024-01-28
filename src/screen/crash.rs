@@ -7,6 +7,7 @@ use iced::widget::{button, column, container, horizontal_rule, row, scrollable, 
 use iced::{window, Alignment, Command, Length, Subscription};
 
 use crate::logger::crash_handler::Panic;
+use crate::utils::create_file_dialog;
 use crate::widget::helpers::{control_filled, fill_container, text_icon_srnd};
 use crate::widget::{Collection, Container, Element, Text};
 use crate::{icon, logger, theme};
@@ -16,12 +17,15 @@ pub enum Message {
     Panic(Panic),
     BadModule(PathBuf),
     Shutdown,
+    GenerateDetailedReport,
+    Ignore,
+    Open(PathBuf),
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Crashes {
-    pub panics: HashSet<Panic>,
-    pub bad_modules: Vec<PathBuf>,
+    panics: HashSet<Panic>,
+    bad_modules: Vec<PathBuf>,
 }
 
 impl Crashes {
@@ -47,6 +51,13 @@ impl Crashes {
             Message::Panic(panic) => self.add_panic(panic),
             Message::BadModule(file) => self.add_bad_module(file),
             Message::Shutdown => return window::close(window::Id::MAIN),
+            Message::GenerateDetailedReport => {
+                return Command::perform(generate_detailed_crash(self.clone()), |_| Message::Ignore)
+            }
+            Message::Open(log) => {
+                let _ = open::that_detached(log);
+            }
+            Message::Ignore => (),
         }
         Command::none()
     }
@@ -74,17 +85,12 @@ impl Crashes {
             .style(theme::Button::Cancel)
             .padding(10);
 
-        let report_button = button(text_icon_srnd("Generate Detailed Report", icon::save()))
-            .on_press(Message::Shutdown)
-            .style(theme::Button::Start)
-            .padding(10);
-
-        let report_button = (has_bad_modules).then(|| report_button);
-
-        let open_log_button = button("Open Crash Report")
-            .on_press(Message::Shutdown)
-            .style(theme::Button::Start)
-            .padding(10);
+        let report_button = has_bad_modules.then(|| {
+            button(text_icon_srnd("Generate Detailed Report", icon::save()))
+                .on_press(Message::GenerateDetailedReport)
+                .style(theme::Button::Start)
+                .padding(10)
+        });
 
         let bad_modules = has_bad_modules.then(|| {
             let msg = "The following files might be the cause:";
@@ -99,21 +105,33 @@ impl Crashes {
             .spacing(6)
         });
 
+        let multiple_errors = self.panics.len() > 1 && !self.panics.is_empty();
+
         let errors = self.panics.iter().enumerate().map(|(idx, f)| {
+            let open_log_button = multiple_errors
+                .then(|| {
+                    f.saved_to.clone().map(|f| {
+                        button("Open Crash Report")
+                            .on_press(Message::Open(f))
+                            .style(theme::Button::Start)
+                    })
+                })
+                .flatten();
+
             column![
                 text(format!("File: {}", f.file)),
-                if let Some(line) = f.line {
-                    text(format!("Line: {}", line))
-                } else {
-                    text(format!("Line: Unknown"))
+                match f.line {
+                    Some(line) => text(format!("Line: {}", line)),
+                    None => text("Line: Unknown"),
                 },
                 text(format!("Message: {}", &f.message)),
             ]
+            .push_maybe(open_log_button)
             .push_maybe({
-                let should_show = self.panics.len() >= 1 && self.panics.len() - 1 != idx;
+                let should_show = !self.panics.is_empty() && self.panics.len() - 1 != idx;
                 should_show.then(|| horizontal_rule(1))
             })
-            .spacing(6)
+            .spacing(10)
             .into()
         });
 
@@ -129,12 +147,24 @@ impl Crashes {
         .padding(4)
         .spacing(6);
 
+        let open_single_log = (!multiple_errors)
+            .then(|| {
+                let first_error = self.panics.iter().next().unwrap().clone();
+                first_error.saved_to.map(|f| {
+                    button("Open Crash Report")
+                        .on_press(Message::Open(f))
+                        .style(theme::Button::Start)
+                        .padding(10)
+                })
+            })
+            .flatten();
+
         let view = column![
             control_filled(title, content),
             row![]
                 .push_maybe(report_button)
                 .push_maybe(has_bad_modules.then(|| Space::with_width(Length::Fill)))
-                .push(open_log_button)
+                .push_maybe(open_single_log)
                 .push(Space::with_width(Length::Fill))
                 .push(shutdown_button)
                 .align_items(Alignment::Center)
@@ -147,6 +177,23 @@ impl Crashes {
             .height(Length::Fill)
             .padding(15)
             .into()
+    }
+}
+
+pub async fn generate_detailed_crash(crash: Crashes) {
+    use tokio::io::AsyncWriteExt;
+
+    if let Some(path) = create_file_dialog("filename".to_string()).await {
+        if let Ok(mut file) = tokio::fs::OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(&path)
+            .await
+        {
+            let _ = file.write_all("crash".as_bytes()).await;
+
+            let _ = open::that_detached(path);
+        }
     }
 }
 
