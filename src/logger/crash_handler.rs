@@ -13,12 +13,14 @@ use std::sync::OnceLock;
 
 static PANIC_SIGNAL: OnceLock<Sender<Panic>> = OnceLock::new();
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Panic {
-    // file: PathBuf,
-    // line: usize,
+    pub saved_to: Option<PathBuf>,
+    pub line: Option<u32>,
+    pub file: String,
     pub message: String,
     pub backtrace: String,
+    pub build_info: String,
 }
 
 #[derive(Default, Debug)]
@@ -27,11 +29,11 @@ struct Dump<'a> {
     pub message: Option<Cow<'a, str>>,
 }
 
-impl <'a>Dump<'a> {
+impl<'a> Dump<'a> {
     fn file(&self) -> &str {
         match self.location {
             Some(file) => file.file(),
-            None => ""
+            None => "",
         }
     }
 }
@@ -50,15 +52,21 @@ impl<'a> Dump<'a> {
 
         Self { location, message }
     }
+
+    fn message(&self) -> &str {
+        match &self.message {
+            Some(msg) => &msg,
+            None => "Unknown Panic",
+        }
+    }
+
+    fn line(&self) -> Option<u32> {
+        self.location.map(|f| f.line())
+    }
 }
 
 impl<'a> Display for Dump<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let message: &str = match &self.message {
-            Some(msg) => &msg,
-            None => "Panic occurred.",
-        };
-
         let location: Cow<str> = match self.location {
             Some(location) => format!(
                 "Panic occurred in file:\n '{}'\nat line: {}.",
@@ -69,7 +77,7 @@ impl<'a> Display for Dump<'a> {
             None => "Can't get location information...".into(),
         };
 
-        write!(f, "{location}\n'{message}'")
+        write!(f, "{location}\n'{}'", self.message())
     }
 }
 
@@ -78,11 +86,21 @@ pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(move |panic_info| {
         stop_flag::set_abort();
 
-        let message = Dump::from_panic(panic_info).to_string();
+        let dump = Dump::from_panic(panic_info);
         let backtrace = std::backtrace::Backtrace::force_capture().to_string();
-        let build_info = build_info::info(true);
 
+        let build_info = build_info::info(true)
+            .map(|(label, value)| format!("{label}: {value}\n"))
+            .collect::<String>();
 
+        let panic_log = Panic {
+            saved_to: None,
+            file: dump.file().to_owned(),
+            line: dump.line(),
+            message: dump.message().to_owned(),
+            backtrace,
+            build_info,
+        };
         // TODO: save crash log to file
         // let temp_dir = std::env::temp_dir();
         // let filename = format!(
@@ -92,14 +110,16 @@ pub fn set_panic_hook() {
         // );
 
         if let Some(sender) = PANIC_SIGNAL.get() {
-            let _ = sender.blocking_send(Panic {
-                message: message.clone(),
-                backtrace: backtrace.clone(),
-            });
+            let _ = sender.blocking_send(panic_log.clone());
         }
 
-        tracing::error!("FATAL ERROR: \n{}\n\nBACKTRACE:\n{}", message, backtrace);
+        tracing::error!(
+            "FATAL ERROR: \n{}\n\nBACKTRACE:\n{}",
+            &panic_log.message,
+            &panic_log.backtrace
+        );
 
+        let message = dump.to_string();
         let message = move || dialog::critical_error(&message);
 
         let msg_box = std::thread::spawn(message);
