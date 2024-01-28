@@ -1,3 +1,6 @@
+#[cfg(panic = "abort")]
+compile_error!("Compiling XMODITS with `panic=\"abort\"` will make crash handling impossible, or mostly useless.");
+
 use rand::Rng;
 use tokio::sync::mpsc::{self, Sender};
 
