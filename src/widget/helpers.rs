@@ -121,6 +121,15 @@ pub fn text_icon<'a, Message: 'a>(text: &'a str, icon: Text<'a>) -> Row<'a, Mess
     text_elem(text, icon).spacing(8)
 }
 
+pub fn text_icon_srnd<'a, Message: 'a>(text: &'a str, icon: Text<'a>) -> Row<'a, Message> {
+    row![icon.clone()]
+        .push(text)
+        .push(icon)
+        .align_items(Alignment::Center)
+        .spacing(5)
+        .spacing(8)
+}
+
 pub fn text_elem<'a, Message: 'a>(
     text: &'a str,
     elem: impl Into<Element<'a, Message>>,

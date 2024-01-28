@@ -14,12 +14,26 @@ use std::sync::OnceLock;
 static PANIC_SIGNAL: OnceLock<Sender<Panic>> = OnceLock::new();
 
 #[derive(Debug, Clone)]
-pub struct Panic;
+pub struct Panic {
+    // file: PathBuf,
+    // line: usize,
+    pub message: String,
+    pub backtrace: String,
+}
 
 #[derive(Default, Debug)]
 struct Dump<'a> {
     pub location: Option<&'a Location<'a>>,
     pub message: Option<Cow<'a, str>>,
+}
+
+impl <'a>Dump<'a> {
+    fn file(&self) -> &str {
+        match self.location {
+            Some(file) => file.file(),
+            None => ""
+        }
+    }
 }
 
 impl<'a> Dump<'a> {
@@ -64,17 +78,10 @@ pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(move |panic_info| {
         stop_flag::set_abort();
 
-        if let Some(sender) = PANIC_SIGNAL.get() {
-            let _ = sender.blocking_send(Panic);
-        }
-
         let message = Dump::from_panic(panic_info).to_string();
         let backtrace = std::backtrace::Backtrace::force_capture().to_string();
         let build_info = build_info::info(true);
 
-        tracing::error!("FATAL ERROR: \n{}\n\nBACKTRACE:\n{}", message, backtrace);
-
-        let message = move || dialog::critical_error(&message);
 
         // TODO: save crash log to file
         // let temp_dir = std::env::temp_dir();
@@ -83,6 +90,17 @@ pub fn set_panic_hook() {
         //     env!("CARGO_PKG_VERSION"),
         //     rand::thread_rng().gen::<u32>()
         // );
+
+        if let Some(sender) = PANIC_SIGNAL.get() {
+            let _ = sender.blocking_send(Panic {
+                message: message.clone(),
+                backtrace: backtrace.clone(),
+            });
+        }
+
+        tracing::error!("FATAL ERROR: \n{}\n\nBACKTRACE:\n{}", message, backtrace);
+
+        let message = move || dialog::critical_error(&message);
 
         let msg_box = std::thread::spawn(message);
 
