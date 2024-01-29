@@ -13,6 +13,7 @@ use std::collections::HashSet;
 use std::env;
 use std::fmt::{Display, Write as _};
 use std::fs::File;
+use std::hash::Hash;
 use std::io::Write as _;
 use std::panic::{Location, PanicInfo};
 use std::path::PathBuf;
@@ -43,13 +44,29 @@ impl SavedPanic {
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Eq)]
 pub struct Panic {
     pub line: Option<u32>,
     pub file: String,
     pub message: String,
     pub backtrace: String,
     pub build_info: String,
+}
+
+impl PartialEq for Panic {
+    fn eq(&self, other: &Self) -> bool {
+        self.line == other.line 
+        && self.file == other.file 
+        && self.message == other.message
+    }
+}
+
+impl Hash for Panic {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.line.hash(state);
+        self.file.hash(state);
+        self.message.hash(state);
+    }
 }
 
 #[derive(Default, Debug)]
