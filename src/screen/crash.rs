@@ -1,12 +1,11 @@
 //! Hopefully nobody should every see this, but if they do, make it... nice
 
-use std::collections::HashSet;
 use std::path::PathBuf;
 
 use iced::widget::{button, column, container, horizontal_rule, row, scrollable, text, Space};
 use iced::{window, Alignment, Command, Length, Subscription};
 
-use crate::logger::crash_handler::Panic;
+use crate::logger::crash_handler::SavedPanic;
 use crate::utils::create_file_dialog;
 use crate::widget::helpers::{control_filled, fill_container, text_icon_srnd};
 use crate::widget::{Button, Collection, Container, Element, Text};
@@ -14,7 +13,7 @@ use crate::{icon, logger, theme};
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    Panic(Panic),
+    Panic(SavedPanic),
     BadModule(PathBuf),
     Shutdown,
     GenerateDetailedReport,
@@ -24,7 +23,7 @@ pub enum Message {
 
 #[derive(Debug, Default, Clone)]
 pub struct Crashes {
-    panics: HashSet<Panic>,
+    panics: Vec<SavedPanic>,
     bad_modules: Vec<PathBuf>,
 }
 
@@ -41,9 +40,9 @@ impl Crashes {
         self.bad_modules.push(file)
     }
 
-    pub fn add_panic(&mut self, panic: Panic) {
+    pub fn add_panic(&mut self, panic: SavedPanic) {
         tracing::error!("Detected Panic");
-        let _ = self.panics.insert(panic);
+        let _ = self.panics.push(panic);
     }
 
     pub fn update(&mut self, message: Message) -> Command<Message> {
@@ -109,7 +108,7 @@ impl Crashes {
 
         let errors = self.panics.iter().enumerate().map(|(idx, f)| {
             let open_log_button = multiple_errors.then(|| open_crash_button(f)).flatten();
-            let line = match f.line {
+            let line = match f.line() {
                 Some(line) => text(format!("Line: {}", line)),
                 None => text("Line: Unknown"),
             };
@@ -119,9 +118,9 @@ impl Crashes {
             };
 
             column![
-                text(format!("File: {}", f.file)),
+                text(format!("File: {}", f.file())),
                 line,
-                text(format!("Message: {}", &f.message)),
+                text(format!("Message: {}", &f.message())),
             ]
             .push_maybe(open_log_button)
             .push_maybe(separator)
@@ -166,7 +165,7 @@ impl Crashes {
     }
 }
 
-fn open_crash_button(panic: &Panic) -> Option<Button<Message>> {
+fn open_crash_button(panic: &SavedPanic) -> Option<Button<Message>> {
     panic.saved_to.clone().map(|f| {
         button("Open Crash Report")
             .on_press(Message::Open(f))

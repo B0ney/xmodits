@@ -1,24 +1,50 @@
 #[cfg(panic = "abort")]
 compile_error!("Compiling XMODITS with `panic=\"abort\"` will make crash handling impossible, or mostly useless.");
 
+use once_cell::sync::Lazy;
+use parking_lot::Mutex;
 use rand::Rng;
 use tokio::sync::mpsc::{self, Sender};
 
 use crate::screen::build_info;
 use crate::{dialog, ripper::stop_flag};
 use std::borrow::Cow;
+use std::collections::HashSet;
 use std::env;
-use std::fmt::{Display, Write};
+use std::fmt::{Display, Write as _};
 use std::fs::File;
+use std::io::Write as _;
 use std::panic::{Location, PanicInfo};
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
-static PANIC_SIGNAL: OnceLock<Sender<Panic>> = OnceLock::new();
+static PANIC_SIGNAL: OnceLock<Sender<SavedPanic>> = OnceLock::new();
+
+// Prevent panic handler from creating duplicate error logs
+static PANICS: Lazy<Mutex<HashSet<Panic>>> = Lazy::new(|| Mutex::new(HashSet::new()));
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct SavedPanic {
+    pub panic: Panic,
+    pub saved_to: Option<PathBuf>,
+}
+
+impl SavedPanic {
+    pub fn line(&self) -> Option<u32> {
+        self.panic.line
+    }
+
+    pub fn message(&self) -> &str {
+        &self.panic.message
+    }
+
+    pub fn file(&self) -> &str {
+        &self.panic.file
+    }
+}
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Panic {
-    pub saved_to: Option<PathBuf>,
     pub line: Option<u32>,
     pub file: String,
     pub message: String,
@@ -87,12 +113,12 @@ impl<'a> Display for Dump<'a> {
 /// Provide human friendly crash reporting
 pub fn set_panic_hook() {
     std::panic::set_hook(Box::new(move |panic_info| {
+        // Set stop_flag to abort to stop ripping process
         stop_flag::set_abort();
 
+        // gather necessary crash information
         let dump = Dump::from_panic(panic_info);
-        // todo: don't include backtrace for Eq impl
         let backtrace = std::backtrace::Backtrace::force_capture().to_string();
-        // let backtrace = String::new();
 
         let build_info = build_info::info(true).fold(String::new(), |mut out, (label, value)| {
             writeln!(&mut out, "{label}: {value}").unwrap();
@@ -100,23 +126,18 @@ pub fn set_panic_hook() {
         });
 
         let panic_log = Panic {
-            saved_to: Some(PathBuf::new()),
             file: dump.file().to_owned(),
             line: dump.line(),
             message: dump.message().to_owned(),
             backtrace,
             build_info,
         };
-        // TODO: save crash log to file
-        // let temp_dir = std::env::temp_dir();
-        // let filename = format!(
-        //     "XMODITS-v{}-CRASH-{:X}",
-        //     env!("CARGO_PKG_VERSION"),
-        //     rand::thread_rng().gen::<u32>()
-        // );
 
-        if let Some(sender) = PANIC_SIGNAL.get() {
-            let _ = sender.blocking_send(panic_log.clone());
+        // If another thread wrote the same panic, early exit.
+        // We don't need duplicate crash logs and message boxes...
+        if !PANICS.lock().insert(panic_log.clone()) {
+            tracing::warn!("skipping duplicate panic");
+            return;
         }
 
         tracing::error!(
@@ -124,6 +145,56 @@ pub fn set_panic_hook() {
             &panic_log.message,
             &panic_log.backtrace
         );
+
+        // Save crash log to user's downloads folder
+        let saved_to = {
+            let filename = format!(
+                "XMODITS-v{}-CRASH-{:X}.txt",
+                env!("CARGO_PKG_VERSION"),
+                rand::thread_rng().gen::<u32>()
+            );
+
+            let log_path = dirs::download_dir().unwrap_or_default().join(filename);
+
+            let write_error = |mut file: File| {
+                let _ = write!(
+                    &mut file,
+                    "XMODITS CRASH LOG\n\n\
+                    {} \n\
+                    SOURCE: {} \n\n\
+                    LINE: {} \n\n\
+                    MESSAGE: {} \n\n\
+                    BACKTRACE: \n\
+                    {}
+                    ",
+                    &panic_log.build_info,
+                    dump.file(),
+                    if let Some(line) = dump.line() {
+                        format!("{line}")
+                    } else {
+                        "Unknown".to_owned()
+                    },
+                    dump.message(),
+                    &panic_log.backtrace
+                );
+            };
+
+            match std::fs::File::create(&log_path) {
+                Err(_) => None,
+                Ok(file) => {
+                    write_error(file);
+                    Some(log_path)
+                }
+            }
+        };
+
+        // Send a copy of the panic + location of where it's saved
+        if let Some(sender) = PANIC_SIGNAL.get() {
+            let _ = sender.blocking_send(SavedPanic {
+                panic: panic_log.clone(),
+                saved_to,
+            });
+        }
 
         let message = dump.to_string();
         let message = move || dialog::critical_error(&message);
@@ -140,7 +211,7 @@ pub fn set_panic_hook() {
 }
 
 /// Emits events when a panic occurs
-pub fn subscription() -> iced::Subscription<Panic> {
+pub fn subscription() -> iced::Subscription<SavedPanic> {
     use iced::futures::SinkExt;
     use std::any::TypeId;
 
@@ -148,7 +219,6 @@ pub fn subscription() -> iced::Subscription<Panic> {
 
     iced::subscription::channel(TypeId::of::<PanicSignal>(), 100, |mut output| async move {
         let (tx, mut rx) = mpsc::channel(32);
-
         PANIC_SIGNAL.set(tx).unwrap();
 
         loop {
