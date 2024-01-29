@@ -9,7 +9,7 @@ use iced::{window, Alignment, Command, Length, Subscription};
 use crate::logger::crash_handler::Panic;
 use crate::utils::create_file_dialog;
 use crate::widget::helpers::{control_filled, fill_container, text_icon_srnd};
-use crate::widget::{Collection, Container, Element, Text};
+use crate::widget::{Button, Collection, Container, Element, Text};
 use crate::{icon, logger, theme};
 
 #[derive(Debug, Clone)]
@@ -105,32 +105,26 @@ impl Crashes {
             .spacing(6)
         });
 
-        let multiple_errors = self.panics.len() > 1 && !self.panics.is_empty();
+        let multiple_errors = self.panics.len() > 1;
 
         let errors = self.panics.iter().enumerate().map(|(idx, f)| {
-            let open_log_button = multiple_errors
-                .then(|| {
-                    f.saved_to.clone().map(|f| {
-                        button("Open Crash Report")
-                            .on_press(Message::Open(f))
-                            .style(theme::Button::Start)
-                    })
-                })
-                .flatten();
+            let open_log_button = multiple_errors.then(|| open_crash_button(f)).flatten();
+            let line = match f.line {
+                Some(line) => text(format!("Line: {}", line)),
+                None => text("Line: Unknown"),
+            };
+            let separator = {
+                (!self.panics.is_empty() && self.panics.len() - 1 != idx)
+                    .then(|| horizontal_rule(1))
+            };
 
             column![
                 text(format!("File: {}", f.file)),
-                match f.line {
-                    Some(line) => text(format!("Line: {}", line)),
-                    None => text("Line: Unknown"),
-                },
+                line,
                 text(format!("Message: {}", &f.message)),
             ]
             .push_maybe(open_log_button)
-            .push_maybe({
-                let should_show = !self.panics.is_empty() && self.panics.len() - 1 != idx;
-                should_show.then(|| horizontal_rule(1))
-            })
+            .push_maybe(separator)
             .spacing(10)
             .into()
         });
@@ -148,15 +142,7 @@ impl Crashes {
         .spacing(6);
 
         let open_single_log = (!multiple_errors)
-            .then(|| {
-                let first_error = self.panics.iter().next().unwrap().clone();
-                first_error.saved_to.map(|f| {
-                    button("Open Crash Report")
-                        .on_press(Message::Open(f))
-                        .style(theme::Button::Start)
-                        .padding(10)
-                })
-            })
+            .then(|| self.panics.iter().next().and_then(open_crash_button))
             .flatten();
 
         let view = column![
@@ -178,6 +164,15 @@ impl Crashes {
             .padding(15)
             .into()
     }
+}
+
+fn open_crash_button(panic: &Panic) -> Option<Button<Message>> {
+    panic.saved_to.clone().map(|f| {
+        button("Open Crash Report")
+            .on_press(Message::Open(f))
+            .style(theme::Button::Start)
+            .padding(10)
+    })
 }
 
 pub async fn generate_detailed_crash(crash: Crashes) {
