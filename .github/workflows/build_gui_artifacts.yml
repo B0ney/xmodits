@@ -29,7 +29,7 @@ jobs:
             os: macos-latest
             make: |
               rustup target add aarch64-apple-darwin
-              rustup default stable aarch64-apple-darwin
+              rustup default stable-aarch64-apple-darwin
               bash dist/build-macos.sh silicon
             artifact_path: "target/release/artifact/*"
     
