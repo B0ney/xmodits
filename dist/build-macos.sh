@@ -14,6 +14,10 @@ ARCHIVE_DIR="$RELEASE_DIR/archive"
 ARTIFACT_DIR="$RELEASE_DIR/artifact"
 BINARY="$ARCHIVE_DIR/$TARGET"
 
+case "$1" in
+    "silicon") BINARY_TYPE="apple-silicon";;
+    *) BINARY_TYPE="intel"
+esac
 
 # create directories
 mkdir -p $ARCHIVE_DIR
@@ -22,16 +26,12 @@ rm -rf $ARCHIVE_DIR/*
 mkdir -p $ARTIFACT_DIR
 rm -rf $ARTIFACT_DIR/*
 
-
-# Build universal binary and store it to the archive directory
 export MACOSX_DEPLOYMENT_TARGET="11.0"
-rustup target add x86_64-apple-darwin
-rustup target add aarch64-apple-darwin
-cargo build -p xmodits-gui --release --target=x86_64-apple-darwin --features=$FEATURES
-cargo build -p xmodits-gui --release --target=aarch64-apple-darwin --features=$FEATURES
 
-lipo "target/x86_64-apple-darwin/release/$TARGET_OLD" "target/aarch64-apple-darwin/release/$TARGET_OLD" -create -output "$BINARY"
-echo "Created universal binary"
+cargo build -p xmodits-gui --release --features=$FEATURES
+
+mv "target/release/$TARGET_OLD" "$BINARY"
+echo "Created MacOS binary"
 
 # copy extra files
 cp  ./assets/manual.txt $ARCHIVE_DIR
@@ -39,7 +39,7 @@ cp  LICENSE $ARCHIVE_DIR
 
 chmod +x $BINARY
 
-ARCHIVE_NAME="xmodits-gui-v$($BINARY --version)-$PLATFORM-universal.zip"
+ARCHIVE_NAME="xmodits-gui-v$($BINARY --version)-$PLATFORM-$BINARY_TYPE.zip"
 ARCHIVE_PATH="$ARTIFACT_DIR/$ARCHIVE_NAME"
 
 zip -j $ARCHIVE_PATH $ARCHIVE_DIR/*
