@@ -16,7 +16,6 @@ pub enum Message {
     Panic(SavedPanic),
     BadModule(PathBuf),
     Shutdown,
-    GenerateDetailedReport,
     Ignore,
     Open(PathBuf),
 }
@@ -32,7 +31,7 @@ impl Crashes {
         !self.panics.is_empty()
     }
 
-    pub fn add_bad_module(&mut self, file: PathBuf) {
+    fn add_bad_module(&mut self, file: PathBuf) {
         tracing::error!(
             "This module might have caused the fatal error: {}",
             file.display()
@@ -40,7 +39,7 @@ impl Crashes {
         self.bad_modules.push(file)
     }
 
-    pub fn add_panic(&mut self, panic: SavedPanic) {
+    fn add_panic(&mut self, panic: SavedPanic) {
         tracing::error!("Detected Panic");
         let _ = self.panics.push(panic);
     }
@@ -50,9 +49,6 @@ impl Crashes {
             Message::Panic(panic) => self.add_panic(panic),
             Message::BadModule(file) => self.add_bad_module(file),
             Message::Shutdown => return window::close(window::Id::MAIN),
-            Message::GenerateDetailedReport => {
-                return Command::perform(generate_detailed_crash(self.clone()), |_| Message::Ignore)
-            }
             Message::Open(log) => {
                 let _ = open::that_detached(log);
             }
@@ -84,22 +80,15 @@ impl Crashes {
             .style(theme::Button::Cancel)
             .padding(10);
 
-        let report_button = has_bad_modules.then(|| {
-            button(text_icon_srnd("Generate Detailed Report", icon::save()))
-                .on_press(Message::GenerateDetailedReport)
-                .style(theme::Button::Start)
-                .padding(10)
-        });
-
         let bad_modules = has_bad_modules.then(|| {
             let msg = "The following files might be the cause:";
             let paths = column(self.bad_modules.iter().map(|f| text(f.display()).into()));
 
             column![
                 msg,
-                fill_container(scrollable(paths)).padding(10).style(theme::Container::Black),
-                "A *basic* crash log has been automatically generated and saved to your *Downloads* folder. \
-                \nBut you can also create a more detailed report that includes those problematic files."
+                fill_container(scrollable(paths))
+                    .padding(10)
+                    .style(theme::Container::Black),
             ]
             .spacing(6)
         });
@@ -147,8 +136,6 @@ impl Crashes {
         let view = column![
             control_filled(title, content),
             row![]
-                .push_maybe(report_button)
-                .push_maybe(has_bad_modules.then(|| Space::with_width(Length::Fill)))
                 .push_maybe(open_single_log)
                 .push(Space::with_width(Length::Fill))
                 .push(shutdown_button)
@@ -172,23 +159,6 @@ fn open_crash_button(panic: &SavedPanic) -> Option<Button<Message>> {
             .style(theme::Button::Start)
             .padding(10)
     })
-}
-
-pub async fn generate_detailed_crash(crash: Crashes) {
-    use tokio::io::AsyncWriteExt;
-
-    if let Some(path) = create_file_dialog("filename".to_string()).await {
-        if let Ok(mut file) = tokio::fs::OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .open(&path)
-            .await
-        {
-            let _ = file.write_all("crash".as_bytes()).await;
-
-            let _ = open::that_detached(path);
-        }
-    }
 }
 
 fn big<'a>(str: impl ToString) -> Text<'a> {
