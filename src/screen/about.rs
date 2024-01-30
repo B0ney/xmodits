@@ -1,7 +1,5 @@
 //! Information about xmodits
 
-use std::path::PathBuf;
-
 use crate::icon::{self, vbee3, xmodits_logo};
 use crate::widget::helpers::{
     centered_column_x, centered_container, centered_text, control, control_filled, text_icon,

@@ -512,7 +512,6 @@ impl scrollable::StyleSheet for Theme {
                     width: BORDER_WIDTH,
                     radius: 3.0.into(),
                 },
-                ..self.active(style).scroller
             },
             ..self.active(style)
         }

@@ -420,7 +420,7 @@ fn load_samples(path: PathBuf) -> Command<Message> {
                         return Err(Error::io_error("Path is a directory.").unwrap_err());
                     }
 
-                    let mut file = std::fs::File::open(&path)?;
+                    let mut file = std::fs::File::open(path)?;
 
                     if file.metadata()?.len() > MAX_SIZE {
                         return Err(Error::io_error("File size exceeds 40 MB").unwrap_err());

@@ -1,4 +1,4 @@
-use iced::font::{self, Family, Font, Weight};
+use iced::font::{self, Font};
 use iced::Command;
 
 pub static JETBRAINS_MONO: Font = Font::with_name("JetBrains Mono NL");

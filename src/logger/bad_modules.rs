@@ -30,14 +30,6 @@ impl BadModules {
 
         self.modules.write().push(path);
     }
-
-    pub fn copy(&self) -> Vec<PathBuf> {
-        self.modules.read().clone()
-    }
-
-    pub fn total(&self) -> usize {
-        self.modules.read().len()
-    }
 }
 
 /// Helper function to add the given path to the global BAD_MODULES if the calling closure panics.

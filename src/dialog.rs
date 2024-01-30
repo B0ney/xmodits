@@ -45,7 +45,7 @@ pub fn success<P: AsRef<Path>>(dest: P) {
 pub fn success_partial<P: AsRef<Path>>(destination: P, log_path: P) {
     let dialog = show_dialog(
         "Some errors have occurred",
-        &format!(
+        format!(
             "xmodits could not rip everything. Check the logs at:\n{}.\n\nShow Results and Errors?",
             log_path.as_ref().display()
         ),
@@ -62,7 +62,7 @@ pub fn success_partial<P: AsRef<Path>>(destination: P, log_path: P) {
 pub fn success_partial_no_log(error: &str) {
     show_dialog(
         "Some errors have occurred",
-        &format!(
+        format!(
             "xmodits could not rip everything. And it could not create a log file: {}",
             error
         ),

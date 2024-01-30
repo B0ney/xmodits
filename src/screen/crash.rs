@@ -6,7 +6,6 @@ use iced::widget::{button, column, container, horizontal_rule, row, scrollable, 
 use iced::{window, Alignment, Command, Length, Subscription};
 
 use crate::logger::crash_handler::SavedPanic;
-use crate::utils::create_file_dialog;
 use crate::widget::helpers::{control_filled, fill_container, text_icon_srnd};
 use crate::widget::{Button, Collection, Container, Element, Text};
 use crate::{icon, logger, theme};
@@ -41,7 +40,7 @@ impl Crashes {
 
     fn add_panic(&mut self, panic: SavedPanic) {
         tracing::error!("Detected Panic");
-        let _ = self.panics.push(panic);
+        self.panics.push(panic);
     }
 
     pub fn update(&mut self, message: Message) -> Command<Message> {
@@ -129,7 +128,7 @@ impl Crashes {
         .spacing(6);
 
         let open_single_log = (!multiple_errors)
-            .then(|| self.panics.iter().next().and_then(open_crash_button))
+            .then(|| self.panics.first().and_then(open_crash_button))
             .flatten();
 
         let view = column![

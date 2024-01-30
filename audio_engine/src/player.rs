@@ -108,10 +108,10 @@ impl PlayerHandle {
     }
 
     pub fn is_inactive(&self) -> bool {
-        return self.inner.is_none()
+        self.inner.is_none()
     }
 
     pub fn is_active(&self) -> bool {
-        return self.inner.is_some()
+        self.inner.is_some()
     }
 }

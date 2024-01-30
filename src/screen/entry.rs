@@ -8,7 +8,7 @@ use crate::widget::helpers::{centered_container, centered_text, fill_container, 
 use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
 
-use iced::widget::{button, checkbox, column, row, scrollable, text, Space};
+use iced::widget::{button, checkbox, column, row, scrollable, Space};
 use iced::{Alignment, Length};
 
 #[derive(Default)]
