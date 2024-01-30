@@ -177,7 +177,7 @@ pub fn set_panic_hook() {
                 let _ = write!(
                     &mut file,
                     "XMODITS CRASH LOG\n\n\
-                    {} \n\
+                    APPLICATION BUILD INFO:\n{}\n\
                     SOURCE: {} \n\n\
                     LINE: {} \n\n\
                     MESSAGE: {} \n\n\
