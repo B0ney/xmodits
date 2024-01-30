@@ -115,7 +115,7 @@ impl<'a> Display for Dump<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let location: Cow<str> = match self.location {
             Some(location) => format!(
-                "Panic occurred in file:\n '{}'\nat line: {}.",
+                "Panic occurred in file:\n'{}'\nat line: {}.",
                 location.file(),
                 location.line(),
             )
@@ -123,7 +123,7 @@ impl<'a> Display for Dump<'a> {
             None => "Can't get location information...".into(),
         };
 
-        write!(f, "{location}\n'{}'", self.message())
+        write!(f, "{location}\n\n'{}'", self.message())
     }
 }
 
