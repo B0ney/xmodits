@@ -43,7 +43,7 @@ optional = true
 [dependencies.rfd]
 version = "0.13"
 default-features = false
-features = ["xdg-portal", "tokio", "common-controls-v6"]
+features = ["xdg-portal", "tokio"]
 
 [dependencies]
 data = { path = "data" }
@@ -88,7 +88,6 @@ split-debuginfo = "packed"
 incremental = true
 
 [profile.release]
-strip = "debuginfo"
 opt-level = "s"
 codegen-units = 1
 
