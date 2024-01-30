@@ -1,4 +1,4 @@
-//! Hopefully nobody should every see this, but if they do, make it... nice
+//! Hopefully nobody should ever see this, but if they do, make it... nice
 
 use std::path::PathBuf;
 
@@ -61,7 +61,7 @@ impl Crashes {
     /// * provide link to generated crash log
     /// * add option to generate an even more detailed crash log if there are bad modules
     ///     * store md5 hash (to reference if it's on modarchive) + file name
-    ///
+    /// * Add option to save crash if the panic handler failed to save it to a file
     pub fn view(&self) -> Element<Message> {
         let has_bad_modules = !self.bad_modules.is_empty();
 
