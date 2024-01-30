@@ -36,7 +36,7 @@ impl BadModules {
     }
 
     pub fn total(&self) -> usize {
-        self.modules.read().len() as usize
+        self.modules.read().len()
     }
 }
 
@@ -77,7 +77,7 @@ where
         }
     }
 
-    LogOnUnwind::new(path.as_ref()).execute(func)
+    LogOnUnwind::new(path).execute(func)
 }
 
 /// This subscription reports when a module caused a crash
