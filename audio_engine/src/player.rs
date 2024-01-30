@@ -2,40 +2,57 @@ use std::time::Instant;
 
 use crate::sample::{FramesIter, TrackerSample};
 
-// TODO: Don't panic if there are no audio devices
 pub struct SamplePlayer {
-    _stream: rodio::OutputStream,
-    _handle: rodio::OutputStreamHandle,
+    inner: Option<RodioEngine>,
 }
 
 impl Default for SamplePlayer {
     fn default() -> Self {
-        let (_stream, _handle) = rodio::OutputStream::try_default().unwrap();
-
-        Self { _stream, _handle }
+        Self {
+            inner: RodioEngine::new(),
+        }
     }
 }
 
 impl SamplePlayer {
     pub fn create_handle(&self) -> PlayerHandle {
         PlayerHandle {
-            sink: rodio::Sink::try_new(&self._handle).unwrap(),
+            inner: self.inner.as_ref().and_then(RodioEngine::create_handle),
         }
     }
 }
 
+struct RodioEngine {
+    _stream: rodio::OutputStream,
+    _handle: rodio::OutputStreamHandle,
+}
+
+impl RodioEngine {
+    fn new() -> Option<Self> {
+        rodio::OutputStream::try_default()
+            .ok()
+            .map(|(_stream, _handle)| Self { _stream, _handle })
+    }
+
+    fn create_handle(&self) -> Option<rodio::Sink> {
+        rodio::Sink::try_new(&self._handle).ok()
+    }
+}
+
 pub struct PlayerHandle {
-    sink: rodio::Sink,
+    inner: Option<rodio::Sink>,
 }
 
 impl PlayerHandle {
     pub fn play(&self, source: TrackerSample) {
         self.unpause();
-        self.sink.append(FramesIter {
-            sample: source,
-            timer: Instant::now(),
-            callback: None,
-        });
+        if let Some(sink) = &self.inner {
+            sink.append(FramesIter {
+                sample: source,
+                timer: Instant::now(),
+                callback: None,
+            });
+        }
     }
 
     pub fn play_with_callback<F>(&self, source: TrackerSample, callback: F)
@@ -43,38 +60,58 @@ impl PlayerHandle {
         F: Fn(&TrackerSample, &mut Instant) + Send + 'static,
     {
         self.unpause();
-        self.sink.append(FramesIter {
-            sample: source,
-            timer: Instant::now(),
-            callback: Some(Box::new(callback)),
-        });
+        if let Some(sink) = &self.inner {
+            sink.append(FramesIter {
+                sample: source,
+                timer: Instant::now(),
+                callback: Some(Box::new(callback)),
+            });
+        }
     }
 
     pub fn stop(&self) {
-        self.sink.stop();
+        if let Some(sink) = &self.inner {
+            sink.stop();
+        }
     }
 
     pub fn pause(&self) {
-        if !self.sink.empty() {
-            match self.sink.is_paused() {
-                true => self.sink.play(),
-                false => self.sink.pause(),
+        if let Some(sink) = &self.inner {
+            if !sink.empty() {
+                match sink.is_paused() {
+                    true => sink.play(),
+                    false => sink.pause(),
+                }
             }
         }
     }
 
     pub fn unpause(&self) {
-        if self.sink.is_paused() {
-            self.sink.pause();
-            self.sink.play()
+        if let Some(sink) = &self.inner {
+            if sink.is_paused() {
+                sink.pause();
+                sink.play()
+            }
         }
     }
 
     pub fn is_playing(&self) -> bool {
-        !self.sink.empty() && !self.sink.is_paused()
+        self.inner
+            .as_ref()
+            .is_some_and(|sink| !sink.empty() && !sink.is_paused())
     }
 
     pub fn set_volume(&self, volume: f32) {
-        self.sink.set_volume(volume)
+        if let Some(sink) = &self.inner {
+            sink.set_volume(volume)
+        }
+    }
+
+    pub fn is_inactive(&self) -> bool {
+        return self.inner.is_none()
+    }
+
+    pub fn is_active(&self) -> bool {
+        return self.inner.is_some()
     }
 }

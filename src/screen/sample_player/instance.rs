@@ -178,21 +178,30 @@ impl Instance {
             .width(Length::Fill)
             .height(Length::FillPortion(2));
 
-        let progress = progress_bar(0.0..=1.0, self.progress.unwrap_or_default())
-            .height(5.0)
-            .style(theme::ProgressBar::Dark);
+        let progress = self.player.is_active().then(|| {
+            progress_bar(0.0..=1.0, self.progress.unwrap_or_default())
+                .height(5.0)
+                .style(theme::ProgressBar::Dark)
+        });
 
-        let warning = warning(
+        let static_noise_warning = warning(
             || false,
             "WARNING - This sample is most likely static noise.",
+        );
+
+        let no_audio_warning = warning(
+            || self.player.is_inactive(),
+            "WARNING - Could not connect to audio device. No sound will be played.",
         );
 
         let top_half = row![top_left, top_right]
             .height(Length::FillPortion(3))
             .spacing(5);
 
-        let main = column![top_half, waveform_viewer, progress]
-            .push_maybe(warning)
+        let main = column![top_half, waveform_viewer]
+            .push_maybe(progress)
+            .push_maybe(static_noise_warning)
+            .push_maybe(no_audio_warning)
             .spacing(5);
 
         fill_container(main)
