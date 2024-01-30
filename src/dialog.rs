@@ -8,18 +8,6 @@ fn show_dialog(title: &str, msg: impl Into<String>, msg_type: MessageLevel) -> M
         .set_level(msg_type)
 }
 
-fn show_dialog_then_open<'a, F: FnOnce()>(
-    dialog: MessageDialog,
-    buttons: MessageButtons,
-    actions: impl IntoIterator<Item = (&'a str, F)>,
-) {
-    if let MessageDialogResult::Custom(clicked) = dialog.set_buttons(buttons).show() {
-        if let Some((_, callback)) = actions.into_iter().find(|(btn, _)| *btn == clicked) {
-            callback()
-        }
-    }
-}
-
 pub fn show_help_box() {
     show_dialog(
         "No tracker modules",
@@ -41,37 +29,34 @@ pub fn path_contains_folder() {
 pub fn success<P: AsRef<Path>>(dest: P) {
     let dialog = show_dialog(
         "Success!",
-        format!("Successfully ripped samples to {}", dest.as_ref().display()),
+        format!(
+            "Successfully ripped samples to {}.\n\nShow Results?",
+            dest.as_ref().display()
+        ),
         MessageLevel::Info,
-    );
-    let btn = "Show Results";
-    show_dialog_then_open(
-        dialog,
-        MessageButtons::OkCancelCustom("Ok".into(), btn.to_owned()),
-        [(btn, || {
-            let _ = open::that_detached(dest.as_ref());
-        })],
-    );
+    )
+    .set_buttons(MessageButtons::YesNo);
+
+    if let MessageDialogResult::Yes = dialog.show() {
+        let _ = open::that_detached(dest.as_ref());
+    }
 }
 
 pub fn success_partial<P: AsRef<Path>>(destination: P, log_path: P) {
     let dialog = show_dialog(
         "Some errors have occurred",
         &format!(
-            "xmodits could not rip everything. Check the logs at:\n{}",
+            "xmodits could not rip everything. Check the logs at:\n{}.\n\nShow Results and Errors?",
             log_path.as_ref().display()
         ),
         MessageLevel::Warning,
-    );
-    let btn = "Show Results and Errors";
-    show_dialog_then_open(
-        dialog,
-        MessageButtons::OkCancelCustom("Ok".into(), btn.to_owned()),
-        [(btn, || {
-            let _ = open::that_detached(destination.as_ref());
-            let _ = open::that_detached(log_path.as_ref());
-        })],
-    );
+    )
+    .set_buttons(MessageButtons::YesNo);
+
+    if let MessageDialogResult::Yes = dialog.show() {
+        let _ = open::that_detached(destination.as_ref());
+        let _ = open::that_detached(log_path.as_ref());
+    }
 }
 
 pub fn success_partial_no_log(error: &str) {
@@ -99,10 +84,5 @@ pub fn no_valid_modules() {
 }
 
 pub fn critical_error(error: &str) {
-    show_dialog(
-        "FATAL ERROR (>_<)",
-        error,
-        MessageLevel::Error,
-    )
-    .show();
+    show_dialog("FATAL ERROR (>_<)", error, MessageLevel::Error).show();
 }
