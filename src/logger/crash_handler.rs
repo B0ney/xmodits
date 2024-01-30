@@ -168,7 +168,7 @@ pub fn set_panic_hook() {
             let filename = format!(
                 "XMODITS-v{}-CRASH-{:X}.txt",
                 env!("CARGO_PKG_VERSION"),
-                rand::thread_rng().gen::<u32>()
+                rand::thread_rng().gen::<u16>()
             );
 
             let log_path = dirs::download_dir().unwrap_or_default().join(filename);
@@ -205,6 +205,12 @@ pub fn set_panic_hook() {
             }
         };
 
+        let message = dump.to_string();
+        let message = match &saved_to {
+            Some(location) => format!("{}\n\nA crash log was written to: {}", message, location.display()),
+            None => message,
+        };
+
         // Send a copy of the panic + location of where it's saved
         if let Some(sender) = PANIC_SIGNAL.get() {
             let _ = sender.blocking_send(SavedPanic {
@@ -213,7 +219,6 @@ pub fn set_panic_hook() {
             });
         }
 
-        let message = dump.to_string();
         let message = move || dialog::critical_error(&message);
 
         let msg_box = std::thread::spawn(message);
