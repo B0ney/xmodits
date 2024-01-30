@@ -101,7 +101,7 @@ pub fn no_valid_modules() {
 pub fn critical_error(error: &str) {
     show_dialog(
         "FATAL ERROR (>_<)",
-        &format!("{}\n\nThe program will now terminate.", error),
+        error,
         MessageLevel::Error,
     )
     .show();
