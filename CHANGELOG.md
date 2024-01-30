@@ -48,6 +48,9 @@
 * Manually saving errors will also open them in a text editor.
   * Also added the option to disable this.
 * Performance improvements - ripping should be **~5-8%** faster.
+* Improved crash handling:
+  * XMODITS now generates a crash log.
+  * If a crash occurred during sample extraction, it can identify modules that caused it.
 
 ## Miscellaneous
 * MacOS builds are now distributed as a universal binary. The program should now run optimally on both Intel and Apple silicon machines.
