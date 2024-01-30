@@ -58,7 +58,6 @@ impl Crashes {
     }
 
     /// TODO:
-    /// * provide link to generated crash log
     /// * add option to generate an even more detailed crash log if there are bad modules
     ///     * store md5 hash (to reference if it's on modarchive) + file name
     /// * Add option to save crash if the panic handler failed to save it to a file
