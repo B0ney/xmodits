@@ -4,15 +4,13 @@ mod simple;
 use crate::event;
 use crate::font;
 use crate::icon;
-use crate::logger;
-use crate::logger::crash_handler;
 use crate::ripper;
 // use crate::screen::config::custom_filters;
 use crate::screen::about;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
 use crate::screen::config::sample_ripping::{self, DESTINATION_BAR_ID};
-use crate::screen::crash;
+use crate::screen::crash::{self, Crashes};
 use crate::screen::entry::Entries;
 use crate::screen::ripping;
 use crate::screen::sample_player;
@@ -70,9 +68,7 @@ pub enum Message {
     SettingsPressed,
     StartRipping,
     Subscription(ripper::Message),
-    Shutdown,
-    BadModules(PathBuf),
-    Panic(logger::crash_handler::Panic),
+    Crashes(crash::Message),
 }
 
 /// This is basically the configuration panel view.
@@ -94,12 +90,11 @@ pub struct XMODITS {
     file_hovered: bool,
     ripper: ripper::Handle,
     tracker_info: TrackerInfo,
+    crashes: Crashes,
     sample_player: sample_player::SamplePreview,
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
-    crashes: Vec<crash_handler::Panic>,
-    bad_modules: Vec<PathBuf>,
     // custom_filters: custom_filters::CustomFilters,
 }
 
@@ -409,27 +404,19 @@ impl multi_window::Application for XMODITS {
                     tracing::error!("Failed to load font: {:#?}", e);
                 }
             }
-            Message::Shutdown => return window::close(window::Id::MAIN),
-            Message::BadModules(file) => {
-                tracing::error!(
-                    "This module might have caused the fatal error: {}",
-                    file.display()
-                );
-                self.bad_modules.push(file);
-            }
-            Message::Panic(_panic) => {
-                tracing::error!("Detected Panic");
-                self.crashes.push(_panic);
-
-                return self.sample_player.close_all().map(Message::SamplePlayer);
+            Message::Crashes(msg) => {
+                return Command::batch([
+                    self.sample_player.close_all().map(Message::SamplePlayer),
+                    self.crashes.update(msg).map(Message::Crashes),
+                ]);
             }
         }
         Command::none()
     }
 
     fn view(&self, _id: window::Id) -> Element<Message> {
-        if !self.crashes.is_empty() {
-            return crash::view(&self.crashes, &self.bad_modules);
+        if self.crashes.occurred() {
+            return self.crashes.view().map(Message::Crashes);
         }
 
         #[cfg(feature = "audio")]
@@ -595,8 +582,7 @@ impl multi_window::Application for XMODITS {
         iced::Subscription::batch([
             event::events().map(Message::Event),
             ripper::subscription().map(Message::Subscription),
-            logger::bad_modules::subscription().map(Message::BadModules),
-            logger::crash_handler::subscription().map(Message::Panic),
+            crash::subscription().map(Message::Crashes),
         ])
     }
 }

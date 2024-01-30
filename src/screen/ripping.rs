@@ -14,9 +14,7 @@ use crate::widget::helpers::{
 use crate::widget::{self, Collection, Element};
 use crate::{icon, theme};
 
-use iced::widget::{
-    button, column, container, progress_bar, row, scrollable, text, Space,
-};
+use iced::widget::{button, column, container, progress_bar, row, scrollable, text, Space};
 use iced::{Alignment, Length};
 
 /// The current state of the application.
@@ -161,23 +159,13 @@ pub fn view_finished<'a>(
         .style(theme::Container::BlackHovered(hovered))
         .into(),
 
-        CompleteState::Aborted => {
-            let shutdown_button = button("Close Application")
-                .on_press(Message::Shutdown)
-                .style(theme::Button::Cancel)
-                .padding(5);
-
-            centered_container(
-                column![
-                    text("Ripping process was aborted because of an internal error."),
-                    shutdown_button
-                ]
+        CompleteState::Aborted => centered_container(
+            column!["Ripping process was aborted because of an internal error."]
                 .spacing(4)
-                .align_items(Alignment::Center)
-            )
-            .style(theme::Container::Black)
-            .into()
-        }
+                .align_items(Alignment::Center),
+        )
+        .style(theme::Container::Black)
+        .into(),
 
         CompleteState::SomeErrors(errors) => {
             let message = column![

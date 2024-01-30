@@ -291,8 +291,7 @@ impl<'io> Batcher<'io> {
                 .expect("constructing thread pool")
                 .spawn(move || {
                     while let Ok(batch) = batch_rx.recv() {
-                        // TODO: how much overhead would panic_fuse add?
-                        batch.lock().par_iter().panic_fuse().for_each(|file| {
+                        batch.lock().par_iter().for_each(|file| {
                             if stop_flag::is_set() {
                                 return;
                             }
@@ -317,7 +316,7 @@ impl<'io> Batcher<'io> {
     pub fn start(&mut self) {
         let mut is_last_batch = false;
 
-        while !self.state.complete && !stop_flag::is_set() {
+        while !(self.state.complete || stop_flag::is_set()) {
             // If this is the last batch, set the state to complete
             // and send the last batch. When complete this loop terminates.
             self.state.complete = is_last_batch;
