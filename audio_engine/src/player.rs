@@ -106,4 +106,12 @@ impl PlayerHandle {
             sink.set_volume(volume)
         }
     }
+
+    pub fn is_inactive(&self) -> bool {
+        return self.inner.is_none()
+    }
+
+    pub fn is_active(&self) -> bool {
+        return self.inner.is_some()
+    }
 }
