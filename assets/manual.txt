@@ -1,14 +1,14 @@
 XMODITS v0.12.0 MANUAL
 
 Author: B0ney
-Last Modified: 18 January 2024
+Last Modified: 30 January 2024
 
 
         HOW TO USE.
         -----------
 
 1) Open application
-2) Drag and drop a module, and or a folder full of modules.
+2) Drag and drop a module (and, or a folder full of modules).
 3) (Optional) Press "Open" to set the destination folder. Your downloads folder is the default.
 5) Press "Start"
 6) Press "Show Folder" to see the results.
@@ -41,9 +41,9 @@ The configuration file can be located at:
     MacOS   - ~/Library/Application Support/xmodits/config.toml
 
    
-Command Line arguments:
+Command line arguments:
     --help      -h      Prints help information 
-    --version   -V      prints app version 
+    --version   -V      Prints app version 
     --info      -i      Prints build information 
     --manual    -m      Prints manual 
 
