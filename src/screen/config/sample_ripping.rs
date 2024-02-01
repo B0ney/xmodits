@@ -78,12 +78,8 @@ pub fn view_destination_bar(ripping_cfg: &SampleRippingConfig) -> Element<Messag
 
 pub fn view(ripping: &SampleRippingConfig) -> Element<Message> {
     let col1 = column![
-        checkbox(
-            "Self Contained",
-            ripping.self_contained,
-            Message::SelfContained
-        ),
-        checkbox("Strict Loading", ripping.strict, Message::StrictLoad),
+        checkbox("Self Contained", ripping.self_contained).on_toggle(Message::SelfContained),
+        checkbox("Strict Loading", ripping.strict).on_toggle(Message::StrictLoad),
     ]
     .spacing(8);
 

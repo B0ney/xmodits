@@ -502,12 +502,9 @@ impl multi_window::Application for XMODITS {
             )),
             Space::with_width(Length::Fill),
             button("Invert").on_press(Message::InvertSelection),
-            checkbox(
-                "Select All",
-                self.entries.all_selected(),
-                Message::SelectAll
-            )
-            .style(theme::CheckBox::Inverted)
+            checkbox("Select All", self.entries.all_selected())
+                .on_toggle(Message::SelectAll)
+                .style(theme::CheckBox::Inverted)
         ]
         .spacing(8)
         .align_items(Alignment::Center);

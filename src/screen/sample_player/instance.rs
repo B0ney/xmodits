@@ -153,8 +153,8 @@ impl Instance {
             let play_on_selection_checkbox = checkbox(
                 "Play on Selection",
                 self.settings.play_on_selection,
-                Message::SetPlayOnSelection,
             )
+            .on_toggle(Message::SetPlayOnSelection)
             .style(theme::CheckBox::Inverted);
 
             row![play_on_selection_checkbox, Space::with_width(Length::Fill)]

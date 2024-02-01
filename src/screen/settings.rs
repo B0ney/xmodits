@@ -35,27 +35,25 @@ TODO:
 */
 pub fn view(general: &config::GeneralConfig) -> Element<Message> {
     #[cfg(feature = "iced_gif")]
-    let hide_gif = Some(checkbox(
-        "Hide Animated GIFs",
-        general.hide_gif,
-        Message::ShowAnimatedGIF,
-    ));
+    let hide_gif =
+        Some(checkbox("Hide Animated GIFs", general.hide_gif).on_toggle(Message::ShowAnimatedGIF));
 
     #[cfg(not(feature = "iced_gif"))]
     let hide_gif = None::<Element<Message>>;
 
     let settings = column![]
-        .push(checkbox(
-            "Hide Warnings",
-            general.suppress_warnings,
-            Message::SuppressWarnings,
-        ))
+        .push(
+            checkbox("Hide Warnings", general.suppress_warnings)
+                .on_toggle(Message::SuppressWarnings),
+        )
         .push_maybe(hide_gif)
-        .push(checkbox(
-            "Open Saved Errors in Text Editor",
-            general.show_errors_in_text_editor,
-            Message::ShowErrorsInTextEditor,
-        ))
+        .push(
+            checkbox(
+                "Open Saved Errors in Text Editor",
+                general.show_errors_in_text_editor,
+            )
+            .on_toggle(Message::ShowErrorsInTextEditor),
+        )
         .spacing(8);
 
     column![control("Application Settings", settings)]
@@ -83,16 +81,10 @@ pub fn themes(general: &config::GeneralConfig) -> Element<Message> {
 #[cfg(target_env = "msvc")]
 pub fn non_gui(general: &config::GeneralConfig) -> Option<Element<Message>> {
     let settings = column![
-        checkbox(
-            "Quiet Output",
-            general.non_gui_quiet_output,
-            Message::NonGuiQuietOutput
-        ),
-        checkbox(
-            "Use Current Working Directory",
-            general.non_gui_use_cwd,
-            Message::NonGuiUseCwd
-        ),
+        checkbox("Quiet Output", general.non_gui_quiet_output)
+            .on_toggle(Message::NonGuiQuietOutput),
+        checkbox("Use Current Working Directory", general.non_gui_use_cwd,)
+            .on_toggle(Message::NonGuiUseCwd),
     ]
     .spacing(8);
 

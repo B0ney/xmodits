@@ -179,11 +179,9 @@ impl Entries {
 }
 
 fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
-    let check = checkbox("", entry.selected, move |selected| Message::Select {
-        index,
-        selected,
-    })
-    .style(theme::CheckBox::Entry);
+    let check = checkbox("", entry.selected)
+        .on_toggle(move |selected| Message::Select { index, selected })
+        .style(theme::CheckBox::Entry);
 
     let filename = text_adv(entry.filename());
 

@@ -225,6 +225,11 @@ impl checkbox::StyleSheet for Theme {
         }
     }
 
+    // todo
+    fn disabled(&self, style: &Self::Style, is_checked: bool) -> checkbox::Appearance {
+        self.active(style, is_checked)
+    }
+
     fn hovered(&self, style: &Self::Style, _is_checked: bool) -> checkbox::Appearance {
         let p = self.inner();
 

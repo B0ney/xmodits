@@ -62,20 +62,16 @@ pub fn update(cfg: &mut SampleNameConfig, message: Message) {
 
 pub fn view(config: &SampleNameConfig, preview: impl ToString) -> Element<Message> {
     let col1 = column![
-        checkbox("Index Only", config.index_only, Message::IndexOnly),
-        checkbox("Preserve Index", config.index_raw, Message::IndexRaw),
-        checkbox("Prefix Samples", config.prefix, Message::PrefixSamples),
+        checkbox("Index Only", config.index_only).on_toggle(Message::IndexOnly),
+        checkbox("Preserve Index", config.index_raw).on_toggle(Message::IndexRaw),
+        checkbox("Prefix Samples", config.prefix).on_toggle(Message::PrefixSamples),
     ]
     .spacing(8);
 
     let col2 = column![
-        checkbox("Upper Case", config.upper, Message::UpperCase),
-        checkbox("Lower Case", config.lower, Message::LowerCase),
-        checkbox(
-            "Prefer Filename",
-            config.prefer_filename,
-            Message::PreferFilename
-        ),
+        checkbox("Upper Case", config.upper).on_toggle(Message::UpperCase),
+        checkbox("Lower Case", config.lower).on_toggle(Message::LowerCase),
+        checkbox("Prefer Filename", config.prefer_filename,).on_toggle(Message::PreferFilename),
     ]
     .spacing(8);
 
