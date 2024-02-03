@@ -8,6 +8,7 @@ use iced::widget::{button, checkbox, column, progress_bar, row, scrollable, slid
 use iced::{command, Alignment, Command, Length};
 
 use crate::screen::entry::Entries;
+use crate::utils::filename;
 use crate::widget::helpers::{centered_container, fill_container, warning};
 use crate::widget::waveform_view::{Marker, WaveData};
 use crate::widget::{Button, Collection, Container, Element, Row, WaveformViewer};
@@ -150,12 +151,10 @@ impl Instance {
                 .is_none()
                 .then_some(Space::with_height(Length::Fixed(27.0)));
 
-            let play_on_selection_checkbox = checkbox(
-                "Play on Selection",
-                self.settings.play_on_selection,
-            )
-            .on_toggle(Message::SetPlayOnSelection)
-            .style(theme::CheckBox::Inverted);
+            let play_on_selection_checkbox =
+                checkbox("Play on Selection", self.settings.play_on_selection)
+                    .on_toggle(Message::SetPlayOnSelection)
+                    .style(theme::CheckBox::Inverted);
 
             row![play_on_selection_checkbox, Space::with_width(Length::Fill)]
                 .push_maybe(no_button_spacing)
@@ -243,7 +242,11 @@ impl Instance {
                 format!("Failed to open {}", path.display())
             }
             State::Loaded { samples, .. } => {
-                format!("Loaded: \"{}\"", samples.name())
+                let name = match samples.name().trim() {
+                    n if n.is_empty() => filename(samples.path()),
+                    name => name,
+                };
+                format!("Loaded: {}", name)
             }
         }
     }
