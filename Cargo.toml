@@ -13,6 +13,7 @@ default = ["built", "audio", "iced_gif", "manual"]
 audio = ["audio_engine", "dasp"]
 wgpu = ["iced/wgpu"]
 manual = ["data/manual"]
+backtrace = []
 
 [workspace]
 members = ["data", "audio_engine"]
@@ -88,6 +89,7 @@ split-debuginfo = "packed"
 incremental = true
 
 [profile.release]
+strip = true
 opt-level = "s"
 codegen-units = 1
 

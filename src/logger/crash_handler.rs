@@ -49,15 +49,14 @@ pub struct Panic {
     pub line: Option<u32>,
     pub file: String,
     pub message: String,
+    #[cfg(feature = "backtrace")]
     pub backtrace: String,
     pub build_info: String,
 }
 
 impl PartialEq for Panic {
     fn eq(&self, other: &Self) -> bool {
-        self.line == other.line 
-        && self.file == other.file 
-        && self.message == other.message
+        self.line == other.line && self.file == other.file && self.message == other.message
     }
 }
 
@@ -135,6 +134,8 @@ pub fn set_panic_hook() {
 
         // gather necessary crash information
         let dump = Dump::from_panic(panic_info);
+        
+        #[cfg(feature = "backtrace")]
         let backtrace = std::backtrace::Backtrace::force_capture().to_string();
 
         let build_info = build_info::info(true).fold(String::new(), |mut out, (label, value)| {
@@ -146,6 +147,7 @@ pub fn set_panic_hook() {
             file: dump.file().to_owned(),
             line: dump.line(),
             message: dump.message().to_owned(),
+            #[cfg(feature = "backtrace")]
             backtrace,
             build_info,
         };
@@ -157,10 +159,17 @@ pub fn set_panic_hook() {
             return;
         }
 
+        #[cfg(feature = "backtrace")]
         tracing::error!(
             "FATAL ERROR: \n{}\n\nBACKTRACE:\n{}",
             &panic_log.message,
             &panic_log.backtrace
+        );
+
+        #[cfg(not(feature = "backtrace"))]
+        tracing::error!(
+            "FATAL ERROR: \n{}",
+            &panic_log.message,
         );
 
         // Save crash log to user's downloads folder
@@ -181,8 +190,6 @@ pub fn set_panic_hook() {
                     SOURCE: {} \n\n\
                     LINE: {} \n\n\
                     MESSAGE: {} \n\n\
-                    BACKTRACE: \n\
-                    {}
                     ",
                     &panic_log.build_info,
                     dump.file(),
@@ -192,6 +199,13 @@ pub fn set_panic_hook() {
                         "Unknown".to_owned()
                     },
                     dump.message(),
+                );
+
+                #[cfg(feature = "backtrace")]
+                let _ = write!(
+                    &mut file,
+                    "BACKTRACE: \n\
+                    {}",
                     &panic_log.backtrace
                 );
             };
@@ -207,7 +221,11 @@ pub fn set_panic_hook() {
 
         let message = dump.to_string();
         let message = match &saved_to {
-            Some(location) => format!("{}\n\nA crash log was written to: {}", message, location.display()),
+            Some(location) => format!(
+                "{}\n\nA crash log was written to: {}",
+                message,
+                location.display()
+            ),
             None => message,
         };
 
