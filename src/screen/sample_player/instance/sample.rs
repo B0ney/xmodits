@@ -84,7 +84,12 @@ impl SampleResult {
     pub fn title(&self) -> String {
         match self {
             SampleResult::Invalid(_) => "ERROR".into(),
-            SampleResult::Valid { metadata, .. } => metadata.filename_pretty().into(),
+            SampleResult::Valid { metadata, .. } => {
+                match metadata.name_pretty().trim() {
+                    a if a.is_empty() => metadata.filename_pretty().into(),
+                    a => a.into()
+                }
+            },
         }
     }
 
