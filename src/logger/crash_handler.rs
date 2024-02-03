@@ -6,12 +6,11 @@ use parking_lot::Mutex;
 use rand::Rng;
 use tokio::sync::mpsc::{self, Sender};
 
-use crate::screen::build_info;
 use crate::{dialog, ripper::stop_flag};
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::env;
-use std::fmt::{Display, Write as _};
+use std::fmt::Display;
 use std::fs::File;
 use std::hash::Hash;
 use std::io::Write as _;
@@ -51,6 +50,7 @@ pub struct Panic {
     pub message: String,
     #[cfg(feature = "backtrace")]
     pub backtrace: String,
+    #[cfg(feature = "built")]
     pub build_info: String,
 }
 
@@ -134,14 +134,20 @@ pub fn set_panic_hook() {
 
         // gather necessary crash information
         let dump = Dump::from_panic(panic_info);
-        
+
         #[cfg(feature = "backtrace")]
         let backtrace = std::backtrace::Backtrace::force_capture().to_string();
 
-        let build_info = build_info::info(true).fold(String::new(), |mut out, (label, value)| {
-            writeln!(&mut out, "{label}: {value}").unwrap();
-            out
-        });
+        #[cfg(feature = "built")]
+        let build_info = {
+            use crate::screen::build_info::info;
+            use std::fmt::Write;
+
+            info(true).fold(String::new(), |mut out, (label, value)| {
+                writeln!(&mut out, "{label}: {value}").unwrap();
+                out
+            })
+        };
 
         let panic_log = Panic {
             file: dump.file().to_owned(),
@@ -149,6 +155,7 @@ pub fn set_panic_hook() {
             message: dump.message().to_owned(),
             #[cfg(feature = "backtrace")]
             backtrace,
+            #[cfg(feature = "built")]
             build_info,
         };
 
@@ -167,10 +174,7 @@ pub fn set_panic_hook() {
         );
 
         #[cfg(not(feature = "backtrace"))]
-        tracing::error!(
-            "FATAL ERROR: \n{}",
-            &panic_log.message,
-        );
+        tracing::error!("FATAL ERROR: \n{}", &panic_log.message,);
 
         // Save crash log to user's downloads folder
         let saved_to = {
@@ -183,15 +187,21 @@ pub fn set_panic_hook() {
             let log_path = dirs::download_dir().unwrap_or_default().join(filename);
 
             let write_error = |mut file: File| {
+                let _ = write!(&mut file, "XMODITS CRASH LOG\n\n");
+
+                #[cfg(feature = "built")]
                 let _ = write!(
                     &mut file,
-                    "XMODITS CRASH LOG\n\n\
-                    APPLICATION BUILD INFO:\n{}\n\
-                    SOURCE: {} \n\n\
+                    "APPLICATION BUILD INFO:\n{}\n",
+                    &panic_log.build_info
+                );
+
+                let _ = write!(
+                    &mut file,
+                    "SOURCE: {} \n\n\
                     LINE: {} \n\n\
                     MESSAGE: {} \n\n\
                     ",
-                    &panic_log.build_info,
                     dump.file(),
                     if let Some(line) = dump.line() {
                         format!("{line}")
