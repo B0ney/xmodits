@@ -5,7 +5,6 @@ use crate::event;
 use crate::font;
 use crate::icon;
 use crate::ripper;
-// use crate::screen::config::custom_filters;
 use crate::screen::about;
 use crate::screen::config::name_preview;
 use crate::screen::config::sample_naming;
@@ -40,11 +39,9 @@ pub enum Message {
     Cancel,
     Clear,
     ConfigPressed,
-    // CustomFilter(custom_filters::Message),
     DeleteSelected,
     Event(event::Event),
     FileDialog,
-    // FilterPressed,
     FolderDialog,
     FontLoaded(Result<(), iced::font::Error>),
     GeneralCfg(settings::Message),
@@ -76,7 +73,6 @@ pub enum Message {
 pub enum View {
     #[default]
     Configure,
-    // Filters,
     Settings,
     About,
 }
@@ -95,7 +91,6 @@ pub struct XMODITS {
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
-    // custom_filters: custom_filters::CustomFilters,
 }
 
 impl XMODITS {
@@ -104,7 +99,6 @@ impl XMODITS {
         // load configuration
         let config = Config::load();
 
-        //
         tracing::info!("Launcing GUI");
         Self::run(Self::settings(config))
     }
@@ -134,7 +128,6 @@ impl XMODITS {
         }
     }
 
-    // todo
     pub fn load_cfg(&mut self, config: Config) {
         self.ripping_cfg = config.ripping;
         self.naming_cfg = config.naming;
@@ -274,7 +267,6 @@ impl multi_window::Application for XMODITS {
         match message {
             Message::AboutPressed => self.view = View::About,
             Message::ConfigPressed => self.view = View::Configure,
-            // Message::FilterPressed => self.view = View::Filters,
             Message::SettingsPressed => self.view = View::Settings,
             Message::Add(paths) => self.add_entries(paths),
             Message::Clear => self.clear_entries(),
@@ -297,7 +289,6 @@ impl multi_window::Application for XMODITS {
                 return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
             }
             Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
-            // Message::CustomFilter(msg) => return self.custom_filters.update(msg).map(Message::CustomFilter),
             Message::SetTheme => todo!(),
             Message::Open(link) => {
                 if let Err(err) = open::that_detached(link) {
@@ -429,7 +420,6 @@ impl multi_window::Application for XMODITS {
 
         let top_left_menu = row![
             button("Ripping").on_press(Message::ConfigPressed),
-            // button("Filters").on_press(Message::FilterPressed),
             button("Settings").on_press(Message::SettingsPressed),
             button("About").on_press(Message::AboutPressed),
         ]
@@ -475,14 +465,6 @@ impl multi_window::Application for XMODITS {
                 .spacing(10)
                 .into()
             }
-            // View::Filters => column![
-            //     self.custom_filters.view_file_size().map(Message::CustomFilter),
-            //     self.custom_filters.view_file_date().map(Message::CustomFilter),
-            //     self.custom_filters.view_file_name().map(Message::CustomFilter),
-            //     bottom_left_buttons,
-            // ]
-            // .spacing(10)
-            // .into(),
             View::Settings => settings::view(&self.general_cfg).map(Message::GeneralCfg),
             View::About => about::view().map(Message::About),
         };
