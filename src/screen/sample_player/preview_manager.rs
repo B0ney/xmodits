@@ -104,11 +104,14 @@ impl SamplePreview {
         self.get_window_mut(id).hovered = hovered;
     }
 
-    // TODO: flash window of already loaded sample if user attempts to load duplicate
     pub fn load_samples(&mut self, id: Id, path: PathBuf) -> Command<Message> {
-        self.get_window_mut(id)
-            .load_samples(path)
-            .map(move |result| Message::Window(id, result))
+        match self.find(&path) {
+            Some(old_id) if old_id != id => window::gain_focus(old_id),
+            _ => self
+                .get_window_mut(id)
+                .load_samples(path)
+                .map(move |result| Message::Window(id, result)),
+        }
     }
 
     // find a window that already has a tracker loaded
