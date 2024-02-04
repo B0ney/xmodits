@@ -10,7 +10,7 @@ repository = "https://github.com/B0ney/xmodits"
 
 [features]
 default = ["built", "audio", "iced_gif", "manual"]
-audio = ["audio_engine", "dasp"]
+audio = ["dep:audio_engine", "dep:dasp"]
 wgpu = ["iced/wgpu"]
 manual = ["data/manual"]
 backtrace = []
@@ -23,7 +23,6 @@ tokio = { version = "1", features = ["sync", "fs", "io-util", "parking_lot"] }
 dirs = "5"
 anyhow = "1"
 tracing = "0.1"
-chrono = { version = "0.4", features = ["serde"] }
 
 [workspace.dependencies.xmodits-lib]
 git = "https://github.com/B0ney/xmodits-lib.git"
@@ -55,7 +54,6 @@ dirs.workspace = true
 anyhow.workspace = true
 tracing.workspace = true
 xmodits-lib.workspace = true
-chrono.workspace = true
 
 tracing-subscriber = "0.3"
 open = "5"
