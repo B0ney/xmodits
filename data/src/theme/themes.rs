@@ -87,13 +87,13 @@ impl Themes {
                 middleground: color!(0x1A0B1D),
                 foreground: color!(0x2B0D1A),
                 background: color!(0x100213),
-                border: color!(0xe2bc5a),
-                accent: color!(0xba9e59), //color!(0xF48550),
+                border: color!(0xba9e59),
+                accent: color!(0xe2bc5a), //color!(0xF48550),
                 text: color!(0xFEFECD),
                 error: color!(0xff5555),
                 warning: color!(0xff5555),
                 success: color!(0x80FF80),
-                waveform: color!(0xF48550),
+                waveform: color!(0xe2bc5a),
             },
 
             // based on: https://github.com/catppuccin/catppuccin
