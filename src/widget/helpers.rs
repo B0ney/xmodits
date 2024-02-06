@@ -82,13 +82,14 @@ pub fn control_filled<'a, Message: 'a>(
     )
 }
 
-pub fn labelled_picklist<'a, Message: 'a, T>(
+pub fn labelled_picklist<'a, Message, T>(
     label: impl ToString,
     options: impl Into<Cow<'a, [T]>>,
     selected: Option<T>,
     on_selected: impl Fn(T) -> Message + 'a,
 ) -> Element<'a, Message>
 where
+    Message: 'a + Clone,
     T: ToString + Eq + 'static + Clone,
     [T]: ToOwned<Owned = Vec<T>>,
 {
