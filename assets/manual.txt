@@ -1,7 +1,7 @@
 XMODITS v0.12.0 MANUAL
 
 Author: B0ney
-Last Modified: 30 January 2024
+Last Modified: 6 Februrary 2024
 
 
         HOW TO USE.
@@ -30,12 +30,11 @@ Keyboard Shortcuts:
 
 
 XMODITS is portable software. It will not leave application 
-specific artefacts on your system.
+specific artefacts on your system without your knowledge.
 
 When making changes to the configuration, you must manually save it.
 
-
-The configuration file can be located at:
+When you save, the configuration file can be located at:
     Windows - %appdata%\xmodits\config.toml
     Linux   - ~/.config/xmodits/config.toml
     MacOS   - ~/Library/Application Support/xmodits/config.toml
@@ -168,9 +167,9 @@ Even I was surprised to see how fast it ran on my system.
 
 What can't XMODITS rip?
 * Scream Tracker 3 modules that ONLY have adlib instruments (it's not pcm!)
-* Protracker 3 modules - pt3, XMODITS may recognise it and inform you anyway (future versions may support this).
+* Protracker 3 modules - pt3, XMODITS may recognise it as an "IFF module" and inform you anyway. This restriction will be lifted for later versions.
 * Modules that use "exotic" compression (except IT214 & IT215 since they're quite common in impulse tracker)
-
+* .xm modules below 1.4 (those are quite rare)
 
 LINKS
 * The source code for this program is currently hosted on GitHub: https://github.com/B0ney/xmodits
