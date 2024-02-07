@@ -1,8 +1,7 @@
-name: unit_testing
+name: typo-check
 
 on:
   push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -10,13 +9,10 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  check-typos:
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+    - name: typos-action
+      uses: crate-ci/typos@v1.0.4
