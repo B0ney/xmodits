@@ -81,12 +81,11 @@ pub fn subscription() -> iced::Subscription<PathBuf> {
         let (tx, mut rx) = mpsc::channel(100);
 
         BAD_MODULES.register_callback(move |path| {
-            let path = path.to_owned();
-            let _ = tx.blocking_send(path);
+            let _ = tx.blocking_send(path.to_owned());
         });
 
         loop {
-            let added = rx.recv().await.expect("receiving from BAD_MODULES");
+            let added = rx.recv().await.unwrap();
             let _ = output.send(added).await;
         }
     })

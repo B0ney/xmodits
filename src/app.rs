@@ -61,7 +61,6 @@ pub enum Message {
     Select { index: usize, selected: bool },
     SelectAll(bool),
     SetState(RippingState),
-    SetTheme,
     SettingsPressed,
     StartRipping,
     Subscription(ripper::Message),
@@ -289,7 +288,6 @@ impl multi_window::Application for XMODITS {
                 return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
             }
             Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
-            Message::SetTheme => todo!(),
             Message::Open(link) => {
                 if let Err(err) = open::that_detached(link) {
                     tracing::warn!("Could not open external link: {:?}", err)

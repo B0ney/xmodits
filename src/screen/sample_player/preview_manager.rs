@@ -16,7 +16,6 @@ const WINDOW_SIZE: Size = Size::new(640.0, 500.0);
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    ResetEngine,
     Window(Id, instance::Message),
 }
 
@@ -32,7 +31,6 @@ impl SamplePreview {
     pub fn update(&mut self, msg: Message, entries: &mut Entries) -> Command<Message> {
         match msg {
             Message::Window(id, msg) => self.update_window(id, msg, entries),
-            Message::ResetEngine => todo!(),
         }
     }
 
