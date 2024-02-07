@@ -7,26 +7,28 @@ use tokio::sync::mpsc;
 
 pub(crate) static BAD_MODULES: Lazy<BadModules> = Lazy::new(BadModules::default);
 
+type Subscriber = Box<dyn Fn(PathBuf) + Send + Sync + 'static>;
+
 #[derive(Default)]
 pub(crate) struct BadModules {
     modules: RwLock<Vec<PathBuf>>,
-    callbacks: RwLock<Vec<Box<dyn Fn(&Path) + Send + Sync + 'static>>>,
+    subscribers: RwLock<Vec<Subscriber>>,
 }
 
 impl BadModules {
-    pub fn register_callback<F>(&self, callback: F)
+    pub(crate) fn add_subscriber<F>(&self, subscriber: F)
     where
-        F: Fn(&Path) + Send + Sync + 'static,
+        F: Fn(PathBuf) + Send + Sync + 'static,
     {
-        self.callbacks.write().push(Box::new(callback));
+        self.subscribers.write().push(Box::new(subscriber));
         tracing::info!("Registered callback!");
     }
 
     fn push(&self, path: PathBuf) {
-        self.callbacks
+        self.subscribers
             .read()
             .iter()
-            .for_each(|callback| callback(&path));
+            .for_each(|notify| notify(path.clone()));
 
         self.modules.write().push(path);
     }
@@ -77,11 +79,11 @@ pub fn subscription() -> iced::Subscription<PathBuf> {
     use iced::futures::SinkExt;
     use std::any::TypeId;
 
-    iced::subscription::channel(TypeId::of::<BadModules>(), 100, |mut output| async move {
-        let (tx, mut rx) = mpsc::channel(100);
+    iced::subscription::channel(TypeId::of::<BadModules>(), 32, |mut output| async move {
+        let (tx, mut rx) = mpsc::channel(32);
 
-        BAD_MODULES.register_callback(move |path| {
-            let _ = tx.blocking_send(path.to_owned());
+        BAD_MODULES.add_subscriber(move |path| {
+            let _ = tx.blocking_send(path);
         });
 
         loop {
