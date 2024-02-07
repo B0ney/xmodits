@@ -88,9 +88,9 @@ async fn export_manual() {
     use tokio::fs::File;
     use tokio::io::AsyncWriteExt;
 
-    let build_name = format!("xmodits-v{}-manual", env!("CARGO_PKG_VERSION"));
+    let manual_name = format!("xmodits-v{}-manual.txt", env!("CARGO_PKG_VERSION"));
 
-    if let Some(path) = utils::create_file_dialog(build_name).await {
+    if let Some(path) = utils::create_file_dialog(manual_name).await {
         if let Ok(mut file) = File::create(&path).await {
             if file.write_all(data::MANUAL.as_bytes()).await.is_ok() {
                 let _ = open::that_detached(path);
@@ -100,7 +100,7 @@ async fn export_manual() {
 }
 
 async fn export_build_info() {
-    let build_name = format!("xmodits-v{}-build-info", env!("CARGO_PKG_VERSION"));
+    let build_name = format!("xmodits-v{}-build-info.txt", env!("CARGO_PKG_VERSION"));
 
     if let Some(path) = utils::create_file_dialog(build_name).await {
         if build_info::export_build(&path).await.is_ok() {

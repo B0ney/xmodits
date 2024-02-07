@@ -36,13 +36,7 @@ fn paths(handles: Vec<rfd::FileHandle>) -> Vec<PathBuf> {
 }
 
 pub async fn create_file_dialog(filename: String) -> Option<PathBuf> {
-    let file_dialog = rfd::AsyncFileDialog::new();
-
-    #[cfg(windows)]
-    // I find that Windows is the only platform where file filters work as intended.
-    let file_dialog = file_dialog.add_filter("", &["txt"]);
-
-    file_dialog
+    rfd::AsyncFileDialog::new()
         .set_file_name(filename)
         .save_file()
         .await
