@@ -43,7 +43,10 @@ pub fn rip(paths: impl IntoIterator<Item = String>) {
 
     let destination = match use_cwd {
         true => std::env::current_dir().unwrap_or(".".into()),
-        false => config.ripping.destination.clone(),
+        false => {
+            let _ = std::fs::create_dir(&config.ripping.destination);
+            config.ripping.destination.clone()
+        },
     };
 
     let log_path = config.general.logging_path.as_ref().unwrap_or(&destination);

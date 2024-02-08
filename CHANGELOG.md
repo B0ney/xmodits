@@ -32,6 +32,7 @@
 
 ## Bug Fixes
 * (Windows) Drag'n'Drop mode no longer ignores the configured export format.
+* (Windows) Drag'n'Drop mode now creates the destination folder if it doesn't exist.
 * Application no longer panics if it fails to locate the ``Downloads`` folder.
 * Fixed an issue where ripping impulse tracker modules with compressed stereo samples would fail, or produce garbage data.
 
