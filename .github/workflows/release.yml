@@ -24,12 +24,19 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: bin
+
+      - name: Generate Checksum
+        run: |
+          ARTIFACTS="bin"
+          find "$ARTIFACTS" -type f -exec sha256sum '{}' + | sed 's, .*/, ,' > SHA256SUM.txt
+
       - name: Create draft-release
         uses: softprops/action-gh-release@v1
         with:
-          files: bin/*/xmodits-*
+          files: |
+            bin/*/xmodits-*
+            SHA256SUM.txt
           draft: true
           prerelease: true
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
