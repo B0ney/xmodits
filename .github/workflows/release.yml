@@ -28,7 +28,7 @@ jobs:
       - name: Generate Checksum
         run: |
           ARTIFACTS="bin"
-          find "$ARTIFACTS" -type f -exec sha256sum '{}' + | sed 's, .*/, ,' > SHA256SUM.txt
+          find "$ARTIFACTS" -type f -exec sha256sum '{}' + | sed 's, .*/,  ,' > SHA256SUM.txt
 
       - name: Create draft-release
         uses: softprops/action-gh-release@v1
