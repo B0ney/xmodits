@@ -28,14 +28,14 @@ jobs:
       - name: Generate Checksum
         run: |
           ARTIFACTS="bin"
-          find "$ARTIFACTS" -type f -exec sha256sum '{}' + | sed 's, .*/,  ,' > SHA256SUM.txt
+          find "$ARTIFACTS" -type f -exec sha256sum '{}' + | sed 's, .*/,  ,' > SHA256SUMS.txt
 
       - name: Create draft-release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             bin/*/xmodits-*
-            SHA256SUM.txt
+            SHA256SUMS.txt
           draft: true
           prerelease: true
         env:
