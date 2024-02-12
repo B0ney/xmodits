@@ -343,11 +343,7 @@ impl overlay::menu::StyleSheet for Theme {
             background: p.middleground.into(),
             border,
             selected_text_color: p.text,
-            selected_background: Color {
-                a: 0.5,
-                ..p.accent
-            }
-            .into(),
+            selected_background: Color { a: 0.5, ..p.accent }.into(),
         }
     }
 }
@@ -468,7 +464,7 @@ pub enum Scrollable {
 impl scrollable::StyleSheet for Theme {
     type Style = Scrollable;
 
-    fn active(&self, style: &Self::Style) -> scrollable::Scrollbar {
+    fn active(&self, style: &Self::Style) -> scrollable::Appearance {
         let p = self.inner();
 
         let border = Border {
@@ -477,14 +473,18 @@ impl scrollable::StyleSheet for Theme {
             radius: 3.0.into(),
         };
 
-        let from_appearance = |c: Color, d: Color| scrollable::Scrollbar {
-            background: Some(Background::Color(c)),
-            border: Border {
-                color: Color::TRANSPARENT,
-                width: 0.0,
-                ..border
+        let from_appearance = |c: Color, d: Color| scrollable::Appearance {
+            gap: None,
+            scrollbar: scrollable::Scrollbar {
+                background: Some(Background::Color(c)),
+                scroller: scrollable::Scroller { color: d, border },
+                border: Border {
+                    color: Color::TRANSPARENT,
+                    width: 0.0,
+                    ..border
+                },
             },
-            scroller: scrollable::Scroller { color: d, border },
+            container: container::Appearance::default(),
         };
 
         let color = (p.middleground, p.foreground);
@@ -495,38 +495,45 @@ impl scrollable::StyleSheet for Theme {
         }
     }
 
-    fn hovered(&self, style: &Self::Style, is_mouse_over_scrollbar: bool) -> scrollable::Scrollbar {
+    fn hovered(
+        &self,
+        style: &Self::Style,
+        is_mouse_over_scrollbar: bool,
+    ) -> scrollable::Appearance {
         let p = self.inner();
-
-        scrollable::Scrollbar {
-            scroller: scrollable::Scroller {
-                color: if is_mouse_over_scrollbar {
-                    Color { a: 0.5, ..p.accent }
-                } else {
-                    self.active(style).scroller.color
-                },
-                border: Border {
+        scrollable::Appearance {
+            gap: None,
+            scrollbar: scrollable::Scrollbar {
+                scroller: scrollable::Scroller {
                     color: if is_mouse_over_scrollbar {
-                        Color {
-                            a: 0.75,
-                            ..p.accent
-                        }
+                        Color { a: 0.5, ..p.accent }
                     } else {
-                        self.active(style).scroller.border.color
+                        self.active(style).scrollbar.scroller.color
                     },
-                    width: BORDER_WIDTH,
-                    radius: 3.0.into(),
+                    border: Border {
+                        color: if is_mouse_over_scrollbar {
+                            Color { a: 0.75, ..p.accent }
+                        } else {
+                            self.active(style).scrollbar.border.color
+                        },
+                        width: BORDER_WIDTH,
+                        radius: 3.0.into(),
+                    },
+                    ..self.active(style).scrollbar.scroller
                 },
+                ..self.active(style).scrollbar
             },
             ..self.active(style)
         }
     }
 
-    fn dragging(&self, style: &Self::Style) -> scrollable::Scrollbar {
+    fn dragging(&self, style: &Self::Style) -> scrollable::Appearance {
         let hovered = self.hovered(style, true);
 
-        scrollable::Scrollbar {
-            scroller: scrollable::Scroller { ..hovered.scroller },
+        scrollable::Appearance {
+            scrollbar: scrollable::Scrollbar {
+                ..hovered.scrollbar
+            },
             ..hovered
         }
     }
