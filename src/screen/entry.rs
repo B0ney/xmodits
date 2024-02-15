@@ -5,7 +5,7 @@ use crate::app::Message;
 use crate::screen::tracker_info::TrackerInfo;
 use crate::utils::filename;
 use crate::widget::helpers::{centered_container, centered_text, fill_container, text_adv};
-use crate::widget::{self, Collection, Element};
+use crate::widget::{self, Element};
 use crate::{icon, theme};
 
 use iced::widget::{button, checkbox, column, row, scrollable, Space};

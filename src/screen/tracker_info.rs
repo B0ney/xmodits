@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use crate::app::Message;
 use crate::utils::filename;
 use crate::widget::helpers::{centered_container, control_filled, text_adv};
-use crate::widget::{Collection, Element};
+use crate::widget::Element;
 
 use iced::widget::{button, column, text, Space};
 use iced::Alignment;

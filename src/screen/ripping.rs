@@ -11,7 +11,7 @@ use crate::utils::create_file_dialog;
 use crate::widget::helpers::{
     centered_column_x, centered_container, centered_text, fill_container, text_adv, text_icon,
 };
-use crate::widget::{self, Collection, Element};
+use crate::widget::{self, Element};
 use crate::{icon, theme};
 
 use iced::widget::{button, column, container, progress_bar, row, scrollable, text, Space};

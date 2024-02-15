@@ -7,7 +7,7 @@ use iced::{window, Alignment, Command, Length, Subscription};
 
 use crate::logger::crash_handler::SavedPanic;
 use crate::widget::helpers::{control_filled, fill_container, text_icon_srnd};
-use crate::widget::{Button, Collection, Container, Element, Text};
+use crate::widget::{Button, Container, Element, Text};
 use crate::{icon, logger, theme};
 
 #[derive(Debug, Clone)]

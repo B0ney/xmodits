@@ -5,13 +5,10 @@
 //! I cannot express my gratitude enough. Those guys are awesome.
 
 pub mod animation;
-pub mod collection;
 pub mod helpers;
 
 #[cfg(feature = "audio")]
 pub mod waveform_view;
-
-pub use self::collection::Collection;
 
 pub type Renderer = iced::Renderer;
 pub type Theme = crate::theme::Theme;

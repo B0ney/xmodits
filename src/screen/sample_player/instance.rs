@@ -11,7 +11,7 @@ use crate::screen::entry::Entries;
 use crate::utils::filename;
 use crate::widget::helpers::{centered_container, fill_container, warning};
 use crate::widget::waveform_view::{Marker, WaveData};
-use crate::widget::{Button, Collection, Container, Element, Row, WaveformViewer};
+use crate::widget::{Button, Container, Element, Row, WaveformViewer};
 use crate::{icon, theme};
 
 use sample::{SamplePack, SampleResult};

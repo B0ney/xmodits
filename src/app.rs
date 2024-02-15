@@ -18,7 +18,7 @@ use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::theme;
 use crate::utils::{files_dialog, folders_dialog};
 use crate::widget::helpers::{action, text_icon, warning};
-use crate::widget::{Collection, Container, Element};
+use crate::widget::{Container, Element};
 
 use data::Config;
 pub use ripping::RippingState;

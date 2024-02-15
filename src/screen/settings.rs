@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use crate::screen::config::name_preview;
 use crate::utils::folder_dialog;
 use crate::widget::helpers::control;
-use crate::widget::{Collection, Element};
+use crate::widget::Element;
 
 #[derive(Debug, Clone)]
 pub enum Message {

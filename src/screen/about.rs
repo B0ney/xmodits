@@ -4,7 +4,7 @@ use crate::icon::{self, vbee3, xmodits_logo};
 use crate::widget::helpers::{
     centered_column_x, centered_container, centered_text, control, control_filled, text_icon,
 };
-use crate::widget::{Collection, Element};
+use crate::widget::Element;
 use crate::{theme, utils};
 
 use iced::widget::{button, column, row, text};
