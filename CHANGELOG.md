@@ -1,4 +1,4 @@
-# v0.12.0 (TBD)
+# v0.12.0 (15 Februrary 2024)
 
 ## What's new
 * Updated logo.
