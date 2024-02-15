@@ -30,14 +30,15 @@ rev = "159f573"
 features = ["serde"]
 
 [workspace.dependencies.iced]
-# version = "0.12.0"
-git = "https://github.com/iced-rs/iced.git"
+version = "0.12.0"
+# git = "https://github.com/iced-rs/iced.git"
+# rev = "9e3ad0e1e025232f93ef04bc79328c3444839a34" # 0.12.0
 default-features = false
 features = ["image", "tokio", "multi-window", "advanced", "canvas"]
 
 [dependencies.iced_gif]
 git = "https://github.com/B0ney/iced_gif.git"
-branch = "iced_master"
+branch = "iced_12"
 optional = true
 
 [dependencies.rfd]
