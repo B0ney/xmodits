@@ -24,7 +24,7 @@ pub type Row<'a, Message> = iced::widget::Row<'a, Message, Theme, Renderer>;
 pub type Text<'a> = iced::widget::Text<'a, Theme, Renderer>;
 pub type Container<'a, Message> = iced::widget::Container<'a, Message, Theme, Renderer>;
 pub type Button<'a, Message> = iced::widget::Button<'a, Message, Theme, Renderer>;
-pub type PickList<'a, Message, T> = iced::widget::PickList<'a, T, Message, Theme, Renderer>;
+pub type PickList<'a, Message, T, L, V> = iced::widget::PickList<'a, T, L, V, Message, Theme, Renderer>;
 
 #[cfg(feature = "audio")]
 pub type WaveformViewer<'a, Message> = waveform_view::WaveformViewer<'a, Message, Theme>;

@@ -1,6 +1,6 @@
 //! Helper functions to construct widgets
 
-use std::borrow::Cow;
+use std::borrow::{Borrow, Cow};
 
 use iced::alignment::Horizontal;
 use iced::widget::{button, container, row, text};
@@ -82,16 +82,18 @@ pub fn control_filled<'a, Message: 'a>(
     )
 }
 
-pub fn labelled_picklist<'a, Message, T>(
+pub fn labelled_picklist<'a, Message, T, L, V, F>(
     label: impl ToString,
-    options: impl Into<Cow<'a, [T]>>,
-    selected: Option<T>,
-    on_selected: impl Fn(T) -> Message + 'a,
+    options: L,
+    selected: Option<V>,
+    on_selected: F,
 ) -> Element<'a, Message>
 where
-    Message: 'a + Clone,
-    T: ToString + Eq + 'static + Clone,
-    [T]: ToOwned<Owned = Vec<T>>,
+    Message: Clone + 'a,
+    T: ToString + Eq + Clone + 'a,
+    L: Borrow<[T]> + 'a,
+    V: Borrow<T> + 'a,
+    F: Fn(T) -> Message + 'a,
 {
     row![PickList::new(options, selected, on_selected), text(label)]
         .align_items(Alignment::Center)

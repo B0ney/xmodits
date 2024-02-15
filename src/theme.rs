@@ -9,7 +9,7 @@ use data::theme;
 const BORDER_RADIUS: f32 = 5.0;
 const BORDER_WIDTH: f32 = 1.5;
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct Theme(pub theme::Palette);
 
 impl Theme {
