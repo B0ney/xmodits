@@ -285,6 +285,7 @@ impl<'io> Batcher<'io> {
             let self_contained = cfg.self_contained;
 
             rayon::ThreadPoolBuilder::new()
+                .thread_name(|index| format!("XMODITS Ripping Thread - {index}"))
                 .num_threads(cfg.worker_threads)
                 .panic_handler(|_| {/* Don't abort process */})
                 .build()
