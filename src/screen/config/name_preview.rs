@@ -1,36 +1,7 @@
 //! Preview how ripped samples will be named
 
-use std::path::PathBuf;
-
 use data::config::{SampleNameConfig, SampleNameParams, SampleRippingConfig};
 use xmodits_lib::interface::{name::Context, Sample};
-
-use crate::widget::Element;
-
-#[derive(Debug, Clone)]
-pub enum Message {
-    ModuleName(String),
-    FileName(Option<String>),
-    Source(PathBuf),
-    RawIndex(u16),
-    SeqIndex(u16),
-}
-
-pub fn update(name_params: &mut SampleNameParams, message: Message) {
-    tracing::info!("{:?}", &message);
-
-    match message {
-        Message::ModuleName(module_name) => name_params.module_name = module_name,
-        Message::FileName(file_name) => name_params.sample_filename = file_name,
-        Message::Source(source) => name_params.module_source = source,
-        Message::RawIndex(raw_index) => name_params.raw_index = raw_index,
-        Message::SeqIndex(seq_index) => name_params.seq_index = seq_index,
-    }
-}
-
-pub fn view<'a>() -> Element<'a, Message> {
-    todo!()
-}
 
 pub fn preview_name<'a>(
     params: &SampleNameParams,

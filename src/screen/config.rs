@@ -3,4 +3,3 @@
 pub mod name_preview;
 pub mod sample_naming;
 pub mod sample_ripping;
-// pub mod custom_filters;

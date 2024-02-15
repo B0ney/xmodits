@@ -1,8 +1,8 @@
-pub mod crash_handler;
 pub mod bad_modules;
+pub mod crash_handler;
 
-pub use crash_handler::set_panic_hook;
 pub use bad_modules::log_file_on_panic;
+pub use crash_handler::set_panic_hook;
 
 use anyhow::Result;
 use rand::Rng;
@@ -59,15 +59,8 @@ where
 /// This allows logs to be displayed when launched from the terminal.
 pub fn reattach_windows_terminal() {
     #[cfg(windows)]
-    unsafe {
-        use std::sync::Once;
+    {
         use windows_sys::Win32::System::Console::{AttachConsole, ATTACH_PARENT_PROCESS};
-
-        // Probably overkill to wrap in ONCE
-        static ONCE: Once = Once::new();
-
-        ONCE.call_once(|| {
-            let _ = AttachConsole(ATTACH_PARENT_PROCESS);
-        });
+        let _ = unsafe { AttachConsole(ATTACH_PARENT_PROCESS) };
     }
 }

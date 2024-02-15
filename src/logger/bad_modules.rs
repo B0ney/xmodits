@@ -11,7 +11,6 @@ type Subscriber = Box<dyn Fn(PathBuf) + Send + Sync + 'static>;
 
 #[derive(Default)]
 pub(crate) struct BadModules {
-    modules: RwLock<Vec<PathBuf>>,
     subscribers: RwLock<Vec<Subscriber>>,
 }
 
@@ -29,8 +28,6 @@ impl BadModules {
             .read()
             .iter()
             .for_each(|notify| notify(path.clone()));
-
-        self.modules.write().push(path);
     }
 }
 

@@ -1,7 +1,6 @@
 pub mod themes;
 
 use iced::Color;
-use serde::{Deserialize, Serialize};
 pub use themes::Themes;
 
 pub struct Theme {

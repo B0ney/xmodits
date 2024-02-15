@@ -1,4 +1,4 @@
-use iced::{color, Color};
+use iced::color;
 use serde::{Deserialize, Serialize};
 
 use super::Palette;

@@ -9,7 +9,7 @@ use crate::utils::filename;
 use crate::widget::helpers::{centered_container, control_filled, text_adv};
 use crate::widget::Element;
 
-use iced::widget::{button, column, text, Space};
+use iced::widget::{column, text, Space};
 use iced::Alignment;
 use xmodits_lib::common::info::Info;
 
@@ -67,7 +67,7 @@ impl TrackerInfo {
             } => {
                 #[cfg(feature = "audio")]
                 let view_samples_button = Some(
-                    button("View Samples")
+                    iced::widget::button("View Samples")
                         .on_press(Message::PreviewSamples(path.to_owned()))
                         .padding(5),
                 );
