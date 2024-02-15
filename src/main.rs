@@ -1,6 +1,4 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-#![allow(dead_code)]
-#![allow(unused_imports)]
 #![allow(clippy::needless_lifetimes)]
 
 pub mod app;

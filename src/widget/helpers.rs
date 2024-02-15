@@ -1,6 +1,6 @@
 //! Helper functions to construct widgets
 
-use std::borrow::{Borrow, Cow};
+use std::borrow::Borrow;
 
 use iced::alignment::Horizontal;
 use iced::widget::{button, container, row, text};

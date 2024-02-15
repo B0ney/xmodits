@@ -32,10 +32,12 @@ impl TrackerSample {
     }
 }
 
+type Callback = Box<dyn Fn(&TrackerSample, &mut Instant) + Send>;
+
 pub(crate) struct FramesIter {
     pub sample: TrackerSample,
     pub timer: Instant,
-    pub callback: Option<Box<dyn Fn(&TrackerSample, &mut Instant) + Send>>,
+    pub callback: Option<Callback>,
 }
 
 impl Iterator for FramesIter {

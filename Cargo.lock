@@ -1066,7 +1066,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dirs",
- "iced_core",
+ "iced",
  "serde",
  "tokio",
  "toml 0.8.10",

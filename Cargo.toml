@@ -29,7 +29,7 @@ git = "https://github.com/B0ney/xmodits-lib.git"
 rev = "159f573"
 features = ["serde"]
 
-[dependencies.iced]
+[workspace.dependencies.iced]
 # version = "0.12.0"
 git = "https://github.com/iced-rs/iced.git"
 default-features = false
@@ -54,6 +54,7 @@ dirs.workspace = true
 anyhow.workspace = true
 tracing.workspace = true
 xmodits-lib.workspace = true
+iced.workspace = true
 
 tracing-subscriber = "0.3"
 open = "5"

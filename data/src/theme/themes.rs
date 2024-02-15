@@ -1,6 +1,4 @@
-use iced_core::color;
-use iced_core::Color;
-
+use iced::{color, Color};
 use serde::{Deserialize, Serialize};
 
 use super::Palette;
@@ -153,7 +151,6 @@ impl std::fmt::Display for Themes {
                 Themes::OneShot => "OneShot",
                 Themes::Catppuccin => "Catppuccin",
                 Themes::HighContrast => "High Contrast",
-                // Themes::Custom() => "Custom Theme"
             }
         )
     }

@@ -243,7 +243,7 @@ impl Instance {
             }
             State::Loaded { samples, .. } => {
                 let name = match samples.name().trim() {
-                    n if n.is_empty() => filename(samples.path()),
+                    "" => filename(samples.path()),
                     name => name,
                 };
                 format!("Loaded: {}", name)
