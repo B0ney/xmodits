@@ -12,7 +12,7 @@ use iced::mouse::Button;
 use iced::widget::canvas::{self, Renderer as _};
 use iced::{keyboard, Border, Renderer};
 use iced::{Color, Element, Length, Point, Rectangle, Size, Vector};
-use std::cell::RefCell;
+use std::cell::Cell;
 
 pub use marker::Marker;
 pub use style::{Appearance, StyleSheet};
@@ -204,7 +204,7 @@ struct State {
     wave_id: u64,
     canvas_cache: canvas::Cache,
     waveform: WaveGeometry,
-    wave_color: RefCell<Color>,
+    wave_color: Cell<Color>,
 }
 
 impl State {
@@ -261,16 +261,11 @@ impl State {
 
     // Clear canvas cache if wave colors differ
     fn update_wave_color(&self, appearance: &Appearance) {
-        use std::ops::DerefMut;
-
         let new_color = appearance.wave_color;
-
-        match self.wave_color.borrow_mut().deref_mut() {
-            old_color if new_color.ne(old_color) => {
-                *old_color = new_color;
-                self.canvas_cache.clear();
-            }
-            _ => {}
+        
+        if new_color != self.wave_color.get() {
+            self.wave_color.set(new_color);
+            self.canvas_cache.clear();
         }
     }
 }
