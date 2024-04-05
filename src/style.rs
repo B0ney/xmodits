@@ -12,6 +12,7 @@ pub mod slider;
 pub mod text_input;
 pub mod text;
 pub mod waveform_view;
+pub mod helpers;
 
 use data::theme;
 
@@ -22,7 +23,7 @@ const BORDER_WIDTH: f32 = 1.5;
 pub struct Theme(pub theme::Palette);
 
 impl Theme {
-    pub fn inner(&self) -> &theme::Palette {
+    pub fn palette(&self) -> &theme::Palette {
         &self.0
     }
 }

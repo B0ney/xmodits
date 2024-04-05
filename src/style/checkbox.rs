@@ -17,7 +17,7 @@ impl Catalog for Theme {
 }
 
 pub fn primary(theme: &Theme, status: Status) -> Style {
-    let p = theme.inner();
+    let p = theme.palette();
 
     Style {
         background: p.middleground.into(),

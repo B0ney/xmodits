@@ -6,8 +6,8 @@ use super::Theme;
 impl DefaultStyle for Theme {
     fn default_style(&self) -> Appearance {
         Appearance {
-            background_color: self.inner().middleground,
-            text_color: self.inner().text,
+            background_color: self.palette().middleground,
+            text_color: self.palette().text,
         }
     }
 }
