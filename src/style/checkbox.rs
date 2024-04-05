@@ -19,22 +19,45 @@ impl Catalog for Theme {
 pub fn primary(theme: &Theme, status: Status) -> Style {
     let p = theme.palette();
 
-    Style {
-        background: p.middleground.into(),
-        icon_color: p.accent,
-        border: Border {
-            color: p.border,
-            width: BORDER_WIDTH,
-            radius: BORDER_RADIUS.into(),
+    match status {
+        Status::Active { .. } | Status::Disabled { .. } => Style {
+            background: p.middleground.into(),
+            icon_color: p.accent,
+            border: Border {
+                color: p.border,
+                width: BORDER_WIDTH,
+                radius: BORDER_RADIUS.into(),
+            },
+            text_color: Some(p.text),
         },
-        text_color: Some(p.text),
+        Status::Hovered { .. } => Style {
+            background: p.foreground.into(),
+            icon_color: p.accent,
+            border: Border {
+                color: p.accent,
+                width: 2.0,
+                radius: BORDER_RADIUS.into(),
+            },
+            text_color: Some(p.text),
+        },
     }
 }
 
 pub fn inverted(theme: &Theme, status: Status) -> Style {
-    todo!()
+    let p = theme.palette();
+
+    match status {
+        Status::Active { .. } | Status::Disabled { .. } => Style {
+            background: p.foreground.into(),
+            ..primary(theme, status)
+        },
+        Status::Hovered { .. } => Style {
+            background: p.foreground.into(),
+            ..primary(theme, status)
+        },
+    }
 }
 
 pub fn entry(theme: &Theme, status: Status) -> Style {
-    todo!()
+    primary(theme, status)
 }
