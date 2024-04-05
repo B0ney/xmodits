@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use data::config::SampleRippingConfig;
 use xmodits_lib::exporter::AudioFormat;
 
-use crate::theme;
+use crate::style;
 use crate::utils::folder_dialog;
 use crate::widget::helpers::{centered_button, control, labelled_picklist};
 use crate::widget::Element;
@@ -68,7 +68,7 @@ pub fn view_destination_bar(ripping_cfg: &SampleRippingConfig) -> Element<Messag
 
     let button = centered_button("Open")
         .on_press(Message::DestinationDialog)
-        .style(theme::Button::Start);
+        .style(style::button::start);
 
     row![input, button]
         .spacing(5)

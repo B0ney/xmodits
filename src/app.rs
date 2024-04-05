@@ -15,7 +15,7 @@ use crate::screen::ripping;
 use crate::screen::sample_player;
 use crate::screen::settings;
 use crate::screen::tracker_info::{self, TrackerInfo};
-use crate::theme;
+use crate::style;
 use crate::utils::{files_dialog, folders_dialog};
 use crate::widget::helpers::{action, text_icon, warning};
 use crate::widget::{Container, Element};
@@ -120,6 +120,7 @@ impl XMODITS {
                 icon: Some(application_icon()),
                 size: WINDOW_SIZE,
                 min_size: Some(WINDOW_SIZE),
+                exit_on_close_request: true,
                 ..Default::default()
             },
             antialiasing: true,
@@ -241,7 +242,7 @@ pub fn application_icon() -> iced::window::Icon {
 impl multi_window::Application for XMODITS {
     type Executor = iced::executor::Default;
     type Message = Message;
-    type Theme = theme::Theme;
+    type Theme = style::Theme;
     type Flags = Config;
 
     fn new(flags: Self::Flags) -> (Self, Command<Message>) {
@@ -259,7 +260,7 @@ impl multi_window::Application for XMODITS {
     }
 
     fn theme(&self, _id: window::Id) -> Self::Theme {
-        theme::Theme(self.general_cfg.theme.palette()).clone()
+        style::Theme(self.general_cfg.theme.palette()).clone()
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
@@ -434,7 +435,7 @@ impl multi_window::Application for XMODITS {
                 .padding(8),
             button(text_icon("START", icon::download()))
                 .on_press_maybe(not_ripping.then_some(Message::StartRipping))
-                .style(theme::Button::Start)
+                .style(style::button::start)
                 .width(Length::FillPortion(2))
                 .padding(8)
         ]
@@ -484,7 +485,7 @@ impl multi_window::Application for XMODITS {
             button("Invert").on_press(Message::InvertSelection),
             checkbox("Select All", self.entries.all_selected())
                 .on_toggle(Message::SelectAll)
-                .style(theme::CheckBox::Inverted)
+                .style(style::checkbox::inverted)
         ]
         .spacing(8)
         .align_items(Alignment::Center);
@@ -501,13 +502,13 @@ impl multi_window::Application for XMODITS {
                     not_ripping.then_some(Message::DeleteSelected),
                 )
                 .padding(8)
-                .style(theme::Button::Cancel)
+                .style(style::button::cancel)
             }),
         )
         .push(
             action("Clear", not_ripping.then_some(Message::Clear))
                 .padding(8)
-                .style(theme::Button::Cancel),
+                .style(style::button::cancel),
         )
         .spacing(5);
 

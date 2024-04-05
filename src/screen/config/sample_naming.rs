@@ -89,7 +89,7 @@ pub fn view(config: &SampleNameConfig, preview: impl ToString) -> Element<Messag
             checkboxes,
             idx_padding,
             horizontal_rule(1),
-            centered_column_x(column![centered_text(preview)])
+            centered_column_x(column![centered_text(preview.to_string())])
         ]
         .spacing(8),
     )

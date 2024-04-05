@@ -1,5 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![allow(clippy::needless_lifetimes)]
+#![allow(clippy::unused_variables)]
+#![allow(unused_imports)]
+
 
 pub mod app;
 mod cli;
@@ -10,9 +13,10 @@ pub mod icon;
 pub mod logger;
 pub mod ripper;
 pub mod screen;
-pub mod theme;
+pub mod style;
 pub mod utils;
 pub mod widget;
+// pub mod style;
 
 use app::XMODITS;
 use cli::Mode;

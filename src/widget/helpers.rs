@@ -3,10 +3,11 @@
 use std::borrow::Borrow;
 
 use iced::alignment::Horizontal;
+use iced::widget::text::IntoFragment;
 use iced::widget::{button, container, row, text};
 use iced::{Alignment, Length};
 
-use crate::theme;
+use crate::style;
 use crate::widget::{Button, Column, Container, Element, PickList, Text};
 
 use super::Row;
@@ -28,12 +29,15 @@ pub fn action<'a, Message>(
     button(content).on_press_maybe(message)
 }
 
-pub fn centered_text<'a>(input: impl ToString) -> Text<'a> {
+pub fn centered_text<'a>(input: impl IntoFragment<'a>) -> Text<'a> {
     text(input).horizontal_alignment(Horizontal::Center)
 }
 
-pub fn warning<'a>(predicate: impl Fn() -> bool, warning: impl ToString) -> Option<Text<'a>> {
-    predicate().then_some(text(warning).style(theme::Text::Warning))
+pub fn warning<'a>(
+    predicate: impl Fn() -> bool,
+    warning: impl IntoFragment<'a>,
+) -> Option<Text<'a>> {
+    predicate().then_some(text(warning).style(style::text::warning))
 }
 
 pub fn centered_container<'a, Message>(
@@ -61,7 +65,7 @@ pub fn control<'a, Message: 'a>(
         Column::new().spacing(8).push(title).push(
             container(content)
                 .padding(8)
-                .style(theme::Container::Frame)
+                .style(style::container::frame)
                 .width(Length::Fill),
         ),
     )
@@ -75,7 +79,7 @@ pub fn control_filled<'a, Message: 'a>(
         Column::new().spacing(8).push(title).push(
             container(content)
                 .padding(8)
-                .style(theme::Container::Frame)
+                .style(style::container::frame)
                 .width(Length::Fill)
                 .height(Length::Fill),
         ),
@@ -83,7 +87,7 @@ pub fn control_filled<'a, Message: 'a>(
 }
 
 pub fn labelled_picklist<'a, Message, T, L, V, F>(
-    label: impl ToString,
+    label: impl IntoFragment<'a>,
     options: L,
     selected: Option<V>,
     on_selected: F,
@@ -125,9 +129,9 @@ pub fn text_icon<'a, Message: 'a>(text: &'a str, icon: Text<'a>) -> Row<'a, Mess
 }
 
 pub fn text_icon_srnd<'a, Message: 'a>(text: &'a str, icon: Text<'a>) -> Row<'a, Message> {
-    row![icon.clone()]
+    row![icon]
         .push(text)
-        .push(icon)
+        // .push(icon)
         .align_items(Alignment::Center)
         .spacing(5)
         .spacing(8)
@@ -144,6 +148,6 @@ pub fn text_elem<'a, Message: 'a>(
 }
 
 /// create text widget with advanced shaping for font fallback
-pub fn text_adv<'a>(str: impl ToString) -> Text<'a> {
+pub fn text_adv<'a>(str: impl IntoFragment<'a>) -> Text<'a> {
     text(str).shaping(text::Shaping::Advanced)
 }

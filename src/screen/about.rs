@@ -5,7 +5,7 @@ use crate::widget::helpers::{
     centered_column_x, centered_container, centered_text, control, control_filled, text_icon,
 };
 use crate::widget::Element;
-use crate::{theme, utils};
+use crate::{style, utils};
 
 use iced::widget::{button, column, row, text};
 use iced::Command;
@@ -20,19 +20,19 @@ pub enum Message {
     Ignore(()),
 }
 
-pub fn view<'a>() -> Element<'a, Message> {
+pub fn view() -> Element<'static, Message> {
     let title = row![vbee3(), text("XMODITS - by B0ney"), vbee3()]
         .align_items(iced::Alignment::Center)
         .spacing(8);
 
     let repo = button(text(env!("CARGO_PKG_REPOSITORY")))
         .on_press(Message::Open(String::from(env!("CARGO_PKG_REPOSITORY"))))
-        .style(theme::Button::HyperlinkInverted);
+        .style(style::button::hyperlink_inverted);
 
     #[cfg(feature = "manual")]
     let manual_button = Some(
         button(text("Manual"))
-            .style(theme::Button::Start)
+            .style(style::button::start)
             .on_press(Message::Manual),
     );
 
@@ -56,7 +56,7 @@ pub fn view<'a>() -> Element<'a, Message> {
             column![
                 view,
                 button(text_icon("Export", icon::save()))
-                    .style(theme::Button::Start)
+                    .style(style::button::start)
                     .on_press(Message::BuildInfo)
             ]
             .spacing(8),

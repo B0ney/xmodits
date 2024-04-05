@@ -6,7 +6,7 @@ use crate::screen::tracker_info::TrackerInfo;
 use crate::utils::filename;
 use crate::widget::helpers::{centered_container, centered_text, fill_container, text_adv};
 use crate::widget::{self, Element};
-use crate::{icon, theme};
+use crate::{icon, style};
 
 use iced::widget::{button, checkbox, column, row, scrollable, Space};
 use iced::{Alignment, Length};
@@ -162,7 +162,7 @@ impl Entries {
                     .push_maybe(show_gif.then(|| widget::animation::GIF.idle()).flatten())
                     .align_items(Alignment::Center),
             )
-            .style(theme::Container::BlackHovered(hovered))
+            .style(style::container::black_hovered(hovered))
             .into();
         }
 
@@ -172,7 +172,7 @@ impl Entries {
                 .padding(5),
             Space::with_width(15)
         ]))
-        .style(theme::Container::BlackHovered(hovered))
+        .style(style::container::black_hovered(hovered))
         .padding(5)
         .into()
     }
@@ -181,7 +181,7 @@ impl Entries {
 fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
     let check = checkbox("", entry.selected)
         .on_toggle(move |selected| Message::Select { index, selected })
-        .style(theme::CheckBox::Entry);
+        .style(style::checkbox::entry);
 
     let filename = text_adv(entry.filename());
 
@@ -199,6 +199,6 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
         .width(Length::Fill)
         .on_press(Message::Probe(index))
         .padding(4)
-        .style(theme::Button::Entry)
+        .style(style::button::entry)
         .into()
 }

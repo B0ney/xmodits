@@ -60,7 +60,7 @@ pub fn calendar<'a>() -> Text<'a> {
     icon('\u{e803}')
 }
 
-fn icon(unicode: char) -> Text<'static> {
+fn icon<'a>(unicode: char) -> Text<'a> {
     text(unicode.to_string())
         .font(font::ICONS)
         .size(12.0)

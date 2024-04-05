@@ -8,7 +8,7 @@ use iced::{window, Alignment, Command, Length, Subscription};
 use crate::logger::crash_handler::SavedPanic;
 use crate::widget::helpers::{control_filled, fill_container, text_icon_srnd};
 use crate::widget::{Button, Container, Element, Text};
-use crate::{icon, logger, theme};
+use crate::{icon, logger, style};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -75,18 +75,18 @@ impl Crashes {
 
         let shutdown_button = button(text_icon_srnd("Close Application", icon::error()))
             .on_press(Message::Shutdown)
-            .style(theme::Button::Cancel)
+            .style(style::button::cancel)
             .padding(10);
 
         let bad_modules = has_bad_modules.then(|| {
             let msg = "The following files might be the cause:";
-            let paths = column(self.bad_modules.iter().map(|f| text(f.display()).into()));
+            let paths = column(self.bad_modules.iter().map(|f| text(f.to_string_lossy()).into()));
 
             column![
                 msg,
                 fill_container(scrollable(paths))
                     .padding(10)
-                    .style(theme::Container::Black),
+                    .style(style::container::black),
             ]
             .spacing(6)
         });
@@ -121,7 +121,7 @@ impl Crashes {
                 .padding(10)
                 .width(Length::Fill)
                 .height(Length::Fill)
-                .style(theme::Container::Black)
+                .style(style::container::black)
         ]
         .push_maybe(bad_modules)
         .padding(4)
@@ -154,12 +154,12 @@ fn open_crash_button(panic: &SavedPanic) -> Option<Button<Message>> {
     panic.saved_to.clone().map(|f| {
         button("Open Crash Report")
             .on_press(Message::Open(f))
-            .style(theme::Button::Start)
+            .style(style::button::start)
             .padding(10)
     })
 }
 
-fn big<'a>(str: impl ToString) -> Text<'a> {
+fn big<'a>(str: impl text::IntoFragment<'a>) -> Text<'a> {
     text(str).size(16)
 }
 

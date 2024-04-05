@@ -11,7 +11,7 @@ pub mod helpers;
 pub mod waveform_view;
 
 pub type Renderer = iced::Renderer;
-pub type Theme = crate::theme::Theme;
+pub type Theme = crate::style::Theme;
 
 pub type Element<'a, Message> = iced::Element<'a, Message, Theme, Renderer>;
 pub type Content<'a, Message> = iced::widget::pane_grid::Content<'a, Message, Theme, Renderer>;

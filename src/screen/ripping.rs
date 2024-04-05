@@ -12,7 +12,7 @@ use crate::widget::helpers::{
     centered_column_x, centered_container, centered_text, fill_container, text_adv, text_icon,
 };
 use crate::widget::{self, Element};
-use crate::{icon, theme};
+use crate::{icon, style};
 
 use iced::widget::{button, column, container, progress_bar, row, scrollable, text, Space};
 use iced::{Alignment, Length};
@@ -94,7 +94,7 @@ pub fn view_ripping(
 ) -> Element<Message> {
     let cancel_ripping_button = button("CANCEL")
         .on_press(Message::Cancel)
-        .style(theme::Button::Cancel)
+        .style(style::button::cancel)
         .padding(5);
 
     let view = column![
@@ -108,7 +108,7 @@ pub fn view_ripping(
     .align_items(Alignment::Center);
 
     centered_container(view)
-        .style(theme::Container::Black)
+        .style(style::container::black)
         .into()
 }
 
@@ -121,7 +121,7 @@ pub fn view_finished<'a>(
 ) -> Element<'a, Message> {
     let continue_button = button("Continue")
         .on_press(Message::SetState(RippingState::Idle))
-        .style(theme::Button::Start)
+        .style(style::button::start)
         .padding(5);
 
     let save_errors_button = button(text_icon("Save Errors", icon::save()))
@@ -143,7 +143,7 @@ pub fn view_finished<'a>(
             ]
             .align_items(Alignment::Center),
         )
-        .style(theme::Container::BlackHovered(hovered))
+        .style(style::container::black_hovered(hovered))
         .into(),
 
         CompleteState::Cancelled => centered_container(
@@ -156,7 +156,7 @@ pub fn view_finished<'a>(
             ]
             .align_items(Alignment::Center),
         )
-        .style(theme::Container::BlackHovered(hovered))
+        .style(style::container::black_hovered(hovered))
         .into(),
 
         CompleteState::Aborted => centered_container(
@@ -164,7 +164,7 @@ pub fn view_finished<'a>(
                 .spacing(4)
                 .align_items(Alignment::Center),
         )
-        .style(theme::Container::Black)
+        .style(style::container::black)
         .into(),
 
         CompleteState::SomeErrors(errors) => {
@@ -191,7 +191,7 @@ pub fn view_finished<'a>(
                     let error = container(column![error, reason])
                         .padding(4)
                         .width(Length::Fill)
-                        .style(theme::Container::Frame);
+                        .style(style::container::frame);
                     row![error, Space::with_width(15)].into()
                 }))
                 .spacing(8),
@@ -200,7 +200,7 @@ pub fn view_finished<'a>(
             let view = centered_column_x(column![message, buttons, errors].padding(8));
 
             fill_container(view)
-                .style(theme::Container::BlackHovered(hovered))
+                .style(style::container::black_hovered(hovered))
                 .into()
         }
 
@@ -209,9 +209,9 @@ pub fn view_finished<'a>(
                 text("Done..."),
                 text("But there's too many errors to display! (-_-')"),
                 text("Check the logs at:"),
-                button(centered_text(log.display()))
+                button(centered_text(log.to_string_lossy()))
                     .on_press(Message::Open(log.display().to_string()))
-                    .style(theme::Button::HyperlinkInverted),
+                    .style(style::button::hyperlink_inverted),
                 centered_text(format!("{} errors written.", total)),
                 centered_text(format!("{}.", time)),
                 row![continue_button, open_destination_button]
@@ -224,7 +224,7 @@ pub fn view_finished<'a>(
             .spacing(6);
 
             centered_container(view)
-                .style(theme::Container::BlackHovered(hovered))
+                .style(style::container::black_hovered(hovered))
                 .into()
         }
 
@@ -261,7 +261,7 @@ pub fn view_finished<'a>(
             .spacing(6);
 
             centered_container(view)
-                .style(theme::Container::BlackHovered(hovered))
+                .style(style::container::black_hovered(hovered))
                 .into()
         }
     }
