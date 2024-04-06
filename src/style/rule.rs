@@ -1,5 +1,5 @@
 use iced::border::{Border, Radius};
-use iced::widget::rule::{Catalog, Style, StyleFn};
+use iced::widget::rule::{Catalog, Style, StyleFn, FillMode};
 use iced::{color, Color};
 
 use super::{Theme, BORDER_RADIUS, BORDER_WIDTH};
@@ -17,5 +17,11 @@ impl Catalog for Theme {
 }
 
 pub fn primary(theme: &Theme) -> Style {
-    todo!()
+    let p = theme.palette();
+    Style {
+        color: p.border,
+        width: 1,
+        radius: 1.0.into(),
+        fill_mode: FillMode::Full,
+    }
 }

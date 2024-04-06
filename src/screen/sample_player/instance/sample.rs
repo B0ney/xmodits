@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use crate::icon;
-use crate::theme;
+use crate::style;
 use crate::widget::helpers::centered_container;
 use crate::widget::waveform_view::WaveData;
 use crate::widget::Element;
@@ -84,11 +84,9 @@ impl SampleResult {
     pub fn title(&self) -> String {
         match self {
             SampleResult::Invalid(_) => "ERROR".into(),
-            SampleResult::Valid { metadata, .. } => {
-                match metadata.name_pretty().trim() {
-                    "" => metadata.filename_pretty().into(),
-                    a => a.into()
-                }
+            SampleResult::Valid { metadata, .. } => match metadata.name_pretty().trim() {
+                "" => metadata.filename_pretty().into(),
+                a => a.into(),
             },
         }
     }
@@ -120,15 +118,13 @@ impl SampleResult {
             .push_maybe(self.is_invalid().then_some(error_icon()))
             .spacing(5);
 
-        let theme = match self.is_invalid() {
-            true => theme::Button::EntryError,
-            false => theme::Button::Entry,
-        };
-
         row![
             button(title)
                 .width(Length::Fill)
-                .style(theme)
+                .style(match self.is_invalid() {
+                    true => style::button::entry_error,
+                    false => style::button::entry,
+                })
                 .on_press(Message::Select(index)),
             Space::with_width(15)
         ]

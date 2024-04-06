@@ -4,12 +4,13 @@ mod marker;
 mod style;
 mod wave;
 
+use iced::advanced::graphics::geometry::Renderer as _;
 use iced::advanced::layout::{self, Layout};
 use iced::advanced::renderer::{self, Renderer as _};
 use iced::advanced::widget::{self, Widget};
 use iced::keyboard::key::{Key, Named};
 use iced::mouse::Button;
-use iced::widget::canvas::{self, Renderer as _};
+use iced::widget::canvas;
 use iced::{keyboard, Border, Renderer};
 use iced::{Color, Element, Length, Point, Rectangle, Size, Vector};
 use std::cell::Cell;
@@ -262,7 +263,7 @@ impl State {
     // Clear canvas cache if wave colors differ
     fn update_wave_color(&self, appearance: &Appearance) {
         let new_color = appearance.wave_color;
-        
+
         if new_color != self.wave_color.get() {
             self.wave_color.set(new_color);
             self.canvas_cache.clear();
@@ -521,7 +522,7 @@ where
             renderer.with_translation(
                 Vector::new(layout.bounds().x, layout.bounds().y),
                 |renderer| {
-                    renderer.draw(vec![waveform]);
+                    renderer.draw_geometry(waveform);
                 },
             );
 
