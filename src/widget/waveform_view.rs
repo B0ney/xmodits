@@ -10,7 +10,7 @@ use iced::advanced::renderer::{self, Renderer as _};
 use iced::advanced::widget::{self, Widget};
 use iced::keyboard::key::{Key, Named};
 use iced::mouse::Button;
-use iced::widget::canvas::{self};
+use iced::widget::canvas;
 use iced::{keyboard, Border, Renderer};
 use iced::{Color, Element, Length, Point, Rectangle, Size, Vector};
 use std::cell::Cell;

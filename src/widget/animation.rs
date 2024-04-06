@@ -92,6 +92,6 @@ impl Animation {
         None
     }
     pub fn new() -> Self {
-        Self::default()
+        Self
     }
 }
