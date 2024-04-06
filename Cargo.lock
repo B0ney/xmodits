@@ -1540,9 +1540,9 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.2.12"
+version = "0.2.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "190092ea657667030ac6a35e305e62fc4dd69fd98ac98631e5d3a2b1575a12b5"
+checksum = "a06fddc2749e0528d2813f95e050e87e52c8cbbae56223b9babf73b3e53b0cc6"
 dependencies = [
  "cfg-if",
  "libc",
@@ -1620,18 +1620,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c8098adac955faa2d31079b65dc48841251f69efd3ac25477903fc424362ead"
 dependencies = [
  "gl_generator",
-]
-
-[[package]]
-name = "glyphon"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a62d0338e4056db6a73221c2fb2e30619452f6ea9651bac4110f51b0f7a7581"
-dependencies = [
- "cosmic-text",
- "etagere",
- "lru",
- "wgpu",
 ]
 
 [[package]]
@@ -1789,11 +1777,11 @@ name = "iced"
 version = "0.13.0-dev"
 source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
 dependencies = [
- "iced_core 0.13.0-dev",
+ "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
  "iced_dylib",
- "iced_futures 0.13.0-dev",
- "iced_renderer 0.13.0-dev",
- "iced_widget 0.13.0-dev",
+ "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_renderer 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_widget 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
  "iced_winit",
  "image",
  "thiserror",
@@ -1801,26 +1789,26 @@ dependencies = [
 
 [[package]]
 name = "iced_core"
-version = "0.12.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d7e6bbd197f311ed3d8b71651876b0ce01318fde52cda862a9a7a4373c9b930"
+version = "0.13.0-dev"
+source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
 dependencies = [
  "bitflags 2.5.0",
  "glam",
  "log",
  "num-traits",
+ "once_cell",
  "palette",
  "raw-window-handle",
+ "rustc-hash",
  "smol_str",
  "thiserror",
  "web-time",
- "xxhash-rust",
 ]
 
 [[package]]
 name = "iced_core"
 version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
  "bitflags 2.5.0",
  "glam",
@@ -1840,24 +1828,11 @@ name = "iced_dylib"
 version = "0.13.0-dev"
 source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
 dependencies = [
- "iced_core 0.13.0-dev",
- "iced_futures 0.13.0-dev",
- "iced_renderer 0.13.0-dev",
- "iced_widget 0.13.0-dev",
+ "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_renderer 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_widget 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
  "iced_winit",
-]
-
-[[package]]
-name = "iced_futures"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "370bad88fb3832cbeeb3fa6c486b4701fb7e8da32a753b3101d4ce81fc1d9497"
-dependencies = [
- "futures",
- "iced_core 0.12.3",
- "log",
- "wasm-bindgen-futures",
- "wasm-timer",
 ]
 
 [[package]]
@@ -1866,10 +1841,23 @@ version = "0.13.0-dev"
 source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
 dependencies = [
  "futures",
- "iced_core 0.13.0-dev",
+ "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
  "log",
  "rustc-hash",
  "tokio",
+ "wasm-bindgen-futures",
+ "wasm-timer",
+]
+
+[[package]]
+name = "iced_futures"
+version = "0.13.0-dev"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
+dependencies = [
+ "futures",
+ "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "log",
+ "rustc-hash",
  "wasm-bindgen-futures",
  "wasm-timer",
 ]
@@ -1877,36 +1865,13 @@ dependencies = [
 [[package]]
 name = "iced_gif"
 version = "0.4.0"
-source = "git+https://github.com/B0ney/iced_gif.git?branch=iced_12#314a87666054a76d47c4d8711b69b4cf689d6ca5"
+source = "git+https://github.com/B0ney/iced_gif.git?branch=iced_master#00b71e0ba7977452fb400bb525ef250113820624"
 dependencies = [
- "iced_futures 0.12.0",
- "iced_widget 0.12.3",
+ "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_widget 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
  "image",
  "thiserror",
  "tokio",
-]
-
-[[package]]
-name = "iced_graphics"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a044c193ef0840eacabfa05424717331d1fc5b3ecb9a89316200c75da2ba9a4"
-dependencies = [
- "bitflags 2.5.0",
- "bytemuck",
- "cosmic-text",
- "half",
- "iced_core 0.12.3",
- "iced_futures 0.12.0",
- "image",
- "kamadak-exif",
- "log",
- "once_cell",
- "raw-window-handle",
- "rustc-hash",
- "thiserror",
- "unicode-segmentation",
- "xxhash-rust",
 ]
 
 [[package]]
@@ -1918,8 +1883,8 @@ dependencies = [
  "bytemuck",
  "cosmic-text",
  "half",
- "iced_core 0.13.0-dev",
- "iced_futures 0.13.0-dev",
+ "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
  "image",
  "kamadak-exif",
  "log",
@@ -1932,112 +1897,100 @@ dependencies = [
 ]
 
 [[package]]
-name = "iced_renderer"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c281e03001d566058f53dec9325bbe61c62da715341206d2627f57a3ecc7f69"
-dependencies = [
- "iced_graphics 0.12.1",
- "iced_tiny_skia 0.12.1",
- "iced_wgpu 0.12.1",
- "log",
- "thiserror",
-]
-
-[[package]]
-name = "iced_renderer"
+name = "iced_graphics"
 version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
-dependencies = [
- "iced_graphics 0.13.0-dev",
- "iced_tiny_skia 0.13.0-dev",
- "iced_wgpu 0.13.0-dev",
- "log",
- "thiserror",
-]
-
-[[package]]
-name = "iced_runtime"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a79f852c01cc6d61663c94379cb3974ac3ad315a28c504e847d573e094f46822"
-dependencies = [
- "iced_core 0.12.3",
- "iced_futures 0.12.0",
- "raw-window-handle",
- "thiserror",
-]
-
-[[package]]
-name = "iced_runtime"
-version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
-dependencies = [
- "iced_core 0.13.0-dev",
- "iced_futures 0.13.0-dev",
- "raw-window-handle",
- "thiserror",
-]
-
-[[package]]
-name = "iced_style"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ea42a740915d2a5a9ff9c3aa0bca28b16e9fb660bc8f675eed71d186cadb579"
-dependencies = [
- "iced_core 0.12.3",
- "once_cell",
- "palette",
-]
-
-[[package]]
-name = "iced_tiny_skia"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c2228781f4d381a1cbbd7905a9f077351aa8d37269094021d5d9e779f130aff"
-dependencies = [
- "bytemuck",
- "cosmic-text",
- "iced_graphics 0.12.1",
- "kurbo",
- "log",
- "rustc-hash",
- "softbuffer",
- "tiny-skia",
- "xxhash-rust",
-]
-
-[[package]]
-name = "iced_tiny_skia"
-version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
-dependencies = [
- "bytemuck",
- "cosmic-text",
- "iced_graphics 0.13.0-dev",
- "kurbo",
- "log",
- "rustc-hash",
- "softbuffer",
- "tiny-skia",
-]
-
-[[package]]
-name = "iced_wgpu"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3c243b6700452886aac1ee1987e84d9fb43b56b53fea9a1eb67713fd0fde244"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
  "bitflags 2.5.0",
  "bytemuck",
- "futures",
- "glam",
- "glyphon 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "guillotiere",
- "iced_graphics 0.12.1",
+ "cosmic-text",
+ "half",
+ "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "image",
+ "kamadak-exif",
  "log",
  "once_cell",
- "wgpu",
+ "raw-window-handle",
+ "rustc-hash",
+ "thiserror",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "iced_renderer"
+version = "0.13.0-dev"
+source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
+dependencies = [
+ "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_tiny_skia 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_wgpu 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "log",
+ "thiserror",
+]
+
+[[package]]
+name = "iced_renderer"
+version = "0.13.0-dev"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
+dependencies = [
+ "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_tiny_skia 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_wgpu 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "log",
+ "thiserror",
+]
+
+[[package]]
+name = "iced_runtime"
+version = "0.13.0-dev"
+source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
+dependencies = [
+ "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "raw-window-handle",
+ "thiserror",
+]
+
+[[package]]
+name = "iced_runtime"
+version = "0.13.0-dev"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
+dependencies = [
+ "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "raw-window-handle",
+ "thiserror",
+]
+
+[[package]]
+name = "iced_tiny_skia"
+version = "0.13.0-dev"
+source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
+dependencies = [
+ "bytemuck",
+ "cosmic-text",
+ "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "kurbo",
+ "log",
+ "rustc-hash",
+ "softbuffer",
+ "tiny-skia",
+]
+
+[[package]]
+name = "iced_tiny_skia"
+version = "0.13.0-dev"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
+dependencies = [
+ "bytemuck",
+ "cosmic-text",
+ "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "kurbo",
+ "log",
+ "rustc-hash",
+ "softbuffer",
+ "tiny-skia",
 ]
 
 [[package]]
@@ -2049,9 +2002,9 @@ dependencies = [
  "bytemuck",
  "futures",
  "glam",
- "glyphon 0.5.0 (git+https://github.com/hecrj/glyphon.git?rev=ceed55403ce53e120ce9d1fae17dcfe388726118)",
+ "glyphon",
  "guillotiere",
- "iced_graphics 0.13.0-dev",
+ "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
  "log",
  "lyon",
  "once_cell",
@@ -2061,17 +2014,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "iced_widget"
-version = "0.12.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e01b2212adecf1cb80e2267f302c0e0c263e55f97812056949199ccf9f0b908"
+name = "iced_wgpu"
+version = "0.13.0-dev"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
- "iced_renderer 0.12.1",
- "iced_runtime 0.12.1",
- "iced_style",
- "num-traits",
+ "bitflags 2.5.0",
+ "bytemuck",
+ "futures",
+ "glam",
+ "glyphon",
+ "guillotiere",
+ "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "log",
+ "once_cell",
+ "rustc-hash",
  "thiserror",
- "unicode-segmentation",
+ "wgpu",
 ]
 
 [[package]]
@@ -2079,8 +2037,21 @@ name = "iced_widget"
 version = "0.13.0-dev"
 source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
 dependencies = [
- "iced_renderer 0.13.0-dev",
- "iced_runtime 0.13.0-dev",
+ "iced_renderer 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_runtime 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "num-traits",
+ "rustc-hash",
+ "thiserror",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "iced_widget"
+version = "0.13.0-dev"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
+dependencies = [
+ "iced_renderer 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_runtime 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
  "num-traits",
  "rustc-hash",
  "thiserror",
@@ -2092,8 +2063,8 @@ name = "iced_winit"
 version = "0.13.0-dev"
 source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
 dependencies = [
- "iced_graphics 0.13.0-dev",
- "iced_runtime 0.13.0-dev",
+ "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_runtime 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
  "log",
  "rustc-hash",
  "thiserror",
@@ -2423,9 +2394,6 @@ name = "lru"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3262e75e648fce39813cb56ac41f3c3e3f65217ebf3844d818d1f9398cfb0dc"
-dependencies = [
- "hashbrown",
-]
 
 [[package]]
 name = "lyon"
@@ -4979,12 +4947,6 @@ dependencies = [
  "serde",
  "thiserror",
 ]
-
-[[package]]
-name = "xxhash-rust"
-version = "0.8.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "927da81e25be1e1a2901d59b81b37dd2efd1fc9c9345a55007f09bf5a2d3ee03"
 
 [[package]]
 name = "yazi"

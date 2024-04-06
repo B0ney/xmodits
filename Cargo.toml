@@ -39,7 +39,7 @@ features = ["image", "tokio", "multi-window", "advanced", "canvas", "tiny-skia"]
 
 [dependencies.iced_gif]
 git = "https://github.com/B0ney/iced_gif.git"
-branch = "iced_12"
+branch = "iced_master"
 optional = true
 
 [dependencies.rfd]

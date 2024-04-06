@@ -49,7 +49,7 @@ pub fn inverted(theme: &Theme, status: Status) -> Style {
     match status {
         Status::Active { .. } | Status::Disabled { .. } | Status::Hovered { .. } => Style {
             background: p.foreground.into(),
-            ..primary(theme, status)
+            ..entry(theme, status)
         },
     }
 }
