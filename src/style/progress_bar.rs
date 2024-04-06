@@ -17,5 +17,13 @@ impl Catalog for Theme {
 }
 
 pub fn primary(theme: &Theme) -> Style {
-    todo!()
+    Style {
+        background: theme.palette().middleground.into(),
+        bar: theme.palette().accent.into(),
+        border: Border {
+            color: theme.palette().border,
+            width: 15.0,
+            radius: 64.0.into(),
+        },
+    }
 }

@@ -16,10 +16,18 @@ impl Catalog for Theme {
     }
 }
 
-pub fn primary(theme: &Theme) -> Style {
-    todo!()
+pub fn primary(_: &Theme) -> Style {
+    Style::default()
 }
 
 pub fn warning(theme: &Theme) -> Style {
-    todo!()
+    Style {
+        color: Some(theme.palette().warning),
+    }
+}
+
+pub fn error(theme: &Theme) -> Style {
+    Style {
+        color: Some(theme.palette().error),
+    }
 }
