@@ -168,16 +168,6 @@ pub fn media<'a>(index: usize, len: usize) -> StyleFn<'a, Theme> {
         };
 
         let p = theme.palette();
-        // Style {
-        //     background: Some(p.foreground.into()),
-        //     text_color: p.accent,
-        //     border: Border {
-        //         color: Color { a: 0.5, ..p.accent },
-        //         width: BORDER_WIDTH,
-        //         radius,
-        //     },
-        //     ..Default::default()
-        // }
 
         match status {
             Status::Active | Status::Pressed | Status::Disabled => Style {
