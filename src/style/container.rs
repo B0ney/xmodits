@@ -56,3 +56,21 @@ pub fn black_hovered<'a>(hovered: bool) -> StyleFn<'a, Theme> {
         }
     })
 }
+
+pub fn hovered<'a>(hovered: bool) -> StyleFn<'a, Theme> {
+    Box::new(move |theme| -> Style {
+        if hovered {
+            let p = theme.palette();
+            Style {
+                border: Border {
+                    color: Color { a: 0.8, ..p.accent },
+                    width: BORDER_WIDTH * 1.5,
+                    radius: BORDER_RADIUS.into(),
+                },
+                ..Default::default()
+            }
+        } else {
+            Default::default()
+        }
+    })
+}

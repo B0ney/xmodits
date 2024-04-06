@@ -21,7 +21,7 @@ pub fn primary(theme: &Theme, status: Status) -> Style {
     let p = theme.palette();
 
     match status {
-        Status::Active | Status::Pressed | Status::Disabled=> Style {
+        Status::Active | Status::Pressed | Status::Disabled => Style {
             background: Some(p.foreground.into()),
             text_color: p.accent,
             border: border(Color { a: 0.5, ..p.accent }),
@@ -40,7 +40,7 @@ pub fn cancel(theme: &Theme, status: Status) -> Style {
     let p = theme.palette();
 
     match status {
-        Status::Active | Status::Pressed | Status::Disabled=> Style {
+        Status::Active | Status::Pressed | Status::Disabled => Style {
             background: Some(p.foreground.into()),
             text_color: p.error,
             border: border(Color { a: 0.5, ..p.error }),
@@ -59,7 +59,7 @@ pub fn hyperlink(theme: &Theme, status: Status) -> Style {
     let p = theme.palette();
 
     match status {
-        Status::Active | Status::Pressed | Status::Disabled=> Style {
+        Status::Active | Status::Pressed | Status::Disabled => Style {
             background: None,
             text_color: p.text,
             border: border(Color::TRANSPARENT),
@@ -92,7 +92,7 @@ pub fn entry(theme: &Theme, status: Status) -> Style {
     let p = theme.palette();
 
     match status {
-        Status::Active | Status::Pressed | Status::Disabled=> Style {
+        Status::Active | Status::Pressed | Status::Disabled => Style {
             background: Some(p.foreground.into()),
             text_color: p.text,
             border: border(Color { a: 0.5, ..p.border }),
@@ -155,4 +155,51 @@ pub fn start(theme: &Theme, status: Status) -> Style {
             ..Default::default()
         },
     }
+}
+
+pub fn media<'a>(index: usize, len: usize) -> StyleFn<'a, Theme> {
+    Box::new(move |theme, status| -> Style {
+        let radius = if index == 0 {
+            [8.0, BORDER_RADIUS, BORDER_RADIUS, 8.0].into()
+        } else if index == len.saturating_sub(1) {
+            [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into()
+        } else {
+            BORDER_RADIUS.into()
+        };
+
+        let p = theme.palette();
+        // Style {
+        //     background: Some(p.foreground.into()),
+        //     text_color: p.accent,
+        //     border: Border {
+        //         color: Color { a: 0.5, ..p.accent },
+        //         width: BORDER_WIDTH,
+        //         radius,
+        //     },
+        //     ..Default::default()
+        // }
+
+        match status {
+            Status::Active | Status::Pressed | Status::Disabled => Style {
+                background: Some(p.foreground.into()),
+                text_color: p.accent,
+                border: Border {
+                    color: Color { a: 0.5, ..p.accent },
+                    width: BORDER_WIDTH,
+                    radius,
+                },
+                ..Default::default()
+            },
+            Status::Hovered => Style {
+                background: Some(Color { a: 0.4, ..p.accent }.into()),
+                text_color: p.text,
+                border: Border {
+                    color: Color { a: 0.5, ..p.accent },
+                    width: BORDER_WIDTH,
+                    radius,
+                },
+                ..Default::default()
+            },
+        }
+    })
 }

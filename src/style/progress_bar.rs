@@ -21,9 +21,16 @@ pub fn primary(theme: &Theme) -> Style {
         background: theme.palette().middleground.into(),
         bar: theme.palette().accent.into(),
         border: Border {
-            color: theme.palette().border,
+            color: Color::TRANSPARENT,
             width: 15.0,
             radius: 64.0.into(),
         },
+    }
+}
+
+pub fn dark(theme: &Theme) -> Style {
+    Style {
+        background: theme.palette().background.into(),
+        ..primary(theme)
     }
 }

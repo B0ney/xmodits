@@ -31,8 +31,8 @@ pub fn primary(theme: &Theme, status: Status) -> Style {
                 scroller: Scroller {
                     color: p.foreground,
                     border: Border {
-                        color: Color::TRANSPARENT,
-                        width: 0.0,
+                        color: p.border,
+                        width: BORDER_WIDTH,
                         radius: 3.0.into(),
                     },
                 },
@@ -62,7 +62,7 @@ pub fn primary(theme: &Theme, status: Status) -> Style {
                     color: if scrollbar_hovered {
                         Color { a: 0.5, ..p.accent }
                     } else {
-                        Color::TRANSPARENT
+                        p.foreground
                     },
                     border: Border {
                         color: if scrollbar_hovered {
@@ -71,7 +71,7 @@ pub fn primary(theme: &Theme, status: Status) -> Style {
                                 ..p.accent
                             }
                         } else {
-                            Color::TRANSPARENT
+                            p.border
                         },
                         width: BORDER_WIDTH,
                         radius: 3.0.into(),

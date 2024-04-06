@@ -12,7 +12,7 @@ use crate::utils::filename;
 use crate::widget::helpers::{centered_container, fill_container, warning};
 use crate::widget::waveform_view::{Marker, WaveData};
 use crate::widget::{Button, Container, Element, Row, WaveformViewer};
-use crate::{icon, theme};
+use crate::{icon, style};
 
 use sample::{SamplePack, SampleResult};
 
@@ -134,7 +134,7 @@ impl Instance {
     pub fn view(&self, entries: &Entries) -> Element<Message> {
         let info = fill_container(self.view_sample_info())
             .padding(8)
-            .style(theme::Container::Black);
+            .style(style::container::black);
 
         let top_left = column![info, self.media_buttons()]
             .spacing(5)
@@ -154,7 +154,7 @@ impl Instance {
             let play_on_selection_checkbox =
                 checkbox("Play on Selection", self.settings.play_on_selection)
                     .on_toggle(Message::SetPlayOnSelection)
-                    .style(theme::CheckBox::Inverted);
+                    .style(style::checkbox::inverted);
 
             row![play_on_selection_checkbox, Space::with_width(Length::Fill)]
                 .push_maybe(no_button_spacing)
@@ -165,7 +165,7 @@ impl Instance {
 
         let sample_list = fill_container(self.view_samples())
             .padding(8)
-            .style(theme::Container::Black);
+            .style(style::container::black);
 
         let top_right = column![sample_list, top_right_controls]
             .spacing(5)
@@ -180,7 +180,7 @@ impl Instance {
         let progress = self.player.is_active().then(|| {
             progress_bar(0.0..=1.0, self.progress.unwrap_or_default())
                 .height(5.0)
-                .style(theme::ProgressBar::Dark)
+                .style(style::progress_bar::dark)
         });
 
         let static_noise_warning = warning(
@@ -204,7 +204,7 @@ impl Instance {
             .spacing(5);
 
         fill_container(main)
-            .style(theme::Container::Hovered(self.hovered))
+            .style(style::container::hovered(self.hovered))
             .padding(15)
             .into()
     }
@@ -343,7 +343,7 @@ impl Instance {
 
         Container::new(row![media_controls, volume_slider].spacing(8))
             .padding(8)
-            .style(theme::Container::Black)
+            .style(style::container::black)
             .width(Length::Fill)
             .height(Length::Shrink)
             .center_x()
@@ -359,20 +359,13 @@ where
 {
     let mut media_row: Row<'a, Message> = Row::new().spacing(4.0);
     let elements: Vec<(Label, Message)> = rows.into_iter().collect();
-    let end_indx = elements.len() - 1;
+    let len = elements.len();
 
     for (idx, (label, message)) in elements.into_iter().enumerate() {
-        let style = if idx == 0 {
-            theme::Button::MediaStart
-        } else if idx == end_indx {
-            theme::Button::MediaEnd
-        } else {
-            theme::Button::MediaMiddle
-        };
         let button = Button::new(label)
             .padding(8.0)
             .on_press(message)
-            .style(style);
+            .style(style::button::media(idx, len));
         media_row = media_row.push(button);
     }
 
