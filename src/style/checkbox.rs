@@ -2,6 +2,7 @@ use iced::border::{Border, Radius};
 use iced::widget::checkbox::{Catalog, Status, Style, StyleFn};
 use iced::{color, Color};
 
+use super::helpers::border;
 use super::{Theme, BORDER_RADIUS, BORDER_WIDTH};
 
 impl Catalog for Theme {
@@ -23,11 +24,7 @@ pub fn entry(theme: &Theme, status: Status) -> Style {
         Status::Active { .. } | Status::Disabled { .. } => Style {
             background: p.middleground.into(),
             icon_color: p.accent,
-            border: Border {
-                color: p.border,
-                width: BORDER_WIDTH,
-                radius: BORDER_RADIUS.into(),
-            },
+            border: border(p.border),
             text_color: Some(p.text),
         },
         Status::Hovered { .. } => Style {

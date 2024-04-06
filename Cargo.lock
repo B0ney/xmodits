@@ -1775,13 +1775,12 @@ dependencies = [
 [[package]]
 name = "iced"
 version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
- "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_dylib",
- "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_renderer 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_widget 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_core",
+ "iced_futures",
+ "iced_renderer",
+ "iced_widget",
  "iced_winit",
  "image",
  "thiserror",
@@ -1790,24 +1789,6 @@ dependencies = [
 [[package]]
 name = "iced_core"
 version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
-dependencies = [
- "bitflags 2.5.0",
- "glam",
- "log",
- "num-traits",
- "once_cell",
- "palette",
- "raw-window-handle",
- "rustc-hash",
- "smol_str",
- "thiserror",
- "web-time",
-]
-
-[[package]]
-name = "iced_core"
-version = "0.13.0-dev"
 source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
  "bitflags 2.5.0",
@@ -1824,40 +1805,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "iced_dylib"
-version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
-dependencies = [
- "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_renderer 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_widget 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_winit",
-]
-
-[[package]]
 name = "iced_futures"
 version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
  "futures",
- "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_core",
  "log",
  "rustc-hash",
  "tokio",
- "wasm-bindgen-futures",
- "wasm-timer",
-]
-
-[[package]]
-name = "iced_futures"
-version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
-dependencies = [
- "futures",
- "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
- "log",
- "rustc-hash",
  "wasm-bindgen-futures",
  "wasm-timer",
 ]
@@ -1867,8 +1823,8 @@ name = "iced_gif"
 version = "0.4.0"
 source = "git+https://github.com/B0ney/iced_gif.git?branch=iced_master#00b71e0ba7977452fb400bb525ef250113820624"
 dependencies = [
- "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
- "iced_widget 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_futures",
+ "iced_widget",
  "image",
  "thiserror",
  "tokio",
@@ -1877,14 +1833,14 @@ dependencies = [
 [[package]]
 name = "iced_graphics"
 version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
  "bitflags 2.5.0",
  "bytemuck",
  "cosmic-text",
  "half",
- "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_core",
+ "iced_futures",
  "image",
  "kamadak-exif",
  "log",
@@ -1897,58 +1853,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "iced_graphics"
-version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
-dependencies = [
- "bitflags 2.5.0",
- "bytemuck",
- "cosmic-text",
- "half",
- "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
- "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
- "image",
- "kamadak-exif",
- "log",
- "once_cell",
- "raw-window-handle",
- "rustc-hash",
- "thiserror",
- "unicode-segmentation",
-]
-
-[[package]]
-name = "iced_renderer"
-version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
-dependencies = [
- "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_tiny_skia 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_wgpu 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "log",
- "thiserror",
-]
-
-[[package]]
 name = "iced_renderer"
 version = "0.13.0-dev"
 source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
- "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
- "iced_tiny_skia 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
- "iced_wgpu 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_graphics",
+ "iced_tiny_skia",
+ "iced_wgpu",
  "log",
- "thiserror",
-]
-
-[[package]]
-name = "iced_runtime"
-version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
-dependencies = [
- "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "raw-window-handle",
  "thiserror",
 ]
 
@@ -1957,25 +1869,10 @@ name = "iced_runtime"
 version = "0.13.0-dev"
 source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
- "iced_core 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
- "iced_futures 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_core",
+ "iced_futures",
  "raw-window-handle",
  "thiserror",
-]
-
-[[package]]
-name = "iced_tiny_skia"
-version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
-dependencies = [
- "bytemuck",
- "cosmic-text",
- "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "kurbo",
- "log",
- "rustc-hash",
- "softbuffer",
- "tiny-skia",
 ]
 
 [[package]]
@@ -1985,7 +1882,7 @@ source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f
 dependencies = [
  "bytemuck",
  "cosmic-text",
- "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_graphics",
  "kurbo",
  "log",
  "rustc-hash",
@@ -1996,7 +1893,7 @@ dependencies = [
 [[package]]
 name = "iced_wgpu"
 version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
  "bitflags 2.5.0",
  "bytemuck",
@@ -2004,7 +1901,7 @@ dependencies = [
  "glam",
  "glyphon",
  "guillotiere",
- "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_graphics",
  "log",
  "lyon",
  "once_cell",
@@ -2014,44 +1911,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "iced_wgpu"
-version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
-dependencies = [
- "bitflags 2.5.0",
- "bytemuck",
- "futures",
- "glam",
- "glyphon",
- "guillotiere",
- "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
- "log",
- "once_cell",
- "rustc-hash",
- "thiserror",
- "wgpu",
-]
-
-[[package]]
-name = "iced_widget"
-version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
-dependencies = [
- "iced_renderer 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_runtime 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "num-traits",
- "rustc-hash",
- "thiserror",
- "unicode-segmentation",
-]
-
-[[package]]
 name = "iced_widget"
 version = "0.13.0-dev"
 source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
- "iced_renderer 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
- "iced_runtime 0.13.0-dev (git+https://github.com/iced-rs/iced.git)",
+ "iced_renderer",
+ "iced_runtime",
  "num-traits",
  "rustc-hash",
  "thiserror",
@@ -2061,10 +1926,10 @@ dependencies = [
 [[package]]
 name = "iced_winit"
 version = "0.13.0-dev"
-source = "git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking#2ad2ea82b35fe64b644ba9019eb0781def2446af"
+source = "git+https://github.com/iced-rs/iced.git#31d1d5fecbef50fa319cabd5d4194f1e4aaefa21"
 dependencies = [
- "iced_graphics 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
- "iced_runtime 0.13.0-dev (git+https://github.com/iced-rs/iced.git?branch=feature/dynamic-linking)",
+ "iced_graphics",
+ "iced_runtime",
  "log",
  "rustc-hash",
  "thiserror",

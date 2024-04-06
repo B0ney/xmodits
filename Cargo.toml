@@ -14,7 +14,6 @@ audio = ["dep:audio_engine", "dep:dasp"]
 wgpu = ["iced/wgpu"]
 manual = ["data/manual"]
 backtrace = []
-dylib = ["iced/dynamic-linking"]
 
 [workspace]
 members = ["data", "audio_engine"]
@@ -33,7 +32,6 @@ features = ["serde"]
 [workspace.dependencies.iced]
 # version = "0.13.0"
 git = "https://github.com/iced-rs/iced.git"
-branch = "feature/dynamic-linking"
 default-features = false
 features = ["image", "tokio", "multi-window", "advanced", "canvas", "tiny-skia"]
 

@@ -48,7 +48,7 @@ pub fn cancel(theme: &Theme, status: Status) -> Style {
         },
         Status::Hovered => Style {
             background: Some(Color { a: 0.4, ..p.error }.into()),
-            text_color: p.error,
+            text_color: p.text,
             border: border(Color { a: 0.5, ..p.error }),
             ..Default::default()
         },
