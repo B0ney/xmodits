@@ -17,7 +17,7 @@ impl Catalog for Theme {
     }
 }
 
-pub fn primary(theme: &Theme) -> Style {
+pub fn primary(_: &Theme) -> Style {
     Style::default()
 }
 

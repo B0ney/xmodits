@@ -80,6 +80,7 @@ mod animation_inner {
 pub use animation_inner::*;
 
 #[cfg(not(feature = "iced_gif"))]
+#[derive(Debug, Default)]
 pub struct Animation;
 
 #[cfg(not(feature = "iced_gif"))]
@@ -91,6 +92,6 @@ impl Animation {
         None
     }
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 }
