@@ -8,7 +8,7 @@ impl Catalog for Theme {
     type Class<'a> = StyleFn<'a, Self>;
 
     fn default<'a>() -> Self::Class<'a> {
-        Box::new(primary)
+        Box::new(entry)
     }
 
     fn style(&self, class: &Self::Class<'_>, status: Status) -> Style {
@@ -16,7 +16,7 @@ impl Catalog for Theme {
     }
 }
 
-pub fn primary(theme: &Theme, status: Status) -> Style {
+pub fn entry(theme: &Theme, status: Status) -> Style {
     let p = theme.palette();
 
     match status {
@@ -47,17 +47,9 @@ pub fn inverted(theme: &Theme, status: Status) -> Style {
     let p = theme.palette();
 
     match status {
-        Status::Active { .. } | Status::Disabled { .. } => Style {
-            background: p.foreground.into(),
-            ..primary(theme, status)
-        },
-        Status::Hovered { .. } => Style {
+        Status::Active { .. } | Status::Disabled { .. } | Status::Hovered { .. } => Style {
             background: p.foreground.into(),
             ..primary(theme, status)
         },
     }
-}
-
-pub fn entry(theme: &Theme, status: Status) -> Style {
-    primary(theme, status)
 }
