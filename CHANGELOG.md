@@ -1,3 +1,11 @@
+# v0.12.2 (Unreleased)
+
+## Fixed
+* Incorrect min max calculation when obtaining wave peaks. The waveform should look more accurate.
+
+## Miscellaneous
+* Minor tweaks to the GUI.
+
 # v0.12.0 (15 Februrary 2024)
 
 ## What's new
