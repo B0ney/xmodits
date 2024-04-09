@@ -2,7 +2,7 @@
 name = "xmodits-gui"
 authors = ["B0ney <https://github.com/B0ney>"]
 description = "XMODITS graphical application"
-version = "0.12.1"
+version = "0.12.2"
 edition = "2021"
 build = "build.rs"
 license = "GPLv3"
