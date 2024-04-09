@@ -51,21 +51,19 @@ fn peak(buf: &[f32], rate: u32, interval: Duration) -> Vec<(f32, f32)> {
     let chunks = ((rate as f64 / 1000.0) * (interval.as_millis() as f64)).round() as usize;
     let chunks = chunks.max(1);
     
-    let find_max = |x: &[f32]| -> (f32, f32) {
-        let mut max = 0.0;
-        let mut min = 0.0;
+    let min_max = |x: &[f32]| -> (f32, f32) {
+        let mut max = -1.0_f32;
+        let mut min = 1.0_f32;
 
         for i in x.iter().copied() {
-            if i > max {
-                max = i;
-            } else if i < min {
-                min = i;
-            }
+            max = max.max(i);
+            min = min.min(i);
         }
+
         (max, min)
     };
 
-    buf.chunks(chunks).map(find_max).collect()
+    buf.chunks(chunks).map(min_max).collect()
 }
 
 impl From<xmodits_lib::dsp::SampleBuffer> for SampleBuffer {
