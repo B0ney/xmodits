@@ -207,7 +207,8 @@ cargo build --release --no-default-features
 
 
 ## License
-XMODITS is licensed under the GPLv3, see [license](LICENSE) for more detail.
+Unless noted otherwise, XMODITS is licensed under the GPLv3, see [license](LICENSE) for more detail.
+
 
 ## Other xmodits projects
 
