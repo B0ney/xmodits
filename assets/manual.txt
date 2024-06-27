@@ -1,7 +1,7 @@
 XMODITS v0.12.0 MANUAL
 
 Author: B0ney
-Last Modified: 6 Februrary 2024
+Last Modified: 27 June 2024
 
 
         HOW TO USE.
@@ -77,7 +77,7 @@ Configures how ripped samples should be named.
 In most cases, xmodits' default settings should be sufficient.
 
 * Index Only
-    Samples are only named with an index. E.g: "1.wav"
+    Samples are only named with an index. E.g.: "1.wav"
 
 * Preserve Index
     Index will match how it is represented internally.
@@ -87,7 +87,7 @@ In most cases, xmodits' default settings should be sufficient.
     E.g. "music1_it - kick.wav"
 
     NOTE: This is recommended if you are ripping with "Self Contained" disabled,
-    as this helps reduce collisisons.
+    as this helps reduce collisions.
 
 * Upper Case 
     Samples will be named in upper case.
@@ -116,7 +116,7 @@ In most cases, xmodits' default settings should be sufficient.
 
 * Self Contained 
     Store the extracted samples into a self contained folder. 
-    This is done to 1) better organize samples, and 2) avoid collisisons.
+    This is done to 1) better organize samples, and 2) avoid collisions.
 
     Folders are named after the module's filename. ('.' is replaced with '_')
 
@@ -136,12 +136,12 @@ In most cases, xmodits' default settings should be sufficient.
     Set what audio format to save the ripped samples.
 
     Supported formats:
-        * wav   - Generally recommended
+        * wav   - Generally recommended.
         * aiff  - Very similar to wav, but "wav" should be preferred.
-        * its   - Recommended for older tracking software
+        * its   - Recommended for older tracking software.
         * s3i   - Recommended for older tracking software, but "its" should be preferred.
-        * 8svx  - Recommended for protracker
-        * raw   - Only recommended for testing purposes
+        * 8svx  - Recommended for Protracker.
+        * raw   - Only recommended for testing purposes.
 
 * Folder Scan Depth 
     Set how deep a folder can be traversed.
