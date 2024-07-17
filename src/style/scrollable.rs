@@ -1,6 +1,6 @@
 use iced::border::{Border, Radius};
 use iced::widget::container;
-use iced::widget::scrollable::{Catalog, Scrollbar, Scroller, Status, Style, StyleFn};
+use iced::widget::scrollable::{Catalog, Rail, Scrollbar, Scroller, Status, Style, StyleFn};
 use iced::{color, Color};
 
 use super::{Theme, BORDER_RADIUS, BORDER_WIDTH};
@@ -19,27 +19,46 @@ impl Catalog for Theme {
 
 pub fn primary(theme: &Theme, status: Status) -> Style {
     let p = theme.palette();
-
-    match status {
-        Status::Active => Style {
-            container: todo!(),
-            vertical_rail: todo!(),
-            horizontal_rail: todo!(),
-            gap: todo!(),
+    Style {
+        container: Default::default(),
+        vertical_rail: Rail {
+            background: Default::default(),
+            border: Default::default(),
+            scroller: Scroller {
+                color: Default::default(),
+                border: Default::default(),
+            },
         },
-        Status::Hovered { is_horizontal_scrollbar_hovered, is_vertical_scrollbar_hovered } =>  Style {
-            container: todo!(),
-            vertical_rail: todo!(),
-            horizontal_rail: todo!(),
-            gap: todo!(),
+        horizontal_rail: Rail {
+            background: Default::default(),
+            border: Default::default(),
+            scroller: Scroller {
+                color: Default::default(),
+                border: Default::default(),
+            },
         },
-        Status::Dragged { is_horizontal_scrollbar_dragged, is_vertical_scrollbar_dragged } =>  Style {
-            container: todo!(),
-            vertical_rail: todo!(),
-            horizontal_rail: todo!(),
-            gap: todo!(),
-        },
+        gap: Default::default(),
     }
+    // match status {
+    //     Status::Active => Style {
+    //         container: todo!(),
+    //         vertical_rail: todo!(),
+    //         horizontal_rail: todo!(),
+    //         gap: todo!(),
+    //     },
+    //     Status::Hovered { is_horizontal_scrollbar_hovered, is_vertical_scrollbar_hovered } =>  Style {
+    //         container: todo!(),
+    //         vertical_rail: todo!(),
+    //         horizontal_rail: todo!(),
+    //         gap: todo!(),
+    //     },
+    //     Status::Dragged { is_horizontal_scrollbar_dragged, is_vertical_scrollbar_dragged } =>  Style {
+    //         container: todo!(),
+    //         vertical_rail: todo!(),
+    //         horizontal_rail: todo!(),
+    //         gap: todo!(),
+    //     },
+    // }
 
     // match status {
     //     Status::Active => {
