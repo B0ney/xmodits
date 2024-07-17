@@ -16,6 +16,7 @@ use crate::screen::sample_player;
 use crate::screen::settings;
 use crate::screen::tracker_info::{self, TrackerInfo};
 use crate::style;
+use crate::style::Theme;
 use crate::utils::{files_dialog, folders_dialog};
 use crate::widget::helpers::{action, text_icon, warning};
 use crate::widget::{Container, Element};
@@ -23,10 +24,12 @@ use crate::widget::{Container, Element};
 use data::Config;
 pub use ripping::RippingState;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 
-use iced::multi_window::{self, Application};
 use iced::widget::{button, checkbox, column, row, text, text_input, Space};
-use iced::{window, Alignment, Command, Length, Size, Subscription};
+use iced::{window, Alignment, Length, Size, Subscription, Task};
+
+pub static MAIN_ID: OnceLock<window::Id> = OnceLock::new();
 
 const TITLE: &str = "XMODITS";
 const WINDOW_SIZE: Size = Size::new(780.0, 720.0);
@@ -65,6 +68,7 @@ pub enum Message {
     StartRipping,
     Subscription(ripper::Message),
     Crashes(crash::Message),
+    WindowOpened(window::Id)
 }
 
 /// This is basically the configuration panel view.
@@ -90,6 +94,7 @@ pub struct XMODITS {
     naming_cfg: data::config::SampleNameConfig,
     ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
+    main_id: Option<window::Id>,
 }
 
 impl XMODITS {
@@ -99,7 +104,11 @@ impl XMODITS {
         let config = Config::load();
 
         tracing::info!("Launcing GUI");
-        Self::run(Self::settings(config))
+
+        iced::daemon(XMODITS::title, XMODITS::update, XMODITS::view)
+            .settings(XMODITS::settings())
+            .subscription(XMODITS::subscription)
+            .run_with(|| XMODITS::new(config))
     }
 
     /// WINDOWS ONLY
@@ -111,19 +120,10 @@ impl XMODITS {
         Ok(())
     }
 
-    pub fn settings(config: Config) -> iced::Settings<Config> {
+    pub fn settings() -> iced::Settings {
         iced::Settings {
             default_font: font::JETBRAINS_MONO,
             default_text_size: 13.0.into(),
-            flags: config,
-            window: window::Settings {
-                icon: Some(application_icon()),
-                size: WINDOW_SIZE,
-                min_size: Some(WINDOW_SIZE),
-                exit_on_close_request: true,
-                ..Default::default()
-            },
-            antialiasing: true,
             ..Default::default()
         }
     }
@@ -178,19 +178,19 @@ impl XMODITS {
         }
     }
 
-    pub fn save_cfg(&self) -> Command<Message> {
+    pub fn save_cfg(&self) -> Task<Message> {
         let config = data::Config {
             general: self.general_cfg.clone(),
             ripping: self.ripping_cfg.clone(),
             naming: self.naming_cfg,
         };
 
-        Command::perform(async move { config.save().await }, |_| Message::Ignore)
+        Task::perform(async move { config.save().await }, |_| Message::Ignore)
     }
 
-    pub fn start_ripping(&mut self) -> Command<Message> {
+    pub fn start_ripping(&mut self) -> Task<Message> {
         if self.state.is_ripping() | self.entries.is_empty() | !self.ripper.is_active() {
-            return Command::none();
+            return Task::none();
         }
 
         if !sample_ripping::destination_is_valid(&self.ripping_cfg) {
@@ -211,7 +211,7 @@ impl XMODITS {
             errors: 0,
         };
 
-        Command::none()
+        Task::none()
     }
 
     fn add_entry(&mut self, path: PathBuf) {
@@ -231,39 +231,46 @@ impl XMODITS {
             self.state = RippingState::Idle;
         }
     }
-}
-
-/// TODO: allow the user to customize their application icon
-pub fn application_icon() -> iced::window::Icon {
-    let icon = include_bytes!("../assets/img/logos/icon.png");
-    iced::window::icon::from_file_data(icon, None).unwrap()
-}
-
-impl multi_window::Application for XMODITS {
-    type Executor = iced::executor::Default;
-    type Message = Message;
-    type Theme = style::Theme;
-    type Flags = Config;
-
-    fn new(flags: Self::Flags) -> (Self, Command<Message>) {
-        let mut app = Self::default();
-        app.load_cfg(flags);
-
-        (app, font::load().map(Message::FontLoaded))
-    }
 
     fn title(&self, id: window::Id) -> String {
-        match id == window::Id::MAIN {
+        match Some(id) == self.main_id() {
             true => self.app_title(),
             false => self.sample_player.get_title(id),
         }
     }
 
-    fn theme(&self, _id: window::Id) -> Self::Theme {
+    fn theme(&self, _id: window::Id) -> Theme {
         style::Theme(self.general_cfg.theme.palette()).clone()
     }
 
-    fn update(&mut self, message: Message) -> Command<Message> {
+    fn subscription(&self) -> Subscription<Message> {
+        iced::Subscription::batch([
+            event::events().map(Message::Event),
+            ripper::subscription().map(Message::Subscription),
+            crash::subscription().map(Message::Crashes),
+        ])
+    }
+
+    fn new(flags: Config) -> (Self, Task<Message>) {
+        let mut app = Self::default();
+        app.load_cfg(flags);
+
+        (
+            app,
+            Task::batch([
+                font::load().map(Message::FontLoaded),
+                window::open(window::Settings {
+                    icon: Some(application_icon()),
+                    size: WINDOW_SIZE,
+                    min_size: Some(WINDOW_SIZE),
+                    exit_on_close_request: true,
+                    ..Default::default()
+                }).map(Message::WindowOpened)
+            ])
+        )
+    }
+
+    fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::AboutPressed => self.view = View::About,
             Message::ConfigPressed => self.view = View::Configure,
@@ -277,10 +284,10 @@ impl multi_window::Application for XMODITS {
             Message::SetState(state) => self.state = state,
             Message::About(msg) => return about::update(msg).map(Message::About),
             Message::FileDialog => {
-                return Command::perform(files_dialog(), Message::Add);
+                return Task::perform(files_dialog(), Message::Add);
             }
             Message::FolderDialog => {
-                return Command::perform(folders_dialog(), Message::Add);
+                return Task::perform(folders_dialog(), Message::Add);
             }
             Message::GeneralCfg(cfg) => {
                 return settings::update(&mut self.general_cfg, cfg).map(Message::GeneralCfg)
@@ -304,13 +311,10 @@ impl multi_window::Application for XMODITS {
                 let path = self.entries.get(idx).unwrap();
 
                 if self.tracker_info.matches_path(path) | path.is_dir() {
-                    return Command::none();
+                    return Task::none();
                 }
 
-                return Command::perform(
-                    tracker_info::probe(path.to_owned()),
-                    Message::ProbeResult,
-                );
+                return Task::perform(tracker_info::probe(path.to_owned()), Message::ProbeResult);
             }
             Message::ProbeResult(probe) => self.tracker_info = probe,
             Message::SamplePlayer(msg) => {
@@ -341,22 +345,22 @@ impl multi_window::Application for XMODITS {
             }
             Message::Event(event) => match event {
                 event::Event::Clear => self.clear_entries(),
-                event::Event::Closed(id) => match id != window::Id::MAIN {
+                event::Event::Closed(id) => match Some(id) != self.main_id() {
                     true => self.sample_player.remove_instance(id),
                     false => return self.sample_player.close_all().map(Message::SamplePlayer),
                 },
                 event::Event::CloseRequested => {}
                 event::Event::Delete => self.delete_selected_entries(),
-                event::Event::FileHoveredLeft(id) => match id == window::Id::MAIN {
+                event::Event::FileHoveredLeft(id) => match Some(id) == self.main_id() {
                     true => self.file_hovered = false,
                     false => self.sample_player.set_hovered(id, false),
                 },
-                event::Event::FileHovered(id, _) => match id == window::Id::MAIN {
+                event::Event::FileHovered(id, _) => match Some(id) == self.main_id() {
                     true => self.file_hovered = true,
                     false => self.sample_player.set_hovered(id, true),
                 },
                 event::Event::FileDropped(id, file) => {
-                    if id == window::Id::MAIN {
+                    if Some(id) == self.main_id() {
                         self.add_entry(file);
                         self.file_hovered = false;
                     } else {
@@ -395,13 +399,21 @@ impl multi_window::Application for XMODITS {
                 }
             }
             Message::Crashes(msg) => {
-                return Command::batch([
+                return Task::batch([
                     self.sample_player.close_all().map(Message::SamplePlayer),
                     self.crashes.update(msg).map(Message::Crashes),
                 ]);
             }
+            Message::WindowOpened(id) => {
+                self.main_id = Some(id);
+                MAIN_ID.set(id);
+            },
         }
-        Command::none()
+        Task::none()
+    }
+
+    fn main_id(&self) -> Option<window::Id> {
+        self.main_id.clone()
     }
 
     fn view(&self, _id: window::Id) -> Element<Message> {
@@ -409,13 +421,15 @@ impl multi_window::Application for XMODITS {
             return self.crashes.view().map(Message::Crashes);
         }
 
+        tracing::info!("{:?}", _id);
         #[cfg(feature = "audio")]
-        if _id > window::Id::MAIN {
-            return self
-                .sample_player
-                .view(_id, &self.entries)
-                .map(Message::SamplePlayer);
-        }
+
+        // if self.main_id() != Some(_id) {
+        //     return self
+        //         .sample_player
+        //         .view(_id, &self.entries)
+        //         .map(Message::SamplePlayer);
+        // }
 
         let top_left_menu = row![
             button("Ripping").on_press(Message::ConfigPressed),
@@ -424,7 +438,7 @@ impl multi_window::Application for XMODITS {
         ]
         .spacing(5)
         .width(Length::Fill)
-        .align_items(Alignment::Center);
+        .align_y(Alignment::Center);
 
         let not_ripping = !self.state.is_ripping();
 
@@ -488,7 +502,7 @@ impl multi_window::Application for XMODITS {
                 .style(style::checkbox::inverted)
         ]
         .spacing(8)
-        .align_items(Alignment::Center);
+        .align_y(Alignment::Center);
 
         let bottom_right_buttons = row![
             action("Add File", not_ripping.then_some(Message::FileDialog)).padding(8),
@@ -555,12 +569,10 @@ impl multi_window::Application for XMODITS {
             .padding(15)
             .into()
     }
+}
 
-    fn subscription(&self) -> Subscription<Message> {
-        iced::Subscription::batch([
-            event::events().map(Message::Event),
-            ripper::subscription().map(Message::Subscription),
-            crash::subscription().map(Message::Crashes),
-        ])
-    }
+/// TODO: allow the user to customize their application icon
+pub fn application_icon() -> iced::window::Icon {
+    let icon = include_bytes!("../assets/img/logos/icon.png");
+    iced::window::icon::from_file_data(icon, None).unwrap()
 }

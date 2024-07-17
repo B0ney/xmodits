@@ -7,6 +7,7 @@ use rand::Rng;
 use tokio::sync::mpsc::{self, Sender};
 
 use crate::{dialog, ripper::stop_flag};
+use std::any::Any;
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::env;
@@ -267,13 +268,16 @@ pub fn subscription() -> iced::Subscription<SavedPanic> {
 
     struct PanicSignal;
 
-    iced::subscription::channel(TypeId::of::<PanicSignal>(), 100, |mut output| async move {
-        let (tx, mut rx) = mpsc::channel(32);
-        PANIC_SIGNAL.set(tx).unwrap();
+    iced::Subscription::run_with_id(
+        PanicSignal.type_id(),
+        iced::stream::channel(100, |mut output| async move {
+            let (tx, mut rx) = mpsc::channel(32);
+            PANIC_SIGNAL.set(tx).unwrap();
 
-        loop {
-            let msg = rx.recv().await.expect("sender");
-            output.send(msg).await.expect("sending panic")
-        }
-    })
+            loop {
+                let msg = rx.recv().await.expect("sender");
+                output.send(msg).await.expect("sending panic")
+            }
+        }),
+    )
 }

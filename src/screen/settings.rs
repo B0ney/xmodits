@@ -1,6 +1,6 @@
 use data::config::{self};
 use iced::widget::{checkbox, column, pick_list, row};
-use iced::Command;
+use iced::Task;
 
 use crate::widget::helpers::control;
 use crate::widget::Element;
@@ -60,7 +60,7 @@ pub fn themes(general: &config::GeneralConfig) -> Element<Message> {
         ),
     ]
     .spacing(8)
-    .align_items(iced::Alignment::Center);
+    .align_y(iced::Alignment::Center);
     column![control("Themes", settings)].spacing(8).into()
 }
 
@@ -89,7 +89,7 @@ pub enum GIFKind {
     Complete,
 }
 
-pub fn update(cfg: &mut config::GeneralConfig, message: Message) -> Command<Message> {
+pub fn update(cfg: &mut config::GeneralConfig, message: Message) -> Task<Message> {
     tracing::info!("{:?}", &message);
 
     match message {
@@ -101,5 +101,5 @@ pub fn update(cfg: &mut config::GeneralConfig, message: Message) -> Command<Mess
         Message::ShowErrorsInTextEditor(show) => cfg.show_errors_in_text_editor = show,
     }
 
-    Command::none()
+    Task::none()
 }

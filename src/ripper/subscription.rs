@@ -1,6 +1,7 @@
 use data::time::Time;
 
-use iced::{futures::SinkExt, subscription, Subscription};
+use iced::stream;
+use iced::{futures::SinkExt, Subscription, advanced::subscription};
 use std::{any::TypeId, path::PathBuf};
 use tokio::sync::mpsc::{self, Receiver, Sender, UnboundedReceiver};
 use tracing::{error, info};
@@ -82,7 +83,7 @@ impl From<ErrorHandler> for CompleteState {
 pub fn subscription() -> Subscription<Message> {
     struct Ripper;
 
-    subscription::channel(TypeId::of::<Ripper>(), 4096, |mut output| async move {
+    Subscription::run_with_id(TypeId::of::<Ripper>(), stream::channel(4096, |mut output| async move {
         enum State {
             Init,
             Idle(Receiver<Signal>),
@@ -239,5 +240,5 @@ pub fn subscription() -> Subscription<Message> {
                 },
             }
         }
-    })
+    }))
 }

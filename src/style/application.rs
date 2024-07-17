@@ -1,5 +1,5 @@
 use iced::color;
-use iced::program::{Appearance, DefaultStyle};
+use iced::daemon::{Appearance, DefaultStyle};
 
 use super::Theme;
 

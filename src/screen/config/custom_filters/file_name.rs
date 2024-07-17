@@ -7,7 +7,7 @@ use iced::widget::{
     button, checkbox, column, container, horizontal_rule, pick_list, row, scrollable, slider, text,
     text_input, Space,
 };
-use iced::{Alignment, Command, Length};
+use iced::{Alignment, Task, Length};
 use once_cell::sync::Lazy;
 
 static TEXTBOX_ID: Lazy<text_input::Id> = Lazy::new(text_input::Id::unique);
@@ -32,7 +32,7 @@ pub struct NameFilter {
 }
 
 impl NameFilter {
-    pub fn update(&mut self, msg: Message) -> Command<Message> {
+    pub fn update(&mut self, msg: Message) -> Task<Message> {
         match msg {
             Message::Input(word) => self.buffer = word,
             Message::CaseSensitive(case) => self.case_sensitive = case,
@@ -45,7 +45,7 @@ impl NameFilter {
                 }
             }
         }
-        Command::none()
+        Task::none()
     }
 
     pub fn view(&self) -> Element<Message> {

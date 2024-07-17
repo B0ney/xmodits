@@ -6,7 +6,7 @@ mod file_size;
 mod regex;
 
 use data::config::filters::{Filter, Name, Size};
-use iced::Command;
+use iced::Task;
 use std::path::Path;
 
 use iced::widget::{column, horizontal_rule, row};
@@ -51,13 +51,13 @@ pub struct CustomFilters {
 }
 
 impl CustomFilters {
-    pub fn update(&mut self, msg: Message) -> Command<Message> {
+    pub fn update(&mut self, msg: Message) -> Task<Message> {
         match msg {
             Message::FileSize(filesize) => file_size::update(&mut self.filesize, filesize),
             Message::FileName(filename) => return self.filename.update(filename).map(Message::FileName),
             Message::FileDate(filedate) => self.date.update(filedate),
         }
-        Command::none()
+        Task::none()
     }
     pub fn view_file_size(&self) -> Element<Message> {
         file_size::view(&self.filesize).map(Message::FileSize)

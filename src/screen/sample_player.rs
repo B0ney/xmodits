@@ -10,7 +10,7 @@ pub use preview_manager::*;
 pub mod preview_manager_dummy {
     use crate::screen::entry::Entries;
 
-    use iced::{window::Id, Command};
+    use iced::{window::Id, Task};
     use std::path::PathBuf;
 
     #[derive(Clone, Copy, Debug)]
@@ -20,17 +20,17 @@ pub mod preview_manager_dummy {
     pub struct SamplePreview;
 
     impl SamplePreview {
-        pub fn update(&mut self, _msg: Message, _entries: &mut Entries) -> Command<Message> {
-            Command::none()
+        pub fn update(&mut self, _msg: Message, _entries: &mut Entries) -> Task<Message> {
+            Task::none()
         }
-        pub fn load_samples(&self, _id: Id, _path: PathBuf) -> Command<Message> {
-            Command::none()
+        pub fn load_samples(&self, _id: Id, _path: PathBuf) -> Task<Message> {
+            Task::none()
         }
-        pub fn create_instance(&mut self, _path: PathBuf) -> Command<Message> {
-            Command::none()
+        pub fn create_instance(&mut self, _path: PathBuf) -> Task<Message> {
+            Task::none()
         }
-        pub fn close_all(&self) -> Command<Message> {
-            Command::none()
+        pub fn close_all(&self) -> Task<Message> {
+            Task::none()
         }
         pub fn remove_instance(&self, _id: Id) {}
         pub fn set_hovered(&mut self, _id: Id, _hovered: bool) {}

@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 
 use audio_engine::{PlayerHandle, TrackerSample};
 use iced::widget::{button, checkbox, column, progress_bar, row, scrollable, slider, text, Space};
-use iced::{command, Alignment, Command, Length};
+use iced::{task, Alignment, Task, Length};
 
 use crate::screen::entry::Entries;
 use crate::utils::filename;
@@ -74,11 +74,11 @@ pub struct Instance {
 }
 
 impl Instance {
-    pub fn new(player: PlayerHandle, path: PathBuf) -> (Self, Command<Message>) {
+    pub fn new(player: PlayerHandle, path: PathBuf) -> (Self, Task<Message>) {
         let mut instance = Self::new_empty(player);
-        let command = instance.load_samples(path);
+        let task = instance.load_samples(path);
 
-        (instance, command)
+        (instance, task)
     }
 
     pub fn new_empty(player: PlayerHandle) -> Self {
@@ -96,7 +96,7 @@ impl Instance {
         self
     }
 
-    pub fn update(&mut self, message: Message, entries: &mut Entries) -> Command<Message> {
+    pub fn update(&mut self, message: Message, entries: &mut Entries) -> Task<Message> {
         match message {
             Message::Select(index) => {
                 if let State::Loaded { selected, .. } = &mut self.state {
@@ -128,7 +128,7 @@ impl Instance {
             }
             Message::Progress(p) => self.progress = p,
         }
-        Command::none()
+        Task::none()
     }
 
     pub fn view(&self, entries: &Entries) -> Element<Message> {
@@ -160,7 +160,7 @@ impl Instance {
                 .push_maybe(no_button_spacing)
                 .push_maybe(add_path_button)
                 .spacing(5)
-                .align_items(Alignment::Center)
+                .align_y(Alignment::Center)
         };
 
         let sample_list = fill_container(self.view_samples())
@@ -217,7 +217,7 @@ impl Instance {
         }
     }
 
-    pub fn load_samples(&mut self, module_path: PathBuf) -> Command<Message> {
+    pub fn load_samples(&mut self, module_path: PathBuf) -> Task<Message> {
         let load = |state: &mut State, path: PathBuf| {
             *state = State::Loading;
             self.player.stop();
@@ -226,9 +226,9 @@ impl Instance {
 
         match &self.state {
             State::None => load(&mut self.state, module_path),
-            State::Loading => Command::none(),
+            State::Loading => Task::none(),
             _ => match self.matches_path(&module_path) {
-                true => Command::none(),
+                true => Task::none(),
                 false => load(&mut self.state, module_path),
             },
         }
@@ -251,15 +251,15 @@ impl Instance {
         }
     }
 
-    pub fn play_selected(&self) -> Command<Message> {
+    pub fn play_selected(&self) -> Task<Message> {
         match &self.state {
             State::Loaded {
                 selected, samples, ..
             } => match selected.and_then(|index| samples.tracker_sample(index)) {
                 Some(sample) => play_sample(&self.player, sample),
-                None => Command::none(),
+                None => Task::none(),
             },
-            _ => Command::none(),
+            _ => Task::none(),
         }
     }
 
@@ -339,14 +339,14 @@ impl Instance {
                 )
                 .step(0.01),
             )
-            .align_items(Alignment::Start);
+            .align_x(Alignment::Start);
 
         Container::new(row![media_controls, volume_slider].spacing(8))
             .padding(8)
             .style(style::container::black)
-            .width(Length::Fill)
+            // .width(Length::Fill)
             .height(Length::Shrink)
-            .center_x()
+            .center_x(Length::Fill)
             .into()
     }
 }
@@ -374,7 +374,7 @@ where
 
 const PLAY_CURSOR_FPS: f32 = 60.0;
 
-fn play_sample(handle: &PlayerHandle, source: TrackerSample) -> Command<Message> {
+fn play_sample(handle: &PlayerHandle, source: TrackerSample) -> Task<Message> {
     let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel::<f32>();
     handle.stop();
     handle.play_with_callback(
@@ -392,19 +392,19 @@ fn play_sample(handle: &PlayerHandle, source: TrackerSample) -> Command<Message>
         },
     );
 
-    command::channel(256, |mut s| async move {
+    Task::stream(iced::stream::channel(256, |mut s| async move {
         while let Some(new_progress) = receiver.recv().await {
             let _ = s.try_send(Message::Progress(Some(new_progress)));
         }
         let _ = s.try_send(Message::Progress(None));
-    })
+    }))
 }
 
-fn load_samples(path: PathBuf) -> Command<Message> {
+fn load_samples(path: PathBuf) -> Task<Message> {
     use crate::logger::log_file_on_panic;
     use xmodits_lib::Error;
 
-    Command::perform(
+    Task::perform(
         async {
             let path_copy = path.clone();
 

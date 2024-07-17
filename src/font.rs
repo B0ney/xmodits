@@ -1,5 +1,5 @@
 use iced::font::{self, Font};
-use iced::Command;
+use iced::Task;
 
 pub static JETBRAINS_MONO: Font = Font::with_name("JetBrains Mono NL");
 pub static ICONS: Font = Font::with_name("icons");
@@ -9,6 +9,6 @@ pub mod bytes {
     pub static ICONS: &[u8] = include_bytes!("../assets/font/icons.ttf");
 }
 
-pub fn load() -> Command<Result<(), font::Error>> {
-    Command::batch([font::load(bytes::JETBRAINS_MONO), font::load(bytes::ICONS)])
+pub fn load() -> Task<Result<(), font::Error>> {
+    Task::batch([font::load(bytes::JETBRAINS_MONO), font::load(bytes::ICONS)])
 }

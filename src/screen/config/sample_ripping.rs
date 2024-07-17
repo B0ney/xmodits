@@ -11,7 +11,7 @@ use crate::widget::helpers::{centered_button, control, labelled_picklist};
 use crate::widget::Element;
 
 use iced::widget::{checkbox, column, horizontal_rule, row, text_input};
-use iced::{Command, Length};
+use iced::{Task, Length};
 
 use once_cell::sync::Lazy;
 
@@ -33,7 +33,7 @@ pub enum Message {
     DestinationDialog,
 }
 
-pub fn update(cfg: &mut SampleRippingConfig, message: Message) -> Command<Message> {
+pub fn update(cfg: &mut SampleRippingConfig, message: Message) -> Task<Message> {
     tracing::info!("{:?}", &message);
 
     match message {
@@ -48,10 +48,10 @@ pub fn update(cfg: &mut SampleRippingConfig, message: Message) -> Command<Messag
             }
         }
         Message::DestinationDialog => {
-            return Command::perform(folder_dialog(), Message::Destination);
+            return Task::perform(folder_dialog(), Message::Destination);
         }
     }
-    Command::none()
+    Task::none()
 }
 
 pub static DESTINATION_BAR_ID: Lazy<text_input::Id> = Lazy::new(text_input::Id::unique);

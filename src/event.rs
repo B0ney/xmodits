@@ -21,7 +21,7 @@ pub fn events() -> Subscription<Event> {
     iced::event::listen_with(filter)
 }
 
-pub fn filter(event: iced::Event, status: event::Status) -> Option<Event> {
+pub fn filter(event: iced::Event, status: event::Status, id: window::Id) -> Option<Event> {
     // If the event has not been handled by any widget
     let ignored =
         |status: event::Status| -> bool { matches!(status, iced::event::Status::Ignored) };
@@ -42,7 +42,7 @@ pub fn filter(event: iced::Event, status: event::Status) -> Option<Event> {
             keyboard::Key::Character("s") if modifiers.command() => Some(Event::Save),
             _ => None,
         },
-        iced::Event::Window(id, event) => match event {
+        iced::Event::Window(event) => match event {
             window::Event::FileDropped(file) if ignored(status) => {
                 Some(Event::FileDropped(id, file))
             }

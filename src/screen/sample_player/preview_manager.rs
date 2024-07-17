@@ -1,7 +1,7 @@
 use super::instance::{self, Instance, MediaSettings};
 
 use iced::window::{self, Id};
-use iced::{Command, Size};
+use iced::{Size, Task};
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -17,6 +17,7 @@ const WINDOW_SIZE: Size = Size::new(640.0, 500.0);
 #[derive(Debug, Clone)]
 pub enum Message {
     Window(Id, instance::Message),
+    WindowOpened(Id, PathBuf),
 }
 
 #[derive(Default)]
@@ -28,9 +29,18 @@ pub struct SamplePreview {
 }
 
 impl SamplePreview {
-    pub fn update(&mut self, msg: Message, entries: &mut Entries) -> Command<Message> {
+    pub fn update(&mut self, msg: Message, entries: &mut Entries) -> Task<Message> {
         match msg {
             Message::Window(id, msg) => self.update_window(id, msg, entries),
+            Message::WindowOpened(id, path) => {
+                let (instance, load_samples) =
+                    Instance::new(self.audio_engine.create_handle(), path);
+
+                self.windows
+                    .insert(id, instance.settings(self.default_settings));
+
+                load_samples.map(move |msg| Message::Window(id, msg))
+            }
         }
     }
 
@@ -39,10 +49,10 @@ impl SamplePreview {
         id: Id,
         msg: instance::Message,
         entries: &mut Entries,
-    ) -> Command<Message> {
+    ) -> Task<Message> {
         // If the window has closed, discard the message
         match self.windows.get_mut(&id) {
-            None => Command::none(),
+            None => Task::none(),
             Some(window) => window
                 .update(msg, entries)
                 .map(move |msg| Message::Window(id, msg)),
@@ -60,38 +70,29 @@ impl SamplePreview {
     }
 
     // spawn new instance
-    pub fn create_instance(&mut self, path: PathBuf) -> Command<Message> {
+    pub fn create_instance(&mut self, path: PathBuf) -> Task<Message> {
         if let Some(old_id) = self.find(&path) {
             return window::gain_focus(old_id);
         }
 
         match self.singleton {
             true => match self.find_first_instance() {
-                Some(id) => Command::batch([window::gain_focus(id), self.load_samples(id, path)]),
+                Some(id) => Task::batch([window::gain_focus(id), self.load_samples(id, path)]),
                 None => self.new_instance(path),
             },
             false => self.new_instance(path),
         }
     }
 
-    fn new_instance(&mut self, path: PathBuf) -> Command<Message> {
-        let (id, spawn_window) = window::spawn(window::Settings {
+    fn new_instance(&mut self, path: PathBuf) -> Task<Message> {
+        window::open(window::Settings {
             size: WINDOW_SIZE,
             min_size: Some(WINDOW_SIZE),
             icon: Some(application_icon()),
             exit_on_close_request: true,
             ..Default::default()
-        });
-
-        let (instance, load_samples) = Instance::new(self.audio_engine.create_handle(), path);
-
-        self.windows
-            .insert(id, instance.settings(self.default_settings));
-
-        Command::batch([
-            spawn_window,
-            load_samples.map(move |msg| Message::Window(id, msg)),
-        ])
+        })
+        .map(move |id| Message::WindowOpened(id, path.clone()))
     }
 
     pub fn get_title(&self, id: Id) -> String {
@@ -102,7 +103,7 @@ impl SamplePreview {
         self.get_window_mut(id).hovered = hovered;
     }
 
-    pub fn load_samples(&mut self, id: Id, path: PathBuf) -> Command<Message> {
+    pub fn load_samples(&mut self, id: Id, path: PathBuf) -> Task<Message> {
         match self.find(&path) {
             Some(old_id) if old_id != id => window::gain_focus(old_id),
             _ => self
@@ -130,8 +131,8 @@ impl SamplePreview {
             .expect("View sample preview window")
     }
 
-    pub fn close_all(&mut self) -> Command<Message> {
-        let command = Command::batch(self.windows.keys().map(|id| window::close(*id)));
+    pub fn close_all(&mut self) -> Task<Message> {
+        let command = Task::batch(self.windows.keys().map(|id| window::close(*id)));
         self.windows.clear();
         command
     }

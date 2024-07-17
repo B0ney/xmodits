@@ -2,7 +2,10 @@
 
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
-use std::path::{Path, PathBuf};
+use std::{
+    any::Any,
+    path::{Path, PathBuf},
+};
 use tokio::sync::mpsc;
 
 pub(crate) static BAD_MODULES: Lazy<BadModules> = Lazy::new(BadModules::default);
@@ -76,16 +79,19 @@ pub fn subscription() -> iced::Subscription<PathBuf> {
     use iced::futures::SinkExt;
     use std::any::TypeId;
 
-    iced::subscription::channel(TypeId::of::<BadModules>(), 32, |mut output| async move {
-        let (tx, mut rx) = mpsc::channel(32);
+    iced::Subscription::run_with_id(
+        BAD_MODULES.type_id(),
+        iced::stream::channel(32, |mut output| async move {
+            let (tx, mut rx) = mpsc::channel(32);
 
-        BAD_MODULES.add_subscriber(move |path| {
-            let _ = tx.blocking_send(path);
-        });
+            BAD_MODULES.add_subscriber(move |path| {
+                let _ = tx.blocking_send(path);
+            });
 
-        loop {
-            let added = rx.recv().await.unwrap();
-            let _ = output.send(added).await;
-        }
-    })
+            loop {
+                let added = rx.recv().await.unwrap();
+                let _ = output.send(added).await;
+            }
+        }),
+    )
 }

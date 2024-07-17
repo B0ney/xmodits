@@ -3,12 +3,12 @@
 use std::path::PathBuf;
 
 use iced::widget::{button, column, container, horizontal_rule, row, scrollable, text, Space};
-use iced::{window, Alignment, Command, Length, Subscription};
+use iced::{window, Alignment, Task, Length, Subscription};
 
 use crate::logger::crash_handler::SavedPanic;
 use crate::widget::helpers::{control_filled, fill_container, text_icon_srnd};
 use crate::widget::{Button, Container, Element, Text};
-use crate::{icon, logger, style};
+use crate::{app, icon, logger, style};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -43,17 +43,17 @@ impl Crashes {
         self.panics.push(panic);
     }
 
-    pub fn update(&mut self, message: Message) -> Command<Message> {
+    pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::Panic(panic) => self.add_panic(panic),
             Message::BadModule(file) => self.add_bad_module(file),
-            Message::Shutdown => return window::close(window::Id::MAIN),
+            Message::Shutdown => return window::close(app::MAIN_ID.get().cloned().unwrap()),
             Message::Open(log) => {
                 let _ = open::that_detached(log);
             }
             Message::Ignore => (),
         }
-        Command::none()
+        Task::none()
     }
 
     /// TODO:
@@ -70,7 +70,7 @@ impl Crashes {
             icon::warning().size(20),
             Space::with_width(Length::Fill),
         ]
-        .align_items(Alignment::Center)
+        .align_y(Alignment::Center)
         .spacing(10);
 
         let shutdown_button = button(text_icon_srnd("Close Application", icon::error()))
@@ -137,7 +137,7 @@ impl Crashes {
                 .push_maybe(open_single_log)
                 .push(Space::with_width(Length::Fill))
                 .push(shutdown_button)
-                .align_items(Alignment::Center)
+                .align_y(Alignment::Center)
                 .width(Length::Fill)
         ]
         .spacing(10);

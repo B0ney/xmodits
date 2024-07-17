@@ -1,5 +1,5 @@
 use data::time::Time;
-use iced::Command;
+use iced::Task;
 use std::path::{Path, PathBuf};
 
 use crate::app::Message;
@@ -65,13 +65,13 @@ impl RippingState {
         matches!(self, Self::Finished { .. })
     }
 
-    pub fn export_errors(&mut self) -> Command<Message> {
+    pub fn export_errors(&mut self) -> Task<Message> {
         let RippingState::Finished { state, .. } = &self else {
-            return Command::none();
+            return Task::none();
         };
 
         let Some(errors) = state.errors_ref().cloned() else {
-            return Command::none();
+            return Task::none();
         };
 
         let task = async move {
@@ -82,7 +82,7 @@ impl RippingState {
             ErrorHandler::dump(errors, path).await
         };
 
-        Command::perform(task, Message::SaveErrorsResult)
+        Task::perform(task, Message::SaveErrorsResult)
     }
 }
 
@@ -105,7 +105,7 @@ pub fn view_ripping(
     ]
     .push_maybe(show_gif.then(|| widget::animation::GIF.ripping()).flatten())
     .spacing(8)
-    .align_items(Alignment::Center);
+    .align_x(Alignment::Center);
 
     centered_container(view)
         .style(style::container::black)
@@ -141,7 +141,7 @@ pub fn view_finished<'a>(
                 Space::with_height(15),
                 row![continue_button, open_destination_button].spacing(8)
             ]
-            .align_items(Alignment::Center),
+            .align_x(Alignment::Center),
         )
         .style(style::container::black_hovered(hovered))
         .into(),
@@ -154,7 +154,7 @@ pub fn view_finished<'a>(
                 Space::with_height(15),
                 continue_button
             ]
-            .align_items(Alignment::Center),
+            .align_x(Alignment::Center),
         )
         .style(style::container::black_hovered(hovered))
         .into(),
@@ -162,7 +162,7 @@ pub fn view_finished<'a>(
         CompleteState::Aborted => centered_container(
             column!["Ripping process was aborted because of an internal error."]
                 .spacing(4)
-                .align_items(Alignment::Center),
+                .align_x(Alignment::Center),
         )
         .style(style::container::black)
         .into(),
@@ -173,12 +173,12 @@ pub fn view_finished<'a>(
                 centered_text("(._.)"),
                 centered_text(format!("{}", time)),
             ]
-            .align_items(Alignment::Center);
+            .align_x(Alignment::Center);
 
             let buttons = row![continue_button, open_destination_button, save_errors_button]
                 .padding(4)
                 .spacing(6)
-                .align_items(Alignment::Center);
+                .align_y(Alignment::Center);
 
             let errors = scrollable(
                 column(errors.iter().map(|error| {
@@ -217,9 +217,9 @@ pub fn view_finished<'a>(
                 row![continue_button, open_destination_button]
                     .spacing(8)
                     .padding(4)
-                    .align_items(Alignment::Center)
+                    .align_y(Alignment::Center)
             ]
-            .align_items(Alignment::Center)
+            .align_x(Alignment::Center)
             .padding(4)
             .spacing(6);
 
@@ -245,7 +245,7 @@ pub fn view_finished<'a>(
             let buttons = row![continue_button, open_destination_button, save_errors_button]
                 .padding(4)
                 .spacing(8)
-                .align_items(Alignment::Center);
+                .align_y(Alignment::Center);
 
             let view = column![
                 text("Done..."),
@@ -256,7 +256,7 @@ pub fn view_finished<'a>(
                 discarded_errors,
                 buttons,
             ]
-            .align_items(Alignment::Center)
+            .align_x(Alignment::Center)
             .padding(4)
             .spacing(6);
 

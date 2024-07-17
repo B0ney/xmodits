@@ -159,13 +159,15 @@ pub fn start(theme: &Theme, status: Status) -> Style {
 
 pub fn media<'a>(index: usize, len: usize) -> StyleFn<'a, Theme> {
     Box::new(move |theme, status| -> Style {
-        let radius = if index == 0 {
-            [8.0, BORDER_RADIUS, BORDER_RADIUS, 8.0].into()
-        } else if index == len.saturating_sub(1) {
-            [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into()
-        } else {
-            BORDER_RADIUS.into()
-        };
+        // let radius = if index == 0 {
+        //     [8.0, BORDER_RADIUS, BORDER_RADIUS, 8.0].into()
+        // } else if index == len.saturating_sub(1) {
+        //     [BORDER_RADIUS, 8.0, 8.0, BORDER_RADIUS].into()
+        // } else {
+        //     BORDER_RADIUS.into()
+        // };
+
+        let radius = Radius::default();
 
         let p = theme.palette();
 

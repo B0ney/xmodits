@@ -107,7 +107,7 @@ impl SampleResult {
             row![]
                 .push(Space::with_width(Length::Fill))
                 .push(icon::warning())
-                .align_items(iced::Alignment::Center)
+                .align_y(iced::Alignment::Center)
         };
 
         let title = row![]
@@ -186,7 +186,7 @@ impl SampleResult {
                     .push(metadata)
                     .push(horizontal_rule(1))
                     .spacing(5)
-                    .align_items(Alignment::Center);
+                    .align_x(Alignment::Center);
                 centered_container(info).into()
             }
         }

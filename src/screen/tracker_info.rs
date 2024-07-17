@@ -85,8 +85,7 @@ impl TrackerInfo {
             }
         };
 
-        let content =
-            centered_container(content.align_items(Alignment::Center).spacing(5)).padding(8);
+        let content = centered_container(content.align_x(Alignment::Center).spacing(5)).padding(8);
 
         control_filled(title, content).into()
     }

@@ -30,7 +30,7 @@ pub fn action<'a, Message>(
 }
 
 pub fn centered_text<'a>(input: impl IntoFragment<'a>) -> Text<'a> {
-    text(input).horizontal_alignment(Horizontal::Center)
+    text(input).align_x(Horizontal::Center)
 }
 
 pub fn warning<'a>(
@@ -44,10 +44,8 @@ pub fn centered_container<'a, Message>(
     content: impl Into<Element<'a, Message>>,
 ) -> Container<'a, Message> {
     container(content)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .center_x()
-        .center_y()
+        .center_x(Length::Fill)
+        .center_y(Length::Fill)
 }
 
 pub fn fill_container<'a, Message>(
@@ -100,7 +98,7 @@ where
     F: Fn(T) -> Message + 'a,
 {
     row![PickList::new(options, selected, on_selected), text(label)]
-        .align_items(Alignment::Center)
+        .align_y(Alignment::Center)
         .spacing(8)
         .into()
 }
@@ -108,7 +106,7 @@ where
 pub fn centered_column<'a, Message>(column: Column<'a, Message>) -> Column<'a, Message> {
     column
         .spacing(5)
-        .align_items(Alignment::Center)
+        .align_x(Alignment::Center)
         .width(Length::Fill)
         .height(Length::Fill)
 }
@@ -116,12 +114,12 @@ pub fn centered_column<'a, Message>(column: Column<'a, Message>) -> Column<'a, M
 pub fn centered_column_x<'a, Message>(column: Column<'a, Message>) -> Column<'a, Message> {
     column
         .spacing(5)
-        .align_items(Alignment::Center)
+        .align_x(Alignment::Center)
         .width(Length::Fill)
 }
 
 pub fn spaced_row<'a, Message: 'a>(row: Row<'a, Message>) -> Row<'a, Message> {
-    row.align_items(Alignment::Center).spacing(5)
+    row.align_y(Alignment::Center).spacing(5)
 }
 
 pub fn text_icon<'a, Message: 'a>(text: &'a str, icon: Text<'a>) -> Row<'a, Message> {
@@ -132,7 +130,7 @@ pub fn text_icon_srnd<'a, Message: 'a>(text: &'a str, icon: Text<'a>) -> Row<'a,
     row![icon]
         .push(text)
         // .push(icon)
-        .align_items(Alignment::Center)
+        .align_y(Alignment::Center)
         .spacing(5)
         .spacing(8)
 }
@@ -143,7 +141,7 @@ pub fn text_elem<'a, Message: 'a>(
 ) -> Row<'a, Message> {
     row![text]
         .push(elem)
-        .align_items(Alignment::Center)
+        .align_y(Alignment::Center)
         .spacing(5)
 }
 

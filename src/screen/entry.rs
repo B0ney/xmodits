@@ -160,7 +160,7 @@ impl Entries {
                 column![]
                     .push(centered_text("Drag and Drop"))
                     .push_maybe(show_gif.then(|| widget::animation::GIF.idle()).flatten())
-                    .align_items(Alignment::Center),
+                    .align_x(Alignment::Center),
             )
             .style(style::container::black_hovered(hovered))
             .into();
@@ -192,7 +192,7 @@ fn view_entry((index, entry): (usize, &Entry)) -> Element<Message> {
         )
         .spacing(4)
         .padding(1)
-        .align_items(Alignment::Center);
+        .align_y(Alignment::Center);
 
     button(view)
         .width(Length::Fill)

@@ -64,7 +64,7 @@ fn icon<'a>(unicode: char) -> Text<'a> {
     text(unicode.to_string())
         .font(font::ICONS)
         .size(12.0)
-        .horizontal_alignment(alignment::Horizontal::Center)
+        .align_x(alignment::Horizontal::Center)
 }
 
 pub fn xmodits_logo() -> Image<image::Handle> {
@@ -80,7 +80,7 @@ fn get_img(src: &str) -> image::Handle {
     use std::collections::HashMap;
 
     static MAP: Lazy<HashMap<&'static str, image::Handle>> = Lazy::new(|| {
-        let load = |bytes: &'static [u8]| image::Handle::from_memory(bytes);
+        let load = |bytes: &'static [u8]| image::Handle::from_bytes(bytes);
 
         HashMap::from([
             (

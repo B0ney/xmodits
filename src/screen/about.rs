@@ -8,7 +8,7 @@ use crate::widget::Element;
 use crate::{style, utils};
 
 use iced::widget::{button, column, row, text};
-use iced::Command;
+use iced::Task;
 
 use super::build_info;
 
@@ -22,7 +22,7 @@ pub enum Message {
 
 pub fn view() -> Element<'static, Message> {
     let title = row![vbee3(), text("XMODITS - by B0ney"), vbee3()]
-        .align_items(iced::Alignment::Center)
+        .align_y(iced::Alignment::Center)
         .spacing(8);
 
     let repo = button(text(env!("CARGO_PKG_REPOSITORY")))
@@ -66,17 +66,17 @@ pub fn view() -> Element<'static, Message> {
     column![about].push_maybe(build).spacing(8).into()
 }
 
-pub fn update(msg: Message) -> Command<Message> {
+pub fn update(msg: Message) -> Task<Message> {
     match msg {
-        Message::BuildInfo => Command::perform(export_build_info(), Message::Ignore),
-        Message::Manual => Command::perform(export_manual(), Message::Ignore),
+        Message::BuildInfo => Task::perform(export_build_info(), Message::Ignore),
+        Message::Manual => Task::perform(export_manual(), Message::Ignore),
         Message::Open(link) => {
             if let Err(e) = open::that_detached(link) {
                 tracing::error!("{}", e.to_string());
             }
-            Command::none()
+            Task::none()
         }
-        _ => Command::none(),
+        _ => Task::none(),
     }
 }
 
