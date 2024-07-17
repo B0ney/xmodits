@@ -71,16 +71,9 @@ impl SamplePreview {
 
     // spawn new instance
     pub fn create_instance(&mut self, path: PathBuf) -> Task<Message> {
-        if let Some(old_id) = self.find(&path) {
-            return window::gain_focus(old_id);
-        }
-
-        match self.singleton {
-            true => match self.find_first_instance() {
-                Some(id) => Task::batch([window::gain_focus(id), self.load_samples(id, path)]),
-                None => self.new_instance(path),
-            },
-            false => self.new_instance(path),
+        match self.find(&path) {
+            Some(old_id) => window::gain_focus(old_id),
+            None => self.new_instance(path),
         }
     }
 
