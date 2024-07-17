@@ -68,7 +68,7 @@ pub enum Message {
     StartRipping,
     Subscription(ripper::Message),
     Crashes(crash::Message),
-    WindowOpened(window::Id)
+    WindowOpened(window::Id),
 }
 
 /// This is basically the configuration panel view.
@@ -106,6 +106,7 @@ impl XMODITS {
         tracing::info!("Launcing GUI");
 
         iced::daemon(XMODITS::title, XMODITS::update, XMODITS::view)
+            .theme(XMODITS::theme)
             .settings(XMODITS::settings())
             .subscription(XMODITS::subscription)
             .run_with(|| XMODITS::new(config))
@@ -233,9 +234,13 @@ impl XMODITS {
     }
 
     fn title(&self, id: window::Id) -> String {
-        match Some(id) == self.main_id() {
-            true => self.app_title(),
-            false => self.sample_player.get_title(id),
+        if self.main_id().is_none() {
+            "XMODITS".into()
+        } else {
+            match Some(id) == self.main_id() {
+                true => self.app_title(),
+                false => self.sample_player.get_title(id),
+            }
         }
     }
 
@@ -265,8 +270,9 @@ impl XMODITS {
                     min_size: Some(WINDOW_SIZE),
                     exit_on_close_request: true,
                     ..Default::default()
-                }).map(Message::WindowOpened)
-            ])
+                })
+                .map(Message::WindowOpened),
+            ]),
         )
     }
 
@@ -407,7 +413,7 @@ impl XMODITS {
             Message::WindowOpened(id) => {
                 self.main_id = Some(id);
                 MAIN_ID.set(id);
-            },
+            }
         }
         Task::none()
     }
@@ -423,14 +429,12 @@ impl XMODITS {
 
         tracing::info!("{:?}", _id);
         #[cfg(feature = "audio")]
-
         // if self.main_id() != Some(_id) {
         //     return self
         //         .sample_player
         //         .view(_id, &self.entries)
         //         .map(Message::SamplePlayer);
         // }
-
         let top_left_menu = row![
             button("Ripping").on_press(Message::ConfigPressed),
             button("Settings").on_press(Message::SettingsPressed),
