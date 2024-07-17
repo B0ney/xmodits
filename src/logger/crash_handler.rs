@@ -145,7 +145,7 @@ pub fn set_panic_hook() {
             use std::fmt::Write;
 
             info(true).fold(String::new(), |mut out, (label, value)| {
-                writeln!(&mut out, "{label}: {value}").unwrap();
+                let _ = writeln!(&mut out, "{label}: {value}");
                 out
             })
         };
@@ -256,7 +256,7 @@ pub fn set_panic_hook() {
         // This allows other threads to unwind without
         // having the user to close the dialog box.
         if let Some("main") = std::thread::current().name() {
-            msg_box.join().unwrap();
+            let _ = msg_box.join();
         }
     }));
 }
