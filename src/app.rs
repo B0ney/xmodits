@@ -29,8 +29,6 @@ use std::sync::OnceLock;
 use iced::widget::{button, checkbox, column, row, text, text_input, Space};
 use iced::{window, Alignment, Length, Size, Subscription, Task};
 
-pub static MAIN_ID: OnceLock<window::Id> = OnceLock::new();
-
 const TITLE: &str = "XMODITS";
 const WINDOW_SIZE: Size = Size::new(780.0, 720.0);
 
@@ -412,7 +410,6 @@ impl XMODITS {
             }
             Message::WindowOpened(id) => {
                 self.main_id = Some(id);
-                MAIN_ID.set(id);
             }
         }
         Task::none()
@@ -428,13 +425,15 @@ impl XMODITS {
         }
 
         tracing::info!("{:?}", _id);
+        
         #[cfg(feature = "audio")]
-        // if self.main_id() != Some(_id) {
-        //     return self
-        //         .sample_player
-        //         .view(_id, &self.entries)
-        //         .map(Message::SamplePlayer);
-        // }
+        if self.main_id().is_some_and(|main| main != _id ) {
+            return self
+                .sample_player
+                .view(_id, &self.entries)
+                .map(Message::SamplePlayer);
+        }
+
         let top_left_menu = row![
             button("Ripping").on_press(Message::ConfigPressed),
             button("Settings").on_press(Message::SettingsPressed),

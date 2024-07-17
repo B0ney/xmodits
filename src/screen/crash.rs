@@ -47,7 +47,7 @@ impl Crashes {
         match message {
             Message::Panic(panic) => self.add_panic(panic),
             Message::BadModule(file) => self.add_bad_module(file),
-            Message::Shutdown => return window::close(app::MAIN_ID.get().cloned().unwrap()),
+            Message::Shutdown => return iced::exit(),
             Message::Open(log) => {
                 let _ = open::that_detached(log);
             }
