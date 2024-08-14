@@ -22,7 +22,7 @@
 </div>
 
 ## Download
-You can download builds for xmodits [here](https://github.com/B0ney/xmodits/releases).
+You can download builds for xmodits [here](https://github.com/B0ney/xmodits/releases/latest).
 
 If you wish to build from source, go to [building](#building).
 
