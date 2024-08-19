@@ -6,9 +6,8 @@ use crate::font;
 use crate::icon;
 use crate::ripper;
 use crate::screen::about;
+use crate::screen::config::extraction::{self, ExtractionConfig};
 use crate::screen::config::name_preview;
-use crate::screen::config::sample_naming;
-use crate::screen::config::sample_ripping::{self, DESTINATION_BAR_ID};
 use crate::screen::crash::{self, Crashes};
 use crate::screen::entry::Entries;
 use crate::screen::ripping;
@@ -48,12 +47,13 @@ pub enum Message {
     GeneralCfg(settings::Message),
     Ignore,
     InvertSelection,
-    NamingCfg(sample_naming::Message),
+    ExtractionCfg(extraction::Message),
+    // NamingCfg(sample_naming::Message),
     Open(String),
     PreviewSamples(PathBuf),
     Probe(usize),
     ProbeResult(TrackerInfo),
-    RippingCfg(sample_ripping::Message),
+    // RippingCfg(sample_ripping::Message),
     SamplePlayer(sample_player::Message),
     SaveConfig,
     SaveConfigResult(),
@@ -89,8 +89,9 @@ pub struct XMODITS {
     tracker_info: TrackerInfo,
     crashes: Crashes,
     sample_player: sample_player::SamplePreview,
-    naming_cfg: data::config::SampleNameConfig,
-    ripping_cfg: data::config::SampleRippingConfig,
+    extraction_cfg: ExtractionConfig,
+    // naming_cfg: data::config::SampleNameConfig,
+    // ripping_cfg: data::config::SampleRippingConfig,
     general_cfg: data::config::GeneralConfig,
     main_id: Option<window::Id>,
 }
@@ -128,22 +129,23 @@ impl XMODITS {
     }
 
     pub fn load_cfg(&mut self, config: Config) {
-        self.ripping_cfg = config.ripping;
-        self.naming_cfg = config.naming;
+        // self.ripping_cfg = config.ripping;
+        // self.naming_cfg = config.naming;
         self.general_cfg = config.general;
     }
 
     pub fn build_start_signal(&mut self) -> ripper::Signal {
         self.tracker_info.clear();
         let entries = self.entries.take();
-        let ripping = self.ripping_cfg.to_owned();
-        let naming = self.naming_cfg.to_owned();
+        // let ripping = self.ripping_cfg.to_owned();
+        // let naming = self.naming_cfg.to_owned();
 
-        ripper::Signal {
-            entries,
-            ripping,
-            naming,
-        }
+        // ripper::Signal {
+        //     entries,
+        //     ripping,
+        //     naming,
+        // }
+        todo!()
     }
 
     pub fn clear_entries(&mut self) {
@@ -178,13 +180,14 @@ impl XMODITS {
     }
 
     pub fn save_cfg(&self) -> Task<Message> {
-        let config = data::Config {
-            general: self.general_cfg.clone(),
-            ripping: self.ripping_cfg.clone(),
-            naming: self.naming_cfg,
-        };
+        // let config = data::Config {
+        //     general: self.general_cfg.clone(),
+        //     ripping: self.ripping_cfg.clone(),
+        //     naming: self.naming_cfg,
+        // };
 
-        Task::perform(async move { config.save().await }, |_| Message::Ignore)
+        // Task::perform(async move { config.save().await }, |_| Message::Ignore)
+        todo!()
     }
 
     pub fn start_ripping(&mut self) -> Task<Message> {
@@ -192,11 +195,11 @@ impl XMODITS {
             return Task::none();
         }
 
-        if !sample_ripping::destination_is_valid(&self.ripping_cfg) {
+        if !extraction::destination_is_valid(&self.extraction_cfg) {
             tracing::error!(
                 "The provided destination is not valid. The *parent* folder must exist."
             );
-            return text_input::focus(DESTINATION_BAR_ID.clone());
+            return text_input::focus(extraction::DESTINATION_BAR_ID.clone());
         }
 
         let start_signal = self.build_start_signal();
@@ -296,10 +299,14 @@ impl XMODITS {
             Message::GeneralCfg(cfg) => {
                 return settings::update(&mut self.general_cfg, cfg).map(Message::GeneralCfg)
             }
-            Message::RippingCfg(msg) => {
-                return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
+            Message::ExtractionCfg(cfg) => {
+                return extraction::update(&mut self.extraction_cfg, cfg)
+                    .map(Message::ExtractionCfg)
             }
-            Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
+            // Message::RippingCfg(msg) => {
+            //     return sample_ripping::update(&mut self.ripping_cfg, msg).map(Message::RippingCfg)
+            // }
+            // Message::NamingCfg(msg) => sample_naming::update(&mut self.naming_cfg, msg),
             Message::Open(link) => {
                 if let Err(err) = open::that_detached(link) {
                     tracing::warn!("Could not open external link: {:?}", err)
@@ -425,9 +432,9 @@ impl XMODITS {
         }
 
         tracing::info!("{:?}", _id);
-        
+
         #[cfg(feature = "audio")]
-        if self.main_id().is_some_and(|main| main != _id ) {
+        if self.main_id().is_some_and(|main| main != _id) {
             return self
                 .sample_player
                 .view(_id, &self.entries)
@@ -459,28 +466,21 @@ impl XMODITS {
         .spacing(8);
 
         let left_view = match self.view {
-            View::Configure => {
-                let naming_cfg = {
-                    let name_preview = name_preview::preview_name(
+            View::Configure => column![
+                self.tracker_info.view(),
+                extraction::view_naming(
+                    &self.extraction_cfg,
+                    name_preview::preview_name(
                         &self.general_cfg.sample_name_params,
-                        &self.naming_cfg,
-                        &self.ripping_cfg,
-                    );
-
-                    sample_naming::view(&self.naming_cfg, name_preview).map(Message::NamingCfg)
-                };
-
-                let ripping_cfg = sample_ripping::view(&self.ripping_cfg).map(Message::RippingCfg);
-
-                column![
-                    self.tracker_info.view(),
-                    naming_cfg,
-                    ripping_cfg,
-                    bottom_left_buttons,
-                ]
-                .spacing(10)
-                .into()
-            }
+                        &self.extraction_cfg,
+                    ),
+                )
+                .map(Message::ExtractionCfg),
+                extraction::view_ripping(&self.extraction_cfg).map(Message::ExtractionCfg),
+                bottom_left_buttons,
+            ]
+            .spacing(10)
+            .into(),
             View::Settings => settings::view(&self.general_cfg).map(Message::GeneralCfg),
             View::About => about::view().map(Message::About),
         };
@@ -490,7 +490,7 @@ impl XMODITS {
             .spacing(10);
 
         let destination =
-            sample_ripping::view_destination_bar(&self.ripping_cfg).map(Message::RippingCfg);
+            extraction::view_destination_bar(&self.extraction_cfg).map(Message::ExtractionCfg);
 
         let top_right_buttons = row![
             text(format!(
@@ -547,7 +547,7 @@ impl XMODITS {
         let allow_warnings = !self.general_cfg.suppress_warnings;
 
         let bad_cfg_warning = warning(
-            || allow_warnings && (!self.ripping_cfg.self_contained && !self.naming_cfg.prefix),
+            || allow_warnings && (!self.extraction_cfg.self_contained && !self.extraction_cfg.prefix),
             "\"Self Contained\" is disabled. \
             You should enable \"Prefix Samples\" to reduce collisions. Unless you know what you are doing."
         );
