@@ -1,7 +1,7 @@
-XMODITS v0.12.0 MANUAL
+XMODITS v0.12.2 MANUAL
 
 Author: B0ney
-Last Modified: 27 June 2024
+Last Modified: 26 August 2024
 
 
         HOW TO USE.
@@ -21,7 +21,8 @@ Currently Supported Formats:
     * Impulse Tracker       - it/mptm
 
 Supported Containers:
-    * Unreal Music Package  - umx
+    * Unreal Music Package    - umx
+    * Protracker 3.6 project  - n/a
 
 Keyboard Shortcuts:
     * DELETE                - Clears only the selected entries
@@ -167,7 +168,6 @@ Even I was surprised to see how fast it ran on my system.
 
 What can't XMODITS rip?
 * Scream Tracker 3 modules that ONLY have adlib instruments (it's not pcm!)
-* Protracker 3 modules - pt3, XMODITS may recognise it as an "IFF module" and inform you anyway. This restriction will be lifted for later versions.
 * Modules that use "exotic" compression (except IT214 & IT215 since they're quite common in impulse tracker)
 * .xm modules below 1.4 (those are quite rare)
 

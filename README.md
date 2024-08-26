@@ -28,15 +28,20 @@ If you wish to build from source, go to [building](#building).
 
 If you prefer to use a minimal version of this tool, a command line version of xmodits can be found [here](https://github.com/B0ney/xmodits-cli). Additionally, the command line version has more supported architectures. 
 
-## Supported Tracker Formats
+## Supported Tracker Module Formats
 | Extension | Format | 
 | - | - |
 | ``.it`` | Impulse Tracker |
 | ``.xm`` | Extended Module | 
 | ``.s3m`` | Scream Tracker 3 |
-| ``.mod`` | Amiga Pro Tracker |
+| ``.mod`` | Amiga Protracker |
 | ``.mptm`` | ModPlug Tracker module |
-| ``.umx`` | Unreal Music Package (Containing above) |
+
+## Supported Containers
+| Extension | Description |
+| --- | --- |
+| ``.umx`` | Unreal Music Package|
+| N/A | Protracker 3.6 project file |
 
 # Supported Exports
 | Extension | Format |
