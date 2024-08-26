@@ -1,4 +1,4 @@
-XMODITS v0.12.2 MANUAL
+XMODITS v0.12.3 MANUAL
 
 Author: B0ney
 Last Modified: 26 August 2024

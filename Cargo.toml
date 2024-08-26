@@ -2,7 +2,7 @@
 name = "xmodits-gui"
 authors = ["B0ney <https://github.com/B0ney>"]
 description = "XMODITS graphical application"
-version = "0.12.2"
+version = "0.12.3"
 edition = "2021"
 build = "build.rs"
 license = "GPLv3"
@@ -26,7 +26,7 @@ tracing = "0.1"
 
 [workspace.dependencies.xmodits-lib]
 git = "https://github.com/B0ney/xmodits-lib.git"
-rev = "6f4da08"
+rev = "771c354"
 features = ["serde"]
 
 [workspace.dependencies.iced]
