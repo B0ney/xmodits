@@ -50,7 +50,7 @@ impl SampleBuffer {
 fn peak(buf: &[f32], rate: u32, interval: Duration) -> Vec<(f32, f32)> {
     let chunks = ((rate as f64 / 1000.0) * (interval.as_millis() as f64)).round() as usize;
     let chunks = chunks.max(1);
-    
+
     let find_max = |x: &[f32]| -> (f32, f32) {
         let mut max = 0.0;
         let mut min = 0.0;
@@ -68,8 +68,8 @@ fn peak(buf: &[f32], rate: u32, interval: Duration) -> Vec<(f32, f32)> {
     buf.chunks(chunks).map(find_max).collect()
 }
 
-impl From<xmodits_lib::dsp::SampleBuffer> for SampleBuffer {
-    fn from(sb: xmodits_lib::dsp::SampleBuffer) -> Self {
+impl From<xmodits_lib::export::dsp::SampleBuffer> for SampleBuffer {
+    fn from(sb: xmodits_lib::export::dsp::SampleBuffer) -> Self {
         let rate = sb.rate_original().clamp(1, u32::MAX);
         Self::new(sb.buf, rate)
     }

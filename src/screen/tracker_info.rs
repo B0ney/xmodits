@@ -11,7 +11,7 @@ use crate::widget::Element;
 
 use iced::widget::{column, text, Space};
 use iced::Alignment;
-use xmodits_lib::common::info::Info;
+use xmodits_lib::Info;
 
 #[derive(Default, Debug, Clone)]
 pub enum TrackerInfo {

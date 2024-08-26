@@ -429,8 +429,8 @@ fn load_samples(path: PathBuf) -> Command<Message> {
                         return Err(Error::io_error("File size exceeds 40 MB").unwrap_err());
                     }
 
-                    let module = xmodits_lib::load_module(&mut file)?;
-                    let sample_pack = audio_engine::SamplePack::build(&*module);
+                    let module = xmodits_lib::load(&mut file, Some(path.to_owned()))?;
+                    let sample_pack = audio_engine::SamplePack::build(&module);
                     let name = sample_pack.name;
 
                     let samples = sample_pack

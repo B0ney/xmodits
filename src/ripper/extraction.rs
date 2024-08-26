@@ -66,10 +66,7 @@ pub fn rip(tx: AsyncSender<Message>, signal: Signal) {
         d => d,
     };
 
-    let ripper = Arc::new(Ripper::new(
-        signal.naming.build_func(),
-        cfg.exported_format.into(),
-    ));
+    let ripper = Arc::new(Ripper::new(signal.naming.build_func(), cfg.exported_format));
 
     // Create the destination folder if it doesn't exist
     let _ = std::fs::create_dir(&cfg.destination);
@@ -287,7 +284,7 @@ impl<'io> Batcher<'io> {
             rayon::ThreadPoolBuilder::new()
                 .thread_name(|index| format!("XMODITS Ripping Thread - {index}"))
                 .num_threads(cfg.worker_threads)
-                .panic_handler(|_| {/* Don't abort process */})
+                .panic_handler(|_| { /* Don't abort process */ })
                 .build()
                 .expect("constructing thread pool")
                 .spawn(move || {

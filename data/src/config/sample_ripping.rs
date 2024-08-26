@@ -2,7 +2,7 @@ pub use super::SampleNameConfig;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use xmodits_lib::exporter::AudioFormat;
+use xmodits_lib::export::AudioFormat;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(default)]

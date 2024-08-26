@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use xmodits_lib::{SampleNamer, SampleNamerTrait};
+use xmodits_lib::export::{SampleNamer, SampleNamerTrait};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 #[serde(default)]

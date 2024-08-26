@@ -7,8 +7,8 @@ use crate::ripper::subscription::extraction::strict_loading;
 use std::cmp::Ordering;
 use std::path::PathBuf;
 
-use xmodits_lib::interface::Error;
-use xmodits_lib::{common::extract, interface::ripper::Ripper};
+use xmodits_lib::Error;
+use xmodits_lib::{extract, Ripper};
 
 pub fn rip(paths: impl IntoIterator<Item = String>) {
     let mut paths: Vec<PathBuf> = paths
@@ -46,16 +46,14 @@ pub fn rip(paths: impl IntoIterator<Item = String>) {
         false => {
             let _ = std::fs::create_dir(&config.ripping.destination);
             config.ripping.destination.clone()
-        },
+        }
     };
 
     let log_path = config.general.logging_path.as_ref().unwrap_or(&destination);
 
     let self_contained = config.ripping.self_contained;
 
-    let mut ripper = Ripper::default();
-    ripper.change_namer(config.naming.build_func());
-    ripper.change_format(config.ripping.exported_format.get_impl());
+    let ripper = Ripper::new(config.naming.build_func(), config.ripping.exported_format);
 
     let errors: Vec<(PathBuf, Error)> = paths
         .into_iter()

@@ -1,7 +1,8 @@
 //! Preview how ripped samples will be named
 
 use data::config::{SampleNameConfig, SampleNameParams, SampleRippingConfig};
-use xmodits_lib::interface::{name::Context, Sample};
+use xmodits_lib::export::name::Context;
+use xmodits_lib::Sample;
 
 pub fn preview_name<'a>(
     params: &SampleNameParams,

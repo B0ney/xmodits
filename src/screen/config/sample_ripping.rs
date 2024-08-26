@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use data::config::SampleRippingConfig;
-use xmodits_lib::exporter::AudioFormat;
+use xmodits_lib::AudioFormat;
 
 use crate::theme;
 use crate::utils::folder_dialog;

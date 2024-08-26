@@ -8,7 +8,7 @@ pub use config::Config;
 pub use theme::Theme;
 pub use time::Time;
 
-use xmodits_lib::exporter::AudioFormat;
+use xmodits_lib::AudioFormat;
 
 pub const SUPPORTED_FORMATS: &[AudioFormat] = &[
     AudioFormat::WAV,

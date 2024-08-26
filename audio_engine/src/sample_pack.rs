@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use xmodits_lib::dsp;
+use xmodits_lib::export::dsp;
 use xmodits_lib::{Module, Sample};
 
 use crate::sample::buffer::SampleBuffer;
@@ -17,10 +17,10 @@ pub struct SamplePack {
 }
 
 impl SamplePack {
-    pub fn build(module: &dyn Module) -> Self {
-        let name = module.name().trim().to_owned();
-        let format = module.format().to_owned();
-        let total_samples = module.total_samples();
+    pub fn build(module: &Module) -> Self {
+        let name = module.info().name.trim().to_owned();
+        let format = module.info().format.to_owned();
+        let total_samples = module.len();
         let total_sample_size = module.samples().iter().map(|m| m.length as usize).sum();
 
         let samples = module
